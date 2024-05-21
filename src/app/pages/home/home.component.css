@@ -1,0 +1,80 @@
+.grid-home-container {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  height: 100%;
+  width: 100%;
+  max-width: 100%;
+}
+
+@media screen and (max-width: 599px) {
+  .grid-home-container {
+    grid-template-rows: 70% 30%;
+  }
+  .logo {
+    height: 60px;
+    margin-bottom: 8px !important;
+  }
+  .hyperion-logo {
+    height: 95px;
+  }
+  .home-search-input {
+    width: 100%;
+  }
+}
+@media (min-width: 600px) {
+  .grid-home-container {
+    grid-template-rows: 60% 40%;
+  }
+  .logo {
+    height: 70px;
+  }
+  .hyperion-logo {
+    height: 42px;
+  }
+  .home-search-input {
+    width: 350px;
+  }
+}
+
+.search-btn {
+  height: 60px;
+  border-radius: 0 5px 5px 0;
+  border-left: 0;
+}
+
+::ng-deep .home-search-input.mat-form-field-appearance-outline .mat-form-field-outline-end {
+  border-radius: 0 0 0 0 !important;
+}
+
+::ng-deep .home-search-input.mat-form-field-appearance-outline .mat-form-field-wrapper {
+  /*margin: 0 0 .25em 0;*/
+  padding-bottom: unset;
+  margin: unset;
+  height: 100%;
+}
+
+::ng-deep .home-search-input .mat-form-field-flex {
+  height: 100%;
+  align-items: center;
+}
+
+::ng-deep .home-search-input .mat-form-field-outline {
+  height: 100%;
+}
+
+.outline {
+  border: 1px solid rgba(0,0,0,.12);
+  padding: 4px 7px;
+  border-radius: 3px;
+}
+
+.faded {
+  color: gray;
+}
+
+.footer-text {
+  text-align: center;
+  padding-bottom: 30px;
+}
+
+
