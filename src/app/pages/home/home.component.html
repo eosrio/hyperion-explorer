@@ -1,68 +1,76 @@
-<div class="bg-amber-500 w-full h-full flex flex-col">
+<div class="bg-slate-600 w-full h-full flex flex-col">
 
 
-  <div class="bg-slate-100 m-10 mt-0 rounded-b-2xl content-start">
+  <div class="bg-slate-200 mx-5 mb-5 mt-0 rounded-b-2xl content-start">
 
-    <div style="width: 100%">
+    <div class="w-full mt-4">
       <app-pre-header></app-pre-header>
     </div>
 
-    <div class="grow flex flex-col items-center justify-center">
+    <div class="grow flex flex-col items-center justify-center gap-10 py-10">
 
       <!-- DYNAMIC CHAIN LOGO-->
-      <div class="h-20">
-        <img [ngSrc]="chainData().logo" alt="logo" class="logo" width="192" height="70" priority/>
-      </div>
+      <img [ngSrc]="chainData().logo" alt="logo" class="logo" width="192" height="70" priority/>
 
       <form [formGroup]="searchForm" (ngSubmit)="submit()" class="flex flex-row w-full justify-center">
-        <mat-form-field appearance="fill" class="flex flex-row w-1/2">
-          <input class="grow" matInput formControlName="search_field" [placeholder]="searchPlaceholder">
-          <fa-icon class="mx-5" matSuffix [icon]="faSearch"></fa-icon>
-          <button matSuffix mat-flat-button>Search</button>
-        </mat-form-field>
+        <div
+          class="rounded-full bg-slate-50 flex flex-row gap-5 content-center
+          focus-within:outline focus-within:outline-2 focus-within:outline-amber-400 focus-within:-outline-offset-2
+          hover:border-amber-400 border-transparent transition-all duration-100 ease-in-out">
+          <input #searchField formControlName="search_field" [placeholder]="searchPlaceholder"
+                 class="grow outline-none ml-0 pl-5 pr-20 py-4 rounded-l-full bg-slate-50">
+          <button mat-flat-button color="primary" class="mr-2 place-self-center">
+            <mat-icon>search</mat-icon>
+            Search
+          </button>
+        </div>
       </form>
 
     </div>
 
-<!--    <form [formGroup]="searchForm" (ngSubmit)="submit()" class="flex flex-row justify-center items-stretch">-->
-<!--      <div fxHide.lt-sm="width: 30px"></div>-->
-<!--      <div class="flex flex-column xs:flex-100">-->
-<!--        <mat-form-field appearance="outline" class="home-search-input flex-grow" style="height: 100%">-->
-<!--          <label>-->
-<!--            <input matInput formControlName="search_field" [matAutocomplete]="auto"-->
-<!--                   [placeholder]="searchPlaceholder" type="text"/>-->
-<!--          </label>-->
-<!--          @if (err) {-->
-<!--            <mat-error>{{ err }}</mat-error>-->
-<!--          }-->
-<!--        </mat-form-field>-->
-<!--      </div>-->
+    <!--    <form [formGroup]="searchForm" (ngSubmit)="submit()" class="flex flex-row justify-center items-stretch">-->
+    <!--      <div fxHide.lt-sm="width: 30px"></div>-->
+    <!--      <div class="flex flex-column xs:flex-100">-->
+    <!--        <mat-form-field appearance="outline" class="home-search-input flex-grow" style="height: 100%">-->
+    <!--          <label>-->
+    <!--            <input matInput formControlName="search_field" [matAutocomplete]="auto"-->
+    <!--                   [placeholder]="searchPlaceholder" type="text"/>-->
+    <!--          </label>-->
+    <!--          @if (err) {-->
+    <!--            <mat-error>{{ err }}</mat-error>-->
+    <!--          }-->
+    <!--        </mat-form-field>-->
+    <!--      </div>-->
 
-<!--      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="submit()">-->
-<!--        @for (account of filteredAccounts; track account) {-->
-<!--          <mat-option-->
-<!--            [value]="account"-->
-<!--          >{{ account }}-->
-<!--          </mat-option-->
-<!--          >-->
-<!--        }-->
-<!--      </mat-autocomplete>-->
+    <!--      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="submit()">-->
+    <!--        @for (account of filteredAccounts; track account) {-->
+    <!--          <mat-option-->
+    <!--            [value]="account"-->
+    <!--          >{{ account }}-->
+    <!--          </mat-option-->
+    <!--          >-->
+    <!--        }-->
+    <!--      </mat-autocomplete>-->
 
-<!--      <button-->
-<!--        mat-stroked-button-->
-<!--        matSuffix-->
-<!--        type="submit"-->
-<!--        [attr.aria-label]="'search'"-->
-<!--        class="search-btn"-->
-<!--        (keyup.enter)="submit()"-->
-<!--      >-->
-<!--        <fa-icon [icon]="icons.solid.search"></fa-icon>-->
-<!--      </button>-->
-<!--    </form>-->
+    <!--      <button-->
+    <!--        mat-stroked-button-->
+    <!--        matSuffix-->
+    <!--        type="submit"-->
+    <!--        [attr.aria-label]="'search'"-->
+    <!--        class="search-btn"-->
+    <!--        (keyup.enter)="submit()"-->
+    <!--      >-->
+    <!--        <fa-icon [icon]="icons.solid.search"></fa-icon>-->
+    <!--      </button>-->
+    <!--    </form>-->
 
   </div>
+
   <div class="grow bg-gradient-to-b bg-fuchsia-700">
+    <p>Searching by {{ searchType() }}</p>
+    <p>Query: {{ searchValue() }}</p>
   </div>
+
 </div>
 
 <!--<div class="grid-home-container">-->

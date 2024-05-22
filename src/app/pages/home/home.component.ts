@@ -1,4 +1,4 @@
-import {Component, Inject, PLATFORM_ID, signal} from '@angular/core';
+import {Component, ElementRef, HostListener, Inject, PLATFORM_ID, signal, viewChild} from '@angular/core';
 import {PreHeaderComponent} from "../../components/pre-header/pre-header.component";
 import {MatCard} from "@angular/material/card";
 import {isPlatformBrowser, isPlatformServer, NgOptimizedImage} from "@angular/common";
@@ -12,6 +12,7 @@ import {MatInput} from "@angular/material/input";
 import {MatButton} from "@angular/material/button";
 import {DataService} from "../../services/data.service";
 import {ExplorerMetadata} from "../../interfaces";
+import {MatIcon} from "@angular/material/icon";
 
 @Component({
   selector: 'app-home',
@@ -29,12 +30,15 @@ import {ExplorerMetadata} from "../../interfaces";
     MatAutocompleteTrigger,
     MatError,
     MatButton,
-    MatSuffix
-],
+    MatSuffix,
+    MatIcon
+  ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
 })
 export class HomeComponent {
+
+  searchField = viewChild<ElementRef<HTMLInputElement>>('searchField');
 
   icons = {
     solid: {
@@ -77,6 +81,7 @@ export class HomeComponent {
     this.searchPlaceholder = this.placeholders[0];
 
     if (isPlatformBrowser(this.platformId)) {
+
       setInterval(() => {
         this.currentPlaceholder++;
         if (!this.placeholders[this.currentPlaceholder]) {
@@ -84,6 +89,16 @@ export class HomeComponent {
         }
         this.searchPlaceholder = this.placeholders[this.currentPlaceholder];
       }, 2000);
+    }
+  }
+
+  @HostListener('window:keydown', ['$event'])
+  onKeyPressed(event: KeyboardEvent) {
+    // detect Ctrl+Shift+F
+    if (event.ctrlKey && event.shiftKey && event.key === 'F') {
+      console.log('Focus on search field',this.searchField());
+      // focus on the search_field of this.searchForm
+      this.searchField()?.nativeElement.focus();
     }
   }
 
@@ -102,4 +117,6 @@ export class HomeComponent {
   }
 
   protected readonly faSearch = faSearch;
+  searchValue = signal<string | null>(null);
+  searchType = signal<string | null>(null);
 }

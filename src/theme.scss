@@ -65,7 +65,7 @@ $hyperion-accent-palette: (
   A200: var(--accent),
   A400: var(--accent),
   A700: var(--accent),
-  contrast: (
+  contrast: (FFFFFF
     50: var(--btn-accent-color),
     100: var(--btn-accent-color),
     200: var(--btn-accent-color),
@@ -85,6 +85,7 @@ $hyperion-accent-palette: (
 
 $primary: mat.m2-define-palette($hyperion-primary-palette, 500);
 $accent: mat.m2-define-palette($hyperion-accent-palette, 500);
+
 $theme: mat.m2-define-light-theme((
   color: (
     primary: $primary,

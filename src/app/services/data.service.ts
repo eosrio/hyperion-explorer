@@ -23,7 +23,6 @@ export class DataServiceServer extends DataService {
       const response = await fetch(environment.hyperionApiUrl + '/v2/explorer_metadata');
       const data: ExplorerMetadata = await response.json();
       if (data && data.last_indexed_block && data.last_indexed_block > 1) {
-        console.log(data);
         data.logo = environment.logo;
         this.state.set(makeStateKey<Awaited<ReturnType<ExplorerMetadata | any>>>('chain_data'), data);
         this.explorerMetadata = data;
@@ -49,7 +48,6 @@ export class DataServiceServer extends DataService {
 export class DataServiceBrowser extends DataService {
   state = inject(TransferState);
   explorerMetadata: ExplorerMetadata | null = null;
-  metadataSignal = signal<ExplorerMetadata>({} as ExplorerMetadata);
 
   constructor(private title: Title) {
     super();
