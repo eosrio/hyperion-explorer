@@ -1,7 +1,7 @@
 import {Component, ElementRef, HostListener, Inject, PLATFORM_ID, signal, viewChild} from '@angular/core';
 import {PreHeaderComponent} from "../../components/pre-header/pre-header.component";
 import {MatCard} from "@angular/material/card";
-import {isPlatformBrowser, isPlatformServer, NgOptimizedImage} from "@angular/common";
+import {isPlatformBrowser, NgOptimizedImage} from "@angular/common";
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from "@angular/forms";
 import {MatError, MatFormField, MatSuffix} from "@angular/material/form-field";
 import {faHeart, faSearch} from "@fortawesome/free-solid-svg-icons";
@@ -13,6 +13,7 @@ import {MatButton} from "@angular/material/button";
 import {DataService} from "../../services/data.service";
 import {ExplorerMetadata} from "../../interfaces";
 import {MatIcon} from "@angular/material/icon";
+import {RouterOutlet} from "@angular/router";
 
 @Component({
   selector: 'app-home',
@@ -31,14 +32,14 @@ import {MatIcon} from "@angular/material/icon";
     MatError,
     MatButton,
     MatSuffix,
-    MatIcon
+    MatIcon,
+    RouterOutlet
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
 })
 export class HomeComponent {
 
-  searchField = viewChild<ElementRef<HTMLInputElement>>('searchField');
 
   icons = {
     solid: {
@@ -47,20 +48,29 @@ export class HomeComponent {
     }
   }
 
+  // local signals
   public chainData = signal<ExplorerMetadata>({} as ExplorerMetadata);
+
+  // shared signals
+  searchValue = this.searchService.searchQuery.asReadonly();
+  searchType = this.searchService.searchType.asReadonly();
+  searchField = viewChild<ElementRef<HTMLInputElement>>('searchField');
 
   searchForm: FormGroup;
   filteredAccounts: string[];
   searchPlaceholder: string;
 
+  private currentPlaceholder = 0;
   placeholders = [
     'Search by account name...',
     'Search by block number...',
     'Search by transaction id...',
+    'Search by EVM hash...',
     'Search by public key...'
   ];
-  err = '';
-  private currentPlaceholder = 0;
+
+  err = signal("");
+
 
   constructor(
     private dataService: DataService,
@@ -71,7 +81,7 @@ export class HomeComponent {
 
     if (this.dataService.explorerMetadata) {
       this.chainData.set(this.dataService.explorerMetadata);
-      console.log(this.dataService.explorerMetadata);
+      // console.log(this.dataService.explorerMetadata);
     }
 
     this.searchForm = this.formBuilder.group({
@@ -96,7 +106,7 @@ export class HomeComponent {
   onKeyPressed(event: KeyboardEvent) {
     // detect Ctrl+Shift+F
     if (event.ctrlKey && event.shiftKey && event.key === 'F') {
-      console.log('Focus on search field',this.searchField());
+      console.log('Focus on search field', this.searchField());
       // focus on the search_field of this.searchForm
       this.searchField()?.nativeElement.focus();
     }
@@ -111,12 +121,10 @@ export class HomeComponent {
       this.searchForm.reset();
       const status = this.searchService.submitSearch(searchText, this.filteredAccounts);
       if (!status) {
-        this.err = 'no results for ' + searchText;
+        this.err.set('no results for ' + searchText);
+      } else {
+        this.err.set("");
       }
     }
   }
-
-  protected readonly faSearch = faSearch;
-  searchValue = signal<string | null>(null);
-  searchType = signal<string | null>(null);
 }
