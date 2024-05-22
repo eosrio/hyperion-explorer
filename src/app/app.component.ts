@@ -1,5 +1,6 @@
 import {Component} from '@angular/core';
 import {RouterOutlet} from '@angular/router';
+import {DataService} from "./services/data.service";
 
 @Component({
   selector: 'app-root',
@@ -9,7 +10,7 @@ import {RouterOutlet} from '@angular/router';
   styleUrl: './app.component.css'
 })
 export class AppComponent {
+
   constructor() {
-    console.log('App Component loaded');
   }
 }

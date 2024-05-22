@@ -1,1 +1,21 @@
-<p>pre-header works!</p>
+<div class="hr-container flex flex-row justify-between items-center gap-[8px]">
+  <div routerLink="/" style="cursor: pointer" class="flex flex-row flex-wrap justify-start items-center gap-[6px]">
+    <img
+      ngSrc="assets/hyperion-pulse.svg"
+      alt="logo"
+      style="height: 19px"
+      class="logo"
+      height="16"
+      width="16"
+    />
+
+    <div class="logo-name">HYPERION</div>
+    <div class="tagline faded">Lightweight Explorer</div>
+  </div>
+  @if (chainData) {
+    <div class="faded provider">
+      Data provider:
+      <a [href]="chainData.provider_url" target="_blank">{{ chainData.provider }}</a>
+    </div>
+  }
+</div>

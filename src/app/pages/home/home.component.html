@@ -1,62 +1,145 @@
-<div class="grid-home-container">
-  <div fxLayout="column" style="height: 100%">
-
-    <mat-card class="search-card" style="height: 100%" fxLayout="column" fxLayoutAlign="start stretch">
-      <div style="width: 100%">
-        <app-pre-header></app-pre-header>
-      </div>
-
-      <div fxLayout="column" fxLayoutAlign="center center" style="text-align: center; height: 100%" fxLayoutGap="40px"
-           class="hr-container">
+<div class="bg-amber-500 w-full h-full flex flex-col">
 
 
-        <img [src]="chainData().logo" alt="logo" class="logo">
+  <div class="bg-slate-100 m-10 mt-0 rounded-b-2xl content-start">
 
-        <form [formGroup]="searchForm" (ngSubmit)="submit()" fxFlexAlign.lt-sm="stretch" fxFlexOffset.lt-sm="20px">
-
-
-          <div fxLayout="row" fxLayoutAlign="center stretch">
-            <div fxHide.lt-sm="width: 30px"></div>
-            <div fxLayout="column" fxFlex.lt-sm="100">
-              <mat-form-field appearance="outline" class="home-search-input" style="height: 100%" fxFlex="grow">
-                <label>
-                  <input matInput formControlName="search_field" [matAutocomplete]="auto"
-                         [placeholder]="searchPlaceholder" type="text">
-                </label>
-                <mat-error *ngIf="err">{{err}}</mat-error>
-              </mat-form-field>
-            </div>
-
-            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="submit()">
-              <mat-option *ngFor="let account of filteredAccounts" [value]="account">{{account}}</mat-option>
-            </mat-autocomplete>
-
-            <button mat-stroked-button matSuffix type="submit" [attr.aria-label]="'search'" class="search-btn"
-                    (keyup.enter)="submit()">
-              <fa-icon [icon]="icons.solid.search"></fa-icon>
-            </button>
-
-          </div>
-
-        </form>
-
-      </div>
-    </mat-card>
-  </div>
-
-  <div fxLayout="column" fxLayoutAlign="end center"  style="width: 100%">
-    <div class="hr-container" fxLayout="row" fxLayoutAlign="space-between center" fxLayoutGap="8px"
-         fxFlexOffset.lt-sm="70px">
-      <span class="montserrat">Powered by</span>
-      <button mat-stroked-button>
-        <img src="assets/logo-hyperion.svg" alt="logo" class="hyperion-logo">
-      </button>
-
-      <!--          <span class="outline" fxLayout="row" fxLayoutAlign="center center" fxLayoutGap="5px">-->
-      <!--            <img [src]="chainData.chainInfoData.logo" alt="logo" style="height: 28px">-->
-      <!--            <span>{{chainData.chainInfoData.chain_name}}</span>-->
-      <!--          </span>-->
+    <div style="width: 100%">
+      <app-pre-header></app-pre-header>
     </div>
-    <!--    <div class="faded footer-text" style="">Made with <fa-icon [icon]="faHeart"></fa-icon> by Rio Blocks</div>-->
+
+    <div class="grow flex flex-col items-center justify-center">
+
+      <!-- DYNAMIC CHAIN LOGO-->
+      <div class="h-20">
+        <img [ngSrc]="chainData().logo" alt="logo" class="logo" width="192" height="70" priority/>
+      </div>
+
+      <form [formGroup]="searchForm" (ngSubmit)="submit()" class="flex flex-row w-full justify-center">
+        <mat-form-field appearance="fill" class="flex flex-row w-1/2">
+          <input class="grow" matInput formControlName="search_field" [placeholder]="searchPlaceholder">
+          <fa-icon class="mx-5" matSuffix [icon]="faSearch"></fa-icon>
+          <button matSuffix mat-flat-button>Search</button>
+        </mat-form-field>
+      </form>
+
+    </div>
+
+<!--    <form [formGroup]="searchForm" (ngSubmit)="submit()" class="flex flex-row justify-center items-stretch">-->
+<!--      <div fxHide.lt-sm="width: 30px"></div>-->
+<!--      <div class="flex flex-column xs:flex-100">-->
+<!--        <mat-form-field appearance="outline" class="home-search-input flex-grow" style="height: 100%">-->
+<!--          <label>-->
+<!--            <input matInput formControlName="search_field" [matAutocomplete]="auto"-->
+<!--                   [placeholder]="searchPlaceholder" type="text"/>-->
+<!--          </label>-->
+<!--          @if (err) {-->
+<!--            <mat-error>{{ err }}</mat-error>-->
+<!--          }-->
+<!--        </mat-form-field>-->
+<!--      </div>-->
+
+<!--      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="submit()">-->
+<!--        @for (account of filteredAccounts; track account) {-->
+<!--          <mat-option-->
+<!--            [value]="account"-->
+<!--          >{{ account }}-->
+<!--          </mat-option-->
+<!--          >-->
+<!--        }-->
+<!--      </mat-autocomplete>-->
+
+<!--      <button-->
+<!--        mat-stroked-button-->
+<!--        matSuffix-->
+<!--        type="submit"-->
+<!--        [attr.aria-label]="'search'"-->
+<!--        class="search-btn"-->
+<!--        (keyup.enter)="submit()"-->
+<!--      >-->
+<!--        <fa-icon [icon]="icons.solid.search"></fa-icon>-->
+<!--      </button>-->
+<!--    </form>-->
+
+  </div>
+  <div class="grow bg-gradient-to-b bg-fuchsia-700">
   </div>
 </div>
+
+<!--<div class="grid-home-container">-->
+
+<!--  <div style="height: 100%" class="flex flex-column">-->
+<!--    <mat-card class="search-card flex flex-column justify-start content-stretch" style="height: 100%">-->
+<!--      <div style="width: 100%">-->
+<!--        <app-pre-header></app-pre-header>-->
+<!--      </div>-->
+
+<!--      <div style="text-align: center; height: 100%"-->
+<!--           class="hr-container flex flex-column justify-center content-center gap-[40px]">-->
+
+<!--        <div class="h-20">-->
+<!--          <img [src]="chainData().logo" alt="logo" class="logo"/>-->
+<!--        </div>-->
+
+<!--        <form [formGroup]="searchForm" (ngSubmit)="submit()" fxFlexAlign.lt-sm="stretch"-->
+<!--              class="ltr:xs:ml-[20px] rtl:xs:mr-[20px]">-->
+<!--          <div class="flex flex-row justify-center items-stretch">-->
+<!--            <div fxHide.lt-sm="width: 30px"></div>-->
+<!--            <div class="flex flex-column xs:flex-100">-->
+<!--              <mat-form-field appearance="outline" class="home-search-input flex-grow" style="height: 100%">-->
+<!--                <label>-->
+<!--                  <input matInput formControlName="search_field" [matAutocomplete]="auto"-->
+<!--                         [placeholder]="searchPlaceholder" type="text"/>-->
+<!--                </label>-->
+<!--                @if (err) {-->
+<!--                  <mat-error>{{ err }}</mat-error>-->
+<!--                }-->
+<!--              </mat-form-field>-->
+<!--            </div>-->
+
+<!--            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="submit()">-->
+<!--              @for (account of filteredAccounts; track account) {-->
+<!--                <mat-option-->
+<!--                  [value]="account"-->
+<!--                >{{ account }}-->
+<!--                </mat-option-->
+<!--                >-->
+<!--              }-->
+<!--            </mat-autocomplete>-->
+
+<!--            <button-->
+<!--              mat-stroked-button-->
+<!--              matSuffix-->
+<!--              type="submit"-->
+<!--              [attr.aria-label]="'search'"-->
+<!--              class="search-btn"-->
+<!--              (keyup.enter)="submit()"-->
+<!--            >-->
+<!--              <fa-icon [icon]="icons.solid.search"></fa-icon>-->
+<!--            </button>-->
+<!--          </div>-->
+<!--        </form>-->
+<!--      </div>-->
+<!--    </mat-card>-->
+<!--  </div>-->
+
+<!--  <div style="width: 100%" class="flex flex-column justify-end items-center">-->
+<!--    <div-->
+<!--      class="hr-container flex flex-row justify-between content-center gap-[8px] xs:mt-[70px]"-->
+<!--    >-->
+<!--      <span class="montserrat">Powered by</span>-->
+<!--      <button mat-stroked-button>-->
+<!--        <img ngSrc="assets/logo-hyperion.svg" alt="logo" class="hyperion-logo" width="136" height="42"/>-->
+<!--      </button>-->
+
+<!--      &lt;!&ndash;          <span class="outline" fxLayout="row" fxLayoutAlign="center center" fxLayoutGap="5px">&ndash;&gt;-->
+<!--      &lt;!&ndash;            <img [src]="chainData.chainInfoData.logo" alt="logo" style="height: 28px">&ndash;&gt;-->
+<!--      &lt;!&ndash;            <span>{{chainData.chainInfoData.chain_name}}</span>&ndash;&gt;-->
+<!--      &lt;!&ndash;          </span>&ndash;&gt;-->
+<!--    </div>-->
+<!--    <div class="faded footer-text" style="">Made with-->
+<!--      <fa-icon [icon]="icons.solid.heart"></fa-icon>-->
+<!--      by Rio Blocks-->
+<!--    </div>-->
+<!--  </div>-->
+
+<!--</div>-->

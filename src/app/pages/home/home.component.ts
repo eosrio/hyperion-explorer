@@ -1,15 +1,17 @@
-import {Component, Inject, PLATFORM_ID} from '@angular/core';
+import {Component, Inject, PLATFORM_ID, signal} from '@angular/core';
 import {PreHeaderComponent} from "../../components/pre-header/pre-header.component";
 import {MatCard} from "@angular/material/card";
-import {ChainService} from "../../services/chain.service";
-import {isPlatformBrowser, NgForOf, NgIf, NgOptimizedImage} from "@angular/common";
+import {isPlatformBrowser, isPlatformServer, NgOptimizedImage} from "@angular/common";
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from "@angular/forms";
-import {MatError, MatFormField} from "@angular/material/form-field";
-import {faSearch} from "@fortawesome/free-solid-svg-icons";
+import {MatError, MatFormField, MatSuffix} from "@angular/material/form-field";
+import {faHeart, faSearch} from "@fortawesome/free-solid-svg-icons";
 import {FaIconComponent} from "@fortawesome/angular-fontawesome";
 import {SearchService} from "../../services/search.service";
 import {MatAutocomplete, MatAutocompleteTrigger, MatOption} from "@angular/material/autocomplete";
 import {MatInput} from "@angular/material/input";
+import {MatButton} from "@angular/material/button";
+import {DataService} from "../../services/data.service";
+import {ExplorerMetadata} from "../../interfaces";
 
 @Component({
   selector: 'app-home',
@@ -25,10 +27,10 @@ import {MatInput} from "@angular/material/input";
     MatOption,
     MatInput,
     MatAutocompleteTrigger,
-    NgIf,
-    NgForOf,
-    MatError
-  ],
+    MatError,
+    MatButton,
+    MatSuffix
+],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
 })
@@ -36,11 +38,12 @@ export class HomeComponent {
 
   icons = {
     solid: {
-      search: faSearch
+      search: faSearch,
+      heart: faHeart
     }
   }
 
-  public chainData = this.chainService.meta.asReadonly();
+  public chainData = signal<ExplorerMetadata>({} as ExplorerMetadata);
 
   searchForm: FormGroup;
   filteredAccounts: string[];
@@ -56,16 +59,23 @@ export class HomeComponent {
   private currentPlaceholder = 0;
 
   constructor(
-    private chainService: ChainService,
+    private dataService: DataService,
     private formBuilder: FormBuilder,
     private searchService: SearchService,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
+
+    if (this.dataService.explorerMetadata) {
+      this.chainData.set(this.dataService.explorerMetadata);
+      console.log(this.dataService.explorerMetadata);
+    }
+
     this.searchForm = this.formBuilder.group({
       search_field: ['', Validators.required]
     });
     this.filteredAccounts = [];
     this.searchPlaceholder = this.placeholders[0];
+
     if (isPlatformBrowser(this.platformId)) {
       setInterval(() => {
         this.currentPlaceholder++;
@@ -90,4 +100,6 @@ export class HomeComponent {
       }
     }
   }
+
+  protected readonly faSearch = faSearch;
 }
