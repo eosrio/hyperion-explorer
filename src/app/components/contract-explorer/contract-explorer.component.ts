@@ -19,6 +19,7 @@ import {
   MatTable
 } from "@angular/material/table";
 import {MatSort, MatSortHeader, Sort} from "@angular/material/sort";
+import {MatTooltip} from "@angular/material/tooltip";
 
 interface AbiTable {
   index_type: string;
@@ -50,7 +51,8 @@ interface AbiStructField {
     MatRowDef,
     MatHeaderRowDef,
     MatSortHeader,
-    MatSort
+    MatSort,
+    MatTooltip
   ],
   templateUrl: './contract-explorer.component.html',
   styleUrl: './contract-explorer.component.css'
