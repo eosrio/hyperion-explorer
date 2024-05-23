@@ -1,4 +1,4 @@
-import {afterNextRender, Component, computed, input, signal, ViewChild} from '@angular/core';
+import {afterNextRender, Component, computed, input, signal} from '@angular/core';
 import {ActivatedRoute, ParamMap, Router} from "@angular/router";
 import {toSignal} from "@angular/core/rxjs-interop";
 import {HttpClient} from "@angular/common/http";
@@ -102,7 +102,7 @@ export class ContractExplorerComponent {
     return this.fields().map(value => value.name);
   });
 
-  @ViewChild(MatSort) sort?: MatSort;
+  nextScope = signal("");
 
   constructor(
     private route: ActivatedRoute,
@@ -112,7 +112,6 @@ export class ContractExplorerComponent {
 
     afterNextRender(() => {
       this.route.paramMap.subscribe(value => {
-        console.log(value);
         this.processRouteParams(value).catch(console.error);
       });
     });
@@ -122,7 +121,6 @@ export class ContractExplorerComponent {
     const pCode = this.codeInput() !== "" ? this.codeInput() : (params.get('code') ?? "");
     const pTable = params.get('table') ?? "";
     const pScope = params.get('scope') ?? "";
-    console.log(pCode, pTable, pScope);
     if (pCode && pTable && pScope) {
       this.code.set(pCode);
       this.selectedTable.set(pTable);
@@ -161,10 +159,25 @@ export class ContractExplorerComponent {
   }
 
   async getTableScopes(code: string, table: string) {
-    const url = `${environment.hyperionApiUrl}/v1/chain/get_table_by_scope?code=${code}&table=${table}`;
-    const data: any = await lastValueFrom(this.http.get(url));
+    const limit = 20;
+    const url = `${environment.hyperionApiUrl}/v1/chain/get_table_by_scope?code=${code}&table=${table}&limit=${limit}`;
+    const data: {
+      rows: any[],
+      more: string
+    } = await lastValueFrom(this.http.get(url)) as any;
+    console.log(data);
     if (data && data.rows) {
+      if (data.rows.length > limit) {
+        console.log(`Array has size: ${data.rows.length}`);
+        data.more = data.rows[limit + 1].scope;
+        data.rows.splice(limit);
+        console.log(`Array was trimmed to ${data.rows.length}`);
+      }
       this.scopes.set(data.rows);
+      if (data.more) {
+        this.nextScope.set(data.more);
+        console.log(`Next scope at: ${data.more}`);
+      }
       // console.log('Scopes:', this.scopeNames());
     }
     // console.log(data);

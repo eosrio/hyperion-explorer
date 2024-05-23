@@ -31,13 +31,16 @@
     <!--  </div>-->
 
   <p>Please select a scope:</p>
-  <div class="flex flex-row gap-2 m-2">
+  <div class="flex flex-row flex-wrap gap-2 m-2">
     @for (scope of scopeNames(); track scope) {
       <button (click)="selectScope(scope)" mat-flat-button
               [color]="scope === selectedScope() ? 'accent' : 'primary'">{{ scope }}
       </button>
     }
   </div>
+  @if (nextScope()) {
+    <p>Next Scope: {{ nextScope() }}</p>
+  }
 }
 @defer (when table() !== "" && scope() !== "") {
 
