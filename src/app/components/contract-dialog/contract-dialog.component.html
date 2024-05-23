@@ -1,0 +1,7 @@
+<div mat-dialog-title class="bg-slate-600 text-center text-2xl text-slate-300 py-2">Hyperion Smart Contract Explorer
+</div>
+<mat-dialog-content>
+  @defer (when code()) {
+    <app-contract-explorer [codeInput]="code()"></app-contract-explorer>
+  }
+</mat-dialog-content>

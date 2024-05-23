@@ -13,7 +13,7 @@ import {MatButton} from "@angular/material/button";
 import {DataService} from "../../services/data.service";
 import {ExplorerMetadata} from "../../interfaces";
 import {MatIcon} from "@angular/material/icon";
-import {RouterOutlet} from "@angular/router";
+import {ActivatedRoute, Router, RouterOutlet} from "@angular/router";
 
 @Component({
   selector: 'app-home',
@@ -76,6 +76,8 @@ export class HomeComponent {
     private dataService: DataService,
     private formBuilder: FormBuilder,
     private searchService: SearchService,
+    private router: Router,
+    private route: ActivatedRoute,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
 
@@ -91,7 +93,6 @@ export class HomeComponent {
     this.searchPlaceholder = this.placeholders[0];
 
     if (isPlatformBrowser(this.platformId)) {
-
       setInterval(() => {
         this.currentPlaceholder++;
         if (!this.placeholders[this.currentPlaceholder]) {
@@ -124,6 +125,7 @@ export class HomeComponent {
         this.err.set('no results for ' + searchText);
       } else {
         this.err.set("");
+        await this.router.navigateByUrl(`/${this.searchType()}/${this.searchValue()}`);
       }
     }
   }

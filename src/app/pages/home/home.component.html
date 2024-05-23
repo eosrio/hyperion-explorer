@@ -71,9 +71,7 @@
   <div class="grow bg-gradient-to-b from-slate-600 to-indigo-950 text-white p-10">
     <p>Searching by: {{ searchType() }}</p>
     <p>Query: {{ searchValue() }}</p>
-    @defer (when searchValue() !== '') {
-      <router-outlet></router-outlet>
-    }
+    <router-outlet></router-outlet>
   </div>
 </div>
 

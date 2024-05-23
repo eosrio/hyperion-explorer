@@ -9,3 +9,7 @@ export interface ExplorerMetadata {
   last_indexed_block: number;
   last_indexed_block_time: string;
 }
+
+export interface ExploreContractDialogData {
+  code: string;
+}
