@@ -13,64 +13,64 @@
       <img [ngSrc]="chainData().logo" alt="logo" class="logo" width="192" height="70" priority/>
 
       <form [formGroup]="searchForm" (ngSubmit)="submit()" class="flex flex-row w-full justify-center">
+
         <div
           class="rounded-full bg-slate-50 flex flex-row gap-5 content-center
           focus-within:outline focus-within:outline-2 focus-within:outline-amber-400 focus-within:-outline-offset-2
           hover:border-amber-400 border-transparent transition-all duration-100 ease-in-out">
 
           <input #searchField formControlName="search_field" [placeholder]="searchPlaceholder"
-                 class="grow outline-none ml-0 pl-5 pr-20 py-4 rounded-l-full bg-slate-50">
+                 class="grow outline-none ml-0 pl-5 pr-20 py-4 rounded-l-full bg-slate-50"
+                 [matAutocomplete]="auto">
           <button mat-flat-button color="primary" class="mr-2 place-self-center">
             <mat-icon>search</mat-icon>
             Search
           </button>
-
+          @if (err()) {
+            <mat-error>{{ err() }}</mat-error>
+          }
         </div>
+        <mat-autocomplete #auto="matAutocomplete" (optionSelected)="submit()">
+          @for (account of filteredAccounts(); track account) {
+            <mat-option [value]="account">
+              {{ account }}
+            </mat-option>
+          }
+        </mat-autocomplete>
       </form>
 
     </div>
 
-    <!--    <form [formGroup]="searchForm" (ngSubmit)="submit()" class="flex flex-row justify-center items-stretch">-->
-    <!--      <div fxHide.lt-sm="width: 30px"></div>-->
-    <!--      <div class="flex flex-column xs:flex-100">-->
-    <!--        <mat-form-field appearance="outline" class="home-search-input flex-grow" style="height: 100%">-->
-    <!--          <label>-->
-    <!--            <input matInput formControlName="search_field" [matAutocomplete]="auto"-->
-    <!--                   [placeholder]="searchPlaceholder" type="text"/>-->
-    <!--          </label>-->
-    <!--          @if (err) {-->
-    <!--            <mat-error>{{ err() }}</mat-error>-->
-    <!--          }-->
-    <!--        </mat-form-field>-->
-    <!--      </div>-->
+<!--    <form [formGroup]="searchForm" (ngSubmit)="submit()" class="flex flex-row justify-center items-stretch">-->
+<!--      <div>-->
+<!--        <mat-form-field appearance="outline">-->
+<!--          <input matInput formControlName="search_field" [matAutocomplete]="auto"-->
+<!--                 [placeholder]="searchPlaceholder" type="text"/>-->
+<!--          <button mat-flat-button matSuffix type="submit" color="primary" class="mr-2 place-self-center search-btn"-->
+<!--                  [attr.aria-label]="'search'" (keyup.enter)="submit()">-->
+<!--            <mat-icon>search</mat-icon>-->
+<!--            Search-->
+<!--          </button>-->
+<!--          @if (err()) {-->
+<!--            <mat-error>{{ err() }}</mat-error>-->
+<!--          }-->
+<!--        </mat-form-field>-->
+<!--      </div>-->
 
-    <!--      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="submit()">-->
-    <!--        @for (account of filteredAccounts; track account) {-->
-    <!--          <mat-option-->
-    <!--            [value]="account"-->
-    <!--          >{{ account }}-->
-    <!--          </mat-option-->
-    <!--          >-->
-    <!--        }-->
-    <!--      </mat-autocomplete>-->
+<!--      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="submit()">-->
+<!--        @for (account of filteredAccounts(); track account) {-->
+<!--          <mat-option [value]="account">-->
+<!--            {{ account }}-->
+<!--          </mat-option>-->
+<!--        }-->
+<!--      </mat-autocomplete>-->
 
-    <!--      <button-->
-    <!--        mat-stroked-button-->
-    <!--        matSuffix-->
-    <!--        type="submit"-->
-    <!--        [attr.aria-label]="'search'"-->
-    <!--        class="search-btn"-->
-    <!--        (keyup.enter)="submit()"-->
-    <!--      >-->
-    <!--        <fa-icon [icon]="icons.solid.search"></fa-icon>-->
-    <!--      </button>-->
-    <!--    </form>-->
+<!--    </form>-->
 
   </div>
 
-  <div class="grow bg-gradient-to-b from-slate-600 to-indigo-950 text-white p-10 flex flex-col">
-<!--    <p>Searching by: {{ searchType() }}</p>-->
-<!--    <p>Query: {{ searchValue() }}</p>-->
+  <!-- bg-gradient-to-b from-slate-600 to-indigo-950-->
+  <div class="grow   text-white p-10">
     <router-outlet></router-outlet>
   </div>
 </div>
