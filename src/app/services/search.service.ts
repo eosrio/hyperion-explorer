@@ -1,4 +1,8 @@
 import {Injectable, signal} from '@angular/core';
+import {environment} from "../../env";
+import {HttpClient} from "@angular/common/http";
+import {lastValueFrom} from "rxjs";
+import {GetTableByScopeResponse, TableData} from "../interfaces";
 
 @Injectable({
   providedIn: 'root'
@@ -8,8 +12,38 @@ export class SearchService {
   searchType = signal<string>("");
   searchQuery = signal<string>("");
 
-  constructor() {
+  searchAccountUrl: string;
+
+  constructor(private http: HttpClient) {
+    this.searchAccountUrl = environment.hyperionApiUrl + '/v1/chain/get_table_by_scope';
   }
+
+  async filterAccountNames(value: string): Promise<any> {
+    if ((value && value.length > 12) || !value) {
+      return [];
+    }
+    try {
+      const sValue = value.toLowerCase();
+      const requestBody = {
+        code: environment.systemContract,
+        table: environment.userResourcesTable,
+        lower_bound: sValue,
+        limit: 100
+      };
+      const response = await lastValueFrom(this.http.post(this.searchAccountUrl, requestBody)) as GetTableByScopeResponse;
+      if (response.rows) {
+        return response.rows.filter((tableData: TableData) => {
+          return tableData.scope.startsWith(sValue);
+        }).map((tableData: TableData) => {
+          return tableData.scope;
+        });
+      }
+    } catch (error) {
+      console.log(error);
+      return [];
+    }
+  }
+
 
   async submitSearch(searchText: any, filteredAccounts: string[]): Promise<boolean> {
 

@@ -14,6 +14,7 @@ import {DataService} from "../../services/data.service";
 import {ExplorerMetadata} from "../../interfaces";
 import {MatIcon} from "@angular/material/icon";
 import {ActivatedRoute, Router, RouterOutlet} from "@angular/router";
+import {debounceTime} from "rxjs";
 
 @Component({
   selector: 'app-home',
@@ -57,7 +58,7 @@ export class HomeComponent {
   searchField = viewChild<ElementRef<HTMLInputElement>>('searchField');
 
   searchForm: FormGroup;
-  filteredAccounts: string[];
+  filteredAccounts = signal<string[]>([]);
   searchPlaceholder: string;
 
   private currentPlaceholder = 0;
@@ -89,8 +90,15 @@ export class HomeComponent {
     this.searchForm = this.formBuilder.group({
       search_field: ['', Validators.required]
     });
-    this.filteredAccounts = [];
     this.searchPlaceholder = this.placeholders[0];
+
+    this.searchForm.get('search_field')?.valueChanges?.pipe(debounceTime(300))?.subscribe((value) => {
+      if (value.length > 2) {
+        this.searchService.filterAccountNames(value).then(filteredAccounts => {
+          this.filteredAccounts.set(filteredAccounts);
+        });
+      }
+    });
 
     if (isPlatformBrowser(this.platformId)) {
       setInterval(() => {
@@ -120,7 +128,7 @@ export class HomeComponent {
     const searchText = this.searchForm.get('search_field')?.value;
     if (searchText) {
       this.searchForm.reset();
-      const status = this.searchService.submitSearch(searchText, this.filteredAccounts);
+      const status = this.searchService.submitSearch(searchText, this.filteredAccounts());
       if (!status) {
         this.err.set('no results for ' + searchText);
       } else {
