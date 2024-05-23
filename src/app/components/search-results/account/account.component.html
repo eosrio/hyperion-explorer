@@ -1,2 +1,832 @@
-<p>account works!</p>
-<button (click)="openContractExplorer()" mat-raised-button>Explore Smart Contract</button>
+<!--LOADER-->
+@if (!accountService.loaded) {
+  <mat-progress-spinner
+    [diameter]="45"
+    *ngIf="!accountService.loaded"
+    mode="indeterminate"
+  ></mat-progress-spinner>
+}
+
+<!--MAIN CONTENT-->
+<div class="hr-container">
+
+  @if (accountService.loaded) {
+
+    @if (accountService.jsonData) {
+
+      <!-- LIST OF CARDS-->
+      <div class="flex flex-col justify-start items-center gap-4 text-black">
+
+        <mat-card class="p-2">
+
+          <mat-card-header>
+            <div class="flex flex-row items-center justify-between w-full">
+              <h2>
+                <fa-icon [icon]="icons.solid.faUserCircle"></fa-icon>
+                {{ accountService.account["account_name"] }}
+              </h2>
+              <button (click)="openContractExplorer()" mat-raised-button>
+                Explore Smart Contract
+              </button>
+            </div>
+          </mat-card-header>
+
+          <mat-card-content>
+            <div class="flex flex-row gap-5 pt-10">
+              <div class="flex-auto mt-7 flex flex-col justify-start items-start min-h-full">
+
+                <!-- total balance-->
+                <div class="total-balance width-100">
+                  <strong>Total Balance: </strong>
+                  <span class="float-r">
+                  {{ totalBalance() | number: "1.0-" + systemPrecision }}
+                    {{ systemSymbol }}
+                </span>
+                </div>
+
+                <!-- liquid balance-->
+                <div class="mb-5 width-100">
+                  <strong>Liquid Balance: </strong>
+                  <span class="float-r">
+                  {{ liquidBalance() | number: "1.0-" + systemPrecision }}
+                    {{ systemSymbol }}
+                </span>
+                </div>
+
+                <!-- staked balance-->
+                <div class="mb-5 width-100">
+                  <strong>Staked Balance: </strong>
+                  <span class="float-r">
+                  {{ stakedBalance() | number: "1.0-" + systemPrecision }}
+                    {{ systemSymbol }}
+                </span>
+                </div>
+
+                <!-- refunding balance-->
+                <div class="width-100">
+                  <strong>Refunding: </strong>
+                  <span class="float-r">
+                  {{ refundBalance() | number: "1.0-" + systemPrecision }}
+                    {{ systemSymbol }}
+                </span>
+                </div>
+
+                <!-- creation data -->
+                <div class="width-100" style="margin-top: 12px">
+
+                  <div *ngIf="creationData && creationData.creator" class="mt-7 width-100">
+                    <strong>Created by: </strong>
+                    <a [routerLink]="['/account', creationData.creator]" class="float-r link-gray">
+                      {{ creationData.creator }}
+                    </a>
+                  </div>
+
+                  <div *ngIf="creationData && creationData.timestamp" class="mt-7 width-100">
+                    <strong>Created on: </strong>
+                    <span class="float-r">
+                    {{ formatDate(creationData.timestamp) }}
+                  </span>
+                  </div>
+
+                </div>
+
+              </div>
+
+              <mat-divider vertical></mat-divider>
+
+              <div class="flex flex-row flex-wrap justify-start items-start flex-grow gap-10">
+
+                <!--CPU-->
+                <div class="full-width md:flex-[287px] sm:flex-100">
+                  <div>
+                    <span class="title">CPU</span>
+                    <span class="faded used">
+                      {{
+                        (accountService.account["cpu_limit"]["used"] /
+                          accountService.account["cpu_limit"]["max"]) *
+                        100 | number: "1.0-2"
+                      }}% used</span>
+                    <span class="values float-r">
+                      {{
+                        convertMicroS(accountService.account["cpu_limit"]["used"])
+                      }}
+                      /
+                      {{
+                        convertMicroS(accountService.account["cpu_limit"]["max"])
+                      }}
+                  </span>
+                  </div>
+                  <mat-progress-bar
+                    class="progress-bar"
+                    mode="determinate"
+                    [value]="
+                    (accountService.account['cpu_limit']['used'] /
+                      accountService.account['cpu_limit']['max']) *
+                    100
+                  "
+                  ></mat-progress-bar>
+                  <div class="small-info">
+                    <div class="m-bottom">
+                    <span>Self-staked:</span
+                    ><span class="float-r"
+                    >{{ myCpuBalance() | number: "1.0-" + systemPrecision }}
+                      {{ systemSymbol }}</span
+                    >
+                    </div>
+                    <div class="m-bottom">
+                    <span>Staked by others:</span
+                    ><span class="float-r"
+                    >{{ cpuByOthers() | number: "1.0-" + systemPrecision }}
+                      {{ systemSymbol }}</span
+                    >
+                    </div>
+                    <div>
+                    <span>Total in CPU:</span
+                    ><span class="float-r"
+                    >{{ cpuBalance() | number: "1.0-" + systemPrecision }}
+                      {{ systemSymbol }}</span
+                    >
+                    </div>
+                  </div>
+                </div>
+
+                <!--NET-->
+                <div class="full-width mt-responsive md:flex-[287px] sm:flex-100">
+                  <div>
+                    <span class="title">NET</span>
+                    <span class="faded used">{{
+                        (accountService.account["net_limit"]["used"] /
+                          accountService.account["net_limit"]["max"]) *
+                        100 | number: "1.0-2"
+                      }}% used</span>
+                    <span class="values float-r">{{
+                        convertBytes(accountService.account["net_limit"]["used"])
+                      }}
+                      /
+                      {{
+                        convertBytes(accountService.account["net_limit"]["max"])
+                      }}
+                  </span>
+                  </div>
+                  <mat-progress-bar
+                    class="progress-bar"
+                    mode="determinate"
+                    [value]="
+                    (accountService.account['net_limit']['used'] /
+                      accountService.account['net_limit']['max']) *
+                    100
+                  "
+                  ></mat-progress-bar>
+                  <div class="small-info">
+                    <div class="m-bottom">
+                    <span>Self-staked:</span
+                    ><span class="float-r"
+                    >{{ myNetBalance() | number: "1.0-" + systemPrecision }}
+                      {{ systemSymbol }}</span
+                    >
+                    </div>
+                    <div class="m-bottom">
+                    <span>Staked by others:</span
+                    ><span class="float-r"
+                    >{{ netByOthers() | number: "1.0-" + systemPrecision }}
+                      {{ systemSymbol }}</span
+                    >
+                    </div>
+                    <div>
+                    <span>Total in NET:</span
+                    ><span class="float-r"
+                    >{{ netBalance() | number: "1.0-" + systemPrecision }}
+                      {{ systemSymbol }}</span
+                    >
+                    </div>
+                  </div>
+                </div>
+
+                <!--RAM-->
+                <div class="mt-30 flex-grow">
+                  <div>
+                    <span class="title mt-6">RAM</span>
+                    <span class="faded used"
+                    >{{
+                        (accountService.account["ram_usage"] /
+                          accountService.account["ram_quota"]) *
+                        100 | number
+                      }}% used</span
+                    >
+                    <span class="values float-r"
+                    >{{ convertBytes(accountService.account["ram_usage"]) }} /
+                      {{ convertBytes(accountService.account["ram_quota"]) }}
+                  </span>
+                  </div>
+
+                  <mat-progress-bar
+                    class="progress-bar"
+                    mode="determinate"
+                    [value]="
+                    (accountService.account['ram_usage'] /
+                      accountService.account['ram_quota']) *
+                    100
+                  "
+                  ></mat-progress-bar>
+                </div>
+              </div>
+            </div>
+
+          </mat-card-content>
+        </mat-card>
+
+        <div class="flex
+          md:flex-row md:justify-between md:content-stretch
+          sm:flex-column sm:justify-start sm:content
+          gap-2 w-full min-w-full h-full min-h-full flex-auto">
+
+          <!--TOKENS-->
+          <mat-card class="md:flex-25 p-2">
+            <h3>
+              <fa-layers [fixedWidth]="true" style="margin-right: 5px">
+                <fa-icon
+                  [icon]="icons.solid.faCircle"
+                  transform="grow-3"
+                ></fa-icon>
+                <fa-icon
+                  [icon]="icons.solid.faStar"
+                  [inverse]="true"
+                  transform="shrink-5"
+                ></fa-icon>
+              </fa-layers>
+              Tokens
+              <fa-icon
+                [icon]="icons.regular.faQuestionCircle"
+                class="faded float-r pointer"
+                matTooltip="Only liquid balances are displayed"
+                matTooltipClass="tooltip-bigger"
+              ></fa-icon>
+            </h3>
+
+            <div
+              *ngIf="accountService.tokens.length > 0"
+              class="flex sm:flex-row sm:flex-wrap xs:flex-column md:flex-column sm:gap-[43px] xs:gap-[10px] md:gap-[10px]"
+            >
+              <div
+                *ngFor="let token of accountService.tokens"
+                class="sm:flex-[0_0_calc((100%]"
+              >
+                <div class="token-cell">
+                  <div
+                    class="faded monospace div-link"
+                    [routerLink]="['/account', token.contract]"
+                  >
+                    {{ token.contract }}
+                  </div>
+                  <div class="token-amount">
+                    {{ token.amount | number: "1.0-" + (token.precision || 4) }}
+                    <span class="token">{{ token.symbol }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div
+              *ngIf="!accountService.tokens || !accountService.tokens.length"
+            >
+              No tokens to display
+            </div>
+          </mat-card>
+
+          <!--KEYS-->
+          <mat-card class="md:flex-75 p-2">
+            <h3>
+              <fa-layers [fixedWidth]="true" style="margin-right: 5px">
+                <fa-icon
+                  [icon]="icons.solid.faCircle"
+                  transform="grow-3"
+                ></fa-icon>
+                <fa-icon
+                  [icon]="icons.solid.faLink"
+                  [inverse]="true"
+                  transform="shrink-5"
+                ></fa-icon>
+              </fa-layers>
+              Permissions & Keys
+            </h3>
+
+            <mat-tree [dataSource]="dataSource" [treeControl]="treeControl">
+              <!-- This is the tree node template for leaf nodes -->
+
+              <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
+                <!-- use a disabled button to provide padding for tree leaf -->
+                <button mat-icon-button disabled></button>
+                <div class="permission-cell flex flex-column gap-[7px]">
+                  <div>
+                    <h3
+                      class="primary"
+                      style="display: inline; letter-spacing: 0.7px"
+                    >
+                      {{ node.perm_name }}
+                    </h3>
+                  </div>
+                  <ng-container
+                    *ngIf="node['required_auth']['keys'].length > 0"
+                  >
+                    <div *ngFor="let key of node['required_auth']['keys']">
+                      <div>
+                        <strong
+                          class="space-right"
+                          matTooltip="weight / threshold"
+                          matTooltipClass="tooltip-bigger"
+                        >
+                          {{ key.weight }}/{{ node.required_auth.threshold }}
+                        </strong>
+                        <fa-icon [icon]="icons.solid.faKey"></fa-icon>
+                        <a
+                          [routerLink]="['/key', key.key]"
+                          class="monospace m-left break-word link-gray"
+                        >{{ key.key }}
+                        </a>
+                      </div>
+                    </div>
+                  </ng-container>
+                  <ng-container
+                    *ngIf="node['required_auth']['accounts'].length > 0"
+                  >
+                    <div *ngFor="let acc of node['required_auth']['accounts']">
+                      <strong
+                        class="space-right"
+                        matTooltip="weight / threshold"
+                        matTooltipClass="tooltip-bigger"
+                      >
+                        {{ acc.weight }}/{{ node.required_auth.threshold }}
+                      </strong>
+                      <fa-icon [icon]="icons.solid.faUser"></fa-icon>
+                      <a
+                        [routerLink]="['/account', acc.permission.actor]"
+                        class="m-left link-blue"
+                      >{{ acc.permission.actor }}</a
+                      >&#64;{{ acc["permission"].permission }}
+                    </div>
+                  </ng-container>
+                  <ng-container
+                    *ngIf="node['required_auth']['waits'].length > 0"
+                  >
+                    <div *ngFor="let waits of node['required_auth']['waits']">
+                      <strong
+                        class="space-right"
+                        matTooltip="weight / threshold"
+                        matTooltipClass="tooltip-bigger"
+                      >
+                        {{ waits.weight }}/{{ node.required_auth.threshold }}
+                      </strong>
+                      <fa-icon [icon]="icons.solid.faClock"></fa-icon>
+                      <span class="m-left">{{ waits.wait_sec }}s</span>
+                    </div>
+                  </ng-container>
+                </div>
+              </mat-tree-node>
+
+              <!-- This is the tree node template for expandable nodes -->
+              <!--suppress AngularUndefinedBinding -->
+              <mat-tree-node
+                *matTreeNodeDef="let node; when: hasChild"
+                matTreeNodePadding
+              >
+                <button mat-icon-button matTreeNodeToggle>
+                  <fa-icon
+                    [icon]="
+                      treeControl.isExpanded(node)
+                        ? icons.solid.faChevronDown
+                        : icons.solid.faChevronRight
+                    "
+                  ></fa-icon>
+                </button>
+                <div class="permission-cell flex flex-column gap-[7px]">
+                  <div>
+                    <h3
+                      class="primary"
+                      style="display: inline; letter-spacing: 0.7px"
+                    >
+                      {{ node.perm_name }}
+                    </h3>
+                  </div>
+                  <ng-container
+                    *ngIf="node['required_auth']['keys'].length > 0"
+                  >
+                    <div *ngFor="let key of node['required_auth']['keys']">
+                      <div>
+                        <strong
+                          class="space-right"
+                          matTooltip="weight / threshold"
+                          matTooltipClass="tooltip-bigger"
+                        >
+                          {{ key.weight }}/{{ node.required_auth.threshold }}
+                        </strong>
+                        <fa-icon [icon]="icons.solid.faKey"></fa-icon>
+                        <a
+                          [routerLink]="['/key', key.key]"
+                          class="monospace m-left break-word link-gray"
+                        >{{ key.key }}
+                        </a>
+                      </div>
+                    </div>
+                  </ng-container>
+                  <ng-container
+                    *ngIf="node['required_auth']['accounts'].length > 0"
+                  >
+                    <div *ngFor="let acc of node['required_auth']['accounts']">
+                      <strong
+                        class="space-right"
+                        matTooltip="weight / threshold"
+                        matTooltipClass="tooltip-bigger"
+                      >
+                        {{ acc.weight }} / {{ node.required_auth.threshold }}
+                      </strong>
+                      <fa-icon [icon]="icons.solid.faUser"></fa-icon>
+                      <a
+                        [routerLink]="['/account', acc.permission.actor]"
+                        class="m-left link-blue"
+                      >
+                        {{ acc.permission.actor }}
+                      </a>
+                      &#64; {{ acc.permission.permission }}
+                    </div>
+                  </ng-container>
+                  <ng-container
+                    *ngIf="node['required_auth']['waits'].length > 0"
+                  >
+                    <div *ngFor="let waits of node['required_auth']['waits']">
+                      <strong
+                        class="space-right"
+                        matTooltip="weight / threshold"
+                        matTooltipClass="tooltip-bigger"
+                      >
+                        {{ waits.weight }}/{{ node.required_auth.threshold }}
+                      </strong>
+                      <fa-icon [icon]="icons.solid.faClock"></fa-icon>
+                      <span class="m-left">{{ waits.wait_sec }}s</span>
+                    </div>
+                  </ng-container>
+                </div>
+              </mat-tree-node>
+            </mat-tree>
+          </mat-card>
+
+        </div>
+
+        <mat-accordion
+          class="width-100 vote-card"
+          *ngIf="
+            accountService.account['voter_info'] &&
+            (accountService.account['voter_info'].proxy ||
+              accountService.account['voter_info'].producers.length > 0)
+          "
+        >
+          <mat-expansion-panel
+            [disabled]="
+              accountService.account['voter_info'].producers.length <= 0
+            "
+            [hideToggle]="
+              accountService.account['voter_info'].producers.length <= 0
+            "
+          >
+            <mat-expansion-panel-header>
+              <mat-panel-title>
+                <h3 class="vote-card-title">
+                  <fa-layers [fixedWidth]="true" style="margin-right: 5px">
+                    <fa-icon
+                      [icon]="icons.solid.faCircle"
+                      transform="grow-3"
+                    ></fa-icon>
+                    <fa-icon
+                      [icon]="icons.solid.faVote"
+                      [inverse]="true"
+                      transform="shrink-4"
+                    ></fa-icon>
+                  </fa-layers>
+                  Votes
+                </h3>
+              </mat-panel-title>
+
+              <mat-panel-description style="margin-top: 22px">
+                <div *ngIf="accountService.account['voter_info']">
+                  {{ accountService.account["account_name"] }} is voting in
+                  <span *ngIf="accountService.account['voter_info'].proxy"
+                  >proxy
+                    <a
+                      [routerLink]="[
+                        '/account',
+                        accountService.account['voter_info'].proxy
+                      ]"
+                      class="link-blue"
+                    >{{ accountService.account["voter_info"].proxy }}</a
+                    ></span
+                  >
+                  <span
+                    *ngIf="
+                      accountService.account['voter_info'].producers.length > 0
+                    "
+                  >
+                    <strong>{{
+                        accountService.account["voter_info"].producers.length
+                      }}</strong>
+                    producer<span
+                    *ngIf="
+                        accountService.account['voter_info'].producers.length >
+                        1
+                      "
+                  >s</span
+                  >
+                  </span>
+                </div>
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+
+            <div
+              *ngIf="accountService.account['voter_info'].producers.length > 0"
+            >
+              <span
+                *ngFor="
+                  let producer of accountService.account['voter_info']
+                    .producers;
+                  let last = last
+                "
+              >
+                <a [routerLink]="['/account', producer]" class="link-blue">{{
+                    producer
+                  }}</a
+                ><span *ngIf="!last">, </span>
+              </span>
+            </div>
+          </mat-expansion-panel>
+        </mat-accordion>
+
+        <mat-card class="w-full min-w-full h-full min-h-full flex-100 p-2">
+          <div class="flex flex-row justify-between items-start">
+            <h3 style="margin-top: 0">
+              <fa-layers [fixedWidth]="true" style="margin-right: 5px">
+                <fa-icon
+                  [icon]="icons.solid.faCircle"
+                  transform="grow-3"
+                ></fa-icon>
+                <fa-icon
+                  [icon]="icons.solid.faHistory"
+                  [inverse]="true"
+                  transform="shrink-5"
+                ></fa-icon>
+              </fa-layers>
+              Actions
+            </h3>
+
+            <span class="lib"
+            >Last Irreversible Block:
+              <strong class="monospace">{{
+                  accountService.libNum
+                }}</strong></span
+            >
+
+            <div
+              *ngIf="accountService.streamClientLoaded"
+              (click)="accountService.toggleStreaming()"
+              class="livestream"
+              matTooltip="click to turn on/off"
+              matTooltipClass="tooltip-bigger"
+            >
+              action live streaming
+              <span class="w-500">{{
+                  accountService.streamClientStatus ? "enabled" : "disabled"
+                }}</span>
+              <span
+                class="dot"
+                [ngClass]="{
+                  pulse: accountService.streamClientStatus,
+                  'red-dot': !accountService.streamClientStatus
+                }"
+              ></span>
+            </div>
+          </div>
+          <table
+            mat-table
+            [dataSource]="accountService.tableDataSource"
+            matSort
+            matSortActive="block_num"
+            matSortStart="desc"
+            matSortDirection="desc"
+            class="actions-table"
+          >
+            <!-- TX Column -->
+            <ng-container matColumnDef="trx_id">
+              <th mat-header-cell *matHeaderCellDef>
+                TX
+              </th>
+              <td mat-cell *matCellDef="let action" data-label="TX">
+                <span
+                  *ngIf="accountService.libNum < action['block_num']"
+                  matTooltip="time until irreversible"
+                  matTooltipClass="tooltip-bigger"
+                >
+                  <fa-icon
+                    [icon]="icons.solid.faClock"
+                    class="accent"
+                    style="margin-right: 1px"
+                  ></fa-icon>
+                  {{ (action["block_num"] - accountService.libNum) / 2 }}s
+                </span>
+                <a
+                  [routerLink]="['/transaction', action['trx_id']]"
+                  class="link-blue"
+                >
+                  {{ action["trx_id"].slice(0, 8) }}...
+                </a>
+              </td>
+            </ng-container>
+
+            <!-- Action Column -->
+            <ng-container matColumnDef="action">
+              <th mat-header-cell *matHeaderCellDef>
+                Action
+              </th>
+              <td mat-cell *matCellDef="let action" data-label="Action">
+                <span class="action-cell">
+                  <span class="accent w-500">{{ action["act"]["name"] }}</span>
+                  on
+                  <span [routerLink]="['/account', action['act']['account']]" class="w-500 div-link">
+                    {{ action["act"]["account"] }}
+                  </span>
+                </span>
+              </td>
+            </ng-container>
+
+            <!-- Data Column -->
+            <ng-container matColumnDef="data">
+              <th mat-header-cell *matHeaderCellDef>Data</th>
+              <td mat-cell *matCellDef="let action" data-label="Data">
+                <!-- DETAILED ACTION DATA VIEW-->
+                <ng-container *ngIf="detailedView">
+                  <div
+                    *ngFor="let item of action['act']['data'] | keyvalue"
+                    [ngClass]="{
+                      'data-item': objectKeyCount(action['act']['data']) > 1
+                    }"
+                  >
+                    <ng-container
+                      *ngIf="
+                        isArray(item.value) &&
+                        action['act']['account'] !== 'eosio.evm' &&
+                        action['act']['name'] !== 'raw'
+                      "
+                    >
+                      <span class="w-500"
+                      >{{ item.key }} [{{ asArray(item.value).length }}]</span
+                      >:
+                      <div
+                        style="margin-top: 5px"
+                        *ngFor="let subitem of asArray(item.value)"
+                      >
+                        <ng-container *ngIf="getType(subitem) === 'string'">
+                          <div style="margin-left: 15px">
+                            <span class="break-word">• {{ subitem }}</span>
+                          </div>
+                        </ng-container>
+
+                        <ng-container *ngIf="getType(subitem) === 'object'">
+                          <div
+                            *ngFor="let elem of subitem | keyvalue"
+                            [ngClass]="{
+                              'data-item': objectKeyCount(subitem) > 1
+                            }"
+                          >
+                            <span class="w-500" style="margin-left: 15px">
+                              {{ elem.key }}</span
+                            >: <span class="break-word">{{ elem.value }}</span>
+                          </div>
+                        </ng-container>
+                      </div>
+                    </ng-container>
+
+                    @if (!isArray(item.value)) {
+                      @if (checkKey(action, item.key)) {
+                        <div>
+                          <span class="w-500">{{ item.key }}</span
+                          >:
+                          <span *ngIf="item.value" class="break-word">
+                            <a
+                              *ngIf="
+                                item.key === 'to' || item.key === 'from';
+                                else notAddress
+                              "
+                              [routerLink]="['/evm/address', item.value]"
+                              class="link-blue"
+                            >{{ item.value }}</a
+                            >
+                            <ng-template #notAddress>
+                              <a
+                                *ngIf="item.key === 'hash'; else notHash"
+                                class="link-blue"
+                                [routerLink]="['/evm/transaction', item.value]"
+                              >
+                                {{ item.value }}</a
+                              >
+                              <ng-template #notHash>
+                                @if (item.key === "block") {
+                                  <a
+                                    class="link-blue"
+                                    [routerLink]="['/evm/block', item.value]"
+                                  >{{ item.value }}</a
+                                  >
+                                } @else {
+                                  {{ formatEVMValue(item.value) }}TLOS
+                                }
+                              </ng-template>
+                            </ng-template>
+                          </span>
+                        </div>
+                      } @else {
+                        @if (action["act"]["account"] !== "eosio.evm" &&
+                        action["act"]["name"] !== "raw") {
+                          <span class="w-500">{{ item.key }}</span
+                          >:
+                          <span *ngIf="item.value" class="break-word">{{
+                              item.value
+                            }}</span>
+                          <span
+                            *ngIf="!item.value"
+                            class="break-word"
+                            style="font-style: italic"
+                          >empty</span
+                          >
+                        }
+                      }
+                    }
+                  </div>
+
+                  <span
+                    *ngIf="getType(action['act']['data']) === 'string'"
+                    class="break-word"
+                    style="font-style: italic"
+                  >
+                    {{ action["act"]["data"] }}
+                  </span>
+                </ng-container>
+
+                <ng-container *ngIf="!detailedView"></ng-container>
+              </td>
+            </ng-container>
+
+            <!-- Block & Date Column -->
+            <ng-container matColumnDef="block_num">
+              <th mat-header-cell *matHeaderCellDef>Block & Date</th>
+              <td mat-cell *matCellDef="let action" data-label="Block & Date">
+                <a
+                  [routerLink]="['/block', action['block_num']]"
+                  class="link-blue"
+                >{{ action["block_num"] }}</a
+                >
+                <br/>
+                <span> {{ formatDate(action["@timestamp"]) }}</span>
+              </td>
+            </ng-container>
+
+            <tr mat-header-row *matHeaderRowDef="columnsToDisplay; sticky: true"></tr>
+            <tr mat-row *matRowDef="let myRowData; columns: columnsToDisplay"></tr>
+          </table>
+
+          <mat-paginator
+            [pageSizeOptions]="[10, 20, 50, 100]"
+            [length]="accountService.tableDataSource.filteredData.length"
+            (page)="changePage($event)"
+            showFirstLastButtons
+          >
+          </mat-paginator>
+
+          <button
+            mat-stroked-button
+            color="primary"
+            class="float-r"
+            style="margin-right: 16px"
+            (click)="accountService.loadMoreActions(accountName)"
+          >
+            load more actions
+          </button>
+        </mat-card>
+      </div>
+
+
+    } @else {
+      <!--      NO ACCOUNT-->
+      <div
+        style="height: 100%"
+        class="flex flex-column justify-start items-center gap-[15px]"
+      >
+        <mat-card class="width-100">
+          <h1 class="faded">
+            <fa-icon
+              [icon]="icons.solid.faSadTear"
+              style="margin-right: 5px"
+            ></fa-icon>
+            Account not found
+          </h1>
+          <div>
+            We couldn't find the account <strong>{{ accountName }}</strong>
+          </div>
+        </mat-card>
+      </div>
+    }
+  }
+</div>

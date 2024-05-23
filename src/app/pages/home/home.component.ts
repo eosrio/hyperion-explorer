@@ -93,7 +93,7 @@ export class HomeComponent {
     this.searchPlaceholder = this.placeholders[0];
 
     this.searchForm.get('search_field')?.valueChanges?.pipe(debounceTime(300))?.subscribe((value) => {
-      if (value.length > 2) {
+      if (value && value.length > 2) {
         this.searchService.filterAccountNames(value).then(filteredAccounts => {
           this.filteredAccounts.set(filteredAccounts);
         });

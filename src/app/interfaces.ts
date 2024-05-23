@@ -35,6 +35,6 @@ export interface GetTableByScopeResponse {
 }
 
 export interface AccountCreationData {
-  creator: string;
-  timestamp: string;
+  creator?: string;
+  timestamp?: string;
 }
