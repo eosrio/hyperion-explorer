@@ -1,0 +1,61 @@
+<div class="bg-slate-600 text-center text-2xl text-slate-300 py-2">Hyperion Smart Contract Explorer</div>
+
+@if (code()) {
+
+  <div class="bg-slate-900 text-xl text-center text-white py-2">
+    <span class="text-stone-200">Code: </span>
+    <span class="text-green-400">{{ code() }}</span>
+  </div>
+
+  <p>Please select a table:</p>
+
+  <div class="flex flex-row gap-2 m-2 flex-wrap">
+    @for (tableName of tableNames(); track tableName) {
+      <button (click)="selectTable(tableName)" mat-flat-button
+              [color]="tableName === selectedTable() ? 'accent' : 'primary'">{{ tableName }}
+      </button>
+    }
+  </div>
+}
+@defer (when table() !== "") {
+
+  <div class="bg-slate-800 text-xl text-center text-white py-2">
+    <span class="text-stone-200">Table: </span>
+    <span class="text-green-400">{{ table() }}</span>
+  </div>
+
+  <div class="flex flex-row flex-wrap">
+    @for (field of fields(); track field.name; let i = $index) {
+      <div class="bg-slate-200 odd:bg-slate-500 p-2">({{i}}) {{ field.name }} [{{ field.type }}]</div>
+    }
+  </div>
+
+  <p>Please select a scope:</p>
+  <div class="flex flex-row gap-2 m-2">
+    @for (scope of scopeNames(); track scope) {
+      <button (click)="selectScope(scope)" mat-flat-button
+              [color]="scope === selectedScope() ? 'accent' : 'primary'">{{ scope }}
+      </button>
+    }
+  </div>
+}
+@defer (when table() !== "" && scope() !== "") {
+
+  <div class="bg-slate-900 text-xl text-center text-white py-2">
+    <span class="text-stone-200">Scope: </span>
+    <span class="text-green-400">{{ scope() }}</span>
+  </div>
+
+  <div>
+    @for (row of tableRows(); track $index) {
+      <div class="flex flex-row flex-wrap bg-slate-800">
+        @for (kv of row | keyvalue; track kv.key) {
+          <div class="my-1 mx-3">
+            <span class="text-stone-200">{{ kv.key }} = </span>
+            <span class="text-green-400">{{ kv.value }}</span>
+          </div>
+        }
+      </div>
+    }
+  </div>
+}
