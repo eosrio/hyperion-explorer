@@ -1,4 +1,4 @@
-import {Component, ElementRef, HostListener, Inject, PLATFORM_ID, signal, viewChild} from '@angular/core';
+import {Component, computed, ElementRef, HostListener, Inject, PLATFORM_ID, signal, viewChild} from '@angular/core';
 import {PreHeaderComponent} from "../../components/pre-header/pre-header.component";
 import {MatCard} from "@angular/material/card";
 import {isPlatformBrowser, NgOptimizedImage} from "@angular/common";
@@ -59,6 +59,7 @@ export class HomeComponent {
 
   searchForm: FormGroup;
   filteredAccounts = signal<string[]>([]);
+  systemAccounts = ["eosio", "eosio.token", "eosio.msig"];
   searchPlaceholder: string;
 
   private currentPlaceholder = 0;
@@ -94,8 +95,11 @@ export class HomeComponent {
 
     this.searchForm.get('search_field')?.valueChanges?.pipe(debounceTime(300))?.subscribe((value) => {
       if (value && value.length > 2) {
-        this.searchService.filterAccountNames(value).then(filteredAccounts => {
-          this.filteredAccounts.set(filteredAccounts);
+        this.searchService.filterAccountNames(value).then((filteredAccounts: string[]) => {
+          this.filteredAccounts.set(filteredAccounts
+            .concat(this.systemAccounts.filter(acct => acct.startsWith(value)))
+            .sort((a, b) => a.localeCompare(b))
+          );
         });
       }
     });

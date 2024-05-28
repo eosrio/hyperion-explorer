@@ -3,6 +3,7 @@ import {environment} from "../../env";
 import {HttpClient} from "@angular/common/http";
 import {lastValueFrom} from "rxjs";
 import {GetTableByScopeResponse, TableData} from "../interfaces";
+import {start} from "node:repl";
 
 @Injectable({
   providedIn: 'root'
@@ -13,15 +14,18 @@ export class SearchService {
   searchQuery = signal<string>("");
 
   searchAccountUrl: string;
+  wildcardAccountUrl: string;
 
   constructor(private http: HttpClient) {
     this.searchAccountUrl = environment.hyperionApiUrl + '/v1/chain/get_table_by_scope';
+    this.wildcardAccountUrl = environment.hyperionApiUrl + '/v2/state/get_voter_scopes';
   }
 
   async filterAccountNames(value: string): Promise<any> {
     if ((value && value.length > 12) || !value) {
       return [];
     }
+
     try {
       const sValue = value.toLowerCase();
       const requestBody = {
@@ -32,11 +36,26 @@ export class SearchService {
       };
       const response = await lastValueFrom(this.http.post(this.searchAccountUrl, requestBody)) as GetTableByScopeResponse;
       if (response.rows) {
-        return response.rows.filter((tableData: TableData) => {
-          return tableData.scope.startsWith(sValue);
-        }).map((tableData: TableData) => {
-          return tableData.scope;
-        });
+        if (response.rows.length > 0) {
+
+          const startsWithResult = response.rows.filter((tableData: TableData) => {
+            return tableData.scope.startsWith(sValue);
+          }).map((tableData: TableData) => {
+            return tableData.scope;
+          });
+
+          if (startsWithResult.length === 0) {
+
+            const wildcardResult = await lastValueFrom(this.http.get(this.wildcardAccountUrl + `?term=${sValue}`)) as any;
+            if (wildcardResult && wildcardResult.scopes) {
+              return wildcardResult.scopes;
+            } else {
+              return startsWithResult;
+            }
+          } else {
+            return startsWithResult;
+          }
+        }
       }
     } catch (error) {
       console.log(error);
