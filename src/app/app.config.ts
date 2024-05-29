@@ -1,4 +1,4 @@
-import {APP_INITIALIZER, ApplicationConfig} from '@angular/core';
+import {APP_INITIALIZER, ApplicationConfig, provideExperimentalZonelessChangeDetection} from '@angular/core';
 import {provideRouter} from '@angular/router';
 
 import {routes} from './app.routes';
@@ -9,8 +9,9 @@ import {DataService, DataServiceBrowser} from "./services/data.service";
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    provideExperimentalZonelessChangeDetection(),
     provideRouter(routes),
-    provideClientHydration(),
+    // provideClientHydration(),
     {
       provide: DataService,
       useClass: DataServiceBrowser

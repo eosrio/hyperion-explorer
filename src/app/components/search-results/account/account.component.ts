@@ -15,7 +15,7 @@ import {
   MatTreeNodePadding,
   MatTreeNodeToggle
 } from "@angular/material/tree";
-import {DecimalPipe, KeyValuePipe, NgClass, NgForOf, NgIf} from "@angular/common";
+import {DecimalPipe, KeyValuePipe, NgClass} from "@angular/common";
 import {MatPaginator, PageEvent} from "@angular/material/paginator";
 import {
   MatCell,
@@ -54,6 +54,8 @@ import {
   MatExpansionPanelHeader
 } from "@angular/material/expansion";
 import {MatDivider} from "@angular/material/divider";
+import {MatDialog} from "@angular/material/dialog";
+import {ActionDetailsComponent} from "../../action-details/action-details.component";
 
 interface Permission {
   perm_name: string;
@@ -110,8 +112,6 @@ interface FlatNode {
     RouterLink,
     MatTree,
     MatTreeNode,
-    NgIf,
-    NgForOf,
     MatIconButton,
     MatTreeNodeToggle,
     MatPaginator,
@@ -169,7 +169,7 @@ export class AccountComponent implements OnDestroy {
 
   accountName: string = '';
 
-  columnsToDisplay: string[] = ['trx_id', 'action', 'data', 'block_num'];
+  displayedColumns: string[] = ['trx_id', 'action', 'data', 'block_num'];
 
   treeControl: FlatTreeControl<FlatNode>;
 
@@ -191,7 +191,7 @@ export class AccountComponent implements OnDestroy {
     private dataService: DataService,
     private searchService: SearchService,
     private title: Title,
-    // private dialog: MatDialog,
+    private dialog: MatDialog,
     private router: Router,
     public accountService: AccountService
   ) {
@@ -524,5 +524,20 @@ export class AccountComponent implements OnDestroy {
 
   asArray(value: any): any[] {
     return value;
+  }
+
+  onRowClick(row: any) {
+    const dialogRef = this.dialog.open(ActionDetailsComponent, {
+      width: '90%',
+      height: '90%',
+      data: {
+        action: row
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(value => {
+      console.log('Action Detail dialog closed!');
+      console.log(value);
+    });
   }
 }

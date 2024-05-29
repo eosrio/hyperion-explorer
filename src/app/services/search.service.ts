@@ -16,16 +16,24 @@ export class SearchService {
   searchAccountUrl: string;
   wildcardAccountUrl: string;
 
+  autoCompleteCache: Map<string, string[]> = new Map();
+
   constructor(private http: HttpClient) {
     this.searchAccountUrl = environment.hyperionApiUrl + '/v1/chain/get_table_by_scope';
     this.wildcardAccountUrl = environment.hyperionApiUrl + '/v2/state/get_voter_scopes';
   }
 
   async filterAccountNames(value: string): Promise<any> {
+
+    // check local cache map
+    if (this.autoCompleteCache.has(value)) {
+      return this.autoCompleteCache.get(value);
+    }
+
     if ((value && value.length > 12) || !value) {
       return [];
     }
-
+    let result = [];
     try {
       const sValue = value.toLowerCase();
       const requestBody = {
@@ -35,32 +43,29 @@ export class SearchService {
         limit: 100
       };
       const response = await lastValueFrom(this.http.post(this.searchAccountUrl, requestBody)) as GetTableByScopeResponse;
-      if (response.rows) {
-        if (response.rows.length > 0) {
+      if (response.rows && response.rows.length > 0) {
 
-          const startsWithResult = response.rows.filter((tableData: TableData) => {
-            return tableData.scope.startsWith(sValue);
-          }).map((tableData: TableData) => {
-            return tableData.scope;
-          });
+        const startsWithResult = response.rows
+          .filter((tableData: TableData) => tableData.scope.startsWith(sValue))
+          .map((tableData: TableData) => tableData.scope);
 
-          if (startsWithResult.length === 0) {
-
-            const wildcardResult = await lastValueFrom(this.http.get(this.wildcardAccountUrl + `?term=${sValue}`)) as any;
-            if (wildcardResult && wildcardResult.scopes) {
-              return wildcardResult.scopes;
-            } else {
-              return startsWithResult;
-            }
+        if (startsWithResult.length === 0) {
+          const wildcardResult = await lastValueFrom(this.http.get(this.wildcardAccountUrl + `?term=${sValue}`)) as any;
+          if (wildcardResult && wildcardResult.scopes) {
+            result = wildcardResult.scopes;
           } else {
-            return startsWithResult;
+            result = startsWithResult;
           }
+        } else {
+          result = startsWithResult;
         }
       }
     } catch (error) {
       console.log(error);
-      return [];
     }
+
+    this.autoCompleteCache.set(value, result);
+    return result;
   }
 
 

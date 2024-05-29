@@ -1,4 +1,13 @@
-import {Component, computed, ElementRef, HostListener, Inject, PLATFORM_ID, signal, viewChild} from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  HostListener,
+  Inject,
+  PLATFORM_ID,
+  signal,
+  viewChild
+} from '@angular/core';
 import {PreHeaderComponent} from "../../components/pre-header/pre-header.component";
 import {MatCard} from "@angular/material/card";
 import {isPlatformBrowser, NgOptimizedImage} from "@angular/common";
@@ -37,7 +46,8 @@ import {debounceTime} from "rxjs";
     RouterOutlet
   ],
   templateUrl: './home.component.html',
-  styleUrl: './home.component.css'
+  styleUrl: './home.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HomeComponent {
 
@@ -57,10 +67,11 @@ export class HomeComponent {
   searchType = this.searchService.searchType.asReadonly();
   searchField = viewChild<ElementRef<HTMLInputElement>>('searchField');
 
-  searchForm: FormGroup;
   filteredAccounts = signal<string[]>([]);
+
+  searchForm: FormGroup;
   systemAccounts = ["eosio", "eosio.token", "eosio.msig"];
-  searchPlaceholder: string;
+  searchPlaceholder = signal<string>("");
 
   private currentPlaceholder = 0;
   placeholders = [
@@ -91,7 +102,8 @@ export class HomeComponent {
     this.searchForm = this.formBuilder.group({
       search_field: ['', Validators.required]
     });
-    this.searchPlaceholder = this.placeholders[0];
+
+    this.searchPlaceholder.set(this.placeholders[0]);
 
     this.searchForm.get('search_field')?.valueChanges?.pipe(debounceTime(300))?.subscribe((value) => {
       if (value && value.length > 2) {
@@ -110,7 +122,7 @@ export class HomeComponent {
         if (!this.placeholders[this.currentPlaceholder]) {
           this.currentPlaceholder = 0;
         }
-        this.searchPlaceholder = this.placeholders[this.currentPlaceholder];
+        this.searchPlaceholder.set(this.placeholders[this.currentPlaceholder]);
       }, 2000);
     }
   }
