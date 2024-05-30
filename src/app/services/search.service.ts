@@ -3,7 +3,6 @@ import {environment} from "../../env";
 import {HttpClient} from "@angular/common/http";
 import {lastValueFrom} from "rxjs";
 import {GetTableByScopeResponse, TableData} from "../interfaces";
-import {start} from "node:repl";
 
 @Injectable({
   providedIn: 'root'
