@@ -3,6 +3,7 @@ import {environment} from "../../env";
 import {HttpClient} from "@angular/common/http";
 import {lastValueFrom} from "rxjs";
 import {GetTableByScopeResponse, TableData} from "../interfaces";
+import {DataService} from "./data.service";
 
 @Injectable({
   providedIn: 'root'
@@ -17,7 +18,7 @@ export class SearchService {
 
   autoCompleteCache: Map<string, string[]> = new Map();
 
-  constructor(private http: HttpClient) {
+  constructor(private http: HttpClient, private data: DataService) {
     this.searchAccountUrl = environment.hyperionApiUrl + '/v1/chain/get_table_by_scope';
     this.wildcardAccountUrl = environment.hyperionApiUrl + '/v2/state/get_voter_scopes';
   }
@@ -68,35 +69,42 @@ export class SearchService {
   }
 
 
-  async submitSearch(searchText: any, filteredAccounts: string[]): Promise<boolean> {
+  submitSearch(searchText: any, filteredAccounts: string[]): boolean {
 
     const sValue = searchText.toLowerCase();
     this.searchQuery.set(sValue);
 
     // account direct
     if (filteredAccounts.length > 0) {
-      // await this.router.navigate(['/account', sValue]);
       this.searchType.set("account");
       return true;
     }
 
     // tx id
     if (sValue.length === 64) {
-      // await this.router.navigate(['/transaction', sValue]);
-      this.searchType.set("transaction");
+
+      // check if the first 8 bytes represent a number
+      const blockNumCandidate = parseInt(sValue.substring(0, 8), 16);
+      const isNumber = !isNaN(blockNumCandidate);
+
+      if (isNumber && this.data.explorerMetadata && this.data.explorerMetadata.last_indexed_block >= blockNumCandidate) {
+        this.searchQuery.set(blockNumCandidate.toString(10));
+        this.searchType.set("block");
+      } else {
+        this.searchType.set("transaction");
+      }
+
       return true;
     }
 
     // account search
     if (sValue.length > 0 && sValue.length <= 12 && isNaN(sValue)) {
-      // await this.router.navigate(['/account', sValue]);
       this.searchType.set("account");
       return true;
     }
 
     // public key
     if (searchText.startsWith('PUB_K1_') || searchText.startsWith('EOS')) {
-      // await this.router.navigate(['/key', searchText]);
       this.searchType.set("key");
       return true;
     }
@@ -104,7 +112,6 @@ export class SearchService {
     // block number
     const blockNum = searchText.replace(/[,.]/g, '');
     if (parseInt(blockNum, 10) > 0) {
-      // await this.router.navigate(['/block', blockNum]);
       this.searchType.set("block");
       return true;
     }
@@ -134,7 +141,6 @@ export class SearchService {
         }
       }
       if (route) {
-        // await this.router.navigate([route, searchText]);
         return true;
       }
     }
