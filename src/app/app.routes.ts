@@ -3,6 +3,7 @@ import {HomeComponent} from "./pages/home/home.component";
 import {AccountComponent} from "./components/search-results/account/account.component";
 import {TransactionComponent} from "./components/search-results/transaction/transaction.component";
 import {ContractExplorerComponent} from "./components/contract-explorer/contract-explorer.component";
+import {BlockComponent} from "./components/search-results/block/block.component";
 
 export const routes: Routes = [
   {
@@ -12,6 +13,10 @@ export const routes: Routes = [
       {
         path: 'account/:account_name',
         component: AccountComponent
+      },
+      {
+        path: 'block/:block_num_or_id',
+        component: BlockComponent
       },
       {
         path: 'transaction/:transaction_id',
