@@ -1,4 +1,8 @@
-
+.header-card {
+    background-color: var(--card-bg);
+    background: var(--card-bg-gradient);
+    box-shadow: var(--card-box-shadow) !important;
+}
 
 .custom-input-group {
   box-shadow: var(--box-shadow-bg-sharp-inset-deep);
