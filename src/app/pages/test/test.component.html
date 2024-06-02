@@ -1,0 +1,22 @@
+<div class="flex flex-col place-items-center gap-10 m-5">
+
+  <app-animated-button [buttonColor]="color()"
+                       [duration]="1000"
+                       [buttonText]="expanded() ? 'Search transaction' : 'Search'">
+  </app-animated-button>
+
+  <button mat-button mat-raised-button (click)="toggleExpansion()">
+    Toggle Expansion
+  </button>
+
+  <div class="flex flex-row gap-4">
+    <button mat-button mat-raised-button (click)="setColor1()">
+      Color 1
+    </button>
+    <button mat-button mat-raised-button (click)="setColor2()">
+      Color 2
+    </button>
+  </div>
+
+
+</div>

@@ -5,6 +5,7 @@ import {TransactionComponent} from "./components/search-results/transaction/tran
 import {ContractExplorerComponent} from "./components/contract-explorer/contract-explorer.component";
 import {BlockComponent} from "./components/search-results/block/block.component";
 import {KeyComponent} from "./components/search-results/key/key.component";
+import {TestComponent} from "./pages/test/test.component";
 
 export const routes: Routes = [
   {
@@ -16,6 +17,10 @@ export const routes: Routes = [
       {path: 'key/:pub_key', component: KeyComponent},
       {path: 'transaction/:transaction_id', component: TransactionComponent},
     ]
+  },
+  {
+    path: 'test',
+    component: TestComponent
   },
   {
     path: 'contract/:code/:table/:scope',

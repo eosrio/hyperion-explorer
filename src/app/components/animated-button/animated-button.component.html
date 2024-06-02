@@ -1,0 +1,6 @@
+<button #btn mat-raised-button class="animated-button m-5 place-self-center" [style.width]="width()"
+        [style.background-color]="color()">
+  <mat-icon>search</mat-icon>
+  {{ activeText() }}
+</button>
+<p>Width: {{ width() }}</p>

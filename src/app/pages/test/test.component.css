@@ -1,0 +1,9 @@
+.test-box {
+  width: 80px;
+  transition: width 1s ease-in-out;
+}
+
+.test-animated-box {
+  width: 200px;
+  transition: width 1s ease-in-out;
+}
