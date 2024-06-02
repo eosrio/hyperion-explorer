@@ -1,6 +1,7 @@
 {
   "name": "hyperion-explorer",
   "version": "0.0.0",
+  "description": "Official Lightweight Explorer for Hyperion History APIs",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
