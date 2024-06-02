@@ -56,6 +56,7 @@ body {
   background: var(--card-bg-gradient);
   box-shadow:  var(--card-box-shadow) !important;
   border-radius: 1rem;
+  padding: 1.6rem;
 }
 
 /*container responsive start*/
