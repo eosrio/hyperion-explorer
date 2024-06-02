@@ -66,6 +66,7 @@ export class HomeComponent {
   searchValue = this.searchService.searchQuery.asReadonly();
   searchType = this.searchService.searchType.asReadonly();
   searchField = viewChild<ElementRef<HTMLInputElement>>('searchField');
+  validSearch = signal<boolean>(false);
 
   filteredAccounts = signal<string[]>([]);
 
@@ -107,6 +108,13 @@ export class HomeComponent {
 
     this.searchForm.get('search_field')?.valueChanges?.pipe(debounceTime(300))?.subscribe((value) => {
       if (value && value.length > 2) {
+
+        this.validSearch.set(this.searchService.submitSearch(value, []));
+
+        if (this.validSearch()) {
+          console.log(`Searching by ${this.searchService.searchType()}... (${this.searchService.searchQuery()})`);
+        }
+
         this.searchService.filterAccountNames(value).then((filteredAccounts: string[]) => {
           this.filteredAccounts.set(filteredAccounts
             .concat(this.systemAccounts.filter(acct => acct.startsWith(value)))

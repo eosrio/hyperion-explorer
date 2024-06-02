@@ -88,6 +88,11 @@ export class SearchService {
       const isNumber = !isNaN(blockNumCandidate);
 
       if (isNumber && this.data.explorerMetadata && this.data.explorerMetadata.last_indexed_block >= blockNumCandidate) {
+
+        if (blockNumCandidate === 0) {
+          return false;
+        }
+
         this.searchQuery.set(blockNumCandidate.toString(10));
         this.searchType.set("block");
       } else {

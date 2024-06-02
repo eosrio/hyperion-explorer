@@ -1,10 +1,11 @@
-import {inject, Injectable, makeStateKey, signal, Signal, TransferState} from '@angular/core';
+import {inject, Injectable, makeStateKey, TransferState} from '@angular/core';
 import {environment} from "../../env";
 import {ExplorerMetadata} from "../interfaces";
 import {Title} from "@angular/platform-browser";
 
 export abstract class DataService {
   abstract explorerMetadata: ExplorerMetadata | null;
+
   abstract load(): Promise<void>;
 }
 
