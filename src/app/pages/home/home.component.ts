@@ -74,6 +74,8 @@ export class HomeComponent {
   systemAccounts = ["eosio", "eosio.token", "eosio.msig"];
   searchPlaceholder = signal<string>("");
 
+  autocomplete = viewChild(MatAutocompleteTrigger);
+
   private currentPlaceholder = 0;
   placeholders = [
     'Search by account name...',
@@ -121,6 +123,8 @@ export class HomeComponent {
             .sort((a, b) => a.localeCompare(b))
           );
         });
+      } else {
+        this.validSearch.set(false);
       }
     });
 
@@ -152,6 +156,12 @@ export class HomeComponent {
     const searchText = this.searchForm.get('search_field')?.value;
     if (searchText) {
       this.searchForm.reset();
+      if (this.autocomplete()) {
+        const ref = this.autocomplete();
+        if (ref !== undefined) {
+          ref.closePanel();
+        }
+      }
       const status = this.searchService.submitSearch(searchText, this.filteredAccounts());
       if (!status) {
         this.err.set('no results for ' + searchText);
