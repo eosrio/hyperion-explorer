@@ -13,7 +13,7 @@
       <!-- LIST OF CARDS-->
       <div class="flex flex-col justify-start items-center gap-4 text-black">
 
-        <mat-card class="p-2">
+        <div class="p-2 custom-card">
 
           <mat-card-header>
             <div class="flex flex-row items-center justify-between w-full">
@@ -233,7 +233,7 @@
             </div>
 
           </mat-card-content>
-        </mat-card>
+        </div>
 
         <div class="flex
           md:flex-row md:justify-between md:content-stretch
@@ -241,7 +241,7 @@
           gap-2 w-full min-w-full h-full min-h-full flex-auto">
 
           <!--TOKENS-->
-          <mat-card class="md:flex-25 p-2">
+          <div class="custom-card md:flex-25 p-2">
             <h3>
               <fa-layers [fixedWidth]="true" style="margin-right: 5px">
                 <fa-icon
@@ -290,10 +290,10 @@
                 No tokens to display
               </div>
             }
-          </mat-card>
+          </div>
 
           <!--KEYS-->
-          <mat-card class="md:flex-75 p-2">
+          <div class="custom-card md:flex-75 p-2">
             <h3>
               <fa-layers [fixedWidth]="true" style="margin-right: 5px">
                 <fa-icon
@@ -466,7 +466,7 @@
                 </div>
               </mat-tree-node>
             </mat-tree>
-          </mat-card>
+          </div>
 
         </div>
 
@@ -474,7 +474,7 @@
         (accountService.account['voter_info'].proxy ||
           accountService.account['voter_info'].producers.length > 0)) {
           <mat-accordion
-            class="width-100 vote-card"
+            class="custom-card width-100 vote-card"
           >
             <mat-expansion-panel
               [disabled]="
@@ -558,7 +558,7 @@
           </mat-accordion>
         }
 
-        <mat-card class="w-full min-w-full h-full min-h-full flex-100 p-2">
+        <div class="custom-card w-full min-w-full h-full min-h-full flex-100 p-2">
           <div class="flex flex-row justify-between items-start">
             <h3 style="margin-top: 0">
               <fa-layers [fixedWidth]="true" style="margin-right: 5px">
@@ -792,7 +792,7 @@
           >
             load more actions
           </button>
-        </mat-card>
+        </div>
       </div>
 
 

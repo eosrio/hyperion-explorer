@@ -1,6 +1,6 @@
 <div class="w-full h-full flex flex-col">
 
-  <div class="custom-card mx-5 mb-5 mt-0 rounded-b-2xl content-start">
+  <div class="header-card mx-5 mb-5 mt-0 rounded-b-2xl content-start">
 
     <div class="w-full mt-4">
       <app-pre-header></app-pre-header>
@@ -19,7 +19,7 @@
           hover:border-amber-400 border-transparent transition-all duration-100 ease-in-out">
 
           <input #searchField formControlName="search_field" [placeholder]="searchPlaceholder()"
-                 class="custom-input grow outline-none ml-0 pl-5 pr-20 py-4 rounded-l-full"
+                 class="custom-input grow outline-none ml-0 pl-5 py-4 rounded-l-full min-w-96"
                  [matAutocomplete]="auto">
           <button mat-flat-button color="primary" class="mr-2 place-self-center">
             <mat-icon>search</mat-icon>

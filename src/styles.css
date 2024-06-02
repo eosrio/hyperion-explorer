@@ -21,7 +21,7 @@
   /*main and body*/
   --main-background: #d2e1f8;
   --main-text: #141519;
-  --container-width: 1024px;
+  --container-width: 1366px;
 
   /*Neomorphism*/
   --colour-bg-shadow: rgb(200, 200, 220);
@@ -30,6 +30,11 @@
   --box-shadow-bg-sharp-inset: 3px 3px 4px 1px inset var(--colour-bg-shadow), -1px -1px 1px 0px inset var(--colour-bg-highlight), 0px 0px 0px 0px var(--colour-bg-shadow), 0px 2px 0px 0px var(--colour-bg-highlight);
   --transition-btn-down: 0.2s;
   --transition-btn-up: 0.5s;
+
+  /*card*/
+  --card-bg: rgba(255,255,255,.5);
+  --card-bg-gradient: linear-gradient(0deg, rgb(255 255 255 / 40%) 0%, rgb(255 255 255 / 90%) 70%, rgba(255, 255, 255, .4) 100%);
+  --card-box-shadow: rgba(104, 139, 255, 0.1) 0px 48px 100px 0px, rgba(17, 12, 46, 0.15) 0px 30px 100px 0px;
 }
 
 html,
@@ -47,9 +52,10 @@ body {
 }
 
 .custom-card {
-  background-color: rgba(255,255,255,.5);
-  background: linear-gradient(0deg, rgb(255 255 255 / 40%) 0%, rgb(255 255 255 / 90%) 70%, rgba(255, 255, 255, .4) 100%);
-  box-shadow: rgba(104, 139, 255, 0.1) 0px 48px 100px 0px, rgba(17, 12, 46, 0.15) 0px 30px 100px 0px;
+  background-color: var(--card-bg);
+  background: var(--card-bg-gradient);
+  box-shadow:  var(--card-box-shadow) !important;
+  border-radius: 1rem;
 }
 
 /*container responsive start*/
