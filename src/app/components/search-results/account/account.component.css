@@ -45,8 +45,23 @@
   margin-left: 0;
 }
 
+
+.keys-tree {
+  background-color: transparent;
+}
+
+.custom-card .mat-expansion-panel {
+  background-color: transparent;
+
+}
+
 .actions-table {
   width: 100%;
+  background-color: transparent;
+}
+
+.actions-table-paginator {
+  background-color: transparent;
 }
 
 ::ng-deep .bigger-tooltip {

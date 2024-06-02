@@ -13,7 +13,7 @@
       <!-- LIST OF CARDS-->
       <div class="flex flex-col justify-start items-center gap-4 text-black">
 
-        <div class="p-2 custom-card">
+        <div class="custom-card">
 
           <mat-card-header>
             <div class="flex flex-row items-center justify-between w-full">
@@ -241,7 +241,7 @@
           gap-2 w-full min-w-full h-full min-h-full flex-auto">
 
           <!--TOKENS-->
-          <div class="custom-card md:flex-25 p-2">
+          <div class="custom-card md:flex-25">
             <h3>
               <fa-layers [fixedWidth]="true" style="margin-right: 5px">
                 <fa-icon
@@ -293,7 +293,7 @@
           </div>
 
           <!--KEYS-->
-          <div class="custom-card md:flex-75 p-2">
+          <div class="custom-card md:flex-75">
             <h3>
               <fa-layers [fixedWidth]="true" style="margin-right: 5px">
                 <fa-icon
@@ -309,7 +309,7 @@
               Permissions & Keys
             </h3>
 
-            <mat-tree [dataSource]="dataSource" [treeControl]="treeControl">
+            <mat-tree [dataSource]="dataSource" [treeControl]="treeControl" class="keys-tree">
               <!-- This is the tree node template for leaf nodes -->
 
               <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
@@ -558,7 +558,7 @@
           </mat-accordion>
         }
 
-        <div class="custom-card w-full min-w-full h-full min-h-full flex-100 p-2">
+        <div class="custom-card w-full min-w-full h-full min-h-full flex-100">
           <div class="flex flex-row justify-between items-start">
             <h3 style="margin-top: 0">
               <fa-layers [fixedWidth]="true" style="margin-right: 5px">
@@ -775,7 +775,7 @@
             <tr mat-row (click)="onRowClick(row)" *matRowDef="let row; columns: displayedColumns"></tr>
           </table>
 
-          <mat-paginator
+          <mat-paginator class="actions-table-paginator"
             [pageSizeOptions]="[10, 20, 50, 100]"
             [length]="accountService.tableDataSource.filteredData.length"
             (page)="changePage($event)"
