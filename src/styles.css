@@ -7,6 +7,7 @@
 :root {
   /*concepts*/
   --primary: #00a6de;
+  --primary-gradient: linear-gradient(145deg, #00b2ee, #0095c8);
   --accent: #fa7600;
   --warn: #ef4444;
 
@@ -33,7 +34,7 @@
 
   /*card*/
   --card-bg: rgba(255,255,255,.5);
-  --card-bg-gradient: linear-gradient(0deg, rgb(255 255 255 / 40%) 0%, rgb(255 255 255 / 90%) 70%, rgba(255, 255, 255, .4) 100%);
+  --card-bg-gradient: linear-gradient(115deg, rgb(255 255 255 / 40%) 0%, rgb(255 255 255 / 90%) 70%, rgba(255, 255, 255, .4) 100%);
   --card-box-shadow: rgba(104, 139, 255, 0.1) 0px 48px 100px 0px, rgba(17, 12, 46, 0.15) 0px 30px 100px 0px;
 }
 
@@ -57,6 +58,26 @@ body {
   box-shadow:  var(--card-box-shadow) !important;
   border-radius: 1rem;
   padding: 1.6rem;
+}
+
+.mat-mdc-raised-button:not(:disabled) {
+  box-shadow: -3px -1px 1px 0px inset var(--colour-bg-shadow), 1px 1px 1px 0px inset var(--colour-bg-highlight), 2px 3px 5px 2px var(--colour-bg-shadow), 0px 0px 0px 0px var(--colour-bg-highlight);
+  background-color: transparent;
+  }
+
+.mat-mdc-raised-button:not(:disabled):hover, .mat-mdc-raised-button:not(:disabled):focus {
+  outline: none;
+  box-shadow: var(--box-shadow-bg-sharp-inset) !important;
+  transition: var(--transition-btn-down);
+  background: transparent !important;
+  color: var(--primary) !important;
+}
+
+.primary-btn {
+  background-color: var(--primary) !important;
+  background: var(--primary-gradient) !important;
+  color: var(--btn-primary-color) !important;
+  transition: var(--transition-btn-down);
 }
 
 /*container responsive start*/

@@ -21,7 +21,7 @@
           <input #searchField formControlName="search_field" [placeholder]="searchPlaceholder()"
                  class="custom-input grow outline-none ml-0 pl-5 py-4 rounded-l-full min-w-96"
                  [matAutocomplete]="auto">
-          <button mat-flat-button color="primary" class="mr-2 place-self-center">
+          <button mat-raised-button class="mr-2 place-self-center" [class.primary-btn]="validSearch()">
             <mat-icon>search</mat-icon>
             @if (validSearch()) {
               Search {{searchType()}}

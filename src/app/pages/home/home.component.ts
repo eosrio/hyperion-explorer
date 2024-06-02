@@ -10,7 +10,7 @@ import {
 } from '@angular/core';
 import {PreHeaderComponent} from "../../components/pre-header/pre-header.component";
 import {MatCard} from "@angular/material/card";
-import {isPlatformBrowser, NgOptimizedImage} from "@angular/common";
+import {isPlatformBrowser, NgClass, NgOptimizedImage} from "@angular/common";
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from "@angular/forms";
 import {MatError, MatFormField, MatSuffix} from "@angular/material/form-field";
 import {faHeart, faSearch} from "@fortawesome/free-solid-svg-icons";
@@ -43,7 +43,8 @@ import {debounceTime} from "rxjs";
     MatButton,
     MatSuffix,
     MatIcon,
-    RouterOutlet
+    RouterOutlet,
+    NgClass
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
