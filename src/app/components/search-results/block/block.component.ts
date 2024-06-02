@@ -100,6 +100,7 @@ export class BlockComponent implements OnInit, OnDestroy {
     this.searchService.searchType.set('block');
 
     this.route.paramMap.subscribe(async value => {
+
       const block_num_or_id = value.get('block_num_or_id');
       if (block_num_or_id) {
         if (block_num_or_id.length === 64) {
@@ -108,6 +109,7 @@ export class BlockComponent implements OnInit, OnDestroy {
           this.blockNum.set(parseInt(block_num_or_id));
         }
       }
+
       this.searchService.searchQuery.set(value.get('block_num_or_id') ?? "");
 
       const blockData = await this.accountService.loadBlockData(this.blockNum());
