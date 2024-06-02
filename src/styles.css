@@ -63,6 +63,7 @@ body {
 .mat-mdc-raised-button:not(:disabled) {
   box-shadow: -3px -1px 1px 0px inset var(--colour-bg-shadow), 1px 1px 1px 0px inset var(--colour-bg-highlight), 2px 3px 5px 2px var(--colour-bg-shadow), 0px 0px 0px 0px var(--colour-bg-highlight);
   background-color: transparent;
+  transition: all var(--transition-btn-down);
   }
 
 .mat-mdc-raised-button:not(:disabled):hover, .mat-mdc-raised-button:not(:disabled):focus {
@@ -77,7 +78,7 @@ body {
   background-color: var(--primary) !important;
   background: var(--primary-gradient) !important;
   color: var(--btn-primary-color) !important;
-  transition: var(--transition-btn-down);
+  transition: all var(--transition-btn-down);
 }
 
 /*container responsive start*/
@@ -86,8 +87,14 @@ body {
   padding: 0 32px 0;
 }
 
+.searchbar-container {
+  margin: 0 auto;
+  padding-left: 32px;
+  padding-right: 32px;
+}
+
 @media screen and (min-width: 1050px) {
-  .hr-container {
+  .hr-container, .searchbar-container {
     max-width: var(--container-width) !important;
   }
 }
@@ -95,6 +102,10 @@ body {
 @media screen and (max-width: 599px) {
   .hr-container {
     padding: 0 10px;
+  }
+  .searchbar-container {
+    padding-left: 10px;
+    padding-right: 10px;
   }
 }
 

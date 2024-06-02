@@ -1,12 +1,12 @@
 <div class="w-full h-full flex flex-col">
 
-  <div class="header-card mx-5 mb-5 mt-0 rounded-b-2xl content-start">
+  <div class="header-card mx-3 sm:mx-5 mb-5 mt-0 rounded-b-2xl content-start" [class.header-anim]="accService.loaded()">
 
     <div class="w-full mt-4">
       <app-pre-header></app-pre-header>
     </div>
 
-    <div class="grow flex flex-col items-center justify-center gap-10 py-10">
+    <div class="flex flex-col justify-center items-center gap-10 py-10 w-full searchbar-container">
 
       <!-- DYNAMIC CHAIN LOGO-->
       <img [ngSrc]="chainData().logo" alt="logo" class="logo" width="192" height="70" priority/>
@@ -14,14 +14,14 @@
       <form [formGroup]="searchForm" (ngSubmit)="submit()" class="flex flex-row w-full justify-center">
 
         <div
-          class="custom-input-group rounded-full flex flex-row gap-5 content-center
+          class="custom-input-group rounded-full grow sm:grow-0 flex flex-row gap-5 content-center
           focus-within:outline focus-within:outline-2 focus-within:outline-amber-400 focus-within:-outline-offset-2
           hover:border-amber-400 border-transparent transition-all duration-100 ease-in-out">
 
           <input #searchField formControlName="search_field" [placeholder]="searchPlaceholder()"
-                 class="custom-input grow outline-none ml-0 pl-5 py-4 rounded-l-full min-w-96"
+                 class="custom-input grow outline-none ml-0 pl-5 py-4 rounded-l-full w-full sm:w-96 max-w-full "
                  [matAutocomplete]="auto">
-          <button mat-raised-button class="mr-2 place-self-center" [class.primary-btn]="validSearch()">
+          <button mat-raised-button class="search-btn mr-2 place-self-center" [class.primary-btn]="validSearch()">
             <mat-icon>search</mat-icon>
             @if (validSearch()) {
               Search {{searchType()}}

@@ -2,7 +2,13 @@
     background-color: var(--card-bg);
     background: var(--card-bg-gradient);
     box-shadow: var(--card-box-shadow) !important;
+    height: 278px;
 }
+
+/*.header-anim {*/
+/*  height: 56px;*/
+/*  transition: all 0.3s;*/
+/*}*/
 
 .custom-input-group {
   box-shadow: var(--box-shadow-bg-sharp-inset-deep);
@@ -43,4 +49,14 @@
   border-radius: 0 1rem 1rem 0;
   background-color: var(--card-bg) !important;
   background:  linear-gradient(180deg, #F3F7FD 0%, #F3F7FD 70%, #e5eaf5 100%) !important;
+}
+
+.search-btn {
+  width: 107px;
+  text-wrap: nowrap;
+}
+
+.search-btn.primary-btn {
+  width: 186px;
+  text-wrap: nowrap;
 }

@@ -24,6 +24,7 @@ import {ExplorerMetadata} from "../../interfaces";
 import {MatIcon} from "@angular/material/icon";
 import {ActivatedRoute, Router, RouterOutlet} from "@angular/router";
 import {debounceTime} from "rxjs";
+import {AccountService} from "../../services/account.service";
 
 @Component({
   selector: 'app-home',
@@ -93,6 +94,7 @@ export class HomeComponent {
     private dataService: DataService,
     private formBuilder: FormBuilder,
     private searchService: SearchService,
+    public accService: AccountService,
     private router: Router,
     private route: ActivatedRoute,
     @Inject(PLATFORM_ID) private platformId: Object
