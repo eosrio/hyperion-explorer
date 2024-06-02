@@ -25,6 +25,7 @@ import {MatIcon} from "@angular/material/icon";
 import {ActivatedRoute, Router, RouterOutlet} from "@angular/router";
 import {debounceTime} from "rxjs";
 import {AccountService} from "../../services/account.service";
+import {sign} from "node:crypto";
 
 @Component({
   selector: 'app-home',
@@ -89,6 +90,8 @@ export class HomeComponent {
 
   err = signal("");
 
+  emptySearchError = signal(false);
+
 
   constructor(
     private dataService: DataService,
@@ -128,6 +131,7 @@ export class HomeComponent {
         });
       } else {
         this.validSearch.set(false);
+        this.closeAutoComplete();
       }
     });
 
@@ -152,19 +156,24 @@ export class HomeComponent {
     }
   }
 
+  closeAutoComplete() {
+    if (this.autocomplete()) {
+      const ref = this.autocomplete();
+      if (ref !== undefined) {
+        ref.closePanel();
+      }
+    }
+  }
+
   async submit(): Promise<void> {
     if (!this.searchForm.valid) {
+      this.err.set("Please input something above!");
       return;
     }
     const searchText = this.searchForm.get('search_field')?.value;
     if (searchText) {
       this.searchForm.reset();
-      if (this.autocomplete()) {
-        const ref = this.autocomplete();
-        if (ref !== undefined) {
-          ref.closePanel();
-        }
-      }
+      this.closeAutoComplete();
       const status = this.searchService.submitSearch(searchText, this.filteredAccounts());
       if (!status) {
         this.err.set('no results for ' + searchText);
