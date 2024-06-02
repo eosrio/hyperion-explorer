@@ -33,7 +33,7 @@
             <mat-error>{{ err() }}</mat-error>
           }
         </div>
-        <mat-autocomplete #auto="matAutocomplete" (optionSelected)="submit()">
+        <mat-autocomplete #auto="matAutocomplete" (optionSelected)="submit()" class="custom-autocomplete" [classList]="'custom-autocomplete'">
           @for (account of filteredAccounts(); track account) {
             <mat-option [value]="account">
               {{ account }}
