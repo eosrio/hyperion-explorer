@@ -23,7 +23,11 @@
                  [matAutocomplete]="auto">
           <button mat-flat-button color="primary" class="mr-2 place-self-center">
             <mat-icon>search</mat-icon>
-            Search
+            @if (validSearch()) {
+              Search {{searchType()}}
+            } @else {
+              Search
+            }
           </button>
           @if (err()) {
             <mat-error>{{ err() }}</mat-error>
@@ -40,31 +44,31 @@
 
     </div>
 
-<!--    <form [formGroup]="searchForm" (ngSubmit)="submit()" class="flex flex-row justify-center items-stretch">-->
-<!--      <div>-->
-<!--        <mat-form-field appearance="outline">-->
-<!--          <input matInput formControlName="search_field" [matAutocomplete]="auto"-->
-<!--                 [placeholder]="searchPlaceholder" type="text"/>-->
-<!--          <button mat-flat-button matSuffix type="submit" color="primary" class="mr-2 place-self-center search-btn"-->
-<!--                  [attr.aria-label]="'search'" (keyup.enter)="submit()">-->
-<!--            <mat-icon>search</mat-icon>-->
-<!--            Search-->
-<!--          </button>-->
-<!--          @if (err()) {-->
-<!--            <mat-error>{{ err() }}</mat-error>-->
-<!--          }-->
-<!--        </mat-form-field>-->
-<!--      </div>-->
+    <!--    <form [formGroup]="searchForm" (ngSubmit)="submit()" class="flex flex-row justify-center items-stretch">-->
+    <!--      <div>-->
+    <!--        <mat-form-field appearance="outline">-->
+    <!--          <input matInput formControlName="search_field" [matAutocomplete]="auto"-->
+    <!--                 [placeholder]="searchPlaceholder" type="text"/>-->
+    <!--          <button mat-flat-button matSuffix type="submit" color="primary" class="mr-2 place-self-center search-btn"-->
+    <!--                  [attr.aria-label]="'search'" (keyup.enter)="submit()">-->
+    <!--            <mat-icon>search</mat-icon>-->
+    <!--            Search-->
+    <!--          </button>-->
+    <!--          @if (err()) {-->
+    <!--            <mat-error>{{ err() }}</mat-error>-->
+    <!--          }-->
+    <!--        </mat-form-field>-->
+    <!--      </div>-->
 
-<!--      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="submit()">-->
-<!--        @for (account of filteredAccounts(); track account) {-->
-<!--          <mat-option [value]="account">-->
-<!--            {{ account }}-->
-<!--          </mat-option>-->
-<!--        }-->
-<!--      </mat-autocomplete>-->
+    <!--      <mat-autocomplete #auto="matAutocomplete" (optionSelected)="submit()">-->
+    <!--        @for (account of filteredAccounts(); track account) {-->
+    <!--          <mat-option [value]="account">-->
+    <!--            {{ account }}-->
+    <!--          </mat-option>-->
+    <!--        }-->
+    <!--      </mat-autocomplete>-->
 
-<!--    </form>-->
+    <!--    </form>-->
 
   </div>
 
