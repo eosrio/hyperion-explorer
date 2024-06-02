@@ -109,8 +109,9 @@ export class SearchService {
     }
 
     // public key
-    if (searchText.startsWith('PUB_K1_') || searchText.startsWith('EOS')) {
+    if (searchText.startsWith('PUB_') || searchText.startsWith('EOS')) {
       this.searchType.set("key");
+      this.searchQuery.set(searchText);
       return true;
     }
 
