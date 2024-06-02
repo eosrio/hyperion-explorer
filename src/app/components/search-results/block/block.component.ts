@@ -22,6 +22,7 @@ import {
 import {AccountService} from "../../../services/account.service";
 import {Title} from "@angular/platform-browser";
 import {SearchService} from "../../../services/search.service";
+import {DataService} from "../../../services/data.service";
 
 @Component({
   selector: 'app-block',
@@ -66,7 +67,7 @@ export class BlockComponent implements OnInit, OnDestroy {
     }
   }
 
-  block = signal({
+  block = signal<any>({
     transactions: [],
     status: '',
     number: 0
@@ -79,7 +80,7 @@ export class BlockComponent implements OnInit, OnDestroy {
   countdownLoop: any;
   countdownTimer = 0;
 
-  objectKeyCount(obj): number {
+  objectKeyCount(obj: any): number {
     try {
       return Object.keys(obj).length;
     } catch (e) {
@@ -88,9 +89,9 @@ export class BlockComponent implements OnInit, OnDestroy {
   }
 
   constructor(private route: ActivatedRoute,
+              private dataService: DataService,
               private searchService: SearchService,
               public accountService: AccountService,
-              public chainData: ChainService,
               private title: Title) {
   }
 
@@ -115,36 +116,31 @@ export class BlockComponent implements OnInit, OnDestroy {
         this.block.set(blockData);
       }
 
-    });
-
-    this.activatedRoute.params.subscribe(async (routeParams) => {
-      this.blockNum = routeParams.block_num;
-      this.block = await this.accountService.loadBlockData(routeParams.block_num);
-
-      if (!this.chainData.chainInfoData.chain_name) {
-        this.title.setTitle(`#${routeParams.block_num} • Hyperion Explorer`);
+      if (!this.dataService.explorerMetadata?.chain_name) {
+        this.title.setTitle(`#${this.blockNum()} • Hyperion Explorer`);
       } else {
-        this.title.setTitle(`#${routeParams.block_num} • ${this.chainData.chainInfoData.chain_name} Hyperion Explorer`);
+        this.title.setTitle(`#${this.blockNum()} • ${this.dataService.explorerMetadata.chain_name} Hyperion Explorer`);
       }
 
-      if (this.block && this.block.status === 'pending') {
+      if (this.block && this.block().status === 'pending') {
         await this.reloadCountdownTimer();
         this.countdownLoop = setInterval(async () => {
           this.countdownTimer--;
           if (this.countdownTimer <= 0) {
             await this.reloadCountdownTimer();
-            if (this.accountService.libNum > this.block.number) {
+            if (this.accountService.libNum > this.block().number) {
               clearInterval(this.countdownLoop);
             }
           }
         }, 1000);
       }
+
     });
   }
 
   async reloadCountdownTimer(): Promise<void> {
     await this.accountService.updateLib();
-    this.countdownTimer = Math.ceil((this.block.number - this.accountService.libNum) / 2);
+    this.countdownTimer = Math.ceil((this.block().number - this.accountService.libNum) / 2);
   }
 
   ngOnDestroy(): void {
