@@ -137,7 +137,7 @@
               *matCellDef="let action"
               data-label="Action"
             >
-              <span class="accent w-500">{{ action.act.name }}</span>
+              <span class="accent font-medium">{{ action.act.name }}</span>
             </td>
           </ng-container>
           <!-- Data Column -->
@@ -154,7 +154,7 @@
                     'data-item': objectKeyCount(action['act']['data']) > 1
                   }"
                 >
-                  <span class="w-500">{{ item.key }}</span
+                  <span class="font-medium">{{ item.key }}</span
                   >: <span class="break-word">{{ item.value }}</span>
                 </div>
               }
@@ -171,7 +171,7 @@
               @for (auth of action["act"]["authorization"][0] | keyvalue;
                 track auth) {
                 <div class="data-item">
-                  <span class="w-500">{{ auth.key }}</span
+                  <span class="font-medium">{{ auth.key }}</span
                   >: <span>{{ auth.value }}</span>
                 </div>
               }

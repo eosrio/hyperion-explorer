@@ -125,6 +125,15 @@
 
 .vote-card-title {
   font-size: 19px;
+  margin-bottom: 0 !important;
+}
+
+::ng-deep .mat-expansion-indicator::after {
+  color: black !important;
+}
+
+::ng-deep .mat-expansion-indicator svg {
+  fill: black !important;
 }
 
 .action-cell {

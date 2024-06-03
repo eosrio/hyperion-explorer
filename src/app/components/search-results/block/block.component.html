@@ -66,12 +66,12 @@
         </div>
         <div class="flex flex-column justify-start items-stretch gap-[10px]">
           <div>
-            <span class="w-500">Block ID: </span
+            <span class="font-medium">Block ID: </span
             ><span class="break-word">{{ block().id }}</span>
           </div>
-          <div><span class="w-500">Producer: </span>{{ block().producer }}</div>
+          <div><span class="font-medium">Producer: </span>{{ block().producer }}</div>
           <div>
-            <span class="w-500">Time: </span>{{ formatDate(block().timestamp) }}
+            <span class="font-medium">Time: </span>{{ formatDate(block().timestamp) }}
           </div>
         </div>
       </mat-card>
@@ -136,12 +136,12 @@
                   <span
                     class="action-cell"
                   >
-                    <span class="accent w-500">{{
+                    <span class="accent font-medium">{{
                         transaction.actions[0].action
                       }}</span>
                     on
                     <span
-                      class="w-500 div-link"
+                      class="font-medium div-link"
                       [routerLink]="['/account', transaction.actions[0].account]"
                     >{{ transaction.actions[0].account }}</span
                     >
@@ -189,10 +189,10 @@
                       data-label="Action"
                     >
                             <span>
-                              <span class="accent w-500">{{ action.action }}</span>
+                              <span class="accent font-medium">{{ action.action }}</span>
                               on
                               <span
-                                class="w-500 div-link"
+                                class="font-medium div-link"
                                 [routerLink]="['/account', action.account]"
                               >{{ action.account }}</span
                               >
@@ -213,7 +213,7 @@
                         'data-item': objectKeyCount(action['data']) > 1
                       }"
                         >
-                                  <span class="w-500">{{ item.key }}</span
+                                  <span class="font-medium">{{ item.key }}</span
                                   >: <span class="break-word">{{ item.value }}</span>
                         </div>
                       }
@@ -232,7 +232,7 @@
                         <div
                           class="data-item"
                         >
-                                    <span class="w-500">{{ auth.key }}</span
+                                    <span class="font-medium">{{ auth.key }}</span
                                     >: <span>{{ auth.value }}</span>
                         </div>
                       }

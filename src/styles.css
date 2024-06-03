@@ -16,8 +16,9 @@
   --btn-accent-color: white;
 
   /*typography*/
-  --main-font-family: Roboto, "Helvetica Neue", sans-serif;
+  --main-font-family: Montserrat, sans-serif;
   --main-font-size: 16px;
+  --faded: #a4a4a4
 
   /*main and body*/
   --main-background: #d2e1f8;
@@ -27,7 +28,7 @@
   /*Neomorphism*/
   --colour-bg-shadow: rgb(200, 200, 220);
   --colour-bg-highlight: rgb(252, 252, 255);
-  --box-shadow-bg-sharp-inset-deep: 6px 6px 6px 1px inset var(--colour-bg-shadow), -1px -1px 1px 0px inset var(--colour-bg-highlight), 0px 0px 0px 0px var(--colour-bg-shadow), 0px 1px 0px 0px var(--colour-bg-highlight);
+  --box-shadow-bg-sharp-inset-deep: 6px 6px 7px 1px inset var(--colour-bg-shadow), -1px -1px 1px 0px inset var(--colour-bg-highlight), 0px 0px 0px 0px var(--colour-bg-shadow), 0px 1px 0px 0px var(--colour-bg-highlight);
   --box-shadow-bg-sharp-inset: 3px 3px 4px 1px inset var(--colour-bg-shadow), -1px -1px 1px 0px inset var(--colour-bg-highlight), 0px 0px 0px 0px var(--colour-bg-shadow), 0px 2px 0px 0px var(--colour-bg-highlight);
   --transition-btn-down: 0.2s;
   --transition-btn-up: 0.5s;
@@ -52,6 +53,17 @@ body {
   margin: 0;
 }
 
+/*typography start*/
+.montserrat {
+  font-family: Montserrat, sans-serif !important;
+  font-weight: 500;
+}
+
+.faded {
+  color: #a4a4a4;
+}
+/*typography end*/
+
 .custom-card {
   background-color: var(--card-bg);
   background: var(--card-bg-gradient);
@@ -60,6 +72,7 @@ body {
   padding: 1.6rem;
 }
 
+/*BUTTONS START*/
 .mat-mdc-raised-button:not(:disabled) {
   box-shadow: -3px -1px 1px 0px inset var(--colour-bg-shadow), 1px 1px 1px 0px inset var(--colour-bg-highlight), 2px 3px 5px 2px var(--colour-bg-shadow), 0px 0px 0px 0px var(--colour-bg-highlight);
   background-color: transparent;
@@ -80,11 +93,28 @@ body {
   color: var(--btn-primary-color) !important;
   transition: all var(--transition-btn-down);
 }
+/*BUTTONS END*/
+
+.grid-parent {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(350px, auto));
+  grid-gap: 1rem;
+}
+
+.el-on-grid {
+  width: 100%;
+  /*max-width: var(--asset-display-width);*/
+  justify-self: start;
+}
 
 /*container responsive start*/
 .hr-container {
   margin: 0 auto;
   padding: 0 32px 0;
+}
+
+.container {
+  width: 100%;
 }
 
 .searchbar-container {
@@ -97,6 +127,12 @@ body {
   .hr-container, .searchbar-container {
     max-width: var(--container-width) !important;
   }
+  .container {
+    margin-left: auto;
+    margin-right: auto;
+    padding: 30px 16px;
+    max-width: 1024px;
+  }
 }
 
 @media screen and (max-width: 599px) {
@@ -107,39 +143,19 @@ body {
     padding-left: 10px;
     padding-right: 10px;
   }
-}
-
-/*container responsive end*/
-
-/*container responsive*/
-.container {
-  width: 100%;
-}
-
-@media screen and (max-width: 576px) {
   .container {
     padding: 30px 10px;
   }
 }
 
-@media (min-width: 577px) and (max-width: 1049px) {
+@media (min-width: 600px) and (max-width: 1049px) {
   .container {
     padding: 30px 50px;
   }
 }
+/*container responsive end*/
 
-@media (min-width: 1050px) {
-  .container {
-    margin-left: auto;
-    margin-right: auto;
-    padding: 30px 16px;
-    max-width: 1024px;
-  }
-}
-
-/*container responsive ends*/
-
-/*scroll bar*/
+/*scroll bar start*/
 ::-webkit-scrollbar-track {
   background-color: #f4f5f8;
 }
@@ -155,17 +171,7 @@ body {
   -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.1);
   background-color: #ebecef;
 }
-
 /*scroll bar end*/
-
-.width-100 {
-  width: 100%;
-}
-
-.w-500 {
-  font-weight: 500;
-}
-
 .pointer {
   cursor: pointer;
 }
@@ -191,12 +197,6 @@ body {
   color: #00aee7;
 }
 
-.faded {
-  color: #a4a4a4;
-}
 
-.montserrat {
-  font-family: Montserrat, sans-serif;
-}
 
 

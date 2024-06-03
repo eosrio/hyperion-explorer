@@ -56,6 +56,7 @@ import {
 import {MatDivider} from "@angular/material/divider";
 import {MatDialog} from "@angular/material/dialog";
 import {ActionDetailsComponent} from "../../action-details/action-details.component";
+import {CdkDrag, CdkDragHandle, CdkDropList} from "@angular/cdk/drag-drop";
 
 interface Permission {
   perm_name: string;
@@ -137,7 +138,10 @@ interface FlatNode {
     MatCardTitle,
     MatCardSubtitle,
     MatCardHeader,
-    MatDivider
+    MatDivider,
+    CdkDropList,
+    CdkDragHandle,
+    CdkDrag
   ],
   templateUrl: './account.component.html',
   styleUrl: './account.component.css'
