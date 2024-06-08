@@ -1,6 +1,8 @@
 <!--LOADER-->
 @if (!accountService.loaded()) {
-  <mat-progress-spinner [diameter]="45" mode="indeterminate"></mat-progress-spinner>
+  <div class="hr-container flex flex-row justify-center items-center">
+  <mat-progress-spinner [diameter]="45" mode="indeterminate" color="primary"></mat-progress-spinner>
+  </div>
 }
 
 <!--MAIN CONTENT-->
@@ -10,15 +12,15 @@
 
     @if (accountService.jsonData) {
 
-      <div class="grid grid-cols-1 md:grid-cols-3 auto-cols-max gap-5 text-black">
+      <div class="grid grid-cols-1 md:grid-cols-3 auto-cols-max gap-5 text-black appear">
         <!-- ACCOUNT NAME-->
         <div class="custom-card w-full md:col-span-3">
           <mat-card-header>
-            <div class="flex flex-row items-center justify-between w-full">
-              <h1>
+            <div class="flex flex-row flex-wrap justify-between items-center w-full">
+              <div class="text-2xl acc-title flex flex-row items-center gap-3">
                 <fa-icon [icon]="icons.solid.faUserCircle"></fa-icon>
-                {{ accountService.account["account_name"] }}
-              </h1>
+                <div>{{ accountService.account["account_name"] }}</div>
+              </div>
               <button (click)="openContractExplorer()" mat-raised-button>
                 Explore Smart Contract
               </button>
@@ -98,7 +100,7 @@
             <div class="flex flex-row flex-wrap justify-start items-start flex-grow gap-10">
 
               <!--CPU-->
-              <div class="full-width md:flex-[287px] sm:flex-100">
+              <div class="w-full lg:w-[50%]">
                 <div>
                   <span class="title">CPU</span>
                   <span class="faded used">
@@ -152,7 +154,7 @@
               </div>
 
               <!--NET-->
-              <div class="full-width mt-responsive md:flex-[287px] sm:flex-100">
+              <div class="grow">
                 <div>
                   <span class="title">NET</span>
                   <span class="faded used">{{
@@ -521,6 +523,7 @@
           </mat-accordion>
         }
 
+        <!--ACTIONS CARD/TABLE-->
         <div class="custom-card w-full min-w-full h-full min-h-full md:col-span-3">
           <div class="flex flex-row justify-between items-start">
             <h3 style="margin-top: 0">
@@ -538,37 +541,24 @@
               Actions
             </h3>
 
-            <span class="lib"
-            >Last Irreversible Block:
-                                  <strong class="monospace">{{
-                                      accountService.libNum
-                                    }}</strong></span
-            >
+            <span class="lib">Last Irreversible Block:
+              <strong class="monospace">{{accountService.libNum }}</strong>
+            </span>
 
             @if (accountService.streamClientLoaded) {
-              <div
-                (click)="accountService.toggleStreaming()"
-                class="livestream"
-                matTooltip="click to turn on/off"
-                matTooltipClass="tooltip-bigger"
-              >
+              <div (click)="accountService.toggleStreaming()"
+                class="livestream" matTooltip="click to turn on/off" matTooltipClass="tooltip-bigger">
                 action live streaming
-                <span class="font-medium">{{
-                    accountService.streamClientStatus ? "enabled" : "disabled"
-                  }}</span>
-                <span
-                  class="dot"
-                  [ngClass]="{
-                  pulse: accountService.streamClientStatus,
-                  'red-dot': !accountService.streamClientStatus
-                }"
-                ></span>
+                <span class="font-medium">
+                  {{accountService.streamClientStatus ? "enabled" : "disabled" }}</span>
+                <span class="dot"
+                      [ngClass]="{pulse: accountService.streamClientStatus,'red-dot': !accountService.streamClientStatus}">
+                </span>
               </div>
             }
           </div>
           <table mat-table matSort matSortActive="block_num" matSortStart="desc" matSortDirection="desc"
-                 class="actions-table"
-                 [dataSource]="accountService.tableDataSource">
+                 class="actions-table" [dataSource]="accountService.tableDataSource">
             <!-- TX Column -->
             <ng-container matColumnDef="trx_id">
               <th mat-header-cell *matHeaderCellDef>
@@ -595,14 +585,14 @@
                 Action
               </th>
               <td mat-cell *matCellDef="let action" data-label="Action">
-                                      <span class="action-cell">
-                                        <span class="accent font-medium">{{ action["act"]["name"] }}</span>
-                                        on
-                                        <span [routerLink]="['/account', action['act']['account']]"
-                                              class="font-medium div-link">
-                                          {{ action["act"]["account"] }}
-                                        </span>
-                                      </span>
+                <div class="action-cell">
+                  <span class="accent font-medium">{{ action["act"]["name"] }}</span>
+                  on
+                  <span [routerLink]="['/account', action['act']['account']]"
+                        class="font-medium div-link">
+                    {{ action["act"]["account"] }}
+                  </span>
+                </div>
               </td>
             </ng-container>
 
@@ -724,7 +714,7 @@
 
             <!-- Block & Date Column -->
             <ng-container matColumnDef="block_num">
-              <th mat-header-cell *matHeaderCellDef>Block & Date</th>
+              <th mat-header-cell mat-sort-header *matHeaderCellDef>Block & Date</th>
               <td mat-cell *matCellDef="let action" data-label="Block & Date">
                 <a [routerLink]="['/block', action['block_num']]" class="link-blue">
                   {{ action["block_num"] }}
@@ -747,8 +737,7 @@
           </mat-paginator>
 
           <button
-            mat-stroked-button
-            color="primary"
+            mat-raised-button
             class="float-r"
             style="margin-right: 16px"
             (click)="accountService.loadMoreActions(accountName)"
@@ -782,8 +771,8 @@
     } @else {
 
       <!--      NO ACCOUNT-->
-      <div style="height: 100%" class="flex flex-column justify-start items-center gap-[15px]">
-        <mat-card class="w-full">
+      <div style="height: 100%" class="flex flex-column justify-start items-center gap-[15px] appear">
+        <div class="custom-card w-full">
           <h1 class="faded">
             <fa-icon [icon]="icons.solid.faSadTear" style="margin-right: 5px"></fa-icon>
             Account not found
@@ -791,7 +780,7 @@
           <div>
             We couldn't find the account <strong>{{ accountName }}</strong>
           </div>
-        </mat-card>
+        </div>
       </div>
 
     }

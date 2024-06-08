@@ -1,17 +1,17 @@
 @if (!accountService.loaded()) {
-  <mat-progress-spinner
-    [diameter]="45"
-    mode="indeterminate"
-  ></mat-progress-spinner>
+  <div class="hr-container flex flex-row justify-center items-center">
+    <mat-progress-spinner
+      [diameter]="45"
+      mode="indeterminate"
+    ></mat-progress-spinner>
+  </div>
 }
 
-<div class="hr-container">
-  @if (tx().actions && tx().actions.length === 0) {
-    <div
-      style="height: calc(100vh - 209px)"
-      class="flex flex-column justify-start items-center"
-    >
-      <mat-card style="width: 100%">
+
+@if (tx().actions && tx().actions.length === 0) {
+  <div class="hr-container">
+    <div class="grid grid-cols-1 auto-cols-max gap-5 text-black appear">
+      <div class="custom-card w-full">
         <h1 class="faded">
           <fa-icon [icon]="icons.solid.faSadTear" style="margin-right: 5px"></fa-icon>
           Transaction not found
@@ -20,23 +20,28 @@
           We couldn't find the transaction
           <strong class="break-word">{{ txID() }}</strong>
         </div>
-      </mat-card>
-    </div>
-  }
+      </div>
 
-  @if (tx().actions && tx().actions.length > 0 && accountService.loaded()) {
-    <div class="flex flex-column justify-start items-center gap-[15px]">
-      <mat-card class="flex-100 w-full min-w-full h-full min-h-full">
-        <div style="border-bottom: 1px solid #e4e4e4; margin-bottom: 12px">
+    </div>
+  </div>
+  <!--    <div style="height: calc(100vh - 209px)" class="flex flex-column justify-start items-center">-->
+    <!--    </div>-->
+}
+
+@if (tx().actions && tx().actions.length > 0 && accountService.loaded()) {
+  <div class="hr-container">
+    <!--    md:grid-cols-2 auto-cols-auto-->
+    <div class="grid grid-cols-1 md:grid-cols-[repeat(2,_minmax(auto,_auto))] gap-5 text-black w-full appear">
+      <!--      min-w-full-->
+      <div class="custom-card w-full h-full min-h-full">
+        <div>
           <div class="flex flex-row justify-start items-start">
-            <h2
-              style="
+            <h2 style="
                 margin-bottom: -15px;
                 color: #9c9c9c;
                 margin-top: 0;
                 margin-right: 10px;
-              "
-            >
+              ">
               <fa-layers [fixedWidth]="true" style="margin-right: 2px">
                 <fa-icon [icon]="icons.solid.faCircle" transform="grow-1"></fa-icon>
                 <fa-icon
@@ -69,14 +74,12 @@
             {{ tx().trx_id }}
           </h4>
         </div>
-        <div class="flex flex-column justify-start items-stretch gap-[15px]">
-          <div>
-            Block num:
-            <a
-              [routerLink]="['/block', tx().actions[0].block_num]"
-              class="link-blue"
-            >{{ tx().actions[0].block_num }}</a
-            >
+      </div>
+      <div class="custom-card w-full">
+        <div class="flex flex-col justify-start items-stretch gap-[15px]">
+          <div>Block num:
+            <a [routerLink]="['/block', tx().actions[0].block_num]"
+               class="link-blue">{{ tx().actions[0].block_num }}</a>
           </div>
           <div>Block time: {{ formatDate(tx().actions[0]["@timestamp"]) }}</div>
           <div class="flex flex-row justify-start content-center gap-[50px]">
@@ -96,22 +99,19 @@
             </div>
           </div>
         </div>
-      </mat-card>
-      <mat-card class="flex-100 w-full min-w-full h-full min-h-full">
-        <h3 style="margin-top: 0">
+      </div>
+
+
+      <div class="custom-card flex-100 w-full min-w-full h-full min-h-full md:col-span-2">
+        <div class="text-lg font-bold">
           <fa-layers [fixedWidth]="true" style="margin-right: 5px">
             <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
-            <fa-icon
-              [icon]="icons.solid.faHistory"
-              [inverse]="true"
-              transform="shrink-5"
-            ></fa-icon>
+            <fa-icon [icon]="icons.solid.faHistory" [inverse]="true" transform="shrink-5"></fa-icon>
           </fa-layers>
-          {{ tx().actions.length }} Action
-          @if (tx().actions.length > 1) {
+          <span>{{ tx().actions.length }} Action@if (tx().actions.length > 1) {
             <span>s</span>
-          }
-        </h3>
+          }</span>
+        </div>
         <table mat-table [dataSource]="tx().actions" class="actions-table">
           <!-- Contract Column -->
           <ng-container matColumnDef="contract">
@@ -189,7 +189,7 @@
             *matRowDef="let myRowData; columns: columnsToDisplay"
           ></tr>
         </table>
-      </mat-card>
+      </div>
     </div>
-  }
-</div>
+  </div>
+}

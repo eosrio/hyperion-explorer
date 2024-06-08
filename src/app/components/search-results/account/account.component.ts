@@ -42,7 +42,7 @@ import {
   faUserCircle,
   faVoteYea
 } from '@fortawesome/free-solid-svg-icons';
-import {MatSort} from "@angular/material/sort";
+import {MatSort, MatSortModule} from "@angular/material/sort";
 import {FlatTreeControl} from "@angular/cdk/tree";
 import {AccountCreationData} from "../../../interfaces";
 import {DataService} from "../../../services/data.service";
@@ -122,7 +122,7 @@ interface FlatNode {
     MatAccordion,
     MatExpansionModule,
     MatTable,
-    MatSort,
+    MatSortModule,
     MatColumnDef,
     MatHeaderCell,
     MatCell,

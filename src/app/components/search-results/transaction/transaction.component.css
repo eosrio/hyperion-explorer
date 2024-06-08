@@ -10,6 +10,7 @@
 
 .actions-table {
   width: 100%;
+  background-color: transparent;
 }
 
 .data-item {
@@ -18,7 +19,7 @@
 
 /*table responsive*/
 @media (max-width: 599px) {
-  .mat-table .mat-header-row {
+  [mat-table] [mat-header-row] {
     display: flex;
     flex-wrap: wrap;
     height: auto;
@@ -27,38 +28,42 @@
     z-index: 2;
   }
 
-  .mat-table .mat-header-row th.mat-header-cell {
-    display: none;
+  [mat-table] [mat-header-row] th[mat-header-cell] {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    padding: 1rem 0.5rem;
+    justify-content: end;
   }
 
-  .mat-table .mat-header-row th.mat-header-cell>.mat-sort-header-container {
+  [mat-table] [mat-header-row] th[mat-header-cell]>.mat-sort-header-container {
     padding-left: 15px;
   }
 
-  .mat-table .mat-header-row th.mat-header-cell>.mat-sort-header-container:not([mat-sort-header]),
-  .mat-table .mat-header-row th.mat-header-cell>.mat-sort-header-container.mat-sort-header-disabled,
-  .mat-table .mat-header-row th.mat-header-cell>.mat-sort-header-container.mat-column-actions {
+  [mat-table] [mat-header-row] th[mat-header-cell]>.mat-sort-header-container:not([mat-sort-header]),
+  [mat-table] [mat-header-row] th[mat-header-cell]>.mat-sort-header-container.mat-sort-header-disabled,
+  [mat-table] [mat-header-row] th[mat-header-cell]>.mat-sort-header-container.mat-column-action {
     display: none;
   }
 
 
-  .mat-table .mat-row {
+  [mat-table] [mat-row] {
     height: auto;
   }
-
-  .mat-table .mat-row td.mat-cell:not(.mat-column-actions) {
+  /*:not(.mat-column-action)*/
+  [mat-table] [mat-row] td[mat-cell] {
     display: grid;
-    grid-template-columns: 50% 50%;
+    grid-template-columns: 35% 65%;
     padding: 0.5rem;
     text-align: left;
     word-break: break-word;
   }
 
-  .mat-table .mat-row td.mat-cell:not(.mat-column-actions) > * {
+  [mat-table] [mat-row] td[mat-cell]:not(.mat-column-action) > * {
     grid-column: 2;
   }
 
-  .mat-table .mat-row td.mat-cell:not(.mat-column-actions):before {
+  [mat-table] [mat-row] td[mat-cell]:not(.mat-column-action):before {
     content: attr(data-label);
     text-align: left;
     font-size: 12px;
@@ -66,27 +71,27 @@
     color: rgba(0, 0, 0, 0.54);
   }
 
-  .mat-table .mat-row td.mat-column-actions {
-    display: flex;
-    justify-content: center;
-    padding: 0 0.5rem;
-  }
+  /*[mat-table] [mat-row] td.mat-column-actions {*/
+  /*  display: flex;*/
+  /*  justify-content: center;*/
+  /*  padding: 0 0.5rem;*/
+  /*}*/
 
-  .mat-table .mat-row td.mat-column-actions>button {
-    margin: 0.5rem 0;
-  }
+  /*[mat-table] [mat-row] td.mat-column-actions>button {*/
+  /*  margin: 0.5rem 0;*/
+  /*}*/
 
-  .mat-table .mat-row:last-of-type td:last-of-type {
+  [mat-table] [mat-row]:last-of-type td:last-of-type {
     border: none;
   }
 
-  .mat-table .mat-row:not(:last-of-type) td:last-of-type {
+  [mat-table] [mat-row]:not(:last-of-type) td:last-of-type {
     border-bottom: 0.5rem solid #e5e5e5;
     padding-bottom: 20px !important;
     margin-bottom: 20px;
   }
 
-  .mat-card .mat-expansion-panel .mat-table {
+  .mat-card .mat-expansion-panel [mat-table] {
     border: 0.5rem solid #fafafa;
   }
 }
