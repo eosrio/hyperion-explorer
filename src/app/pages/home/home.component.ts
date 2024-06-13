@@ -22,7 +22,7 @@ import {MatButton} from "@angular/material/button";
 import {DataService} from "../../services/data.service";
 import {ExplorerMetadata} from "../../interfaces";
 import {MatIcon} from "@angular/material/icon";
-import {ActivatedRoute, Router, RouterOutlet} from "@angular/router";
+import {ActivatedRoute, Router, RouterLink, RouterOutlet} from "@angular/router";
 import {debounceTime} from "rxjs";
 import {AccountService} from "../../services/account.service";
 import {sign} from "node:crypto";
@@ -30,24 +30,25 @@ import {sign} from "node:crypto";
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [
-    PreHeaderComponent,
-    MatCard,
-    NgOptimizedImage,
-    ReactiveFormsModule,
-    MatFormField,
-    FaIconComponent,
-    MatAutocomplete,
-    MatOption,
-    MatInput,
-    MatAutocompleteTrigger,
-    MatError,
-    MatButton,
-    MatSuffix,
-    MatIcon,
-    RouterOutlet,
-    NgClass
-  ],
+    imports: [
+        PreHeaderComponent,
+        MatCard,
+        NgOptimizedImage,
+        ReactiveFormsModule,
+        MatFormField,
+        FaIconComponent,
+        MatAutocomplete,
+        MatOption,
+        MatInput,
+        MatAutocompleteTrigger,
+        MatError,
+        MatButton,
+        MatSuffix,
+        MatIcon,
+        RouterOutlet,
+        NgClass,
+        RouterLink
+    ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -91,7 +92,6 @@ export class HomeComponent {
   err = signal("");
 
   emptySearchError = signal(false);
-
 
   constructor(
     private dataService: DataService,

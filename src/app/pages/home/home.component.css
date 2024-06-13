@@ -2,7 +2,23 @@
     background-color: var(--card-bg);
     background: var(--card-bg-gradient);
     box-shadow: var(--card-box-shadow) !important;
-    height: 278px;
+    height: 334px;
+}
+
+.compact-header-parent {
+  background-color: var(--card-bg);
+  background: var(--card-bg-gradient);
+  box-shadow: var(--card-box-shadow) !important;
+  /*height: 278px;*/
+  height: 87px;
+}
+
+.compact-logo {
+  height: 42px;
+}
+
+.compact-btn {
+  height: 33px;
 }
 
 /*.header-anim {*/
@@ -59,4 +75,20 @@
 .search-btn.primary-btn {
   width: 186px;
   text-wrap: nowrap;
+}
+
+.logo-name {
+  font-size: 15px;
+  font-weight: 800;
+  font-family: Montserrat, sans-serif;
+  color: #353535;
+}
+
+.provider, .provider a {
+  font-size: 13px;
+  font-family: Montserrat, sans-serif;
+}
+
+.compact-header {
+  padding-top: 1rem;
 }
