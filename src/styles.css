@@ -18,7 +18,7 @@
   /*typography*/
   --main-font-family: Montserrat, sans-serif;
   --main-font-size: 16px;
-  --faded: #a4a4a4
+  --faded: #a4a4a4;
 
   /*main and body*/
   --main-background: #d2e1f8;
@@ -71,9 +71,15 @@ body {
 .custom-card {
   background-color: var(--card-bg);
   background: var(--card-bg-gradient);
-  box-shadow:  var(--card-box-shadow) !important;
+  box-shadow:  var(--card-box-shadow) ;
   border-radius: 1rem;
   padding: 1.6rem;
+}
+
+.bg-no-transparency {
+  background-color: rgb(221,229,246) !important;
+  background: linear-gradient(115deg, rgb(236 240 250) 0%, rgb(247 249 253) 70%, rgb(235 240 249) 100%) !important;
+  box-shadow:  rgb(78 104 192 / 25%) 0px 4px 19px 0px, rgba(17, 12, 46, 0.15) 0px 20px 100px 0px !important;
 }
 
 /*BUTTONS START*/

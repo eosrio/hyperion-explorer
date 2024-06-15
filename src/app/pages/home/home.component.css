@@ -6,11 +6,14 @@
 }
 
 .compact-header-parent {
-  background-color: var(--card-bg);
-  background: var(--card-bg-gradient);
+  /*background-color: var(--card-bg);*/
+  background-color: rgb(221,229,246);
+  background: radial-gradient(circle, rgba(241,245,252,1) 50%, rgba(221,229,246,1)  100%);
+  /*background: radial-gradient(circle, #f4f6ff, #f6f7fe, #f8f9fe, #fafafd, #fcfcfd);*/
   box-shadow: var(--card-box-shadow) !important;
   /*height: 278px;*/
   height: 87px;
+  z-index: 2;
 }
 
 .compact-logo {
