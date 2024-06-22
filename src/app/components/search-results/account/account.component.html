@@ -310,7 +310,7 @@
             <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
               <!-- use a disabled button to provide padding for tree leaf -->
               <button mat-icon-button disabled></button>
-              <div class="permission-cell flex flex-column gap-[7px]">
+              <div class="permission-cell flex flex-col gap-[7px]">
                 <div>
                   <h3
                     class="primary"
@@ -392,7 +392,7 @@
                     "
                 ></fa-icon>
               </button>
-              <div class="permission-cell flex flex-column gap-[7px]">
+              <div class="permission-cell flex flex-col gap-[7px]">
                 <div>
                   <h3
                     class="primary"
@@ -771,7 +771,7 @@
     } @else {
 
       <!--      NO ACCOUNT-->
-      <div style="height: 100%" class="flex flex-column justify-start items-center gap-[15px] appear">
+      <div style="height: 100%" class="flex flex-col justify-start items-center gap-[15px] appear">
         <div class="custom-card w-full">
           <h1 class="faded">
             <fa-icon [icon]="icons.solid.faSadTear" style="margin-right: 5px"></fa-icon>
