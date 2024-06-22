@@ -7,6 +7,7 @@
 :root {
   /*concepts*/
   --primary: #00a6de;
+  --primary-hover: #087487;
   --primary-gradient: linear-gradient(145deg, #00b2ee, #0095c8);
   --accent: #fa7600;
   --warn: #ef4444;

@@ -31,9 +31,9 @@
 @if (tx().actions && tx().actions.length > 0 && accountService.loaded()) {
   <div class="hr-container">
     <!--    md:grid-cols-2 auto-cols-auto-->
-    <div class="grid grid-cols-1 md:grid-cols-[repeat(2,_minmax(auto,_auto))] gap-5 text-black w-full appear">
+    <div class="flex flex-col gap-5 text-black w-full appear">
       <!--      min-w-full-->
-      <div class="custom-card w-full h-full min-h-full">
+      <div class="custom-card bg-no-transparency w-full h-full min-h-full sticky top-[100px] z-40">
         <div>
           <div class="flex flex-row justify-start items-start">
             <h2 style="
