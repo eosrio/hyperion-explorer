@@ -24,7 +24,6 @@
     "@angular/platform-server": "^18.0.4",
     "@angular/router": "^18.0.4",
     "@angular/ssr": "^18.0.5",
-    "@eosrio/hyperion-stream-client": "file:../hyperion-stream-client",
     "@fortawesome/angular-fontawesome": "^0.15.0",
     "@fortawesome/fontawesome-svg-core": "^6.5.2",
     "@fortawesome/free-brands-svg-icons": "^6.5.2",
