@@ -1,4 +1,5 @@
 import {
+  afterNextRender,
   ChangeDetectionStrategy,
   Component,
   ElementRef,
@@ -10,7 +11,7 @@ import {
 } from '@angular/core';
 import {PreHeaderComponent} from "../../components/pre-header/pre-header.component";
 import {MatCard} from "@angular/material/card";
-import {isPlatformBrowser, NgClass, NgOptimizedImage} from "@angular/common";
+import {isPlatformBrowser, NgClass, NgOptimizedImage, NgStyle} from "@angular/common";
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from "@angular/forms";
 import {MatError, MatFormField, MatSuffix} from "@angular/material/form-field";
 import {faHeart, faSearch} from "@fortawesome/free-solid-svg-icons";
@@ -25,36 +26,39 @@ import {MatIcon} from "@angular/material/icon";
 import {ActivatedRoute, Router, RouterLink, RouterOutlet} from "@angular/router";
 import {debounceTime} from "rxjs";
 import {AccountService} from "../../services/account.service";
-import {sign} from "node:crypto";
+import {gsap} from 'gsap';
+import {ScrollTrigger} from 'gsap/ScrollTrigger';
+import {ScrollToPlugin} from 'gsap/ScrollToPlugin';
+import {toObservable} from "@angular/core/rxjs-interop";
 
 @Component({
   selector: 'app-home',
   standalone: true,
-    imports: [
-        PreHeaderComponent,
-        MatCard,
-        NgOptimizedImage,
-        ReactiveFormsModule,
-        MatFormField,
-        FaIconComponent,
-        MatAutocomplete,
-        MatOption,
-        MatInput,
-        MatAutocompleteTrigger,
-        MatError,
-        MatButton,
-        MatSuffix,
-        MatIcon,
-        RouterOutlet,
-        NgClass,
-        RouterLink
-    ],
+  imports: [
+    PreHeaderComponent,
+    MatCard,
+    NgOptimizedImage,
+    ReactiveFormsModule,
+    MatFormField,
+    FaIconComponent,
+    MatAutocomplete,
+    MatOption,
+    MatInput,
+    MatAutocompleteTrigger,
+    MatError,
+    MatButton,
+    MatSuffix,
+    MatIcon,
+    RouterOutlet,
+    NgClass,
+    RouterLink,
+    NgStyle
+  ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HomeComponent {
-
 
   icons = {
     solid: {
@@ -68,6 +72,7 @@ export class HomeComponent {
 
   // shared signals
   searchValue = this.searchService.searchQuery.asReadonly();
+  $searchValue = toObservable(this.searchValue);
   searchType = this.searchService.searchType.asReadonly();
   searchField = viewChild<ElementRef<HTMLInputElement>>('searchField');
   validSearch = signal<boolean>(false);
@@ -93,6 +98,10 @@ export class HomeComponent {
 
   emptySearchError = signal(false);
 
+  headerTransitionConfigured = false;
+
+  isHome = signal(true);
+
   constructor(
     private dataService: DataService,
     private formBuilder: FormBuilder,
@@ -102,6 +111,29 @@ export class HomeComponent {
     private route: ActivatedRoute,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
+
+    if (isPlatformBrowser(this.platformId)) {
+      console.log('Platform is browser');
+      console.log(window.location.pathname);
+      if (window.location.pathname !== '/') {
+        // prevent the header transition from being set up
+        this.headerTransitionConfigured = true;
+        this.isHome.set(false);
+      } else {
+        this.isHome.set(true);
+      }
+    }
+
+    afterNextRender(() => {
+
+      // get the current route
+      this.$searchValue.subscribe((value) => {
+        if (value) {
+          // this.setupHeaderTransition();
+        }
+      });
+    });
+
 
     if (this.dataService.explorerMetadata) {
       this.chainData.set(this.dataService.explorerMetadata);
@@ -180,7 +212,215 @@ export class HomeComponent {
       } else {
         this.err.set("");
         await this.router.navigateByUrl(`/${this.searchType()}/${this.searchValue()}`);
+        this.setupHeaderTransition();
       }
     }
+  }
+
+  private createAbsoluteClone(target: HTMLElement, container: HTMLElement, className: string): HTMLElement {
+    const clone = target.cloneNode(true) as HTMLElement;
+    const rect = target.getBoundingClientRect();
+    clone.classList.add(className);
+    clone.style.position = 'absolute';
+    clone.style.zIndex = '1000';
+    clone.style.left = `${rect.left}px`;
+    clone.style.top = `${rect.top}px`;
+    clone.style.width = `${rect.width}px`;
+    clone.style.height = `${rect.height}px`;
+    container.appendChild(clone);
+    target.style.visibility = 'hidden';
+    return clone;
+  }
+
+  private setupHeaderTransition() {
+
+    if (this.headerTransitionConfigured) {
+      return;
+    }
+
+    this.headerTransitionConfigured = true;
+
+    console.log('Setting up header transition...');
+
+    gsap.registerPlugin(ScrollTrigger);
+    gsap.registerPlugin(ScrollToPlugin)
+
+    const animationCanvas = document.querySelector('.animation-canvas') as HTMLElement;
+    const hyperionLogo = document.querySelector('.compact-hyperion-branding') as HTMLElement;
+    const compactLogo = document.querySelector('.compact-logo') as HTMLElement;
+    const mainLogo = document.querySelector('.main-chain-logo') as HTMLElement;
+    const mainFormContainer = document.querySelector('.main-form-container') as HTMLElement;
+    const compactFormContainer = document.querySelector('.compact-form-container') as HTMLElement;
+
+    if (!mainLogo || !compactLogo || !animationCanvas || !mainFormContainer || !compactFormContainer || !hyperionLogo) {
+      return;
+    }
+
+    // Chain Logo
+    const mainLogoRect = mainLogo.getBoundingClientRect();
+    const compactLogoRect = compactLogo.getBoundingClientRect();
+
+    // Form Container
+    const compactFormContainerRect = compactFormContainer.getBoundingClientRect();
+
+    this.createAbsoluteClone(mainLogo, animationCanvas, 'animated-logo');
+    this.createAbsoluteClone(mainFormContainer, animationCanvas, 'animated-form-container');
+
+    // this.createAbsoluteClone(hyperionLogo, animationCanvas, 'animated-hyperion-branding');
+
+    const yScaleFactor = compactLogoRect.height / mainLogoRect.height;
+    const widthDiff = compactLogoRect.width - mainLogoRect.width;
+    const heightDiff = compactLogoRect.height - mainLogoRect.height;
+
+    const revealCompactTimeline = gsap.timeline({
+      scrollTrigger: {
+        scrub: 0.5,
+        trigger: '.header-card',
+        start: 'bottom 120px',
+        end: 'bottom 50px',
+        id: 'reveal-transition',
+        markers: true
+      }
+    });
+
+    revealCompactTimeline.to('.compact-header-container', {
+      opacity: 1,
+      duration: 2,
+      ease: 'power3'
+    });
+
+    revealCompactTimeline.to('.animated-form-container', {
+      opacity: 0,
+      duration: 0.5,
+      ease: 'power3'
+    }, "<");
+
+    revealCompactTimeline.to('.animated-logo', {
+      opacity: 0,
+      duration: 2,
+      ease: 'power3'
+    }, "<");
+
+    const timeline = gsap.timeline({
+      scrollTrigger: {
+        trigger: '.header-card',
+        scrub: 0.5,
+        start: '20px top',
+        end: '250px 88px',
+        id: 'header-transition',
+        pin: false,
+        markers: false
+      }
+    });
+
+    timeline.to('.animated-logo', {
+      left: compactLogoRect.left + (widthDiff / 2) - 4,
+      top: compactLogoRect.top + heightDiff / 2,
+      scale: yScaleFactor,
+      duration: 1
+    }, 0);
+
+    timeline.to('.animated-hyperion-branding', {
+      opacity: 1,
+      duration: 1
+    }, 0.5);
+
+    timeline.to('.animated-form-container', {
+      left: compactFormContainerRect.left,
+      top: compactFormContainerRect.top,
+      duration: 1
+    }, 0.5);
+
+    // timeline.play();
+    // revealCompactTimeline.play();
+
+    gsap.to(window, {
+      duration: 1,
+      scrollTo: 200,
+      onComplete: () => {
+        console.log('Scrolled to 200');
+        // timeline.scrollTrigger?.disable();
+      }
+    });
+
+    // timeline.to('.compact-header-container', {
+    //   opacity: 1,
+    //   duration: 2,
+    //   ease: 'power3'
+    // }, ">");
+
+    // timeline.to('.animated-form-container', {
+    //   opacity: 0,
+    //   duration: 0.5,
+    //   ease: 'power3'
+    // }, "<");
+
+    //
+    // timeline.to('.animated-logo', {
+    //   opacity: 0,
+    //   duration: 2,
+    //   ease: 'power3'
+    // }, "<");
+
+    // gsap.to('.animated-logo', {
+    //   left: compactLogoRect.left + (widthDiff / 2) - 4,
+    //   top: compactLogoRect.top + heightDiff / 2,
+    //   scale: yScaleFactor,
+    //   duration: 0.5,
+    //   ease: 'power3',
+    //   scrollTrigger: {
+    //     trigger: '.header-card',
+    //     scrub: 0.5,
+    //     start: 'top top',
+    //     end: '250px 88px',
+    //     pin: false,
+    //     markers: true
+    //   }
+    // });
+
+    // let timeline = gsap.timeline({
+    //   scrollTrigger: {
+    //     trigger: '.main-chain-logo',
+    //     scrub: 1,
+    //     markers: {
+    //       startColor: "white",
+    //       endColor: "white",
+    //       fontSize: "18px",
+    //       fontWeight: "bold",
+    //       indent: 20
+    //     },
+    //     onUpdate: (self) => {
+    //       console.log(
+    //         'progress:',
+    //         self.progress.toFixed(3),
+    //         'direction:',
+    //         self.direction,
+    //         'velocity',
+    //         self.getVelocity()
+    //       );
+    //     }
+    //   }
+    // });
+    //
+    // console.log('timeline:', timeline);
+    //
+    // timeline.addLabel('start')
+    //   .from('.main-chain-logo', {opacity: 1})
+    //   .to('.main-chain-logo', {opacity: 0.5})
+    //   .addLabel('end');
+
+    // // use tween to animate the main logo to the compact logo
+    // gsap.to('.logo', {
+    //   opacity: 0,
+    //   duration: 0.5,
+    //   onComplete: () => {
+    //     mainLogo?.classList.add('hidden');
+    //     compactLogo?.classList.remove('hidden');
+    //   }
+    // });
+    //
+    // setTimeout(() => {
+    //   this.compactHeaderVisibility.set("inherit");
+    // }, 500);
   }
 }
