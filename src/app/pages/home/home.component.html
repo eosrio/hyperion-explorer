@@ -34,21 +34,24 @@
                         [class.primary-btn]="validSearch()">
                   <mat-icon>search</mat-icon>
                   @if (validSearch()) {
-                    Search {{ searchType() }}
+                    Search {{ searchService.searchType() }}
                   } @else {
                     Search
                   }
                 </button>
               </div>
 
-              <mat-autocomplete #auto="matAutocomplete" (optionSelected)="submit()" class="custom-autocomplete"
+              <mat-autocomplete #auto="matAutocomplete"
+                                (optionSelected)="submit()"
+                                class="custom-autocomplete"
                                 [classList]="'custom-autocomplete'">
-                @for (account of filteredAccounts() //noinspection ForBlockNonIterableVar; track account) {
+                @for (account of filteredAccounts(); track account) {
                   <mat-option [value]="account">
                     {{ account }}
                   </mat-option>
                 }
               </mat-autocomplete>
+
             </div>
 
             @if (err()) {
@@ -100,7 +103,7 @@
               <button mat-raised-button class="search-btn mr-2 place-self-center" [class.primary-btn]="validSearch()">
                 <mat-icon>search</mat-icon>
                 @if (validSearch()) {
-                  Search {{ searchType() }}
+                  Search {{ searchService.searchType() }}
                 } @else {
                   Search
                 }

@@ -1,4 +1,4 @@
-import {Component, OnDestroy, ViewChild} from '@angular/core';
+import {Component, OnDestroy, signal, ViewChild} from '@angular/core';
 import {SearchService} from "../../../services/search.service";
 import {MatButton, MatIconButton} from "@angular/material/button";
 import {ActivatedRoute, Router, RouterLink} from "@angular/router";
@@ -15,7 +15,7 @@ import {
   MatTreeNodePadding,
   MatTreeNodeToggle
 } from "@angular/material/tree";
-import {DecimalPipe, KeyValuePipe, NgClass} from "@angular/common";
+import {DatePipe, DecimalPipe, KeyValuePipe, NgClass} from "@angular/common";
 import {MatPaginator, PageEvent} from "@angular/material/paginator";
 import {
   MatCell,
@@ -133,7 +133,8 @@ interface FlatNode {
     MatHeaderRow,
     MatHeaderRowDef,
     MatCardContent,
-    MatCardHeader
+    MatCardHeader,
+    DatePipe
   ],
   templateUrl: './account.component.html',
   standalone: true,
@@ -177,10 +178,12 @@ export class AccountComponent implements OnDestroy {
 
   systemPrecision = 4;
   systemSymbol = '';
-  creationData: AccountCreationData = {
+
+  creationData = signal<AccountCreationData>({
     creator: undefined,
     timestamp: undefined
-  };
+  });
+
   systemTokenContract = 'eosio.token';
 
   constructor(
@@ -293,8 +296,10 @@ export class AccountComponent implements OnDestroy {
         }, 500);
         const creationData = await this.accountService.getCreator(routeParams.account_name);
         if (creationData) {
-          this.creationData.creator = creationData.creator;
-          this.creationData.timestamp = creationData.timestamp;
+          this.creationData.set({
+            creator: creationData.creator,
+            timestamp: creationData.timestamp
+          });
         }
       }
     });

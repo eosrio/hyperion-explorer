@@ -1,7 +1,7 @@
 <!--LOADER-->
 @if (!accountService.loaded()) {
   <div class="hr-container flex flex-row justify-center items-center">
-  <mat-progress-spinner [diameter]="45" mode="indeterminate" color="primary"></mat-progress-spinner>
+    <mat-progress-spinner [diameter]="45" mode="indeterminate" color="primary"></mat-progress-spinner>
   </div>
 }
 
@@ -71,22 +71,25 @@
             <!-- creation data -->
             <div class="w-full" style="margin-top: 12px">
 
-              @if (creationData && creationData.creator) {
-                <div class="mt-7 w-full">
-                  <strong class="font-medium">Created by: </strong>
-                  <a [routerLink]="['/account', creationData.creator]" class="float-r link-gray">
-                    {{ creationData.creator }}
-                  </a>
-                </div>
-              }
+              @if (creationData()) {
 
-              @if (creationData && creationData.timestamp) {
-                <div class="mt-7 w-full">
-                  <span class="font-medium">Created on: </span>
-                  <span class="float-r">
-                        {{ formatDate(creationData.timestamp) }}
+                @if (creationData()?.creator) {
+                  <div class="mt-7 w-full">
+                    <strong class="font-medium">Created by: </strong>
+                    <a [routerLink]="['/account', creationData()?.creator]" class="float-r link-gray">
+                      {{ creationData()?.creator }}
+                    </a>
+                  </div>
+                }
+
+                @if (creationData()?.timestamp) {
+                  <div class="mt-7 w-full">
+                    <span class="font-medium">Created on: </span>
+                    <span class="float-r">
+                        {{ creationData()?.timestamp | date: "medium" }}
                       </span>
-                </div>
+                  </div>
+                }
               }
 
             </div>
@@ -483,26 +486,26 @@
                     </h3>
                   </mat-panel-title>
                   <mat-panel-description>
-                      @if (accountService.account['voter_info']) {
-                        <div>
-                          {{ accountService.account["account_name"] }} is voting in
-                          @if (accountService.account['voter_info'].proxy) {
-                            <span>proxy
+                    @if (accountService.account['voter_info']) {
+                      <div>
+                        {{ accountService.account["account_name"] }} is voting in
+                        @if (accountService.account['voter_info'].proxy) {
+                          <span>proxy
                             <a [routerLink]="['/account', accountService.account['voter_info'].proxy]"
                                class="link-blue">{{ accountService.account["voter_info"].proxy }}</a>
                           </span>
-                          }
-                          @if (accountService.account['voter_info'].producers.length > 0) {
-                            <span>
+                        }
+                        @if (accountService.account['voter_info'].producers.length > 0) {
+                          <span>
                             <strong>{{
                                 accountService.account["voter_info"].producers.length
                               }}</strong>
                               producer@if (accountService.account['voter_info'].producers.length > 1) {
-                              <span>s</span>
-                            } </span>
-                          }
-                        </div>
-                      }
+                            <span>s</span>
+                          } </span>
+                        }
+                      </div>
+                    }
                   </mat-panel-description>
                 </div>
               </mat-expansion-panel-header>
@@ -542,15 +545,15 @@
             </h3>
 
             <span class="lib">Last Irreversible Block:
-              <strong class="monospace">{{accountService.libNum }}</strong>
+              <strong class="monospace">{{ accountService.libNum }}</strong>
             </span>
 
             @if (accountService.streamClientLoaded) {
               <div (click)="accountService.toggleStreaming()"
-                class="livestream" matTooltip="click to turn on/off" matTooltipClass="tooltip-bigger">
+                   class="livestream" matTooltip="click to turn on/off" matTooltipClass="tooltip-bigger">
                 action live streaming
                 <span class="font-medium">
-                  {{accountService.streamClientStatus ? "enabled" : "disabled" }}</span>
+                  {{ accountService.streamClientStatus ? "enabled" : "disabled" }}</span>
                 <span class="dot"
                       [ngClass]="{pulse: accountService.streamClientStatus,'red-dot': !accountService.streamClientStatus}">
                 </span>

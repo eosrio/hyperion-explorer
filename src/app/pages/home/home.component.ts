@@ -1,6 +1,6 @@
 import {
   afterNextRender,
-  ChangeDetectionStrategy,
+  ChangeDetectionStrategy, ChangeDetectorRef,
   Component,
   ElementRef,
   HostListener, inject,
@@ -10,15 +10,11 @@ import {
   viewChild
 } from '@angular/core';
 import {PreHeaderComponent} from "../../components/pre-header/pre-header.component";
-import {MatCard} from "@angular/material/card";
-import {isPlatformBrowser, NgClass, NgOptimizedImage, NgStyle} from "@angular/common";
+import {isPlatformBrowser, NgOptimizedImage, NgStyle} from "@angular/common";
 import {FormBuilder, FormGroup, ReactiveFormsModule, Validators} from "@angular/forms";
-import {MatError, MatFormField, MatSuffix} from "@angular/material/form-field";
 import {faHeart, faSearch} from "@fortawesome/free-solid-svg-icons";
-import {FaIconComponent} from "@fortawesome/angular-fontawesome";
 import {SearchService} from "../../services/search.service";
 import {MatAutocomplete, MatAutocompleteTrigger, MatOption} from "@angular/material/autocomplete";
-import {MatInput} from "@angular/material/input";
 import {MatButton} from "@angular/material/button";
 import {DataService} from "../../services/data.service";
 import {ExplorerMetadata} from "../../interfaces";
@@ -26,9 +22,6 @@ import {MatIcon} from "@angular/material/icon";
 import {ActivatedRoute, Router, RouterLink, RouterOutlet} from "@angular/router";
 import {debounceTime} from "rxjs";
 import {AccountService} from "../../services/account.service";
-import {gsap} from 'gsap';
-import {ScrollTrigger} from 'gsap/ScrollTrigger';
-import {ScrollToPlugin} from 'gsap/ScrollToPlugin';
 import {toObservable} from "@angular/core/rxjs-interop";
 
 @Component({
@@ -48,11 +41,14 @@ import {toObservable} from "@angular/core/rxjs-interop";
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
-  standalone: true,
-  changeDetection: ChangeDetectionStrategy.OnPush
+  standalone: true
 })
 export class HomeComponent {
-  // autocomplete = inject(MatAutocomplete);
+
+  // injected services
+  searchService = inject(SearchService);
+  accService = inject(AccountService);
+  dataService = inject(DataService);
 
   icons = {
     solid: {
@@ -65,10 +61,9 @@ export class HomeComponent {
   public chainData = signal<ExplorerMetadata>({} as ExplorerMetadata);
 
   // shared signals
-  searchValue = this.searchService.searchQuery.asReadonly();
-  $searchValue = toObservable(this.searchValue);
+  // searchValue = this.searchService.searchQuery.asReadonly();
+  $searchValue = toObservable(this.searchService.searchQuery);
 
-  searchType = this.searchService.searchType.asReadonly();
   searchField = viewChild<ElementRef<HTMLInputElement>>('searchField');
   validSearch = signal<boolean>(false);
 
@@ -98,10 +93,7 @@ export class HomeComponent {
   isHome = signal(true);
 
   constructor(
-    private dataService: DataService,
     private formBuilder: FormBuilder,
-    private searchService: SearchService,
-    public accService: AccountService,
     private router: Router,
     private route: ActivatedRoute,
     @Inject(PLATFORM_ID) private platformId: Object
@@ -185,13 +177,9 @@ export class HomeComponent {
   }
 
   closeAutoComplete() {
-    if (this.autocomplete()) {
-      const ref = this.autocomplete();
-      console.log(ref);
-      if (ref !== undefined) {
-        ref.closePanel();
-      }
-    }
+    console.log('Closing autocomplete...');
+    this.filteredAccounts.set([]);
+    this.autocomplete()?.closePanel();
   }
 
   async submit(): Promise<void> {
@@ -208,7 +196,7 @@ export class HomeComponent {
         this.err.set('no results for ' + searchText);
       } else {
         this.err.set("");
-        await this.router.navigateByUrl(`/${this.searchType()}/${this.searchValue()}`);
+        await this.router.navigateByUrl(`/${this.searchService.searchType()}/${this.searchService.searchQuery()}`);
         // this.setupHeaderTransition();
       }
     }
