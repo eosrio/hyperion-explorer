@@ -109,10 +109,11 @@ export class HomeComponent {
     if (isPlatformBrowser(this.platformId)) {
       console.log('Platform is browser');
       console.log(window.location.pathname);
+      window.scrollTo(0, 0);
       if (window.location.pathname !== '/') {
         // prevent the header transition from being set up
-        this.headerTransitionConfigured = true;
-        this.isHome.set(false);
+        // this.headerTransitionConfigured = true;
+        this.isHome.set(true);
       } else {
         this.isHome.set(true);
       }
@@ -123,7 +124,7 @@ export class HomeComponent {
       // get the current route
       this.$searchValue.subscribe((value) => {
         if (value) {
-          // this.setupHeaderTransition();
+          this.setupHeaderTransition();
         }
       });
     });
@@ -268,12 +269,12 @@ export class HomeComponent {
 
     const revealCompactTimeline = gsap.timeline({
       scrollTrigger: {
-        scrub: 0.5,
+        scrub: 0.2,
         trigger: '.header-card',
-        start: 'bottom 120px',
+        start: 'bottom 160px',
         end: 'bottom 50px',
         id: 'reveal-transition',
-        markers: true
+        markers: false
       }
     });
 
@@ -298,8 +299,8 @@ export class HomeComponent {
     const timeline = gsap.timeline({
       scrollTrigger: {
         trigger: '.header-card',
-        scrub: 0.5,
-        start: '20px top',
+        scrub: true,
+        start: 'top top',
         end: '250px 88px',
         id: 'header-transition',
         pin: false,
@@ -311,110 +312,42 @@ export class HomeComponent {
       left: compactLogoRect.left + (widthDiff / 2) - 4,
       top: compactLogoRect.top + heightDiff / 2,
       scale: yScaleFactor,
-      duration: 1
+      duration: 0.7,
+      ease: 'power2.out'
     }, 0);
 
-    timeline.to('.animated-hyperion-branding', {
-      opacity: 1,
-      duration: 1
-    }, 0.5);
+    // timeline.to('.animated-hyperion-branding', {
+    //   opacity: 1,
+    //   duration: 1
+    // }, 0);
 
     timeline.to('.animated-form-container', {
-      left: compactFormContainerRect.left,
+      left: () => {
+        return compactFormContainer.getBoundingClientRect().left || 0;
+      },
+      height: compactFormContainerRect.height,
+      width: compactFormContainerRect.width,
       top: compactFormContainerRect.top,
-      duration: 1
-    }, 0.5);
+      duration: 0.6,
+      ease: 'power2.out'
+    }, 0);
 
     // timeline.play();
     // revealCompactTimeline.play();
 
-    gsap.to(window, {
-      duration: 1,
-      scrollTo: 200,
-      onComplete: () => {
-        console.log('Scrolled to 200');
-        // timeline.scrollTrigger?.disable();
-      }
-    });
+    setTimeout(() => {
+      gsap.to(window, {
+        duration: 1,
+        ease: "power2.out",
+        scrollTo: {
+          y: 200,
+          autoKill: true
+        },
+        onComplete: () => {
+          console.log('Scrolled to 200');
+        }
+      });
+    }, 500);
 
-    // timeline.to('.compact-header-container', {
-    //   opacity: 1,
-    //   duration: 2,
-    //   ease: 'power3'
-    // }, ">");
-
-    // timeline.to('.animated-form-container', {
-    //   opacity: 0,
-    //   duration: 0.5,
-    //   ease: 'power3'
-    // }, "<");
-
-    //
-    // timeline.to('.animated-logo', {
-    //   opacity: 0,
-    //   duration: 2,
-    //   ease: 'power3'
-    // }, "<");
-
-    // gsap.to('.animated-logo', {
-    //   left: compactLogoRect.left + (widthDiff / 2) - 4,
-    //   top: compactLogoRect.top + heightDiff / 2,
-    //   scale: yScaleFactor,
-    //   duration: 0.5,
-    //   ease: 'power3',
-    //   scrollTrigger: {
-    //     trigger: '.header-card',
-    //     scrub: 0.5,
-    //     start: 'top top',
-    //     end: '250px 88px',
-    //     pin: false,
-    //     markers: true
-    //   }
-    // });
-
-    // let timeline = gsap.timeline({
-    //   scrollTrigger: {
-    //     trigger: '.main-chain-logo',
-    //     scrub: 1,
-    //     markers: {
-    //       startColor: "white",
-    //       endColor: "white",
-    //       fontSize: "18px",
-    //       fontWeight: "bold",
-    //       indent: 20
-    //     },
-    //     onUpdate: (self) => {
-    //       console.log(
-    //         'progress:',
-    //         self.progress.toFixed(3),
-    //         'direction:',
-    //         self.direction,
-    //         'velocity',
-    //         self.getVelocity()
-    //       );
-    //     }
-    //   }
-    // });
-    //
-    // console.log('timeline:', timeline);
-    //
-    // timeline.addLabel('start')
-    //   .from('.main-chain-logo', {opacity: 1})
-    //   .to('.main-chain-logo', {opacity: 0.5})
-    //   .addLabel('end');
-
-    // // use tween to animate the main logo to the compact logo
-    // gsap.to('.logo', {
-    //   opacity: 0,
-    //   duration: 0.5,
-    //   onComplete: () => {
-    //     mainLogo?.classList.add('hidden');
-    //     compactLogo?.classList.remove('hidden');
-    //   }
-    // });
-    //
-    // setTimeout(() => {
-    //   this.compactHeaderVisibility.set("inherit");
-    // }, 500);
   }
 }
