@@ -1,6 +1,6 @@
-<div class="animation-canvas z-10 fixed top-0 bottom-0 left-0 right-0 pointer-events-none">
+<!--<div class="animation-canvas z-10 fixed top-0 bottom-0 left-0 right-0 pointer-events-none">-->
 
-</div>
+<!--</div>-->
 
 <!--COMPACT HEADER WITH SEARCH BAR-->
 <!--style="display: none"-->
@@ -109,7 +109,7 @@
 
             <mat-autocomplete #auto="matAutocomplete" (optionSelected)="submit()" class="custom-autocomplete"
                               [classList]="'custom-autocomplete'">
-              @for (account of filteredAccounts() //noinspection ForBlockNonIterableVar; track account) {
+              @for (account of filteredAccounts(); track account) {
                 <mat-option [value]="account">
                   {{ account }}
                 </mat-option>

@@ -3,7 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
-  HostListener,
+  HostListener, inject,
   Inject,
   PLATFORM_ID,
   signal,
@@ -52,6 +52,7 @@ import {toObservable} from "@angular/core/rxjs-interop";
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HomeComponent {
+  // autocomplete = inject(MatAutocomplete);
 
   icons = {
     solid: {
@@ -124,7 +125,7 @@ export class HomeComponent {
       // get the current route
       this.$searchValue.subscribe((value) => {
         if (value) {
-          this.setupHeaderTransition();
+          // this.setupHeaderTransition();
         }
       });
     });
@@ -186,6 +187,7 @@ export class HomeComponent {
   closeAutoComplete() {
     if (this.autocomplete()) {
       const ref = this.autocomplete();
+      console.log(ref);
       if (ref !== undefined) {
         ref.closePanel();
       }
@@ -207,147 +209,147 @@ export class HomeComponent {
       } else {
         this.err.set("");
         await this.router.navigateByUrl(`/${this.searchType()}/${this.searchValue()}`);
-        this.setupHeaderTransition();
+        // this.setupHeaderTransition();
       }
     }
   }
 
-  private createAbsoluteClone(target: HTMLElement, container: HTMLElement, className: string): HTMLElement {
-    const clone = target.cloneNode(true) as HTMLElement;
-    const rect = target.getBoundingClientRect();
-    clone.classList.add(className);
-    clone.style.position = 'absolute';
-    clone.style.zIndex = '1000';
-    clone.style.left = `${rect.left}px`;
-    clone.style.top = `${rect.top}px`;
-    clone.style.width = `${rect.width}px`;
-    clone.style.height = `${rect.height}px`;
-    container.appendChild(clone);
-    target.style.visibility = 'hidden';
-    return clone;
-  }
+  // private createAbsoluteClone(target: HTMLElement, container: HTMLElement, className: string): HTMLElement {
+  //   const clone = target.cloneNode(true) as HTMLElement;
+  //   const rect = target.getBoundingClientRect();
+  //   clone.classList.add(className);
+  //   clone.style.position = 'absolute';
+  //   clone.style.zIndex = '1000';
+  //   clone.style.left = `${rect.left}px`;
+  //   clone.style.top = `${rect.top}px`;
+  //   clone.style.width = `${rect.width}px`;
+  //   clone.style.height = `${rect.height}px`;
+  //   container.appendChild(clone);
+  //   target.style.visibility = 'hidden';
+  //   return clone;
+  // }
 
-  private setupHeaderTransition() {
-
-    if (this.headerTransitionConfigured) {
-      return;
-    }
-
-    this.headerTransitionConfigured = true;
-
-    console.log('Setting up header transition...');
-
-    gsap.registerPlugin(ScrollTrigger);
-    gsap.registerPlugin(ScrollToPlugin)
-
-    const animationCanvas = document.querySelector('.animation-canvas') as HTMLElement;
-    const hyperionLogo = document.querySelector('.compact-hyperion-branding') as HTMLElement;
-    const compactLogo = document.querySelector('.compact-logo') as HTMLElement;
-    const mainLogo = document.querySelector('.main-chain-logo') as HTMLElement;
-    const mainFormContainer = document.querySelector('.main-form-container') as HTMLElement;
-    const compactFormContainer = document.querySelector('.compact-form-container') as HTMLElement;
-
-    if (!mainLogo || !compactLogo || !animationCanvas || !mainFormContainer || !compactFormContainer || !hyperionLogo) {
-      return;
-    }
-
-    // Chain Logo
-    const mainLogoRect = mainLogo.getBoundingClientRect();
-    const compactLogoRect = compactLogo.getBoundingClientRect();
-
-    // Form Container
-    const compactFormContainerRect = compactFormContainer.getBoundingClientRect();
-
-    this.createAbsoluteClone(mainLogo, animationCanvas, 'animated-logo');
-    this.createAbsoluteClone(mainFormContainer, animationCanvas, 'animated-form-container');
-
-    // this.createAbsoluteClone(hyperionLogo, animationCanvas, 'animated-hyperion-branding');
-
-    const yScaleFactor = compactLogoRect.height / mainLogoRect.height;
-    const widthDiff = compactLogoRect.width - mainLogoRect.width;
-    const heightDiff = compactLogoRect.height - mainLogoRect.height;
-
-    const revealCompactTimeline = gsap.timeline({
-      scrollTrigger: {
-        scrub: 0.2,
-        trigger: '.header-card',
-        start: 'bottom 160px',
-        end: 'bottom 50px',
-        id: 'reveal-transition',
-        markers: false
-      }
-    });
-
-    revealCompactTimeline.to('.compact-header-container', {
-      opacity: 1,
-      duration: 2,
-      ease: 'power3'
-    });
-
-    revealCompactTimeline.to('.animated-form-container', {
-      opacity: 0,
-      duration: 0.5,
-      ease: 'power3'
-    }, "<");
-
-    revealCompactTimeline.to('.animated-logo', {
-      opacity: 0,
-      duration: 2,
-      ease: 'power3'
-    }, "<");
-
-    const timeline = gsap.timeline({
-      scrollTrigger: {
-        trigger: '.header-card',
-        scrub: true,
-        start: 'top top',
-        end: '250px 88px',
-        id: 'header-transition',
-        pin: false,
-        markers: false
-      }
-    });
-
-    timeline.to('.animated-logo', {
-      left: compactLogoRect.left + (widthDiff / 2) - 4,
-      top: compactLogoRect.top + heightDiff / 2,
-      scale: yScaleFactor,
-      duration: 0.7,
-      ease: 'power2.out'
-    }, 0);
-
-    // timeline.to('.animated-hyperion-branding', {
-    //   opacity: 1,
-    //   duration: 1
-    // }, 0);
-
-    timeline.to('.animated-form-container', {
-      left: () => {
-        return compactFormContainer.getBoundingClientRect().left || 0;
-      },
-      height: compactFormContainerRect.height,
-      width: compactFormContainerRect.width,
-      top: compactFormContainerRect.top,
-      duration: 0.6,
-      ease: 'power2.out'
-    }, 0);
-
-    // timeline.play();
-    // revealCompactTimeline.play();
-
-    setTimeout(() => {
-      gsap.to(window, {
-        duration: 1,
-        ease: "power2.out",
-        scrollTo: {
-          y: 200,
-          autoKill: true
-        },
-        onComplete: () => {
-          console.log('Scrolled to 200');
-        }
-      });
-    }, 500);
-
-  }
+  // private setupHeaderTransition() {
+  //
+  //   if (this.headerTransitionConfigured) {
+  //     return;
+  //   }
+  //
+  //   this.headerTransitionConfigured = true;
+  //
+  //   console.log('Setting up header transition...');
+  //
+  //   gsap.registerPlugin(ScrollTrigger);
+  //   gsap.registerPlugin(ScrollToPlugin)
+  //
+  //   const animationCanvas = document.querySelector('.animation-canvas') as HTMLElement;
+  //   const hyperionLogo = document.querySelector('.compact-hyperion-branding') as HTMLElement;
+  //   const compactLogo = document.querySelector('.compact-logo') as HTMLElement;
+  //   const mainLogo = document.querySelector('.main-chain-logo') as HTMLElement;
+  //   const mainFormContainer = document.querySelector('.main-form-container') as HTMLElement;
+  //   const compactFormContainer = document.querySelector('.compact-form-container') as HTMLElement;
+  //
+  //   if (!mainLogo || !compactLogo || !animationCanvas || !mainFormContainer || !compactFormContainer || !hyperionLogo) {
+  //     return;
+  //   }
+  //
+  //   // Chain Logo
+  //   const mainLogoRect = mainLogo.getBoundingClientRect();
+  //   const compactLogoRect = compactLogo.getBoundingClientRect();
+  //
+  //   // Form Container
+  //   const compactFormContainerRect = compactFormContainer.getBoundingClientRect();
+  //
+  //   this.createAbsoluteClone(mainLogo, animationCanvas, 'animated-logo');
+  //   this.createAbsoluteClone(mainFormContainer, animationCanvas, 'animated-form-container');
+  //
+  //   // this.createAbsoluteClone(hyperionLogo, animationCanvas, 'animated-hyperion-branding');
+  //
+  //   const yScaleFactor = compactLogoRect.height / mainLogoRect.height;
+  //   const widthDiff = compactLogoRect.width - mainLogoRect.width;
+  //   const heightDiff = compactLogoRect.height - mainLogoRect.height;
+  //
+  //   const revealCompactTimeline = gsap.timeline({
+  //     scrollTrigger: {
+  //       scrub: 0.2,
+  //       trigger: '.header-card',
+  //       start: 'bottom 160px',
+  //       end: 'bottom 50px',
+  //       id: 'reveal-transition',
+  //       markers: false
+  //     }
+  //   });
+  //
+  //   revealCompactTimeline.to('.compact-header-container', {
+  //     opacity: 1,
+  //     duration: 2,
+  //     ease: 'power3'
+  //   });
+  //
+  //   revealCompactTimeline.to('.animated-form-container', {
+  //     opacity: 0,
+  //     duration: 0.5,
+  //     ease: 'power3'
+  //   }, "<");
+  //
+  //   revealCompactTimeline.to('.animated-logo', {
+  //     opacity: 0,
+  //     duration: 2,
+  //     ease: 'power3'
+  //   }, "<");
+  //
+  //   const timeline = gsap.timeline({
+  //     scrollTrigger: {
+  //       trigger: '.header-card',
+  //       scrub: true,
+  //       start: 'top top',
+  //       end: '250px 88px',
+  //       id: 'header-transition',
+  //       pin: false,
+  //       markers: false
+  //     }
+  //   });
+  //
+  //   timeline.to('.animated-logo', {
+  //     left: compactLogoRect.left + (widthDiff / 2) - 4,
+  //     top: compactLogoRect.top + heightDiff / 2,
+  //     scale: yScaleFactor,
+  //     duration: 0.7,
+  //     ease: 'power2.out'
+  //   }, 0);
+  //
+  //   // timeline.to('.animated-hyperion-branding', {
+  //   //   opacity: 1,
+  //   //   duration: 1
+  //   // }, 0);
+  //
+  //   timeline.to('.animated-form-container', {
+  //     left: () => {
+  //       return compactFormContainer.getBoundingClientRect().left || 0;
+  //     },
+  //     height: compactFormContainerRect.height,
+  //     width: compactFormContainerRect.width,
+  //     top: compactFormContainerRect.top,
+  //     duration: 0.6,
+  //     ease: 'power2.out'
+  //   }, 0);
+  //
+  //   // timeline.play();
+  //   // revealCompactTimeline.play();
+  //
+  //   setTimeout(() => {
+  //     gsap.to(window, {
+  //       duration: 1,
+  //       ease: "power2.out",
+  //       scrollTo: {
+  //         y: 200,
+  //         autoKill: true
+  //       },
+  //       onComplete: () => {
+  //         console.log('Scrolled to 200');
+  //       }
+  //     });
+  //   }, 500);
+  //
+  // }
 }
