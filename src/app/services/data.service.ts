@@ -24,7 +24,7 @@ export class DataServiceServer extends DataService {
       const response = await fetch(environment.hyperionApiUrl + '/v2/explorer_metadata');
       const data: ExplorerMetadata = await response.json();
       if (data && data.last_indexed_block && data.last_indexed_block > 1) {
-        data.logo = environment.logo;
+        data.logo = environment.hyperionApiUrl + '/v2/explorer_logo';
         this.state.set(makeStateKey<Awaited<ReturnType<ExplorerMetadata | any>>>('chain_data'), data);
         this.explorerMetadata = data;
       } else {
