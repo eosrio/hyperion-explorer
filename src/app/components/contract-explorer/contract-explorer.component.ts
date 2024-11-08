@@ -36,10 +36,8 @@ interface AbiStructField {
 
 @Component({
   selector: 'app-contract-explorer',
-  standalone: true,
   imports: [
     MatButton,
-    KeyValuePipe,
     MatTable,
     MatColumnDef,
     MatHeaderCell,
@@ -55,6 +53,7 @@ interface AbiStructField {
     MatTooltip
   ],
   templateUrl: './contract-explorer.component.html',
+  standalone: true,
   styleUrl: './contract-explorer.component.css'
 })
 export class ContractExplorerComponent {

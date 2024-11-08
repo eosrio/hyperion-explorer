@@ -137,7 +137,8 @@ $light-theme: mat.define-theme((
 ));
 
 html {
-  @include mat.core-theme($light-theme);
+  @include mat.elevation-classes();
+  @include mat.app-background();
   @include mat.button-theme($light-theme);
   @include mat.input-theme($light-theme);
 }

@@ -5,12 +5,12 @@ import {DataService} from "../../services/data.service";
 
 @Component({
   selector: 'app-pre-header',
-  standalone: true,
   imports: [
     NgOptimizedImage,
     RouterLink
   ],
   templateUrl: './pre-header.component.html',
+  standalone: true,
   styleUrl: './pre-header.component.css'
 })
 export class PreHeaderComponent {

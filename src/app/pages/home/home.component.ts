@@ -33,29 +33,22 @@ import {toObservable} from "@angular/core/rxjs-interop";
 
 @Component({
   selector: 'app-home',
-  standalone: true,
   imports: [
     PreHeaderComponent,
-    MatCard,
     NgOptimizedImage,
     ReactiveFormsModule,
-    MatFormField,
-    FaIconComponent,
     MatAutocomplete,
     MatOption,
-    MatInput,
     MatAutocompleteTrigger,
-    MatError,
     MatButton,
-    MatSuffix,
     MatIcon,
     RouterOutlet,
-    NgClass,
     RouterLink,
     NgStyle
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
+  standalone: true,
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HomeComponent {
@@ -73,6 +66,7 @@ export class HomeComponent {
   // shared signals
   searchValue = this.searchService.searchQuery.asReadonly();
   $searchValue = toObservable(this.searchValue);
+
   searchType = this.searchService.searchType.asReadonly();
   searchField = viewChild<ElementRef<HTMLInputElement>>('searchField');
   validSearch = signal<boolean>(false);

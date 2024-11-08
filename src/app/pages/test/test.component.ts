@@ -7,19 +7,18 @@ import {AnimatedButtonComponent} from "../../components/animated-button/animated
 
 @Component({
   selector: 'app-test',
-  standalone: true,
   imports: [
-    NgClass,
     MatButton,
     AnimatedButtonComponent
   ],
   templateUrl: './test.component.html',
   styleUrl: './test.component.css',
+  standalone: true,
   animations: [
     trigger('flyInOut', [
       transition(':enter', [style({opacity: 0}), animate('500ms', style({opacity: 1}))]),
     ]),
-  ],
+  ]
 })
 export class TestComponent {
 

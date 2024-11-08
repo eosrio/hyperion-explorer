@@ -5,13 +5,13 @@ import {ContractExplorerComponent} from "../contract-explorer/contract-explorer.
 
 @Component({
   selector: 'app-contract-dialog',
-  standalone: true,
   imports: [
     MatDialogTitle,
     MatDialogContent,
     ContractExplorerComponent
   ],
   templateUrl: './contract-dialog.component.html',
+  standalone: true,
   styleUrl: './contract-dialog.component.css'
 })
 export class ContractDialogComponent {

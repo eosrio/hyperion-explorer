@@ -26,20 +26,19 @@ import {DataService} from "../../../services/data.service";
 
 @Component({
   selector: 'app-block',
-  standalone: true,
   imports: [
     RouterModule,
     MatChipsModule,
     MatTableModule,
     FontAwesomeModule,
     MatProgressSpinner,
-    MatCard,
     MatIconButton,
     NgClass,
     KeyValuePipe
   ],
   templateUrl: './block.component.html',
   styleUrl: './block.component.css',
+  standalone: true,
   animations: [
     trigger('detailExpand', [
       state('collapsed', style({height: '0px', minHeight: '0'})),

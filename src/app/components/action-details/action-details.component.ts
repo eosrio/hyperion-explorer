@@ -11,14 +11,14 @@ import {
   MatTree,
   MatTreeNestedDataSource,
   MatTreeNode,
-  MatTreeNodeDef, MatTreeNodeOutlet,
+  MatTreeNodeDef,
+  MatTreeNodeOutlet,
   MatTreeNodeToggle
 } from "@angular/material/tree";
 import {KeyValuePipe} from "@angular/common";
 import {NestedTreeControl} from "@angular/cdk/tree";
 import {MatIcon} from "@angular/material/icon";
 import {MatButton, MatIconButton} from "@angular/material/button";
-import {root} from "postcss";
 
 interface KeyValueNode {
   name: string;
@@ -29,10 +29,8 @@ interface KeyValueNode {
 
 @Component({
   selector: 'app-action-details',
-  standalone: true,
   imports: [
     MatTree,
-    KeyValuePipe,
     MatTreeNode,
     MatTreeNodeToggle,
     MatTreeNodeDef,
@@ -46,6 +44,7 @@ interface KeyValueNode {
     MatButton
   ],
   templateUrl: './action-details.component.html',
+  standalone: true,
   styleUrl: './action-details.component.css'
 })
 export class ActionDetailsComponent {

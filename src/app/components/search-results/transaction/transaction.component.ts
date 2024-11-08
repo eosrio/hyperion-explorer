@@ -1,29 +1,28 @@
 import {Component, OnDestroy, OnInit, signal} from '@angular/core';
 import {ActivatedRoute, RouterLink} from '@angular/router';
-import {faExchangeAlt} from '@fortawesome/free-solid-svg-icons/faExchangeAlt';
-import {faCircle} from '@fortawesome/free-solid-svg-icons/faCircle';
-import {faLock} from '@fortawesome/free-solid-svg-icons/faLock';
-import {faHourglassStart} from '@fortawesome/free-solid-svg-icons/faHourglassStart';
-import {faHistory} from '@fortawesome/free-solid-svg-icons/faHistory';
-import {faSadTear} from '@fortawesome/free-solid-svg-icons/faSadTear';
-import {faSpinner} from '@fortawesome/free-solid-svg-icons/faSpinner';
+import {
+  faCircle,
+  faExchangeAlt,
+  faHistory,
+  faHourglassStart,
+  faLock,
+  faSadTear,
+  faSpinner
+} from '@fortawesome/free-solid-svg-icons';
 import {Title} from '@angular/platform-browser';
 import {AccountService} from "../../../services/account.service";
 import {DataService} from "../../../services/data.service";
 import {SearchService} from "../../../services/search.service";
 import {MatProgressSpinner} from "@angular/material/progress-spinner";
-import {MatCard} from "@angular/material/card";
 import {FaIconComponent, FaLayersComponent} from "@fortawesome/angular-fontawesome";
 import {MatChipListbox, MatChipOption} from "@angular/material/chips";
-import {MatColumnDef, MatHeaderCell, MatHeaderCellDef, MatTable, MatTableModule} from "@angular/material/table";
+import {MatTableModule} from "@angular/material/table";
 import {KeyValuePipe, NgClass} from "@angular/common";
 
 @Component({
   selector: 'app-transaction',
-  standalone: true,
   imports: [
     MatProgressSpinner,
-    MatCard,
     FaIconComponent,
     FaLayersComponent,
     MatChipListbox,
@@ -34,6 +33,7 @@ import {KeyValuePipe, NgClass} from "@angular/common";
     NgClass
   ],
   templateUrl: './transaction.component.html',
+  standalone: true,
   styleUrls: ['./transaction.component.css']
 })
 export class TransactionComponent implements OnInit, OnDestroy {

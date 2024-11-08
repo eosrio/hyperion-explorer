@@ -101,11 +101,9 @@ interface FlatNode {
 
 @Component({
   selector: 'app-account',
-  standalone: true,
   imports: [
     MatButton,
     MatProgressSpinner,
-    MatCard,
     FaIconComponent,
     MatProgressBar,
     FaLayersComponent,
@@ -135,15 +133,10 @@ interface FlatNode {
     MatHeaderRow,
     MatHeaderRowDef,
     MatCardContent,
-    MatCardTitle,
-    MatCardSubtitle,
-    MatCardHeader,
-    MatDivider,
-    CdkDropList,
-    CdkDragHandle,
-    CdkDrag
+    MatCardHeader
   ],
   templateUrl: './account.component.html',
+  standalone: true,
   styleUrl: './account.component.css'
 })
 export class AccountComponent implements OnDestroy {

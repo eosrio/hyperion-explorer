@@ -2,14 +2,10 @@ import {Component, OnInit, signal} from '@angular/core';
 import {ActivatedRoute, RouterLink} from "@angular/router";
 import {AccountService} from "../../../services/account.service";
 import {DataService} from '../../../services/data.service';
-import {faSpinner} from '@fortawesome/free-solid-svg-icons/faSpinner';
-import {faSadTear} from '@fortawesome/free-solid-svg-icons/faSadTear';
-import {faKey} from '@fortawesome/free-solid-svg-icons/faKey';
-import {faCircle} from '@fortawesome/free-solid-svg-icons/faCircle';
+import {faCircle, faKey, faSadTear, faSpinner} from '@fortawesome/free-solid-svg-icons';
 import {Title} from "@angular/platform-browser";
 import {SearchService} from "../../../services/search.service";
 import {MatProgressSpinner} from "@angular/material/progress-spinner";
-import {MatCard} from "@angular/material/card";
 import {FaIconComponent, FaLayersComponent} from "@fortawesome/angular-fontawesome";
 
 interface KeyResponse {
@@ -19,15 +15,14 @@ interface KeyResponse {
 
 @Component({
   selector: 'app-key',
-  standalone: true,
   imports: [
     RouterLink,
     MatProgressSpinner,
-    MatCard,
     FaIconComponent,
     FaLayersComponent
   ],
   templateUrl: './key.component.html',
+  standalone: true,
   styleUrl: './key.component.css'
 })
 export class KeyComponent implements OnInit {
