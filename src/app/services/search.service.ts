@@ -33,7 +33,9 @@ export class SearchService {
     if ((value && value.length > 12) || !value) {
       return [];
     }
+
     let result = [];
+
     try {
       const sValue = value.toLowerCase();
       const requestBody = {
@@ -42,7 +44,9 @@ export class SearchService {
         lower_bound: sValue,
         limit: 100
       };
+
       const response = await lastValueFrom(this.http.post(this.searchAccountUrl, requestBody)) as GetTableByScopeResponse;
+
       if (response.rows && response.rows.length > 0) {
 
         const startsWithResult = response.rows
@@ -65,6 +69,7 @@ export class SearchService {
     }
 
     this.autoCompleteCache.set(value, result);
+
     return result;
   }
 

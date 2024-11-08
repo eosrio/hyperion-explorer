@@ -143,7 +143,6 @@ export class HomeComponent {
 
     this.searchForm.get('search_field')?.valueChanges?.pipe(debounceTime(300))?.subscribe((value) => {
       if (value && value.length > 2) {
-
         this.validSearch.set(this.searchService.submitSearch(value, []));
 
         if (this.validSearch()) {
@@ -151,10 +150,11 @@ export class HomeComponent {
         }
 
         this.searchService.filterAccountNames(value).then((filteredAccounts: string[]) => {
-          this.filteredAccounts.set(filteredAccounts
-            .concat(this.systemAccounts.filter(acct => acct.startsWith(value)))
-            .sort((a, b) => a.localeCompare(b))
-          );
+          if (filteredAccounts.length === 0) {
+            this.filteredAccounts.set(this.systemAccounts.filter(acct => acct.startsWith(value)));
+          } else {
+            this.filteredAccounts.set(filteredAccounts);
+          }
         });
       } else {
         this.validSearch.set(false);
