@@ -5,78 +5,78 @@
 <!--COMPACT HEADER WITH SEARCH BAR-->
 <!--style="display: none"-->
 
-<div class="fixed w-full z-50 compact-header-container" [ngStyle]="{opacity: isHome() ? 0 : 1}">
-  <div class="compact-header-parent rounded-b-2xl mx-3 sm:mx-5">
-    <div class="hr-container flex flex-row justify-between items-center gap-[8px] compact-header">
-      <div routerLink="/" style="cursor: pointer"
-           class="compact-hyperion-branding flex flex-row flex-wrap justify-start items-center gap-[6px]">
-        <img ngSrc="assets/hyperion-pulse.svg" alt="logo" style="height: 19px" class="logo" height="16" width="16"/>
-        <div class="logo-name">HYPERION</div>
-      </div>
+<!--<div class="fixed w-full z-50 compact-header-container" [ngStyle]="{opacity: isHome() ? 0 : 1}">-->
+<!--  <div class="compact-header-parent rounded-b-2xl mx-3 sm:mx-5">-->
+<!--    <div class="hr-container flex flex-row justify-between items-center gap-[8px] compact-header">-->
+<!--      <div routerLink="/" style="cursor: pointer"-->
+<!--           class="compact-hyperion-branding flex flex-row flex-wrap justify-start items-center gap-[6px]">-->
+<!--        <img ngSrc="assets/hyperion-pulse.svg" alt="logo" style="height: 19px" class="logo" height="16" width="16"/>-->
+<!--        <div class="logo-name">HYPERION</div>-->
+<!--      </div>-->
 
-      @if (chainData()) {
-        <div class="flex flex-row items-center gap-4">
-          <!-- DYNAMIC CHAIN LOGO-->
-          <img [src]="chainData().logo" alt="logo" class="compact-logo"/>
+<!--      @if (chainData()) {-->
+<!--        <div class="flex flex-row items-center gap-4">-->
+<!--          &lt;!&ndash; DYNAMIC CHAIN LOGO&ndash;&gt;-->
+<!--          <img [src]="chainData().logo" alt="logo" class="compact-logo"/>-->
 
-          <form [formGroup]="searchForm" (ngSubmit)="submit()" class="flex flex-col w-full justify-center">
+<!--          <form [formGroup]="searchForm" (ngSubmit)="submit()" class="flex flex-col w-full justify-center">-->
 
-            <div class="flex flex-row w-full justify-center place-items-center">
+<!--            <div class="flex flex-row w-full justify-center place-items-center">-->
 
-              <div class="custom-input-group compact-form-container rounded-full grow sm:grow-0 flex flex-row gap-5 content-center
-          focus-within:outline focus-within:outline-2 focus-within:outline-amber-400 focus-within:-outline-offset-2
-          hover:border-amber-400 border-transparent transition-all duration-100 ease-in-out">
+<!--              <div class="custom-input-group compact-form-container rounded-full grow sm:grow-0 flex flex-row gap-5 content-center-->
+<!--          focus-within:outline focus-within:outline-2 focus-within:outline-amber-400 focus-within:-outline-offset-2-->
+<!--          hover:border-amber-400 border-transparent transition-all duration-100 ease-in-out">-->
 
-                <input #searchField formControlName="search_field" [placeholder]="searchPlaceholder()"
-                       class="custom-input grow outline-none ml-0 pl-5 py-3 rounded-l-full w-full sm:w-96 max-w-full"
-                       [matAutocomplete]="auto">
-                <button mat-raised-button class="compact-btn search-btn mr-2 place-self-center"
-                        [class.primary-btn]="validSearch()">
-                  <mat-icon>search</mat-icon>
-                  @if (validSearch()) {
-                    Search {{ searchService.searchType() }}
-                  } @else {
-                    Search
-                  }
-                </button>
-              </div>
+<!--                <input #searchField formControlName="search_field" [placeholder]="searchPlaceholder()"-->
+<!--                       class="custom-input grow outline-none ml-0 pl-5 py-3 rounded-l-full w-full sm:w-96 max-w-full"-->
+<!--                       [matAutocomplete]="auto">-->
+<!--                <button mat-raised-button class="compact-btn search-btn mr-2 place-self-center"-->
+<!--                        [class.primary-btn]="validSearch()">-->
+<!--                  <mat-icon>search</mat-icon>-->
+<!--                  @if (validSearch()) {-->
+<!--                    Search {{ searchService.searchType() }}-->
+<!--                  } @else {-->
+<!--                    Search-->
+<!--                  }-->
+<!--                </button>-->
+<!--              </div>-->
 
-              <mat-autocomplete #auto="matAutocomplete"
-                                (optionSelected)="submit()"
-                                class="custom-autocomplete"
-                                [classList]="'custom-autocomplete'">
-                @for (account of filteredAccounts(); track account) {
-                  <mat-option [value]="account">
-                    {{ account }}
-                  </mat-option>
-                }
-              </mat-autocomplete>
+<!--              <mat-autocomplete #auto="matAutocomplete"-->
+<!--                                (optionSelected)="submit()"-->
+<!--                                class="custom-autocomplete"-->
+<!--                                [classList]="'custom-autocomplete'">-->
+<!--                @for (account of filteredAccounts(); track account) {-->
+<!--                  <mat-option [value]="account">-->
+<!--                    {{ account }}-->
+<!--                  </mat-option>-->
+<!--                }-->
+<!--              </mat-autocomplete>-->
 
-            </div>
+<!--            </div>-->
 
-            @if (err()) {
-              <div class="flex flex-row w-full justify-center">
-                <div class="justify-center text-red-600 pt-2 animate fast fadeInDown">{{ err() }}</div>
-              </div>
-            }
-          </form>
-        </div>
+<!--            @if (err()) {-->
+<!--              <div class="flex flex-row w-full justify-center">-->
+<!--                <div class="justify-center text-red-600 pt-2 animate fast fadeInDown">{{ err() }}</div>-->
+<!--              </div>-->
+<!--            }-->
+<!--          </form>-->
+<!--        </div>-->
 
 
-        <div class="faded provider">
-          Data provider:
-          <a [href]="chainData().provider_url" target="_blank">{{ chainData().provider }}</a>
-        </div>
-      }
-    </div>
-  </div>
-</div>
+<!--        <div class="faded provider" (click)="changeDirection()">-->
+<!--          Data provider:-->
+<!--          <a [href]="chainData().provider_url" target="_blank">{{ chainData().provider }}</a>-->
+<!--        </div>-->
+<!--      }-->
+<!--    </div>-->
+<!--  </div>-->
+<!--</div>-->
 
-<div class="w-full h-full flex flex-col">
+<div class="w-full h-full flex flex-col relative">
 
   @if (isHome()) {
     <!--  style="visibility: hidden"-->
-    <div class="header-card mx-3 sm:mx-5 mb-5 mt-0 rounded-b-2xl content-start"
+    <div id="header-card" class="header-card sticky top-0 z-10 mx-3 sm:mx-5 mb-5 mt-0 rounded-b-2xl content-start"
          [class.header-anim]="accService.loaded()">
 
       <div class="w-full mt-[28px] ">
@@ -84,18 +84,19 @@
       </div>
 
       <!--FULL HEADER WITH SEARCH BAR-->
-      <div class="flex flex-col justify-center items-center gap-10 pt-9 pb-10 w-full searchbar-container">
+      <div id="searchbar-container" class="flex flex-col justify-center items-center gap-10 pt-9 pb-10 w-full searchbar-container">
 
         <!-- DYNAMIC CHAIN LOGO-->
-        <img [ngSrc]="chainData().logo" alt="logo" class="logo main-chain-logo" width="192" height="70" priority/>
+        <img [ngSrc]="chainData().logo" id="main-logo" alt="logo" class="logo header-flip" width="192" height="70" priority/>
 
-        <form [formGroup]="searchForm" (ngSubmit)="submit()" class="flex flex-col w-full justify-center">
+        <form [formGroup]="searchForm" (ngSubmit)="submit()" class="header-flip flex flex-col w-full justify-center">
 
-          <div class="flex flex-row w-full justify-center place-items-center">
+          <div id="search-row-container" class="header-flip flex flex-row gap-3 w-full justify-center items-center">
 
-            <div class="custom-input-group main-form-container rounded-full grow sm:grow-0 flex flex-row gap-5 content-center
+            <div class="logo-empty-space"></div>
+            <div id="search-input" class="header-flip custom-input-group main-form-container rounded-full grow sm:grow-0 flex flex-row gap-5 content-center
           focus-within:outline focus-within:outline-2 focus-within:outline-amber-400 focus-within:-outline-offset-2
-          hover:border-amber-400 border-transparent transition-all duration-100 ease-in-out">
+          hover:border-amber-400 border-transparent">
 
               <input #searchField formControlName="search_field" [placeholder]="searchPlaceholder()"
                      class="custom-input grow outline-none ml-0 pl-5 py-4 rounded-l-full w-full sm:w-96 max-w-full"
@@ -110,7 +111,8 @@
               </button>
             </div>
 
-            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="submit()" class="custom-autocomplete"
+            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="submit()"
+                              class="header-flip custom-autocomplete"
                               [classList]="'custom-autocomplete'">
               @for (account of filteredAccounts(); track account) {
                 <mat-option [value]="account">
@@ -165,7 +167,7 @@
   }
 
   <!-- bg-gradient-to-b from-slate-600 to-indigo-950-->
-  <div class="grow pt-5 pb-10">
+  <div id="content" class="grow pt-5 pb-10">
     <router-outlet></router-outlet>
   </div>
 </div>

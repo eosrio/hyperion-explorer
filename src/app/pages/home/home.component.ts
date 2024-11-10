@@ -23,6 +23,10 @@ import {ActivatedRoute, Router, RouterLink, RouterOutlet} from "@angular/router"
 import {debounceTime} from "rxjs";
 import {AccountService} from "../../services/account.service";
 import {toObservable} from "@angular/core/rxjs-interop";
+import {gsap} from 'gsap';
+import {ScrollTrigger} from "gsap/ScrollTrigger";
+import {ScrollToPlugin} from "gsap/ScrollToPlugin";
+import {Flip} from "gsap/Flip";
 
 @Component({
   selector: 'app-home',
@@ -91,6 +95,8 @@ export class HomeComponent {
   headerTransitionConfigured = false;
 
   isHome = signal(true);
+  private headerContainerTimeline?: gsap.core.Timeline;
+  private mainLogoTimeline?: gsap.core.Timeline;
 
   constructor(
     private formBuilder: FormBuilder,
@@ -113,6 +119,8 @@ export class HomeComponent {
     }
 
     afterNextRender(() => {
+
+      this.setupHeaderTransition();
 
       // get the current route
       this.$searchValue.subscribe((value) => {
@@ -176,6 +184,20 @@ export class HomeComponent {
     }
   }
 
+  @HostListener('window:resize', ['$event'])
+  onResize(event: Event) {
+    if (isPlatformBrowser(this.platformId)) {
+      if (this.headerContainerTimeline && this.mainLogoTimeline) {
+
+        this.headerContainerTimeline.revert();
+        this.mainLogoTimeline.revert();
+        Flip.killFlipsOf('#header-card, #account-name-sticky, .custom-card, #content, .header-flip');
+      }
+
+      this.setupTriggers();
+    }
+  }
+
   closeAutoComplete() {
     console.log('Closing autocomplete...');
     this.filteredAccounts.set([]);
@@ -201,6 +223,76 @@ export class HomeComponent {
       }
     }
   }
+
+  setupTriggers() {
+    // if (this.headerTransitionConfigured) {
+    //   return;
+    // }
+    // this.headerTransitionConfigured = true;
+
+    const headerContainerState = Flip.getState('#header-card, #account-name-sticky, .custom-card, #content', {props: 'height'});
+    const mainLogoState = Flip.getState('.header-flip', {props: 'height'});
+    const logo = document.querySelector('#main-logo') as HTMLElement;
+    const tagline = document.querySelector('.tagline') as HTMLElement;
+    const searchbarContainer = document.querySelector('#searchbar-container') as HTMLElement;
+    const logoNewContainer = document.querySelector('.logo-empty-space') as HTMLDivElement;
+    const searchbarNewContainer = document.querySelector('.searchbar-empty-space') as HTMLDivElement;
+    const headerCard = document.querySelector('#header-card') as HTMLElement;
+    if (!logo || !logoNewContainer || !headerCard) {
+      return;
+    }
+    logoNewContainer.replaceChildren(logo);
+    searchbarNewContainer.replaceChildren(searchbarContainer);
+    logo.style.height = '2.625rem';
+    headerCard.style.height = 'auto';
+    headerCard.style.top = '0';
+    tagline.style.width = '0';
+    tagline.style.opacity = '0';
+
+    this.headerContainerTimeline = Flip.from(headerContainerState, {
+      duration: 0.5,
+      paused: true,
+      ease: 'power2.out',
+      absolute: false,
+      onComplete: () => {
+        console.log('Header Flipped');
+      },
+      scrollTrigger: {
+        trigger: '.header-card',
+        start: 'top 0',
+        end: 'bottom 40px',
+        scrub: true,
+        markers: false,
+      }
+    });
+
+    this.mainLogoTimeline = Flip.from(mainLogoState, {
+      duration: 0.5,
+      paused: true,
+      nested: true,
+      ease: 'power2.out',
+      absolute: true,
+      onComplete: () => {
+        console.log('Flipped');
+      },
+      scrollTrigger: {
+        trigger: '.header-card',
+        start: 'top 0',
+        end: 'bottom 40px',
+        scrub: true,
+        markers: false,
+      }
+    });
+
+  }
+
+  private setupHeaderTransition() {
+    gsap.registerPlugin(Flip);
+    gsap.registerPlugin(ScrollTrigger);
+    gsap.registerPlugin(ScrollToPlugin);
+    this.setupTriggers();
+  }
+
 
   // private createAbsoluteClone(target: HTMLElement, container: HTMLElement, className: string): HTMLElement {
   //   const clone = target.cloneNode(true) as HTMLElement;
