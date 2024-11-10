@@ -73,20 +73,20 @@
 
               @if (creationData()) {
 
-                @if (creationData()?.creator) {
+                @if (creationData().creator) {
                   <div class="mt-7 w-full">
                     <strong class="font-medium">Created by: </strong>
-                    <a [routerLink]="['/account', creationData()?.creator]" class="float-r link-gray">
-                      {{ creationData()?.creator }}
+                    <a [routerLink]="['/account', creationData().creator]" class="float-r link-gray">
+                      {{ creationData().creator }}
                     </a>
                   </div>
                 }
 
-                @if (creationData()?.timestamp) {
+                @if (creationData().timestamp) {
                   <div class="mt-7 w-full">
                     <span class="font-medium">Created on: </span>
                     <span class="float-r">
-                        {{ creationData()?.timestamp | date: "medium" }}
+                        {{ creationData().timestamp | date: "medium" }}
                       </span>
                   </div>
                 }

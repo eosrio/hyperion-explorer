@@ -3,7 +3,7 @@ import {SearchService} from "../../../services/search.service";
 import {MatButton, MatIconButton} from "@angular/material/button";
 import {ActivatedRoute, Router, RouterLink} from "@angular/router";
 import {MatProgressSpinner} from "@angular/material/progress-spinner";
-import {MatCard, MatCardContent, MatCardHeader, MatCardSubtitle, MatCardTitle} from "@angular/material/card";
+import {MatCardContent, MatCardHeader} from "@angular/material/card";
 import {FaIconComponent, FaLayersComponent} from "@fortawesome/angular-fontawesome";
 import {MatProgressBar} from "@angular/material/progress-bar";
 import {MatTooltip} from "@angular/material/tooltip";
@@ -11,7 +11,8 @@ import {
   MatTree,
   MatTreeFlatDataSource,
   MatTreeFlattener,
-  MatTreeNode, MatTreeNodeDef,
+  MatTreeNode,
+  MatTreeNodeDef,
   MatTreeNodePadding,
   MatTreeNodeToggle
 } from "@angular/material/tree";
@@ -22,8 +23,11 @@ import {
   MatCellDef,
   MatColumnDef,
   MatHeaderCell,
-  MatHeaderCellDef, MatHeaderRow, MatHeaderRowDef,
-  MatRow, MatRowDef,
+  MatHeaderCellDef,
+  MatHeaderRow,
+  MatHeaderRowDef,
+  MatRow,
+  MatRowDef,
   MatTable
 } from "@angular/material/table";
 import {AccountService} from "../../../services/account.service";
@@ -47,16 +51,9 @@ import {FlatTreeControl} from "@angular/cdk/tree";
 import {AccountCreationData} from "../../../interfaces";
 import {DataService} from "../../../services/data.service";
 import {Title} from "@angular/platform-browser";
-import {
-  MatAccordion, MatExpansionModule,
-  MatExpansionPanel,
-  MatExpansionPanelDescription,
-  MatExpansionPanelHeader
-} from "@angular/material/expansion";
-import {MatDivider} from "@angular/material/divider";
+import {MatAccordion, MatExpansionModule} from "@angular/material/expansion";
 import {MatDialog} from "@angular/material/dialog";
 import {ActionDetailsComponent} from "../../action-details/action-details.component";
-import {CdkDrag, CdkDragHandle, CdkDropList} from "@angular/cdk/drag-drop";
 
 interface Permission {
   perm_name: string;

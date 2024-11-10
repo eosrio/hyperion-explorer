@@ -45,6 +45,18 @@ export const routes: Routes = [
 
 export const serverRoutes: ServerRoute[] = [
   {
+    path: 'contract/:code/:table/:scope',
+    renderMode: RenderMode.Server
+  },
+  {
+    path: 'contract/:code/:table',
+    renderMode: RenderMode.Server
+  },
+  {
+    path: 'contract/:code',
+    renderMode: RenderMode.Server
+  },
+  {
     path: '**',
     renderMode: RenderMode.Server
   }

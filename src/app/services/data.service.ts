@@ -14,7 +14,6 @@ export class DataServiceServer extends DataService {
   explorerMetadata: ExplorerMetadata | null = null;
 
   async load() {
-    console.log("Loading chain data...");
     // fetch explorer metadata
     await this.loadChainData();
   }

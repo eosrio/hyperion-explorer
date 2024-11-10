@@ -38,3 +38,32 @@ export interface AccountCreationData {
   creator?: string;
   timestamp?: string;
 }
+
+export interface AbiTable {
+  index_type: string;
+  key_names: any[];
+  key_types: any[];
+  name: string;
+  type: string;
+}
+
+export interface AbiStructField {
+  name: string;
+  type: string;
+}
+
+export interface GetAbiResponse {
+  abi: {
+    abi_extensions: any[];
+    action_results: any[];
+    actions: any[];
+    error_messages: any[];
+    ricardian_clauses: any[];
+    structs: any[];
+    tables: AbiTable[];
+    types: any[];
+    variants: any[];
+    version: string;
+  },
+  account_name: string;
+}

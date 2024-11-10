@@ -1,8 +1,18 @@
-import {afterNextRender, Component, computed, input, signal} from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  ResourceRef,
+  ResourceStatus,
+  signal
+} from '@angular/core';
 import {ActivatedRoute, ParamMap, Router} from "@angular/router";
-import {toSignal} from "@angular/core/rxjs-interop";
+import {rxResource, toSignal} from "@angular/core/rxjs-interop";
 import {HttpClient} from "@angular/common/http";
-import {lastValueFrom} from "rxjs";
+import {lastValueFrom, map, Observable, of, skipUntil} from "rxjs";
 import {environment} from "../../../env";
 import {MatButton} from "@angular/material/button";
 import {KeyValuePipe} from "@angular/common";
@@ -20,23 +30,29 @@ import {
 } from "@angular/material/table";
 import {MatSort, MatSortHeader, Sort} from "@angular/material/sort";
 import {MatTooltip} from "@angular/material/tooltip";
+import {AbiStructField, AbiTable, GetAbiResponse} from "../../interfaces";
+import { FormsModule } from '@angular/forms';
 
-interface AbiTable {
-  index_type: string;
-  key_names: any[];
-  key_types: any[];
-  name: string;
-  type: string;
+function buildFieldArray(structs: any[], array: AbiStructField[], type: string): void {
+  if (array && type) {
+    const struct = structs.find((struct: any) => struct.name === type);
+    if (struct.base) {
+      buildFieldArray(structs, array, struct.base);
+    }
+    array.push(...struct.fields);
+  }
 }
 
-interface AbiStructField {
-  name: string;
-  type: string;
+function rxResFromParam(route: ActivatedRoute, key: string): ResourceRef<string | null> {
+  return rxResource<string | null, unknown>({
+    loader: () => route.paramMap.pipe(map(p => p.get(key)))
+  });
 }
 
 @Component({
   selector: 'app-contract-explorer',
   imports: [
+    FormsModule,
     MatButton,
     MatTable,
     MatColumnDef,
@@ -58,174 +74,140 @@ interface AbiStructField {
 })
 export class ContractExplorerComponent {
 
-  paramMap = toSignal(this.route.paramMap);
+  route = inject(ActivatedRoute);
+  code = rxResFromParam(this.route, 'code');
+  table = rxResFromParam(this.route, 'table');
+  scope = rxResFromParam(this.route, 'scope');
 
-  code = signal("");
-  codeInput = input<string>("");
-  table = computed(() => this.paramMap()?.get("table") ?? "");
-  scope = computed(() => this.paramMap()?.get("scope") ?? "");
+  http = inject(HttpClient);
+  router = inject(Router);
 
-  abi: any | null = null;
-  tables = signal<AbiTable[]>([]);
-  tableNames = computed<string[]>(() => {
-    return this.tables().map((table: AbiTable) => table.name);
+  // request endpoints
+  endpoints = {
+    getAbi: `${environment.hyperionApiUrl}/v1/chain/get_abi`,
+    getTableByScope: `${environment.hyperionApiUrl}/v1/chain/get_table_by_scope`,
+    getTableRows: `${environment.hyperionApiUrl}/v1/chain/get_table_rows`
+  };
+
+  getTableByScopeLimit = 20;
+
+  // request new abi when the code signal changes
+  abiRes = rxResource({
+    request: () => this.code.value(),
+    loader: ({request: code}) => {
+      return this.http.get<GetAbiResponse>(this.endpoints.getAbi + '?account_name=' + code);
+    }
   });
-  selectedTable = signal<string>("");
 
-  scopes = signal<any[]>([]);
-  scopeNames = computed<string[]>(() => {
-    return [this.code(), ...this.scopes().map((row: any) => row.scope)];
+  // request new table scopes when the table signal changes
+  tableScopesRes = rxResource({
+    request: () => this.table.value(),
+    loader: ({request: table}) => {
+      if (table) {
+        // request table scopes
+        const reqParams = `?code=${this.code.value()}&table=${table}&limit=${this.getTableByScopeLimit}`;
+        return this.http.get<any>(this.endpoints.getTableByScope + reqParams);
+      } else {
+        // return empty array if no table is selected
+        return of([]);
+      }
+    }
   });
-  selectedScope = signal<string>("");
 
-  tableRows = signal<any[]>([]);
+  tableRowRes = rxResource({
+    request: () => this.scope.value(),
+    loader: ({request: scope}) => {
+      if (scope) {
+        // request table scopes
+        const reqParams = `?code=${this.code.value()}&table=${this.table.value()}&scope=${scope}`;
+        return this.http.get<any>(this.endpoints.getTableRows + reqParams).pipe(map(d => d.rows));
+      } else {
+        // return empty array if no table is selected
+        return of([]);
+      }
+    }
+  });
+
+
+  abiTableNames = computed<string[]>(() => {
+    const data = this.abiRes.value();
+    if (data && data.abi) {
+      return data.abi.tables.map((table: AbiTable) => table.name);
+    } else {
+      return [];
+    }
+  });
+
+  scopeList = computed<string[]>(() => {
+    const data = this.tableScopesRes.value();
+    const scopeSet = new Set<string>();
+    if (data) {
+      // include contract name in the list if the list of scopes is too large
+      if (data.more) {
+        const contract = this.code.value();
+        if (contract) {
+          scopeSet.add(contract);
+        }
+      }
+      data.rows.forEach((row: any) => scopeSet.add(row.scope));
+      return Array.from(scopeSet);
+    } else {
+      return [];
+    }
+  });
+
+
+  nextScope = computed<string>(() => this.tableScopesRes.value()?.more ?? "");
+
   sortBy = signal<string>("");
   sortDirection = signal<string>("desc");
 
-  tableData = computed(() => {
-    if (this.sortDirection() === '') {
-      return this.tableRows();
-    } else {
-      return [...this.tableRows()].sort((a: any, b: any) => {
-        if (this.sortDirection() === 'desc') {
-          return a[this.sortBy()] > b[this.sortBy()] ? 1 : -1;
-        } else {
-          return a[this.sortBy()] > b[this.sortBy()] ? -1 : 1;
-        }
-      });
-    }
-  });
-
-  fields = signal<AbiStructField[]>([]);
-  displayedColumns = computed<string[]>(() => {
-    return this.fields().map(value => value.name);
-  });
-
-  nextScope = signal("");
-
-  constructor(
-    private route: ActivatedRoute,
-    private http: HttpClient,
-    private router: Router
-  ) {
-
-    afterNextRender(() => {
-      this.route.paramMap.subscribe(value => {
-        this.processRouteParams(value).catch(console.error);
-      });
-    });
-  }
-
-  async processRouteParams(params: ParamMap) {
-    const pCode = this.codeInput() !== "" ? this.codeInput() : (params.get('code') ?? "");
-    const pTable = params.get('table') ?? "";
-    const pScope = params.get('scope') ?? "";
-    if (pCode && pTable && pScope) {
-      this.code.set(pCode);
-      this.selectedTable.set(pTable);
-      this.selectedScope.set(pScope);
-      await this.getTableRows(pCode, pTable, pScope);
-      await this.getAbi(pCode);
-      this.loadTableStruct(pTable);
-      await this.getTableScopes(pCode, pTable);
-    } else {
-      if (pCode) {
-        this.code.set(pCode);
-        await this.getAbi(pCode);
-        if (pTable) {
-          this.selectedTable.set(pTable);
-          this.loadTableStruct(pTable);
-          await this.getTableScopes(pCode, pTable);
-          if (pScope) {
-            this.selectedScope.set(pScope);
-            await this.getTableRows(pCode, pTable, pScope);
+  tableData = computed<any[]>(() => {
+    const rows = this.tableRowRes.value();
+    const sort = this.sortBy();
+    const dir = this.sortDirection();
+    if (rows && rows.length > 0) {
+      if (dir === '') {
+        return rows;
+      } else {
+        return [...rows].sort((a: any, b: any) => {
+          if (dir === 'desc') {
+            return a[sort] > b[sort] ? 1 : -1;
+          } else {
+            return a[sort] > b[sort] ? -1 : 1;
           }
-        }
+        });
       }
+    } else {
+      return [];
     }
-  }
+  });
 
-  async getAbi(code: string) {
-    const url = `${environment.hyperionApiUrl}/v1/chain/get_abi?account_name=${code}`;
-    const data: any = await lastValueFrom(this.http.get(url));
-    if (data && data.abi) {
-      this.abi = data.abi;
-      if (this.abi.tables && this.abi.tables.length > 0) {
-        this.tables.set(this.abi.tables);
-        // console.log('Tables:', this.tableNames());
+  fields = computed<AbiStructField[]>(() => {
+    const abi = this.abiRes.value()?.abi;
+    const fieldArray: AbiStructField[] = [];
+    if (abi) {
+      const type = abi.tables.find((t: AbiTable) => t.name === this.table.value())?.type;
+      if (type) {
+        buildFieldArray(abi.structs, fieldArray, type);
       }
     }
-  }
+    return fieldArray;
+  });
 
-  async getTableScopes(code: string, table: string) {
-    const limit = 20;
-    const url = `${environment.hyperionApiUrl}/v1/chain/get_table_by_scope?code=${code}&table=${table}&limit=${limit}`;
-    const data: {
-      rows: any[],
-      more: string
-    } = await lastValueFrom(this.http.get(url)) as any;
-    console.log(data);
-    if (data && data.rows) {
-      if (data.rows.length > limit) {
-        console.log(`Array has size: ${data.rows.length}`);
-        data.more = data.rows[limit + 1].scope;
-        data.rows.splice(limit);
-        console.log(`Array was trimmed to ${data.rows.length}`);
-      }
-      this.scopes.set(data.rows);
-      if (data.more) {
-        this.nextScope.set(data.more);
-        console.log(`Next scope at: ${data.more}`);
-      }
-      // console.log('Scopes:', this.scopeNames());
-    }
-    // console.log(data);
-  }
-
-  async getTableRows(code: string, table: string, scope: string) {
-    const url = `${environment.hyperionApiUrl}/v1/chain/get_table_rows?code=${code}&table=${table}&scope=${scope}`;
-    const data: any = await lastValueFrom(this.http.get(url));
-    if (data && data.rows) {
-      // console.log('Rows:', data.rows);
-      this.tableRows.set(data.rows);
-    }
-  }
-
-  buildFieldArray(array: AbiStructField[], type: string): void {
-    if (array && type) {
-      const struct = this.abi.structs.find((struct: any) => struct.name === type);
-      if (struct.base) {
-        // console.log(`Using base: ${struct.base}`);
-        this.buildFieldArray(array, struct.base);
-      }
-      array.push(...struct.fields);
-    }
-  }
+  displayedColumns = computed<string[]>(() => this.fields().map(v => v.name));
 
   async selectTable(name: string) {
-    this.selectedTable.set(name);
-    await this.router.navigate(['contract', this.code(), name]);
+    this.table.set(name);
+    await this.router.navigate(['contract', this.code.value(), name]);
   }
 
   async selectScope(name: string) {
-    this.selectedScope.set(name);
-    await this.router.navigate(['contract', this.code(), this.table(), name]);
-  }
-
-  private loadTableStruct(pTable: string) {
-    // get table struct
-    const selectedTable = this.tables().find((table: AbiTable) => table.name === pTable);
-    if (selectedTable) {
-      if (selectedTable.type) {
-        const fieldArray: AbiStructField[] = [];
-        this.buildFieldArray(fieldArray, selectedTable.type);
-        this.fields.set(fieldArray);
-      }
-    }
+    this.scope.set(name);
+    await this.router.navigate(['contract', this.code.value(), this.table.value(), name]);
   }
 
   announceSortChange(sortState: Sort) {
-    console.log(sortState);
     this.sortBy.set(sortState.active);
     this.sortDirection.set(sortState.direction);
   }

@@ -13,11 +13,8 @@ import {provideHttpClient, withFetch} from "@angular/common/http";
 import {DataService, DataServiceBrowser} from "./services/data.service";
 
 async function initApp() {
-  console.log("Initializing app...");
   const ds = inject(DataService);
   await ds.load();
-  console.log(ds.explorerMetadata);
-  console.log("App initialized!");
   return ds;
 }
 
