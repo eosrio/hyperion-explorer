@@ -301,9 +301,9 @@ body {
 }
 /*Appear animation END*/
 /*GSAP FLIP START*/
-.header-flip, #header-card, #account-name-sticky, #content {
-  box-sizing: border-box;
-}
+/*.header-flip, #header-card, #account-name-sticky, #content {*/
+/*  box-sizing: border-box;*/
+/*}*/
 /*GSAP FLIP END*/
 
 
