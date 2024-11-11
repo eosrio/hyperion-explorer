@@ -39,9 +39,7 @@ import {Flip} from "gsap/Flip";
     MatAutocompleteTrigger,
     MatButton,
     MatIcon,
-    RouterOutlet,
-    RouterLink,
-    NgStyle
+    RouterOutlet
   ],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css',
