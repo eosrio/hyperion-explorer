@@ -7,6 +7,7 @@ import {BlockComponent} from "./components/search-results/block/block.component"
 import {KeyComponent} from "./components/search-results/key/key.component";
 import {TestComponent} from "./pages/test/test.component";
 import {RenderMode, ServerRoute} from "@angular/ssr";
+import {LayoutAnimationTestComponent} from "./pages/layout-animation-test/layout-animation-test.component";
 
 export const routes: Routes = [
   {
@@ -25,6 +26,10 @@ export const routes: Routes = [
   {
     path: 'test',
     component: TestComponent
+  },
+  {
+    path: 'layout_test',
+    component: LayoutAnimationTestComponent
   },
   {
     path: 'contract/:code/:table/:scope',
