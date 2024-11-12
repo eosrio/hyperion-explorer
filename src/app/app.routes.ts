@@ -32,15 +32,15 @@ export const routes: Routes = [
     component: HomeComponent
   },
   {
-    path: 'contract/:code/:table/:scope',
+    path: 'contract/:account_name/:table/:scope',
     component: ContractExplorerComponent,
   },
   {
-    path: 'contract/:code/:table',
+    path: 'contract/:account_name/:table',
     component: ContractExplorerComponent
   },
   {
-    path: 'contract/:code',
+    path: 'contract/:account_name',
     component: ContractExplorerComponent,
   },
   {
@@ -50,15 +50,15 @@ export const routes: Routes = [
 
 export const serverRoutes: ServerRoute[] = [
   {
-    path: 'contract/:code/:table/:scope',
+    path: 'contract/:account_name/:table/:scope',
     renderMode: RenderMode.Server
   },
   {
-    path: 'contract/:code/:table',
+    path: 'contract/:account_name/:table',
     renderMode: RenderMode.Server
   },
   {
-    path: 'contract/:code',
+    path: 'contract/:account_name',
     renderMode: RenderMode.Server
   },
   {

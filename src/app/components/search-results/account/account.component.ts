@@ -1,4 +1,4 @@
-import {Component, OnDestroy, signal, ViewChild} from '@angular/core';
+import {Component, inject, OnDestroy, signal, ViewChild} from '@angular/core';
 import {SearchService} from "../../../services/search.service";
 import {MatButton, MatIconButton} from "@angular/material/button";
 import {ActivatedRoute, Router, RouterLink} from "@angular/router";
@@ -54,6 +54,7 @@ import {Title} from "@angular/platform-browser";
 import {MatAccordion, MatExpansionModule} from "@angular/material/expansion";
 import {MatDialog} from "@angular/material/dialog";
 import {ActionDetailsComponent} from "../../action-details/action-details.component";
+import {ContractExplorerComponent} from "../../contract-explorer/contract-explorer.component";
 
 interface Permission {
   perm_name: string;
@@ -141,6 +142,7 @@ export class AccountComponent implements OnDestroy {
 
   @ViewChild(MatSort, {static: false}) sort?: MatSort;
   @ViewChild(MatPaginator, {static: false}) paginator?: MatPaginator;
+  readonly dialog = inject(MatDialog);
 
   icons = {
     solid: {
@@ -188,7 +190,6 @@ export class AccountComponent implements OnDestroy {
     private dataService: DataService,
     private searchService: SearchService,
     private title: Title,
-    private dialog: MatDialog,
     private router: Router,
     public accountService: AccountService
   ) {
@@ -496,6 +497,23 @@ export class AccountComponent implements OnDestroy {
       }
     } catch (e) {
       console.log(e);
+    }
+  }
+
+  openContractsDialog(): void {
+    if (this.searchService.searchQuery()) {
+      this.dialog.open<
+        ContractExplorerComponent
+      >(ContractExplorerComponent, {
+        width: '1024px',
+        height: 'auto',
+        restoreFocus: true,
+        data: {
+          account: this.searchService.searchQuery()
+        },
+        autoFocus: false,
+        panelClass: ['responsive-modal'],
+      });
     }
   }
 

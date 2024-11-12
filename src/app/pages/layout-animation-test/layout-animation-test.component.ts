@@ -233,7 +233,7 @@ export class LayoutAnimationTestComponent implements OnInit {
           // gsap.set('#account-name-sticky', {position: 'sticky'});
           this.headerExpanded.set(false);
           if (!this.isResizing) {
-            this.resizeHeader();
+            // this.resizeHeader();
           }
         }
       },
@@ -294,7 +294,7 @@ export class LayoutAnimationTestComponent implements OnInit {
       x: deltaX,
       y: 0,
       onComplete: () => {
-        this.resizeHeader();
+        // this.resizeHeader();
       }
     }, 0);
 

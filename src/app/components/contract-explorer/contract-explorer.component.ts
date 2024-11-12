@@ -32,6 +32,7 @@ import {MatSort, MatSortHeader, Sort} from "@angular/material/sort";
 import {MatTooltip} from "@angular/material/tooltip";
 import {AbiStructField, AbiTable, GetAbiResponse} from "../../interfaces";
 import { FormsModule } from '@angular/forms';
+import {MAT_DIALOG_DATA, MatDialogContent, MatDialogRef, MatDialogTitle} from "@angular/material/dialog";
 
 function buildFieldArray(structs: any[], array: AbiStructField[], type: string): void {
   if (array && type) {
@@ -47,6 +48,10 @@ function rxResFromParam(route: ActivatedRoute, key: string): ResourceRef<string 
   return rxResource<string | null, unknown>({
     loader: () => route.paramMap.pipe(map(p => p.get(key)))
   });
+}
+
+interface ContractExplorerData {
+  account: string;
 }
 
 @Component({
@@ -66,7 +71,9 @@ function rxResFromParam(route: ActivatedRoute, key: string): ResourceRef<string 
     MatHeaderRowDef,
     MatSortHeader,
     MatSort,
-    MatTooltip
+    MatTooltip,
+    MatDialogTitle,
+    MatDialogContent
   ],
   templateUrl: './contract-explorer.component.html',
   standalone: true,
@@ -75,7 +82,8 @@ function rxResFromParam(route: ActivatedRoute, key: string): ResourceRef<string 
 export class ContractExplorerComponent {
 
   route = inject(ActivatedRoute);
-  code = rxResFromParam(this.route, 'code');
+
+  code = rxResFromParam(this.route, 'account_name');
   table = rxResFromParam(this.route, 'table');
   scope = rxResFromParam(this.route, 'scope');
 
@@ -91,11 +99,21 @@ export class ContractExplorerComponent {
 
   getTableByScopeLimit = 20;
 
+  constructor() {
+    effect(() => {
+      console.log('code', this.code.value());
+    });
+  }
+
   // request new abi when the code signal changes
   abiRes = rxResource({
     request: () => this.code.value(),
     loader: ({request: code}) => {
-      return this.http.get<GetAbiResponse>(this.endpoints.getAbi + '?account_name=' + code);
+      if (code) {
+        return this.http.get<GetAbiResponse>(this.endpoints.getAbi + '?account_name=' + code);
+      } else {
+        return of(null);
+      }
     }
   });
 
