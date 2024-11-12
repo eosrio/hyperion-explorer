@@ -1,16 +1,18 @@
 import {
-  afterNextRender,
   Component,
   ElementRef,
   HostListener,
   Inject,
-  inject, OnInit,
+  inject,
+  OnInit,
   PLATFORM_ID,
   signal,
   viewChild
 } from '@angular/core';
 import gsap from "gsap";
 import {ScrollTrigger} from "gsap/ScrollTrigger";
+import {ScrollToPlugin} from "gsap/ScrollToPlugin";
+
 import {PreHeaderComponent} from "../../components/pre-header/pre-header.component";
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
 import {isPlatformBrowser, NgOptimizedImage} from "@angular/common";
@@ -21,10 +23,12 @@ import {faSearch} from "@fortawesome/free-solid-svg-icons";
 import {toObservable} from "@angular/core/rxjs-interop";
 import {ExplorerMetadata} from "../../interfaces";
 import {MatAutocomplete, MatAutocompleteTrigger, MatOption} from "@angular/material/autocomplete";
-import {Router, RouterLink, RouterOutlet} from "@angular/router";
+import {Router, RouterOutlet} from "@angular/router";
 import {debounceTime} from "rxjs";
 import {MatButton} from "@angular/material/button";
 import {MatIcon} from "@angular/material/icon";
+
+import {version as PackageVersion} from '../../../../package.json';
 
 
 @Component({
@@ -39,7 +43,6 @@ import {MatIcon} from "@angular/material/icon";
     MatIcon,
     MatAutocomplete,
     MatOption,
-    RouterLink,
     RouterOutlet
   ],
   standalone: true,
@@ -51,6 +54,12 @@ export class LayoutAnimationTestComponent implements OnInit {
   searchService = inject(SearchService);
   accService = inject(AccountService);
   dataService = inject(DataService);
+  router = inject(Router);
+  formBuilder = inject(FormBuilder);
+  platformId = inject(PLATFORM_ID);
+
+  // get version from package.json
+  version = PackageVersion;
 
   icons = {
     solid: {
@@ -87,21 +96,26 @@ export class LayoutAnimationTestComponent implements OnInit {
 
   err = signal("");
 
+  headerExpanded = signal(true);
+  private scrollTimeline?: gsap.core.Timeline;
+
+  globalWidth = signal(0);
+  $globalWidth = toObservable(this.globalWidth).pipe(debounceTime(200));
+  private isResizing = false;
+
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       this.createScrollAnimation();
     }
   }
 
-  constructor(private formBuilder: FormBuilder,
-              private router: Router,
-              @Inject(PLATFORM_ID) private platformId: Object) {
+  constructor() {
 
     this.initGsap();
 
-    // afterNextRender(() => {
-    //   this.initGsap();
-    // });
+    this.$globalWidth.subscribe((width) => {
+      this.debouncedResize(width);
+    });
 
     if (this.dataService.explorerMetadata) {
       this.chainData.set(this.dataService.explorerMetadata);
@@ -183,10 +197,11 @@ export class LayoutAnimationTestComponent implements OnInit {
 
   initGsap() {
     gsap.registerPlugin(ScrollTrigger);
-    // ScrollTrigger.normalizeScroll(true);
+    gsap.registerPlugin(ScrollToPlugin);
   }
 
   private createScrollAnimation() {
+
     const headerContainer = document.querySelector('#header-container');
     const logo = document.querySelector('#logo-element') as HTMLDivElement;
     const searchBar = document.querySelector('#search-bar') as HTMLDivElement;
@@ -196,7 +211,10 @@ export class LayoutAnimationTestComponent implements OnInit {
       return;
     }
 
-    gsap.set(contentContainer, {paddingTop: `${headerContainer.clientHeight + 30}px`});
+    gsap.set(contentContainer, {
+      paddingTop: `${headerContainer.clientHeight + 30}px`,
+      paddingBottom: `${headerContainer.clientHeight}px`
+    });
 
     const logoGap = 10;
 
@@ -206,66 +224,142 @@ export class LayoutAnimationTestComponent implements OnInit {
         start: 'top top',
         end: '300px 100px',
         scrub: true,
-        markers: false,
-        snap: 1,
-        onEnterBack: () => {
-          // gsap.set('#account-name-sticky', {position: 'fixed'});
+        // markers: true,
+        snap: {snapTo: 1, duration: 0.5, ease: 'linear'},
+        onLeaveBack: () => {
+          this.headerExpanded.set(true);
         },
         onLeave: () => {
           // gsap.set('#account-name-sticky', {position: 'sticky'});
-        },
-        onUpdate: (self) => {
-
-          // if (contentContainer && contentContainer.style && headerContainer) {
-          //   // contentContainer.style.paddingTop = `${headerContainer.clientHeight + 30}px`;
-          // }
-
-          // update the logo size to match the search bar height
-          //interpolate the logo height from 4.375rem to 2.625rem along the animation progress from 0 to 1
-          const logoHeight = 4.375 - (1.75 * self.progress);
-          logo.style.height = `${logoHeight}rem`;
-
-
-
-          // make it vertically centered with the search bar
-          let deltaX = searchBar.offsetLeft - logo.offsetLeft - logo.clientWidth - logoGap;
-
-          console.log(window.innerWidth, deltaX, logo.offsetLeft);
-
-          if (self.progress <= 0.5) {
-            const gap = (1 - self.progress * 2) * logoGap;
-            logo.style.top = `calc(-${gap}px + ((50% + ${logo.clientHeight / 2}px) * ${self.progress * 2}))`;
-            logo.style.transform = `translateX(${(deltaX * self.progress * 2)}px) translateY(-${logo.clientHeight + gap}px)`;
-          } else {
-            logo.style.top = `0px`;
-            logo.style.transform = `translateX(${deltaX}px) translateY(0px)`;
+          this.headerExpanded.set(false);
+          if (!this.isResizing) {
+            this.resizeHeader();
           }
         }
-      }
+      },
     });
 
     // set initial opacity to 1
     const gap = (1 - (0)) * logoGap;
     const deltaY = logo.clientHeight + gap;
+
     gsap.set(logo, {
       borderRadius: "10px",
       opacity: 0,
-      transform: `translateX(0px) translateY(-${deltaY}px)`,
+      x: 0,
+      y: -deltaY,
+      // transform: `translateX(0px) translateY(-${deltaY}px)`,
     });
-    gsap.to(logo, {
-      opacity: 1,
-      duration: 0.2
-    });
+
+    // fade in the logo and search bar
+    gsap.to(logo, {opacity: 1, duration: 0.2});
     gsap.to(searchBar, {opacity: 1, duration: 0.5});
 
-    scrollTimeline.to('.tagline', {
-      xPercent: '-100',
-      opacity: 0,
-      width: 0,
-      duration: 0.5,
-    });
-    scrollTimeline.to(logo, {borderRadius: "30px", duration: 0.5}, 0);
-    scrollTimeline.to(searchBar, {height: '2.625rem'}, 0);
+    const logoInitialHeight = 4.375;
+    const logoFinalHeight = logoInitialHeight - 1.75;
+    const logoScale = logoFinalHeight / logoInitialHeight;
+
+
+    // animate the tagline out
+    scrollTimeline.to('.tagline', {xPercent: '-100', opacity: 0, width: 0, duration: 0.5}, 0);
     scrollTimeline.to(headerContainer, {height: '6.438rem', duration: 0.5}, 0);
+
+    const logoRect = logo.getBoundingClientRect();
+    const hyperionLogo = (document.querySelector('.logo-name') as HTMLDivElement).getBoundingClientRect();
+    const dataProviderElement = (document.querySelector('.provider') as HTMLDivElement).getBoundingClientRect();
+
+    const leftMargin = hyperionLogo.right;
+    const rightMargin = window.innerWidth - dataProviderElement.left;
+    const sideMargin = Math.max(leftMargin, rightMargin);
+
+    const finalSearchBarWidth = window.innerWidth - (sideMargin * 2) - ((logoRect.width + logoGap) * 2);
+
+    const finalLogoWidth = logoRect.width * logoScale;
+    const deltaX = -(window.innerWidth / 2) - (finalLogoWidth / 2) + ((window.innerWidth - finalSearchBarWidth) / 2) - logoGap;
+
+    // calculate how much both the logo and search bar need to move to the center
+    const totalFinalWidth = finalLogoWidth + finalSearchBarWidth + (logoGap * 2);
+    const remainingSpace = window.innerWidth - totalFinalWidth;
+    const alignmentOffset = (remainingSpace / 2) - sideMargin;
+
+    scrollTimeline.to(searchBar, {
+      height: '2.625rem',
+      width: finalSearchBarWidth + alignmentOffset,
+      x: alignmentOffset / 2
+    }, 0);
+
+    scrollTimeline.to(logo, {
+      duration: 0.5,
+      height: `${logoFinalHeight}rem`,
+      x: deltaX,
+      y: 0,
+      onComplete: () => {
+        this.resizeHeader();
+      }
+    }, 0);
+
+    this.scrollTimeline = scrollTimeline;
+  }
+
+  // resize event listener
+  @HostListener('window:resize', ['$event'])
+  onResize(event: Event) {
+    this.globalWidth.set(window.innerWidth);
+  }
+
+  private debouncedResize(width: number) {
+    if (!this.scrollTimeline || this.isResizing) {
+      return;
+    }
+    if (!this.headerExpanded()) {
+      console.log('Resizing compact header...');
+      this.isResizing = true;
+
+      // kill the scroll timeline if the window is resized
+      this.scrollTimeline.kill();
+
+      const headerContainer = (document.querySelector('#header-container') as HTMLDivElement);
+      const contentContainer = document.querySelector('#content-container') as HTMLDivElement;
+
+      // reset the padding top of the content container
+      gsap.set(contentContainer, {paddingTop: `${headerContainer.clientHeight + 30}px`});
+
+      this.resizeHeader();
+
+    } else {
+      console.log('Resizing expanded header...');
+      // this.scrollTimeline.pause(0);
+    }
+  }
+
+  resizeHeader() {
+    const logoElement = document.querySelector('#logo-element') as HTMLDivElement;
+    const searchBar = (document.querySelector('#search-bar') as HTMLDivElement).getBoundingClientRect();
+    const logo = logoElement.getBoundingClientRect();
+    const hyperionLogo = (document.querySelector('.logo-name') as HTMLDivElement).getBoundingClientRect();
+    const dataProviderElement = (document.querySelector('.provider') as HTMLDivElement).getBoundingClientRect();
+    const sideMargin = Math.max(hyperionLogo.right, (window.innerWidth - dataProviderElement.left)) + 10;
+    const currentTotalWidth = searchBar.width + logo.width + 20;
+    const availableWidth = window.innerWidth - (sideMargin * 2);
+
+    const timeline = gsap.timeline({
+      onComplete: () => {
+        this.isResizing = false;
+      }
+    });
+
+    // move the logo to the left
+    timeline.to(logoElement, {
+      x: "+=" + (sideMargin - logo.left),
+      duration: 0.3,
+      ease: "power3.out"
+    })
+
+    // resize the search bar
+    timeline.to('#search-bar', {
+      width: (searchBar.width + (availableWidth - currentTotalWidth)),
+      duration: 0.3,
+      ease: "power3.out"
+    });
   }
 }

@@ -141,7 +141,10 @@ export class BlockComponent implements OnInit, OnDestroy {
 
   async reloadCountdownTimer(): Promise<void> {
     await this.accountService.updateLib();
-    this.countdownTimer = Math.ceil((this.block().number - this.accountService.libNum) / 2);
+    const lib = this.accountService.libNum();
+    if (lib) {
+      this.countdownTimer = Math.ceil((this.block().number - lib) / 2);
+    }
   }
 
   ngOnDestroy(): void {

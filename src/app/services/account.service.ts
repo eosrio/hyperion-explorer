@@ -43,7 +43,7 @@ export class AccountService {
   public tableDataSource: MatTableDataSource<any[]>;
   // streamClient?: HyperionStreamClient;
   public streamClientStatus = false;
-  public libNum: any;
+  public libNum = signal<number>(0);
   private server?: string;
   private verificationLoop: any;
   private predictionLoop: any;
@@ -76,11 +76,15 @@ export class AccountService {
 
     if (!this.predictionLoop) {
       this.predictionLoop = setInterval(() => {
-        this.libNum += 12;
+
+        this.libNum.update(value => {
+          return (value ?? 0) + 12;
+        });
+
         if (this.pendingSet.size > 0) {
           this.pendingSet.forEach(async (value) => {
-            if (value < this.libNum) {
-              console.log(`Block cleared ${value} < ${this.libNum}`);
+            if (value < (this.libNum() ?? 0)) {
+              console.log(`Block cleared ${value} < ${this.libNum()}`);
               this.pendingSet.delete(value);
             }
           });
@@ -94,11 +98,11 @@ export class AccountService {
   }
 
   async checkIrreversibility(): Promise<void> {
-    this.libNum = await this.checkLib();
-    if (this.libNum) {
+    this.libNum.set(await this.checkLib() ?? 0);
+    if (this.libNum()) {
       let counter = 0;
       for (const action of this.actions) {
-        if (action.block_num <= this.libNum) {
+        if (action.block_num <= this.libNum()) {
           action.irreversible = true;
         } else {
           counter++;
@@ -123,7 +127,7 @@ export class AccountService {
   }
 
   async updateLib(): Promise<void> {
-    this.libNum = await this.checkLib();
+    this.libNum.set(await this.checkLib() ?? 0);
   }
 
   async checkLib(): Promise<number | null> {

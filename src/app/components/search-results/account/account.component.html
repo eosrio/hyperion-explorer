@@ -545,7 +545,7 @@
             </h3>
 
             <span class="lib">Last Irreversible Block:
-              <strong class="monospace">{{ accountService.libNum }}</strong>
+              <strong class="monospace">{{ accountService.libNum() }}</strong>
             </span>
 
             @if (accountService.streamClientLoaded) {
@@ -568,12 +568,12 @@
                 TX
               </th>
               <td mat-cell *matCellDef="let action" data-label="TX">
-                @if (accountService.libNum < action['block_num']) {
+                @if (accountService.libNum() < action['block_num']) {
                   <span matTooltip="time until irreversible"
                         matTooltipClass="tooltip-bigger">
                                           <fa-icon [icon]="icons.solid.faClock" class="accent"
                                                    style="margin-right: 1px"></fa-icon>
-                    {{ (action["block_num"] - accountService.libNum) / 2 }}s
+                    {{ (action["block_num"] - accountService.libNum()) / 2 }}s
                                         </span>
                 }
                 <a [routerLink]="['/transaction', action['trx_id']]" class="link-blue">
