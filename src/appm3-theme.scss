@@ -142,3 +142,50 @@ html {
   @include mat.button-theme($light-theme);
   @include mat.input-theme($light-theme);
 }
+
+// no zooming in on safari inputs
+@media screen and (max-width: 959px) {
+  input[type="date"],
+  input[type="datetime"],
+  input[type="datetime-local"],
+  input[type="email"],
+  input[type="month"],
+  input[type="number"],
+  input[type="password"],
+  input[type="phone"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="text"],
+  input[type="time"],
+  input[type="url"],
+  input[type="week"],
+  select,
+  textarea {
+    font-size: max(1.1rem, 16px);
+  }
+}
+
+.primary-btn.mat-mdc-raised-button:not(:disabled) {
+  box-shadow:
+    -3px -1px 1px 0px inset rgb(63 145 173),
+  1px 1px 1px 0 inset var(--colour-bg-highlight),
+  2px 3px 5px 2px var(--colour-bg-shadow);
+}
+
+/*BACKDROP MAT-DIALOG*/
+$overlay-backdrop-color: rgba(0, 0, 0, 0.8) !important;
+
+.cdk-overlay-backdrop {
+  background: $overlay-backdrop-color;
+}
+
+.mat-mdc-dialog-surface {
+  background: radial-gradient(circle, rgba(241,245,252,1) 50%, rgba(221,229,246,1)  100%) !important;
+  border-radius: var(--card-border-radius) !important;
+  min-height: 90vh !important;
+  //font-family: var(--secondary-font-family) !important;
+}
+
+
+
+

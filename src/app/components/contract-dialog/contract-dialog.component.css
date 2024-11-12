@@ -1,0 +1,19 @@
+.logo-name {
+  font-size: 0.938rem;
+  font-weight: 800;
+  font-family: Montserrat, sans-serif;
+  color: #353535;
+}
+
+.tagline {
+  font-size: 0.938rem;
+  font-weight: 500;
+  font-family: Montserrat, sans-serif;
+  width: max-content !important;
+}
+
+.acc-header {
+  background-color: #0f172a;
+  border-radius: 0.625rem;
+  border: none !important;
+}

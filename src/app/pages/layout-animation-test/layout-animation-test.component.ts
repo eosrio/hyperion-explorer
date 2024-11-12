@@ -29,6 +29,7 @@ import {MatButton} from "@angular/material/button";
 import {MatIcon} from "@angular/material/icon";
 
 import {version as PackageVersion} from '../../../../package.json';
+import {FaIconComponent} from "@fortawesome/angular-fontawesome";
 
 
 @Component({
@@ -43,7 +44,8 @@ import {version as PackageVersion} from '../../../../package.json';
     MatIcon,
     MatAutocomplete,
     MatOption,
-    RouterOutlet
+    RouterOutlet,
+    FaIconComponent
   ],
   standalone: true,
   templateUrl: './layout-animation-test.component.html',

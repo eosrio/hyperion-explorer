@@ -1,4 +1,28 @@
-<div mat-dialog-title class="bg-slate-600 text-center text-2xl text-slate-300 py-2">Hyperion Smart Contract Explorer
+<div mat-dialog-title class="text-center text-2xl">
+  <div style="cursor: pointer" class="flex flex-row flex-wrap justify-start items-center xs:gap-[6px]">
+    <img
+      ngSrc="assets/hyperion-pulse.svg"
+      alt="logo"
+      class="logo mr-[6px] xs:mr-0 h-[1.188rem]"
+      height="19"
+      width="19"
+    />
+
+    <div class="logo-name mr-[6px] xs:mr-0">HYPERION</div>
+    <div class="tagline faded w-max">Smart Contract Explorer</div>
+  </div>
+
+  @if (code()) {
+
+    <div class="acc-header antialiased text-lg text-white px-5 py-3 mt-5 flex flex-row items-center gap-3">
+<!--      <div class="flex flex-row items-center gap-3">-->
+        <fa-icon [icon]="icons.solid.faUserCircle"></fa-icon>
+        <span>Account: </span>
+        <span>{{ code() }}</span>
+<!--      </div>-->
+    </div>
+  }
+
 </div>
 <mat-dialog-content>
   @defer (when code()) {

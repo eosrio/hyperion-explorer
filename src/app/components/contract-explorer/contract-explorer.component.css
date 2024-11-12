@@ -1,0 +1,32 @@
+.dialog-grid-parent {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(142px, auto));
+  grid-template-rows: repeat(auto-fill, 1fr);
+  gap: 0.7rem;
+}
+
+.grid-item-btn {
+  /*box-shadow: 4px 4px 10px rgb(163,177,198,0.4), -4px -4px 10px  rgba(255,255,255, 0.8);*/
+  box-shadow: -3px -1px 1px 0px inset var(--colour-bg-shadow),
+  1px 1px 1px 0px inset var(--colour-bg-highlight),
+  1px 1px 3px 1px var(--colour-bg-shadow),
+  0 0 0 0 var(--colour-bg-highlight);
+  background-color: transparent;
+  transition: all var(--transition-btn-up);
+  border-radius: 2px;
+  color: var(--main-text);
+  /*border: 1px solid var(--line-divider);*/
+  border: none !important;
+}
+
+.grid-item-btn:not(:disabled):hover, grid-item-btn:not(:disabled):focus {
+  outline: none;
+  box-shadow: var(--box-shadow-bg-sharp-inset) !important;
+  transition: box-shadow var(--transition-btn-down), color 0.2s !important;
+  color: var(--primary) !important;
+}
+
+.grid-item-btn.selected {
+  box-shadow: var(--box-shadow-bg-sharp-inset) !important;
+  color: var(--primary) !important;
+}

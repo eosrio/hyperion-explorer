@@ -2,13 +2,20 @@ import {Component, Inject, signal} from '@angular/core';
 import {MAT_DIALOG_DATA, MatDialogContent, MatDialogTitle} from "@angular/material/dialog";
 import {ContractExplorerData} from "../../interfaces";
 import {ContractExplorerComponent} from "../contract-explorer/contract-explorer.component";
+import {NgOptimizedImage} from "@angular/common";
+import {RouterLink} from "@angular/router";
+import {FaIconComponent} from "@fortawesome/angular-fontawesome";
+import {faUserCircle} from "@fortawesome/free-solid-svg-icons";
 
 @Component({
   selector: 'app-contract-dialog',
   imports: [
     MatDialogTitle,
     MatDialogContent,
-    ContractExplorerComponent
+    ContractExplorerComponent,
+    NgOptimizedImage,
+    RouterLink,
+    FaIconComponent
   ],
   templateUrl: './contract-dialog.component.html',
   standalone: true,
@@ -19,6 +26,12 @@ export class ContractDialogComponent {
   code = signal<string | null>(null);
   table = signal<string | null>(null);
   scope = signal<string | null>(null);
+
+  icons = {
+    solid: {
+      faUserCircle: faUserCircle
+    }
+  }
 
   constructor(@Inject(MAT_DIALOG_DATA) public data: ContractExplorerData) {
     if (this.data.account) {

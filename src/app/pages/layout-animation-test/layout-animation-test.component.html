@@ -26,7 +26,7 @@
                    class="custom-input grow outline-none ml-0 pl-5 py-4 rounded-l-full w-full sm:w-96 max-w-full"
                    [matAutocomplete]="auto">
             <button mat-raised-button class="search-btn mr-2 place-self-center" [class.primary-btn]="validSearch()">
-              <mat-icon>search</mat-icon>
+              <fa-icon [icon]="icons.solid.search"></fa-icon>
               @if (validSearch()) {
                 Search {{ searchService.searchType() }}
               } @else {

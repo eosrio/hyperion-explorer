@@ -1,20 +1,12 @@
-<h2 mat-dialog-title>
-  <div class="bg-slate-600 text-center text-2xl text-slate-300 py-2">Hyperion Smart Contract Explorer</div>
-</h2>
 <mat-dialog-content>
   @if (code()) {
 
-    <div class="bg-slate-900 text-xl text-center text-white py-2">
-      <span class="text-stone-200">Code: </span>
-      <span class="text-green-400">{{ code() }}</span>
-    </div>
+    <div class="my-5">Please select a table:</div>
 
-    <p>Please select a table:</p>
-
-    <div class="flex flex-row gap-2 m-2 flex-wrap">
+    <div class="grid dialog-grid-parent">
       @for (tableName of abiTableNames(); track tableName) {
-        <button (click)="selectTable(tableName)" mat-flat-button
-                [color]="tableName === table() ? 'accent' : 'primary'">{{ tableName }}
+        <button (click)="selectTable(tableName)" mat-raised-button class="grid-item-btn"
+                [ngClass]="{'selected': tableName === table()}">{{ tableName }}
         </button>
       }
     </div>
@@ -22,7 +14,7 @@
 
   @defer (on immediate) {
     @if (table()) {
-      <div class="bg-slate-800 text-xl text-center text-white py-2">
+      <div class="bg-slate-800 text-xl text-center text-white py-2 mt-6">
         <span class="text-stone-200">Table: </span>
         <span class="text-green-400">{{ table() }}</span>
       </div>
