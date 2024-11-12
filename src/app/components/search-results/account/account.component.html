@@ -14,14 +14,15 @@
 
       <div id="account-content" class="grid grid-cols-1 md:grid-cols-3 auto-cols-max gap-5 text-black appear">
         <!-- ACCOUNT NAME-->
-        <div id="account-name-sticky" class="custom-card bg-no-transparency w-full md:col-span-3 sticky top-[122px] z-40">
+        <div id="account-name-sticky"
+             class="custom-card bg-no-transparency w-full md:col-span-3 sticky top-[122px] z-40">
           <mat-card-header>
             <div class="flex flex-row flex-wrap justify-between items-center w-full">
               <div class="text-2xl acc-title flex flex-row items-center gap-3">
                 <fa-icon [icon]="icons.solid.faUserCircle"></fa-icon>
                 <div>{{ accountService.account["account_name"] }}</div>
               </div>
-              <button (click)="openContractsDialog()" mat-raised-button>
+              <button (click)="openContractsDialog(null,null)" mat-raised-button>
                 Explore Smart Contract
               </button>
             </div>

@@ -10,10 +10,6 @@ export interface ExplorerMetadata {
   last_indexed_block_time: string;
 }
 
-export interface ExploreContractDialogData {
-  code: string;
-}
-
 export interface GetAccountResponse {
   account: string;
   actions: any[];
@@ -66,4 +62,10 @@ export interface GetAbiResponse {
     version: string;
   },
   account_name: string;
+}
+
+export interface ContractExplorerData {
+  account: string;
+  table: string;
+  scope: string;
 }

@@ -2,11 +2,11 @@
   <div class="bg-slate-600 text-center text-2xl text-slate-300 py-2">Hyperion Smart Contract Explorer</div>
 </h2>
 <mat-dialog-content>
-  @if (code.value()) {
+  @if (code()) {
 
     <div class="bg-slate-900 text-xl text-center text-white py-2">
       <span class="text-stone-200">Code: </span>
-      <span class="text-green-400">{{ code.value() }}</span>
+      <span class="text-green-400">{{ code() }}</span>
     </div>
 
     <p>Please select a table:</p>
@@ -14,24 +14,24 @@
     <div class="flex flex-row gap-2 m-2 flex-wrap">
       @for (tableName of abiTableNames(); track tableName) {
         <button (click)="selectTable(tableName)" mat-flat-button
-                [color]="tableName === table.value() ? 'accent' : 'primary'">{{ tableName }}
+                [color]="tableName === table() ? 'accent' : 'primary'">{{ tableName }}
         </button>
       }
     </div>
   }
 
   @defer (on immediate) {
-    @if (table.value()) {
+    @if (table()) {
       <div class="bg-slate-800 text-xl text-center text-white py-2">
         <span class="text-stone-200">Table: </span>
-        <span class="text-green-400">{{ table.value() }}</span>
+        <span class="text-green-400">{{ table() }}</span>
       </div>
 
       <p>Please select a scope:</p>
       <div class="flex flex-row flex-wrap gap-2 m-2">
         @for (sName of scopeList(); track sName) {
           <button (click)="selectScope(sName)" mat-flat-button
-                  [color]="sName === scope.value() ? 'accent' : 'primary'">{{ sName }}
+                  [color]="sName === scope() ? 'accent' : 'primary'">{{ sName }}
           </button>
         }
       </div>
@@ -41,17 +41,17 @@
 
         <div class="flex flex-row w-full justify-start p-4 items-center">
           <label for="customScope">Custom Scope:</label>
-          <input (keyup.enter)="selectScope(customScope.value)" [value]="scope.value()"
+          <input (keyup.enter)="selectScope(customScope.value)" [value]="scope()"
                  class="mx-10" #customScope id="customScope" type="text"/>
           <button (click)="selectScope(customScope.value)" mat-flat-button color="primary">Select</button>
         </div>
       }
 
-      @if (scope.value()) {
+      @if (scope()) {
 
         <div class="bg-slate-900 text-xl text-center text-white py-2">
           <span class="text-stone-200">Scope: </span>
-          <span class="text-green-400">{{ scope.value() }}</span>
+          <span class="text-green-400">{{ scope() }}</span>
         </div>
 
         @defer (when displayedColumns().length > 0) {

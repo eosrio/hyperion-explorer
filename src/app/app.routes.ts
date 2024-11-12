@@ -8,6 +8,7 @@ import {KeyComponent} from "./components/search-results/key/key.component";
 import {TestComponent} from "./pages/test/test.component";
 import {RenderMode, ServerRoute} from "@angular/ssr";
 import {LayoutAnimationTestComponent} from "./pages/layout-animation-test/layout-animation-test.component";
+import {ContractComponent} from "./pages/contract/contract.component";
 
 export const routes: Routes = [
   {
@@ -32,16 +33,16 @@ export const routes: Routes = [
     component: HomeComponent
   },
   {
-    path: 'contract/:account_name/:table/:scope',
-    component: ContractExplorerComponent,
+    path: 'contract/:code/:table/:scope',
+    component: ContractComponent,
   },
   {
-    path: 'contract/:account_name/:table',
-    component: ContractExplorerComponent
+    path: 'contract/:code/:table',
+    component: ContractComponent
   },
   {
-    path: 'contract/:account_name',
-    component: ContractExplorerComponent,
+    path: 'contract/:code',
+    component: ContractComponent,
   },
   {
     path: '**', component: HomeComponent
@@ -50,15 +51,15 @@ export const routes: Routes = [
 
 export const serverRoutes: ServerRoute[] = [
   {
-    path: 'contract/:account_name/:table/:scope',
+    path: 'contract/:code/:table/:scope',
     renderMode: RenderMode.Server
   },
   {
-    path: 'contract/:account_name/:table',
+    path: 'contract/:code/:table',
     renderMode: RenderMode.Server
   },
   {
-    path: 'contract/:account_name',
+    path: 'contract/:code',
     renderMode: RenderMode.Server
   },
   {

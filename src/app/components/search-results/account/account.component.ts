@@ -10,9 +10,8 @@ import {MatTooltip} from "@angular/material/tooltip";
 import {
   MatTree,
   MatTreeFlatDataSource,
-  MatTreeFlattener,
+  MatTreeFlattener, MatTreeModule,
   MatTreeNode,
-  MatTreeNodeDef,
   MatTreeNodePadding,
   MatTreeNodeToggle
 } from "@angular/material/tree";
@@ -20,15 +19,12 @@ import {DatePipe, DecimalPipe, KeyValuePipe, NgClass} from "@angular/common";
 import {MatPaginator, PageEvent} from "@angular/material/paginator";
 import {
   MatCell,
-  MatCellDef,
   MatColumnDef,
   MatHeaderCell,
-  MatHeaderCellDef,
   MatHeaderRow,
-  MatHeaderRowDef,
   MatRow,
-  MatRowDef,
-  MatTable
+  MatTable,
+  MatTableModule
 } from "@angular/material/table";
 import {AccountService} from "../../../services/account.service";
 import {faQuestionCircle} from "@fortawesome/free-regular-svg-icons";
@@ -52,9 +48,9 @@ import {AccountCreationData} from "../../../interfaces";
 import {DataService} from "../../../services/data.service";
 import {Title} from "@angular/platform-browser";
 import {MatAccordion, MatExpansionModule} from "@angular/material/expansion";
-import {MatDialog} from "@angular/material/dialog";
+import {MatDialog, MatDialogRef} from "@angular/material/dialog";
 import {ActionDetailsComponent} from "../../action-details/action-details.component";
-import {ContractExplorerComponent} from "../../contract-explorer/contract-explorer.component";
+import {ContractDialogComponent} from "../../contract-dialog/contract-dialog.component";
 
 interface Permission {
   perm_name: string;
@@ -112,12 +108,10 @@ interface FlatNode {
     MatIconButton,
     MatTreeNodeToggle,
     MatPaginator,
-    MatHeaderCellDef,
-    MatCellDef,
     DecimalPipe,
     MatAccordion,
     MatExpansionModule,
-    MatTable,
+    MatTableModule,
     MatSortModule,
     MatColumnDef,
     MatHeaderCell,
@@ -125,13 +119,11 @@ interface FlatNode {
     KeyValuePipe,
     NgClass,
     MatTreeNodePadding,
-    MatTreeNodeDef,
     MatRow,
-    MatRowDef,
     MatHeaderRow,
-    MatHeaderRowDef,
     MatCardContent,
     MatCardHeader,
+    MatTreeModule,
     DatePipe
   ],
   templateUrl: './account.component.html',
@@ -184,6 +176,7 @@ export class AccountComponent implements OnDestroy {
   });
 
   systemTokenContract = 'eosio.token';
+  private contractDialogRef?: MatDialogRef<ContractDialogComponent, any>;
 
   constructor(
     private route: ActivatedRoute,
@@ -198,6 +191,14 @@ export class AccountComponent implements OnDestroy {
 
     this.route.paramMap.subscribe(value => {
       this.searchService.searchQuery.set(value.get('account_name') ?? "");
+    });
+
+    this.route.queryParamMap.subscribe(value => {
+      if (value.has('table') || (value.has('table') && value.has('scope'))) {
+        if (!this.contractDialogRef) {
+          this.openContractsDialog(value.get('table'), value.get('scope'));
+        }
+      }
     });
 
     this.treeControl = new FlatTreeControl<FlatNode>(
@@ -500,32 +501,24 @@ export class AccountComponent implements OnDestroy {
     }
   }
 
-  openContractsDialog(): void {
+  openContractsDialog(table: string | null, scope: string | null): void {
+    console.log('Opening contract dialog');
     if (this.searchService.searchQuery()) {
-      this.dialog.open<
-        ContractExplorerComponent
-      >(ContractExplorerComponent, {
+      this.contractDialogRef = this.dialog.open<ContractDialogComponent>(ContractDialogComponent, {
         width: '1024px',
         height: 'auto',
         restoreFocus: true,
         data: {
-          account: this.searchService.searchQuery()
+          account: this.searchService.searchQuery(),
+          table: table,
+          scope: scope
         },
         autoFocus: false,
         panelClass: ['responsive-modal'],
       });
-    }
-  }
-
-  openContractExplorer() {
-
-    if (this.searchService.searchQuery()) {
-      // this.dialog.open(ContractDialogComponent, {
-      //   data: {
-      //     code: this.searchService.searchQuery()
-      //   }
-      // });
-      this.router.navigate(['contract', this.searchService.searchQuery()]).catch(console.error);
+      this.contractDialogRef.afterClosed().subscribe(() => {
+        this.contractDialogRef = undefined;
+      });
     }
   }
 
