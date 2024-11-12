@@ -86,15 +86,14 @@
       <!--FULL HEADER WITH SEARCH BAR-->
       <div id="searchbar-container" class="flex flex-col justify-center items-center gap-10 pt-9 pb-10 w-full searchbar-container">
 
-        <!-- DYNAMIC CHAIN LOGO-->
-        <img [ngSrc]="chainData().logo" id="main-logo" alt="logo" class="logo header-flip" width="192" height="70" priority/>
+        <form [formGroup]="searchForm" (ngSubmit)="submit()" class="flex flex-col w-full justify-center">
 
-        <form [formGroup]="searchForm" (ngSubmit)="submit()" class="header-flip flex flex-col w-full justify-center">
+          <div id="search-row-container" class="flex flex-row gap-3 w-full justify-center items-center">
 
-          <div id="search-row-container" class="header-flip flex flex-row gap-3 w-full justify-center items-center">
+            <!-- DYNAMIC CHAIN LOGO-->
+            <img [ngSrc]="chainData().logo" id="main-logo" alt="logo" class="logo absolute opacity-0" width="192" height="70" priority/>
 
-            <div class="logo-empty-space"></div>
-            <div id="search-input" class="header-flip custom-input-group main-form-container rounded-full grow sm:grow-0 flex flex-row gap-5 content-center
+            <div id="search-input" class="custom-input-group main-form-container rounded-full grow sm:grow-0 flex flex-row gap-5 content-center
           focus-within:outline focus-within:outline-2 focus-within:outline-amber-400 focus-within:-outline-offset-2
           hover:border-amber-400 border-transparent">
 
@@ -112,7 +111,7 @@
             </div>
 
             <mat-autocomplete #auto="matAutocomplete" (optionSelected)="submit()"
-                              class="header-flip custom-autocomplete"
+                              class="custom-autocomplete"
                               [classList]="'custom-autocomplete'">
               @for (account of filteredAccounts(); track account) {
                 <mat-option [value]="account">

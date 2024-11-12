@@ -12,7 +12,7 @@ import {LayoutAnimationTestComponent} from "./pages/layout-animation-test/layout
 export const routes: Routes = [
   {
     path: '',
-    component: HomeComponent,
+    component: LayoutAnimationTestComponent,
     children: [
       {
         path: 'account/:account_name',
@@ -29,7 +29,7 @@ export const routes: Routes = [
   },
   {
     path: 'layout_test',
-    component: LayoutAnimationTestComponent
+    component: HomeComponent
   },
   {
     path: 'contract/:code/:table/:scope',

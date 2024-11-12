@@ -9,6 +9,7 @@
   font-size: 13px;
   font-weight: 500;
   font-family: Montserrat, sans-serif;
+  width: max-content !important;
 }
 
 .provider, .provider a {

@@ -229,18 +229,17 @@ export class HomeComponent {
 
     // fixed element references
     const targetLogoContainer = document.querySelector('#compact-logo') as HTMLElement;
-    const logoElement = document.querySelector('#main-logo') as HTMLElement;
 
     // scoped function to calculate the delta translate
     const getDeltaTranslate = () => {
       const targetRect = targetLogoContainer.getBoundingClientRect();
-      const logoRect = logoElement.getBoundingClientRect();
-      const deltaX = targetRect.left - logoRect.left;
-      const deltaY = targetRect.top - logoRect.top;
-      return `translate(${deltaX}px, ${deltaY}px)`;
+      // const logoRect = logoElement.getBoundingClientRect();
+      // const deltaX = targetRect.left - logoRect.left;
+      // const deltaY = targetRect.top - logoRect.top;
+      // return `translate(${deltaX}px, ${deltaY}px)`;
     };
 
-    let translate: string = getDeltaTranslate();
+    // let translate: string = getDeltaTranslate();
 
     tl.to('#header-card', {
       height: '5.438rem',
@@ -253,14 +252,14 @@ export class HomeComponent {
       width: 0,
       duration: 1,
       onComplete: () => {
-        translate = getDeltaTranslate();
+        // translate = getDeltaTranslate();
       }
     }, "<");
 
     tl.to('#main-logo', {
       height: '2.625rem',
       position: 'absolute',
-      transform: () => translate,
+      // transform: () => translate,
       duration: 0.7,
     });
 
@@ -268,17 +267,66 @@ export class HomeComponent {
   }
 
   private setupTimeline() {
+    const headerContainer = document.querySelector('#header-card');
+    const searchBar = document.querySelector('#search-input') as HTMLDivElement;
+    const logo = document.querySelector('#main-logo') as HTMLElement;
+    const logoGap = 10;
+
     let timeline = gsap.timeline({
       defaults: {ease: 'power2.out'},
       paused: true,
       scrollTrigger: {
-        trigger: window,
+        trigger: headerContainer,
         start: 'top top',
         end: '400px 50px',
-        scrub: true
+        scrub: true,
+        markers: true,
+        onUpdate: (self) => {
+
+          // if (contentContainer && contentContainer.style && headerContainer) {
+          //   contentContainer.style.paddingTop = `${headerContainer.clientHeight}px`;
+          // }
+
+          // update the logo size to match the search bar height
+          logo.style.height = `${searchBar.clientHeight}px`;
+
+          // make it vertically centered with the search bar
+          const deltaX = searchBar.offsetLeft - logo.offsetLeft - logo.clientWidth - logoGap;
+          if (self.progress <= 0.5) {
+            const gap = (1 - self.progress * 2) * logoGap;
+            logo.style.top = `calc(-${gap}px + ((50% + ${logo.clientHeight / 2}px) * ${self.progress * 2}))`;
+            logo.style.transform = `translateX(${(deltaX * self.progress * 2)}px) translateY(-${logo.clientHeight + gap}px)`;
+          } else {
+            logo.style.top = `0px`;
+            logo.style.transform = `translateX(${deltaX}px) translateY(0px)`;
+          }
+        }
       }
     });
-    this.createAnimation(timeline);
+    // this.createAnimation(timeline);
+    const gap = (1 - (0)) * logoGap;
+    const deltaY = logo.clientHeight + gap;
+    gsap.to(searchBar, {opacity: 1, duration: 0.5});
+
+
+    gsap.set(logo, {
+      opacity: 0,
+      transform: `translateX(0px) translateY(-${deltaY}px)`,
+    });
+
+    gsap.to(logo, {
+      opacity: 1,
+      duration: 0.2
+    });
+
+    timeline.to('.tagline', {
+      xPercent: '-100',
+      opacity: 0,
+      width: 0,
+      duration: 0.5,
+    });
+    timeline.to(searchBar, {height: '2.625rem'}, 0);
+    timeline.to(headerContainer, {height: '5.438rem'}, 0);
     return timeline;
   }
 
