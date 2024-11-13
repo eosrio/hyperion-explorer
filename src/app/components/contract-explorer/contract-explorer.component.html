@@ -36,16 +36,20 @@
             <label for="customScope">Custom Scope:</label>
             <!--            <mat-form-field appearance="outline">-->
             <!--              <mat-label>Custom Scope:</mat-label>-->
-            <div class="custom-input-group flex flex-row items-center
+            <div class="custom-input-group flex flex-row items-center max-w-full sm:w-auto w-full
         rounded-full focus-within:outline focus-within:outline-2 focus-within:outline-amber-400 focus-within:-outline-offset-2
           border-transparent">
-              <input #customScope matInput id="customScope" type="text"
-                     class="custom-input outline-none ml-0 pl-5 py-4 rounded-l-full h-[2.625rem]"
-                     (keyup.enter)="selectScope(customScope.value)" [value]="scope()">
+              <div class="grow min-w-0">
+                <input #customScope matInput id="customScope" type="text"
+                       class="custom-input outline-none ml-0 pl-5 py-4 rounded-l-full h-[2.625rem] min-w-0"
+                       (keyup.enter)="selectScope(customScope.value)" [value]="scope()">
+              </div>
               <!--            </mat-form-field>-->
-              <button (click)="selectScope(customScope.value)" mat-raised-button color="primary"
-                      class="mr-2 my-2 place-self-center primary-btn antialiased">Select
-              </button>
+              <div class="w-auto">
+                <button (click)="selectScope(customScope.value)" mat-raised-button color="primary"
+                        class="mr-2 my-2 place-self-center primary-btn antialiased ">Select
+                </button>
+              </div>
             </div>
           </div>
 

@@ -9,7 +9,7 @@
 
 
 @if (tx().actions && tx().actions.length === 0) {
-  <div class="hr-container">
+  <div class="hr-container w-full">
     <div class="grid grid-cols-1 auto-cols-max gap-5 text-black appear">
       <div class="custom-card w-full">
         <h1 class="faded">
@@ -29,11 +29,11 @@
 }
 
 @if (tx().actions && tx().actions.length > 0 && accountService.loaded()) {
-  <div class="hr-container">
+  <div class="hr-container w-full">
     <!--    md:grid-cols-2 auto-cols-auto-->
     <div class="flex flex-col gap-5 text-black w-full appear">
       <!--      min-w-full-->
-      <div class="custom-card bg-no-transparency w-full h-full min-h-full sticky top-[100px] z-40">
+      <div class="custom-card bg-no-transparency w-full h-full min-h-full sticky top-[122px] z-40">
         <div>
           <div class="flex flex-row justify-start items-start">
             <h2 style="margin-bottom: -15px; color: #9c9c9c; margin-top: 0; margin-right: 10px;">

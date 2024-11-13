@@ -1,15 +1,21 @@
 <div mat-dialog-title class="text-center text-2xl">
-  <div class="flex flex-row flex-wrap justify-start items-center xs:gap-[6px]">
-    <img
-      ngSrc="assets/hyperion-pulse.svg"
-      alt="logo"
-      class="logo mr-[6px] xs:mr-0 h-[1.188rem]"
-      width="26.85" height="19"
-    />
+  <div class="flex flex-row justify-between">
+    <div class="flex flex-row flex-wrap justify-start items-center xs:gap-[6px]">
+      <img
+        ngSrc="assets/hyperion-pulse.svg"
+        alt="logo"
+        class="logo mr-[6px] xs:mr-0 h-[1.188rem]"
+        width="26.85" height="19"
+      />
 
-    <div class="logo-name mr-[6px] xs:mr-0">HYPERION</div>
-    <div class="tagline faded w-max">Smart Contract Explorer</div>
+      <div class="logo-name mr-[6px] xs:mr-0">HYPERION</div>
+      <div class="tagline faded w-max">Smart Contract Explorer</div>
+    </div>
+    <button mat-icon-button mat-dialog-close class="faded mt-[-2rem]">
+      <mat-icon class="faded">close</mat-icon>
+    </button>
   </div>
+
 
   @if (code()) {
 
