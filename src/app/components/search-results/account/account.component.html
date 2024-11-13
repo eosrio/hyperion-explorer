@@ -590,7 +590,7 @@
               </th>
               <td mat-cell *matCellDef="let action" data-label="Action">
                 <div class="action-cell">
-                  <span class="accent font-medium">{{ action["act"]["name"] }}</span>
+                  <span class="accent font-medium pointer">{{ action["act"]["name"] }}</span>
                   on
                   <span [routerLink]="['/account', action['act']['account']]"
                         class="font-medium div-link">

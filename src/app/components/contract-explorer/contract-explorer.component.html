@@ -14,57 +14,80 @@
 
   @defer (on immediate) {
     @if (table()) {
-      <div class="bg-slate-800 text-xl text-center text-white py-2 mt-6">
-        <span class="text-stone-200">Table: </span>
-        <span class="text-green-400">{{ table() }}</span>
-      </div>
+      <div class="acc-header px-5 py-3 mt-5">
+        <div class=" text-lg  mt-5 flex flex-row items-center gap-3">
+          <span class="underline">Table: </span>
+          <span class="font-medium underline">{{ table() }}</span>
+        </div>
 
-      <p>Please select a scope:</p>
-      <div class="flex flex-row flex-wrap gap-2 m-2">
-        @for (sName of scopeList(); track sName) {
-          <button (click)="selectScope(sName)" mat-flat-button
-                  [color]="sName === scope() ? 'accent' : 'primary'">{{ sName }}
-          </button>
+        <div class="my-5 faded">Please select a scope:</div>
+        <div class="grid dialog-grid-parent">
+          @for (sName of scopeList(); track sName) {
+            <button (click)="selectScope(sName)" mat-flat-button class="grid-item-btn"
+                    [ngClass]="{'selected': sName === scope()}">{{ sName }}
+            </button>
+          }
+        </div>
+
+        @if (nextScope()) {
+          <div class="mt-5">Next Scope: {{ nextScope() }}</div>
+
+          <div class="flex flex-row flex-wrap w-full items-center gap-4 mt-4">
+            <label for="customScope">Custom Scope:</label>
+            <!--            <mat-form-field appearance="outline">-->
+            <!--              <mat-label>Custom Scope:</mat-label>-->
+            <div class="custom-input-group flex flex-row items-center
+        rounded-full focus-within:outline focus-within:outline-2 focus-within:outline-amber-400 focus-within:-outline-offset-2
+          border-transparent">
+              <input #customScope matInput id="customScope" type="text"
+                     class="custom-input outline-none ml-0 pl-5 py-4 rounded-l-full h-[2.625rem]"
+                     (keyup.enter)="selectScope(customScope.value)" [value]="scope()">
+              <!--            </mat-form-field>-->
+              <button (click)="selectScope(customScope.value)" mat-raised-button color="primary"
+                      class="mr-2 my-2 place-self-center primary-btn antialiased">Select
+              </button>
+            </div>
+          </div>
+
+          <div class="flex flex-row w-full justify-start p-4 items-center">
+            <!--            <label for="customScope">Custom Scope:</label>-->
+            <!--            <input (keyup.enter)="selectScope(customScope.value)" [value]="scope()"-->
+            <!--                   class="mx-10" #customScope id="customScope" type="text"/>-->
+            <!--            <button (click)="selectScope(customScope.value)" mat-flat-button color="primary">Select</button>-->
+          </div>
         }
       </div>
-
-      @if (nextScope()) {
-        <p>Next Scope: {{ nextScope() }}</p>
-
-        <div class="flex flex-row w-full justify-start p-4 items-center">
-          <label for="customScope">Custom Scope:</label>
-          <input (keyup.enter)="selectScope(customScope.value)" [value]="scope()"
-                 class="mx-10" #customScope id="customScope" type="text"/>
-          <button (click)="selectScope(customScope.value)" mat-flat-button color="primary">Select</button>
-        </div>
-      }
 
       @if (scope()) {
+        <div class="acc-header px-5 py-3 mt-5">
+          <div class="text-lg mt-5 flex flex-row items-center gap-3">
+            <span class="underline">Scope: </span>
+            <span class="font-medium underline">{{ scope() }}</span>
+          </div>
 
-        <div class="bg-slate-900 text-xl text-center text-white py-2">
-          <span class="text-stone-200">Scope: </span>
-          <span class="text-green-400">{{ scope() }}</span>
+          @defer (when displayedColumns().length > 0) {
+            <table mat-table [dataSource]="tableData()" class="transparent-table max-w-full w-full mt-5"
+                   matSort (matSortChange)="announceSortChange($event)">
+              @for (field of fields(); track field.name) {
+                <ng-container [matColumnDef]="field.name">
+
+                  <th mat-header-cell
+                      *matHeaderCellDef mat-sort-header
+                      [matTooltip]="'Type: ' + field.type"
+                      [sortActionDescription]="'Sort by ' + field.name">{{ field.name }}
+                  </th>
+
+                  <td mat-cell *matCellDef="let element" [attr.data-label]="field.name + '\n\n(' + field.type + ')'"
+                      class="text-wrap break-words lg:max-w-[15.313rem]">{{ element[field.name] | json }}
+                  </td>
+                </ng-container>
+              }
+              <tr mat-header-row *matHeaderRowDef="displayedColumns()"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumns();"></tr>
+            </table>
+          }
+
         </div>
-
-        @defer (when displayedColumns().length > 0) {
-          <table mat-table [dataSource]="tableData()" class="mat-elevation-z8"
-                 matSort (matSortChange)="announceSortChange($event)">
-            @for (field of fields(); track field.name) {
-              <ng-container [matColumnDef]="field.name">
-
-                <th mat-header-cell
-                    *matHeaderCellDef mat-sort-header
-                    [matTooltip]="'Type: ' + field.type"
-                    [sortActionDescription]="'Sort by ' + field.name">{{ field.name }}
-                </th>
-
-                <td mat-cell *matCellDef="let element">{{ element[field.name] }}</td>
-              </ng-container>
-            }
-            <tr mat-header-row *matHeaderRowDef="displayedColumns()"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns();"></tr>
-          </table>
-        }
       }
 
     }

@@ -1,5 +1,5 @@
 <div mat-dialog-title class="text-center text-2xl">
-  <div style="cursor: pointer" class="flex flex-row flex-wrap justify-start items-center xs:gap-[6px]">
+  <div class="flex flex-row flex-wrap justify-start items-center xs:gap-[6px]">
     <img
       ngSrc="assets/hyperion-pulse.svg"
       alt="logo"
@@ -13,18 +13,16 @@
 
   @if (code()) {
 
-    <div class="acc-header antialiased text-lg text-white px-5 py-3 mt-5 flex flex-row items-center gap-3">
+    <div class="acc-header text-lg px-5 py-3 mt-5 flex flex-row items-center gap-3">
       <!--      <div class="flex flex-row items-center gap-3">-->
       <fa-icon [icon]="icons.solid.faUserCircle"></fa-icon>
       <span>Account: </span>
-      <span>{{ code() }}</span>
+      <span class="font-medium primary">{{ code() }}</span>
       <!--      </div>-->
     </div>
   }
 
 </div>
-<mat-dialog-content>
-  @defer (when code()) {
-    <app-contract-explorer navMode="dialog" [(code)]="code" [(table)]="table" [(scope)]="scope"></app-contract-explorer>
-  }
-</mat-dialog-content>
+@defer (when code()) {
+  <app-contract-explorer navMode="dialog" [(code)]="code" [(table)]="table" [(scope)]="scope"></app-contract-explorer>
+}

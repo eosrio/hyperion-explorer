@@ -2,7 +2,6 @@ import {
   Component,
   ElementRef,
   HostListener,
-  Inject,
   inject,
   OnInit,
   PLATFORM_ID,
@@ -26,7 +25,6 @@ import {MatAutocomplete, MatAutocompleteTrigger, MatOption} from "@angular/mater
 import {Router, RouterOutlet} from "@angular/router";
 import {debounceTime} from "rxjs";
 import {MatButton} from "@angular/material/button";
-import {MatIcon} from "@angular/material/icon";
 
 import {version as PackageVersion} from '../../../../package.json';
 import {FaIconComponent} from "@fortawesome/angular-fontawesome";
@@ -41,7 +39,6 @@ import {FaIconComponent} from "@fortawesome/angular-fontawesome";
     ReactiveFormsModule,
     MatAutocompleteTrigger,
     MatButton,
-    MatIcon,
     MatAutocomplete,
     MatOption,
     RouterOutlet,

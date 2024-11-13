@@ -3,7 +3,6 @@ import {MAT_DIALOG_DATA, MatDialogContent, MatDialogTitle} from "@angular/materi
 import {ContractExplorerData} from "../../interfaces";
 import {ContractExplorerComponent} from "../contract-explorer/contract-explorer.component";
 import {NgOptimizedImage} from "@angular/common";
-import {RouterLink} from "@angular/router";
 import {FaIconComponent} from "@fortawesome/angular-fontawesome";
 import {faUserCircle} from "@fortawesome/free-solid-svg-icons";
 
@@ -14,7 +13,6 @@ import {faUserCircle} from "@fortawesome/free-solid-svg-icons";
     MatDialogContent,
     ContractExplorerComponent,
     NgOptimizedImage,
-    RouterLink,
     FaIconComponent
   ],
   templateUrl: './contract-dialog.component.html',
