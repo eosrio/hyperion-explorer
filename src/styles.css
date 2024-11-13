@@ -70,6 +70,10 @@ body {
 .accent {
   color: var(--accent);
 }
+
+.primary {
+  color: var(--primary);
+}
 /*typography end*/
 
 .custom-card {

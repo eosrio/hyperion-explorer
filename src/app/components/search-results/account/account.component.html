@@ -546,7 +546,7 @@
             </h3>
 
             <span class="lib">Last Irreversible Block:
-              <strong class="monospace">{{ accountService.libNum() }}</strong>
+              <a [routerLink]="['/block', accountService.libNum()]"><strong class="monospace">{{ accountService.libNum() }}</strong></a>
             </span>
 
             @if (accountService.streamClientLoaded) {
@@ -565,17 +565,13 @@
                  class="actions-table" [dataSource]="accountService.tableDataSource">
             <!-- TX Column -->
             <ng-container matColumnDef="trx_id">
-              <th mat-header-cell *matHeaderCellDef class="top-[300px]">
-                TX
-              </th>
+              <th mat-header-cell *matHeaderCellDef class="top-[300px]">TX</th>
               <td mat-cell *matCellDef="let action" data-label="TX">
                 @if (accountService.libNum() < action['block_num']) {
-                  <span matTooltip="time until irreversible"
-                        matTooltipClass="tooltip-bigger">
-                                          <fa-icon [icon]="icons.solid.faClock" class="accent"
-                                                   style="margin-right: 1px"></fa-icon>
+                  <span matTooltip="time until irreversible" matTooltipClass="tooltip-bigger">
+                    <fa-icon [icon]="icons.solid.faClock" class="accent" style="margin-right: 1px"></fa-icon>
                     {{ (action["block_num"] - accountService.libNum()) / 2 }}s
-                                        </span>
+                  </span>
                 }
                 <a [routerLink]="['/transaction', action['trx_id']]" class="link-blue">
                   {{ action["trx_id"].slice(0, 8) }}...
@@ -585,12 +581,10 @@
 
             <!-- Action Column -->
             <ng-container matColumnDef="action">
-              <th mat-header-cell *matHeaderCellDef>
-                Action
-              </th>
+              <th mat-header-cell *matHeaderCellDef>Action</th>
               <td mat-cell *matCellDef="let action" data-label="Action">
                 <div class="action-cell">
-                  <span class="accent font-medium">{{ action["act"]["name"] }}</span>
+                  <span class="accent font-medium pointer">{{ action["act"]["name"] }}</span>
                   on
                   <span [routerLink]="['/account', action['act']['account']]"
                         class="font-medium div-link">
@@ -607,36 +601,22 @@
                 <!-- DETAILED ACTION DATA VIEW-->
                 @if (detailedView) {
                   @for (item of action['act']['data'] | keyvalue; track item) {
-                    <div
-                      [ngClass]="{
-                      'data-item': objectKeyCount(action['act']['data']) > 1
-                    }"
-                    >
-                      @if (isArray(item.value) &&
-                      action['act']['account'] !== 'eosio.evm' &&
+                    <div [ngClass]="{'data-item': objectKeyCount(action['act']['data']) > 1}">
+                      @if (isArray(item.value) && action['act']['account'] !== 'eosio.evm' &&
                       action['act']['name'] !== 'raw') {
-                        <span class="font-medium"
-                        >{{ item.key }} [{{ asArray(item.value).length }}]</span
-                        >:
+                        <span class="font-medium">{{ item.key }} [{{ asArray(item.value).length }}]</span>:
                         @for (subitem of asArray(item.value); track subitem) {
-                          <div
-                            style="margin-top: 5px"
-                          >
+                          <div class="mt-1.5">
                             @if (getType(subitem) === 'string') {
-                              <div style="margin-left: 15px">
+                              <div class="ml-3.5">
                                 <span class="break-word">• {{ subitem }}</span>
                               </div>
                             }
                             @if (getType(subitem) === 'object') {
                               @for (elem of subitem | keyvalue; track elem) {
-                                <div
-                                  [ngClass]="{
-                              'data-item': objectKeyCount(subitem) > 1
-                            }"
-                                >
-                                                          <span class="font-medium" style="margin-left: 15px">
-                                                            {{ elem.key }}</span
-                                                          >: <span class="break-word">{{ elem.value }}</span>
+                                <div [ngClass]="{'data-item': objectKeyCount(subitem) > 1}">
+                                  <span class="font-medium" style="margin-left: 15px">{{ elem.key }}</span>:
+                                  <span class="break-word">{{ elem.value }}</span>
                                 </div>
                               }
                             }
@@ -646,55 +626,40 @@
                       @if (!isArray(item.value)) {
                         @if (checkKey(action, item.key)) {
                           <div>
-                                                      <span class="font-medium">{{ item.key }}</span
-                                                      >:
+                            <span class="font-medium">{{ item.key }}</span>:
                             @if (item.value) {
                               <span class="break-word">
-                                                            @if (item.key === 'to' || item.key === 'from') {
-                                                              <a
-                                                                [routerLink]="['/evm/address', item.value]"
-                                                                class="link-blue"
-                                                              >{{ item.value }}</a
-                                                              >
-                                                            } @else {
-                                                              @if (item.key === 'hash') {
-                                                                <a
-                                                                  class="link-blue"
-                                                                  [routerLink]="['/evm/transaction', item.value]"
-                                                                >
-                                                                    {{ item.value }}</a
-                                                                >
-                                                              } @else {
-                                                                @if (item.key === "block") {
-                                                                  <a
-                                                                    class="link-blue"
-                                                                    [routerLink]="['/evm/block', item.value]"
-                                                                  >{{ item.value }}</a
-                                                                  >
-                                                                } @else {
-                                                                  {{ formatEVMValue(item.value) }}TLOS
-                                                                }
-                                                              }
-                                                            }
-                                                                </span>
+                                @if (item.key === 'to' || item.key === 'from') {
+                                  <a [routerLink]="['/evm/address', item.value]" class="link-blue">
+                                    {{ item.value }}
+                                  </a>
+                                } @else {
+                                  @if (item.key === 'hash') {
+                                    <a class="link-blue" [routerLink]="['/evm/transaction', item.value]">
+                                        {{ item.value }}
+                                    </a>
+                                  } @else {
+                                    @if (item.key === "block") {
+                                      <a class="link-blue" [routerLink]="['/evm/block', item.value]">
+                                        {{ item.value }}
+                                      </a>
+                                    } @else {
+                                      {{ formatEVMValue(item.value) }}TLOS
+                                    }
+                                  }
+                                }
+                                </span>
                             }
                           </div>
                         } @else {
                           @if (action["act"]["account"] !== "eosio.evm" &&
                           action["act"]["name"] !== "raw") {
-                            <span class="font-medium">{{ item.key }}</span
-                            >:
+                            <span class="font-medium">{{ item.key }}</span>:
                             @if (item.value) {
-                              <span class="break-word">{{
-                                  item.value
-                                }}</span>
+                              <span class="break-word">{{item.value }}</span>
                             }
                             @if (!item.value) {
-                              <span
-                                class="break-word"
-                                style="font-style: italic"
-                              >empty</span
-                              >
+                              <span class="break-word italic">empty</span>
                             }
                           }
                         }
@@ -702,12 +667,9 @@
                     </div>
                   }
                   @if (getType(action['act']['data']) === 'string') {
-                    <span
-                      class="break-word"
-                      style="font-style: italic"
-                    >
-                                                            {{ action["act"]["data"] }}
-                                                          </span>
+                    <span class="break-word italic">
+                      {{ action["act"]["data"] }}
+                    </span>
                   }
                 }
 
@@ -736,16 +698,10 @@
                          [pageSizeOptions]="[10, 20, 50, 100]"
                          [length]="accountService.tableDataSource.filteredData.length"
                          (page)="changePage($event)"
-                         showFirstLastButtons
-          >
+                         showFirstLastButtons>
           </mat-paginator>
 
-          <button
-            mat-raised-button
-            class="float-r"
-            style="margin-right: 16px"
-            (click)="accountService.loadMoreActions(accountName)"
-          >
+          <button mat-raised-button class="float-r" style="margin-right: 16px" (click)="accountService.loadMoreActions(accountName)">
             load more actions
           </button>
         </div>

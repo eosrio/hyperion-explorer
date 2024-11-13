@@ -167,7 +167,7 @@ html {
 
 .primary-btn.mat-mdc-raised-button:not(:disabled) {
   box-shadow:
-    -3px -1px 1px 0px inset rgb(63 145 173),
+    -3px -1px 1px 0px inset #008dbd,
   1px 1px 1px 0 inset var(--colour-bg-highlight),
   2px 3px 5px 2px var(--colour-bg-shadow);
 }
@@ -184,6 +184,10 @@ $overlay-backdrop-color: rgba(0, 0, 0, 0.8) !important;
   border-radius: var(--card-border-radius) !important;
   min-height: 90vh !important;
   //font-family: var(--secondary-font-family) !important;
+}
+
+.responsive-modal {
+  max-width: 100% !important;
 }
 
 

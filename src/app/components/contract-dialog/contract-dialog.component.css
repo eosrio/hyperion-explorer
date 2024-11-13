@@ -13,7 +13,9 @@
 }
 
 .acc-header {
-  background-color: #0f172a;
+  background-color: transparent;
   border-radius: 0.625rem;
   border: none !important;
+  box-shadow:  rgb(78 104 192 / 25%) 0px 4px 19px 0px, rgba(17, 12, 46, 0.15) 0px 20px 100px 0px !important;
+  color: var(--main-text);
 }

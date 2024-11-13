@@ -10,8 +10,10 @@ import {MatSort, MatSortHeader, Sort} from "@angular/material/sort";
 import {MatTooltip} from "@angular/material/tooltip";
 import {AbiStructField, AbiTable, GetAbiResponse} from "../../interfaces";
 import {FormsModule} from '@angular/forms';
-import {MatDialogContent, MatDialogTitle} from "@angular/material/dialog";
-import {NgClass} from "@angular/common";
+import {MatDialogActions, MatDialogClose, MatDialogContent} from "@angular/material/dialog";
+import {JsonPipe, NgClass} from "@angular/common";
+import {MatFormField} from "@angular/material/form-field";
+import {MatInput} from "@angular/material/input";
 
 function buildFieldArray(structs: any[], array: AbiStructField[], type: string): void {
   if (array && type) {
@@ -37,9 +39,13 @@ function buildFieldArray(structs: any[], array: AbiStructField[], type: string):
     MatSortHeader,
     MatSort,
     MatTooltip,
-    MatDialogTitle,
     MatDialogContent,
-    NgClass
+    NgClass,
+    MatFormField,
+    MatInput,
+    JsonPipe,
+    MatDialogActions,
+    MatDialogClose
   ],
   templateUrl: './contract-explorer.component.html',
   styleUrl: './contract-explorer.component.css'
