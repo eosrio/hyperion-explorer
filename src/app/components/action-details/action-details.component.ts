@@ -1,7 +1,7 @@
 import {Component, Inject, signal} from '@angular/core';
 import {
   MAT_DIALOG_DATA,
-  MatDialogActions,
+  MatDialogClose,
   MatDialogContent,
   MatDialogRef,
   MatDialogTitle
@@ -10,15 +10,14 @@ import {
   MatNestedTreeNode,
   MatTree,
   MatTreeNestedDataSource,
-  MatTreeNode,
-  MatTreeNodeDef,
+  MatTreeNode, MatTreeNodeDef,
   MatTreeNodeOutlet,
   MatTreeNodeToggle
 } from "@angular/material/tree";
 import {KeyValuePipe} from "@angular/common";
 import {NestedTreeControl} from "@angular/cdk/tree";
 import {MatIcon} from "@angular/material/icon";
-import {MatButton, MatIconButton} from "@angular/material/button";
+import {MatIconButton} from "@angular/material/button";
 
 interface KeyValueNode {
   name: string;
@@ -33,15 +32,14 @@ interface KeyValueNode {
     MatTree,
     MatTreeNode,
     MatTreeNodeToggle,
-    MatTreeNodeDef,
     MatNestedTreeNode,
     MatIcon,
     MatIconButton,
     MatTreeNodeOutlet,
     MatDialogTitle,
     MatDialogContent,
-    MatDialogActions,
-    MatButton
+    MatDialogClose,
+    MatTreeNodeDef
   ],
   templateUrl: './action-details.component.html',
   standalone: true,

@@ -1,9 +1,7 @@
 import {Component, Inject, signal} from '@angular/core';
 import {
   MAT_DIALOG_DATA,
-  MatDialogActions,
   MatDialogClose,
-  MatDialogContent,
   MatDialogTitle
 } from "@angular/material/dialog";
 import {ContractExplorerData} from "../../interfaces";
@@ -11,19 +9,16 @@ import {ContractExplorerComponent} from "../contract-explorer/contract-explorer.
 import {NgOptimizedImage} from "@angular/common";
 import {FaIconComponent} from "@fortawesome/angular-fontawesome";
 import {faUserCircle} from "@fortawesome/free-solid-svg-icons";
-import {MatButton, MatIconButton} from "@angular/material/button";
+import {MatIconButton} from "@angular/material/button";
 import {MatIcon} from "@angular/material/icon";
 
 @Component({
   selector: 'app-contract-dialog',
   imports: [
     MatDialogTitle,
-    MatDialogContent,
     ContractExplorerComponent,
     NgOptimizedImage,
     FaIconComponent,
-    MatDialogActions,
-    MatButton,
     MatDialogClose,
     MatIconButton,
     MatIcon

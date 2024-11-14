@@ -565,7 +565,7 @@
                  class="actions-table" [dataSource]="accountService.tableDataSource">
             <!-- TX Column -->
             <ng-container matColumnDef="trx_id">
-              <th mat-header-cell *matHeaderCellDef class="top-[300px]">TX</th>
+              <th mat-header-cell *matHeaderCellDef>TX</th>
               <td mat-cell *matCellDef="let action" data-label="TX">
                 @if (accountService.libNum() < action['block_num']) {
                   <span matTooltip="time until irreversible" matTooltipClass="tooltip-bigger">
@@ -690,7 +690,7 @@
               </td>
             </ng-container>
 
-            <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true" class="top-[800px]"></tr>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true" ></tr>
             <tr mat-row (click)="onRowClick(row)" *matRowDef="let row; columns: displayedColumns"></tr>
           </table>
 

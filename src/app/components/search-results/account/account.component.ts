@@ -538,8 +538,10 @@ export class AccountComponent implements OnDestroy {
 
   onRowClick(row: any) {
     const dialogRef = this.dialog.open(ActionDetailsComponent, {
-      width: '90%',
-      height: '90%',
+      width: '1024px',
+      height: 'auto',
+      autoFocus: false,
+      panelClass: ['responsive-modal'],
       data: {
         action: row
       }

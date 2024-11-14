@@ -1,3 +1,7 @@
+.mat-tree {
+  background-color: transparent;
+}
+
 .example-tree-invisible {
   display: none;
 }
