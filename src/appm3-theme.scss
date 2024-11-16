@@ -180,7 +180,7 @@ $overlay-backdrop-color: rgba(0, 0, 0, 0.8) !important;
 }
 
 .mat-mdc-dialog-surface {
-  background: radial-gradient(circle, rgba(241,245,252,1) 50%, rgba(221,229,246,1)  100%) !important;
+  background: var(--card-bg-gradient), var(--main-background) !important;
   border-radius: var(--card-border-radius) !important;
   min-height: 90vh !important;
   //font-family: var(--secondary-font-family) !important;
@@ -188,6 +188,11 @@ $overlay-backdrop-color: rgba(0, 0, 0, 0.8) !important;
 
 .responsive-modal {
   max-width: 100% !important;
+}
+
+.mat-mdc-raised-button:not(:disabled) {
+  color: var(--primary) !important;
+  background-color: oklch(from var(--primary) 96% 0.021 h) !important;
 }
 
 

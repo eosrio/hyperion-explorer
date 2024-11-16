@@ -70,7 +70,7 @@
         <div class="flex flex-col justify-start items-stretch gap-[15px]">
           <div>Block num:
             <a [routerLink]="['/block', tx().actions[0].block_num]"
-               class="link-blue">{{ tx().actions[0].block_num }}</a>
+               class="link-primary">{{ tx().actions[0].block_num }}</a>
           </div>
           <div>Block time: {{ formatDate(tx().actions[0]["@timestamp"]) }}</div>
           <div class="flex flex-row justify-start content-center gap-[50px]">

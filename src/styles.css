@@ -87,8 +87,9 @@ body {
 }
 
 .bg-no-transparency {
-  background-color: rgb(221,229,246) !important;
-  background: linear-gradient(115deg, rgb(236 240 250) 0%, rgb(247 249 253) 70%, rgb(235 240 249) 100%) !important;
+  /*background-color: rgb(221,229,246) !important;*/
+  background:  var(--card-bg-gradient), var(--main-background) !important;
+  /*background: linear-gradient(115deg, rgb(236 240 250) 0%, rgb(247 249 253) 70%, rgb(235 240 249) 100%) !important;*/
   box-shadow:  rgb(78 104 192 / 25%) 0px 4px 19px 0px, rgba(17, 12, 46, 0.15) 0px 20px 100px 0px !important;
 }
 
@@ -213,8 +214,8 @@ body {
   color: gray;
 }
 
-.link-blue {
-  color: #00aee7;
+.link-primary {
+  color: oklch(from var(--primary) 68% c h);
 }
 
 /*Appear animation START*/

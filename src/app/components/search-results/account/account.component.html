@@ -357,7 +357,7 @@
                       <fa-icon [icon]="icons.solid.faUser"></fa-icon>
                       <a
                         [routerLink]="['/account', acc.permission.actor]"
-                        class="m-left link-blue"
+                        class="m-left link-primary"
                       >{{ acc.permission.actor }}</a
                       >&#64;{{ acc["permission"].permission }}
                     </div>
@@ -439,7 +439,7 @@
                       <fa-icon [icon]="icons.solid.faUser"></fa-icon>
                       <a
                         [routerLink]="['/account', acc.permission.actor]"
-                        class="m-left link-blue"
+                        class="m-left link-primary"
                       >
                         {{ acc.permission.actor }}
                       </a>
@@ -493,7 +493,7 @@
                         @if (accountService.account['voter_info'].proxy) {
                           <span>proxy
                             <a [routerLink]="['/account', accountService.account['voter_info'].proxy]"
-                               class="link-blue">{{ accountService.account["voter_info"].proxy }}</a>
+                               class="link-primary">{{ accountService.account["voter_info"].proxy }}</a>
                           </span>
                         }
                         @if (accountService.account['voter_info'].producers.length > 0) {
@@ -514,7 +514,7 @@
                 <div>
                   @for (producer of accountService.account['voter_info'].producers; track producer; let last = $last) {
                     <span>
-                      <a [routerLink]="['/account', producer]" class="link-blue">{{
+                      <a [routerLink]="['/account', producer]" class="link-primary">{{
                           producer
                         }}</a>@if (!last) {
                       <span>, </span>
@@ -573,7 +573,7 @@
                     {{ (action["block_num"] - accountService.libNum()) / 2 }}s
                   </span>
                 }
-                <a [routerLink]="['/transaction', action['trx_id']]" class="link-blue">
+                <a [routerLink]="['/transaction', action['trx_id']]" class="link-primary">
                   {{ action["trx_id"].slice(0, 8) }}...
                 </a>
               </td>
@@ -630,17 +630,17 @@
                             @if (item.value) {
                               <span class="break-word">
                                 @if (item.key === 'to' || item.key === 'from') {
-                                  <a [routerLink]="['/evm/address', item.value]" class="link-blue">
+                                  <a [routerLink]="['/evm/address', item.value]" class="link-primary">
                                     {{ item.value }}
                                   </a>
                                 } @else {
                                   @if (item.key === 'hash') {
-                                    <a class="link-blue" [routerLink]="['/evm/transaction', item.value]">
+                                    <a class="link-primary" [routerLink]="['/evm/transaction', item.value]">
                                         {{ item.value }}
                                     </a>
                                   } @else {
                                     @if (item.key === "block") {
-                                      <a class="link-blue" [routerLink]="['/evm/block', item.value]">
+                                      <a class="link-primary" [routerLink]="['/evm/block', item.value]">
                                         {{ item.value }}
                                       </a>
                                     } @else {
@@ -682,7 +682,7 @@
             <ng-container matColumnDef="block_num">
               <th mat-header-cell mat-sort-header *matHeaderCellDef>Block & Date</th>
               <td mat-cell *matCellDef="let action" data-label="Block & Date">
-                <a [routerLink]="['/block', action['block_num']]" class="link-blue">
+                <a [routerLink]="['/block', action['block_num']]" class="link-primary">
                   {{ action["block_num"] }}
                 </a>
                 <br/>

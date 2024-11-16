@@ -5,7 +5,8 @@
 }
 
 .header-card {
-  background: radial-gradient(circle, rgba(241,245,252,1) 50%, rgba(221,229,246,1)  100%);
+  background: var(--card-bg-gradient), var(--main-background);
+  /*background: radial-gradient(circle, rgba(241,245,252,1) 50%, rgba(221,229,246,1)  100%);*/
   box-shadow: var(--card-box-shadow) !important;
   height: 20.875rem;
   z-index: 50;
