@@ -14,13 +14,19 @@
 
       <div id="account-content" class="grid grid-cols-1 md:grid-cols-3 auto-cols-max gap-5 text-black appear">
         <!-- ACCOUNT NAME-->
-        <div id="account-name-sticky"
+        <div #AccNameSticky id="account-name-sticky"
              class="custom-card bg-no-transparency w-full md:col-span-3 sticky top-[122px] z-40">
           <mat-card-header>
             <div class="flex flex-row flex-wrap justify-between items-center w-full">
-              <div class="text-2xl acc-title flex flex-row items-center gap-3">
-                <fa-icon [icon]="icons.solid.faUserCircle"></fa-icon>
-                <div>{{ accountService.account["account_name"] }}</div>
+              <div class="flex flex-row items-center gap-3">
+                <div class="text-2xl acc-title flex flex-row items-center gap-3">
+                  <fa-icon [icon]="icons.solid.faUserCircle"></fa-icon>
+                  <div>{{ accountService.account["account_name"] }}</div>
+                </div>
+                <div id="totalBalance" class="font-medium faded text-[0.938rem] mt-1">
+                    {{ totalBalance() | number: "1.0-" + systemPrecision }}
+                  {{ systemSymbol }}
+                  </div>
               </div>
               <button (click)="openContractsDialog(null,null)" mat-raised-button>
                 Explore Smart Contract
@@ -35,8 +41,8 @@
 
             <!-- total balance-->
             <div class="total-balance w-full">
-              <strong class="uppercase font-bold text-[15px]">Total Balance: </strong>
-              <span class="float-r font-semibold text-[15px]">
+              <strong class="uppercase font-bold text-[0.938rem]">Total Balance: </strong>
+              <span class="float-r font-semibold text-[0.938rem]">
                     {{ totalBalance() | number: "1.0-" + systemPrecision }}
                 {{ systemSymbol }}
                   </span>
@@ -529,7 +535,7 @@
 
         <!--ACTIONS CARD/TABLE-->
         <div class="custom-card w-full min-w-full h-full min-h-full md:col-span-3">
-          <div class="flex flex-row justify-between items-start">
+          <div #actionsTable class="flex flex-row justify-between items-start">
             <h3 style="margin-top: 0">
               <fa-layers [fixedWidth]="true" style="margin-right: 5px">
                 <fa-icon
@@ -546,7 +552,8 @@
             </h3>
 
             <span class="lib">Last Irreversible Block:
-              <a [routerLink]="['/block', accountService.libNum()]"><strong class="monospace">{{ accountService.libNum() }}</strong></a>
+              <a [routerLink]="['/block', accountService.libNum()]"><strong
+                class="monospace">{{ accountService.libNum() }}</strong></a>
             </span>
 
             @if (accountService.streamClientLoaded) {
@@ -656,7 +663,7 @@
                           action["act"]["name"] !== "raw") {
                             <span class="font-medium">{{ item.key }}</span>:
                             @if (item.value) {
-                              <span class="break-word">{{item.value }}</span>
+                              <span class="break-word">{{ item.value }}</span>
                             }
                             @if (!item.value) {
                               <span class="break-word italic">empty</span>
@@ -690,7 +697,7 @@
               </td>
             </ng-container>
 
-            <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true" ></tr>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
             <tr mat-row (click)="onRowClick(row)" *matRowDef="let row; columns: displayedColumns"></tr>
           </table>
 
@@ -701,7 +708,8 @@
                          showFirstLastButtons>
           </mat-paginator>
 
-          <button mat-raised-button class="float-r" style="margin-right: 16px" (click)="accountService.loadMoreActions(accountName)">
+          <button mat-raised-button class="float-r" style="margin-right: 16px"
+                  (click)="accountService.loadMoreActions(accountName)">
             load more actions
           </button>
         </div>

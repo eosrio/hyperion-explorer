@@ -190,7 +190,7 @@ $overlay-backdrop-color: rgba(0, 0, 0, 0.8) !important;
   max-width: 100% !important;
 }
 
-.mat-mdc-raised-button:not(:disabled) {
+.mat-mdc-raised-button:not(:disabled):not(.primary-btn) {
   color: var(--primary) !important;
   background-color: oklch(from var(--primary) 96% 0.021 h) !important;
 }

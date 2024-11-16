@@ -218,6 +218,11 @@ body {
   color: oklch(from var(--primary) 68% c h);
 }
 
+.link-primary:hover {
+  color: oklch(from var(--primary) 60% c h);
+  transition: color 0.7s;
+}
+
 /*Appear animation START*/
 .appear {
   animation: scaleAnimation 0.7s 1 ease;

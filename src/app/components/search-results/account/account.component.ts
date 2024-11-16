@@ -1,4 +1,14 @@
-import {Component, inject, OnDestroy, signal, ViewChild} from '@angular/core';
+import {
+  afterNextRender,
+  Component,
+  ElementRef,
+  inject,
+  OnDestroy,
+  PLATFORM_ID,
+  signal,
+  viewChild,
+  ViewChild
+} from '@angular/core';
 import {SearchService} from "../../../services/search.service";
 import {MatButton, MatIconButton} from "@angular/material/button";
 import {ActivatedRoute, Router, RouterLink} from "@angular/router";
@@ -15,7 +25,7 @@ import {
   MatTreeNodePadding,
   MatTreeNodeToggle
 } from "@angular/material/tree";
-import {DatePipe, DecimalPipe, KeyValuePipe, NgClass} from "@angular/common";
+import {DatePipe, DecimalPipe, isPlatformBrowser, KeyValuePipe, NgClass} from "@angular/common";
 import {MatPaginator, PageEvent} from "@angular/material/paginator";
 import {
   MatCell,
@@ -51,6 +61,10 @@ import {MatAccordion, MatExpansionModule} from "@angular/material/expansion";
 import {MatDialog, MatDialogRef} from "@angular/material/dialog";
 import {ActionDetailsComponent} from "../../action-details/action-details.component";
 import {ContractDialogComponent} from "../../contract-dialog/contract-dialog.component";
+import gsap from "gsap";
+import {ScrollTrigger} from "gsap/ScrollTrigger";
+import {ScrollToPlugin} from "gsap/ScrollToPlugin";
+import {toObservable} from "@angular/core/rxjs-interop";
 
 interface Permission {
   perm_name: string;
@@ -134,7 +148,10 @@ export class AccountComponent implements OnDestroy {
 
   @ViewChild(MatSort, {static: false}) sort?: MatSort;
   @ViewChild(MatPaginator, {static: false}) paginator?: MatPaginator;
+  accNameSticky = viewChild<ElementRef<HTMLDivElement>>('AccNameSticky');
+  actionsTable = viewChild<ElementRef<HTMLDivElement>>('actionsTable');
   readonly dialog = inject(MatDialog);
+  platformId = inject(PLATFORM_ID);
 
   icons = {
     solid: {
@@ -210,6 +227,54 @@ export class AccountComponent implements OnDestroy {
     );
 
     this.dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
+
+    this.initGsap();
+    toObservable(this.accNameSticky).subscribe((value) => {
+      if (value && isPlatformBrowser(this.platformId)) {
+        this.accountStickyAnimation(this.accNameSticky());
+      }
+    });
+    toObservable(this.actionsTable).subscribe((value) => {
+      if (value && isPlatformBrowser(this.platformId)) {
+        this.tableStickyAnimation(this.actionsTable());
+      }
+    });
+
+  }
+
+  initGsap() {
+    gsap.registerPlugin(ScrollTrigger);
+    gsap.registerPlugin(ScrollToPlugin);
+  }
+
+  private accountStickyAnimation(accountNameSticky?: ElementRef<HTMLDivElement>) {
+    const scrollTimeline = gsap.timeline({
+      scrollTrigger: {
+        trigger: accountNameSticky?.nativeElement,
+        start: 'top 100px',
+        end: '100% 100px',
+        scrub: true,
+        // markers: false,
+      },
+    });
+
+    scrollTimeline.from('#totalBalance', {xPercent: '-100', opacity: 0, width: 0}, 0);
+  }
+
+  private tableStickyAnimation(tableSticky?: ElementRef<HTMLDivElement>) {
+
+    const scrollTimeline = gsap.timeline({
+      scrollTrigger: {
+        trigger: tableSticky?.nativeElement,
+        start: 'bottom 250px',
+        end: '200px 250px',
+        scrub: true,
+        // markers: false,
+      },
+    });
+
+    // scrollTimeline.to('.mat-mdc-header-row', {boxShadow: 'rgba(104, 139, 255, 0.1) 0px 48px 100px 0px, rgba(17, 12, 46, 0.15) 0px 30px 100px 0px'}, 0);
+    scrollTimeline.to('.mat-mdc-header-row', {boxShadow: 'rgba(78 104 192, 0.25) 0px 4px 19px 0px, rgba(17, 12, 46, 0.15) 0px 20px 100px 0px'});
   }
 
   ngOnDestroy(): void {
