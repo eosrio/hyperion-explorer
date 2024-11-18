@@ -2,7 +2,7 @@ import {
   Component,
   ElementRef,
   HostListener,
-  inject,
+  inject, OnDestroy,
   OnInit,
   PLATFORM_ID,
   signal,
@@ -48,7 +48,7 @@ import {FaIconComponent} from "@fortawesome/angular-fontawesome";
   templateUrl: './layout-animation-test.component.html',
   styleUrl: './layout-animation-test.component.css'
 })
-export class LayoutAnimationTestComponent implements OnInit {
+export class LayoutAnimationTestComponent implements OnInit, OnDestroy {
   // injected services
   searchService = inject(SearchService);
   accService = inject(AccountService);
@@ -106,6 +106,14 @@ export class LayoutAnimationTestComponent implements OnInit {
     if (isPlatformBrowser(this.platformId)) {
       this.createScrollAnimation();
     }
+  }
+
+  ngOnDestroy() {
+    // window.removeEventListener('resize', this.debouncedResize.bind(this));
+    if (this.scrollTimeline) {
+      this.scrollTimeline.kill();
+    }
+    // this.debouncedResize.cancel();
   }
 
   constructor() {
@@ -218,6 +226,7 @@ export class LayoutAnimationTestComponent implements OnInit {
     const logoGap = 10;
 
     const scrollTimeline = gsap.timeline({
+      passive: true,
       scrollTrigger: {
         trigger: headerContainer,
         start: 'top top',
@@ -225,6 +234,7 @@ export class LayoutAnimationTestComponent implements OnInit {
         scrub: true,
         // markers: true,
         snap: {snapTo: 1, duration: 0.5, ease: 'linear'},
+
         onLeaveBack: () => {
           this.headerExpanded.set(true);
         },
