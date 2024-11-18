@@ -43,7 +43,6 @@
     "@types/express": "^4.17.17",
     "@types/jasmine": "~5.1.0",
     "@types/node": "^22.9.0",
-    "@types/gsap": "^3.0.0",
     "autoprefixer": "^10.4.19",
     "jasmine-core": "~5.1.0",
     "karma": "~6.4.0",
@@ -52,7 +51,7 @@
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
     "postcss": "^8.4.38",
-    "tailwindcss": "^3.4.14",
+    "tailwindcss": "3.4.15",
     "typescript": "~5.6.3"
   }
 }
