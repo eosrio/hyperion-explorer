@@ -5,11 +5,13 @@ import {Title} from "@angular/platform-browser";
 
 export abstract class DataService {
   abstract explorerMetadata: ExplorerMetadata | null;
+
   abstract load(): Promise<void>;
 }
 
 @Injectable({providedIn: 'root'})
 export class DataServiceServer extends DataService {
+
   state = inject(TransferState);
   explorerMetadata: ExplorerMetadata | null = null;
 
@@ -29,17 +31,8 @@ export class DataServiceServer extends DataService {
       } else {
         console.error("Unable to fetch explorer metadata!");
       }
-      // const data = await lastValueFrom(this.http.get(environment.hyperionApiUrl + '/v2/explorer_metadata')) as ExplorerMetadata;
-      // if(data && data.last_indexed_block && data.last_indexed_block > 1) {
-      //   console.log(data);
-      //   data.logo = environment.logo;
-      //   this.meta.set(data);
-      //   this.title.setTitle(`${data.chain_name} Hyperion Explorer`);
-      // } else {
-      //   console.error("Unable to fetch explorer metadata!");
-      // }
-    } catch (error) {
-      console.log(error);
+    } catch (error: any) {
+      console.log('Failed to load chain data:', error.message);
     }
   }
 }

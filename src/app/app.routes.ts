@@ -2,13 +2,13 @@ import {Routes} from '@angular/router';
 import {HomeComponent} from "./pages/home/home.component";
 import {AccountComponent} from "./components/search-results/account/account.component";
 import {TransactionComponent} from "./components/search-results/transaction/transaction.component";
-import {ContractExplorerComponent} from "./components/contract-explorer/contract-explorer.component";
 import {BlockComponent} from "./components/search-results/block/block.component";
 import {KeyComponent} from "./components/search-results/key/key.component";
 import {TestComponent} from "./pages/test/test.component";
 import {RenderMode, ServerRoute} from "@angular/ssr";
 import {LayoutAnimationTestComponent} from "./pages/layout-animation-test/layout-animation-test.component";
 import {ContractComponent} from "./pages/contract/contract.component";
+import {ErrorComponent} from "./pages/error/error.component";
 
 export const routes: Routes = [
   {
@@ -43,6 +43,10 @@ export const routes: Routes = [
   {
     path: 'contract/:code',
     component: ContractComponent,
+  },
+  {
+    path: 'error',
+    component: ErrorComponent
   },
   {
     path: '**', component: HomeComponent
