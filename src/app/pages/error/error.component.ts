@@ -1,4 +1,5 @@
-import { Component } from '@angular/core';
+import {Component, inject} from '@angular/core';
+import {DataService} from "../../services/data.service";
 
 @Component({
   selector: 'app-error',
@@ -7,5 +8,5 @@ import { Component } from '@angular/core';
   styleUrl: './error.component.css'
 })
 export class ErrorComponent {
-
+  ds = inject(DataService);
 }
