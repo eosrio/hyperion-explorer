@@ -15,7 +15,7 @@ export class ErrorComponent {
   constructor() {
     afterNextRender(() => {
       animate([
-        ["#error-icon", {y: [50, 0], rotate: [-20, 0]}, {type: "spring", stiffness: 60, damping: 5}],
+        ["#error-icon", {y: [50, 0], rotate: [-20, 0]}, {type: "spring", stiffness: 60, damping: 4}],
         ["#error-text1", {opacity: [0, 1], y: ["50%", 0]}, {at: 0.5}],
         ["#error-text2", {opacity: [0, 1], y: ["-50%", 0]}, {at: 0.5}],
         ["#error-reason", {opacity: [0, 1], x: [-50, 0]}],
