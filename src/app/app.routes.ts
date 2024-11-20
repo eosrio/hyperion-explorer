@@ -49,7 +49,7 @@ export const routes: Routes = [
     component: ErrorComponent
   },
   {
-    path: '**', component: HomeComponent
+    path: '**', component: LayoutAnimationTestComponent
   }
 ];
 
