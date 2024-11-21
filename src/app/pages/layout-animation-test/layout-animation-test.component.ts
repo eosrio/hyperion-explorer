@@ -22,12 +22,13 @@ import {faSearch} from "@fortawesome/free-solid-svg-icons";
 import {toObservable} from "@angular/core/rxjs-interop";
 import {ExplorerMetadata} from "../../interfaces";
 import {MatAutocomplete, MatAutocompleteTrigger, MatOption} from "@angular/material/autocomplete";
-import {Router, RouterOutlet} from "@angular/router";
+import {Router, RouterLink, RouterOutlet} from "@angular/router";
 import {debounceTime} from "rxjs";
 import {MatButton} from "@angular/material/button";
 
 import {version as PackageVersion} from '../../../../package.json';
 import {FaIconComponent} from "@fortawesome/angular-fontawesome";
+import {LayoutTransitionComponent} from "../../components/layout-transition/layout-transition.component";
 
 
 @Component({
@@ -42,7 +43,9 @@ import {FaIconComponent} from "@fortawesome/angular-fontawesome";
     MatAutocomplete,
     MatOption,
     RouterOutlet,
-    FaIconComponent
+    FaIconComponent,
+    LayoutTransitionComponent,
+    RouterLink
   ],
   standalone: true,
   templateUrl: './layout-animation-test.component.html',
@@ -101,6 +104,9 @@ export class LayoutAnimationTestComponent implements OnInit, OnDestroy {
   globalWidth = signal(0);
   $globalWidth = toObservable(this.globalWidth).pipe(debounceTime(200));
   private isResizing = false;
+
+
+  transitionProgress = signal<number>(0);
 
   ngOnInit(): void {
     // if (isPlatformBrowser(this.platformId)) {
@@ -315,6 +321,7 @@ export class LayoutAnimationTestComponent implements OnInit, OnDestroy {
   // onResize(event: Event) {
     // this.globalWidth.set(window.innerWidth);
   // }
+
 
   private debouncedResize(width: number) {
     if (!this.scrollTimeline || this.isResizing) {

@@ -1,10 +1,50 @@
+<app-layout-transition [observedIds]="['header-container']"
+                       [sourceDiv]="logoSourceDiv" [targetDiv]="logoTargetDiv" [progress]="transitionProgress()">
+  <div class="h-[4.375rem]" style="z-index: 100">
+    <img [ngSrc]="chainData().logo" alt="logo" class="h-full w-auto logo" width="192" height="70"
+         priority/>
+  </div>
+</app-layout-transition>
+
+
 <div id="layout-container" class="w-full h-full flex flex-col justify-between">
 
   <!--  <div class="">-->
   <div id="header-container"
        class="header-card flex flex-col justify-between items-center fixed top-0 lg:rounded-b-2xl left-0 right-0 lg:left-3 lg:right-3 w-full lg:w-auto">
     <div class="w-full mt-7">
-      <app-pre-header></app-pre-header>
+      <div class="hr-container flex flex-row flex-wrap justify-between items-center gap-5">
+        <!--  <div class="flex flex-row items-center grow">-->
+        <div routerLink="/" style="cursor: pointer"
+             class="flex flex-row flex-wrap justify-start items-center gap-1.5 xs:gap-1.5">
+          <img
+            ngSrc="assets/hyperion-pulse.svg"
+            alt="logo"
+            style="height: 19px"
+            class="logo"
+            width="26.85" height="19"
+          />
+
+          <div class="logo-name">HYPERION</div>
+          <div class="tagline faded w-max">Lightweight Explorer</div>
+        </div>
+        <!--        @if (chainData()) {-->
+        <div class="searchbar-empty-space grow flex flex-row gap-2 md:gap-5 max-w-[46rem]">
+          <div #logoTargetDiv>
+            <img  [src]="chainData().logo" id="compact-logo" alt="logo" class="compact-logo "/>
+          </div>
+          <div class="searchbar-placeholder bg-gray-400 w-full"></div>
+        </div>
+        <!--        }-->
+        <!--  </div>-->
+        @if (chainData()) {
+          <div class="faded provider">
+            Data provider:
+            <a [href]="chainData().provider_url" target="_blank">{{ chainData().provider }}</a>
+          </div>
+        }
+      </div>
+
     </div>
     <div id="searchbar-container"
          class="flex flex-col justify-center items-center gap-10 pt-9 pb-10 w-full searchbar-container">
@@ -13,12 +53,12 @@
 
         <div class="w-full relative flex flex-col gap-5 justify-center items-center">
 
-          <div id="logo-element" class="h-[4.375rem]">
+          <div #logoSourceDiv id="logo-element" class="h-[4.375rem] invisible">
             <img [ngSrc]="chainData().logo" id="main-logo" alt="logo" class="h-full w-auto logo" width="192" height="70"
                  priority/>
           </div>
           <div id="search-bar" class="flex flex-col">
-            <div  class="custom-input-group grow lg:w-[32.813rem] flex flex-row
+            <div class="custom-input-group grow lg:w-[32.813rem] flex flex-row
           rounded-full">
               <input #searchField formControlName="search_field" [placeholder]="searchPlaceholder()"
                      class="custom-input grow outline-none ml-0 pl-5 py-4 rounded-l-full w-full sm:w-96 max-w-full"
@@ -40,17 +80,17 @@
                 </div>
 
               }
-            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="submit()"
-                              class="custom-autocomplete"
-                              [classList]="'custom-autocomplete'">
-              @for (account of filteredAccounts(); track account) {
-                <mat-option [value]="account">
-                  {{ account }}
-                </mat-option>
-              }
-            </mat-autocomplete>
+              <mat-autocomplete #auto="matAutocomplete" (optionSelected)="submit()"
+                                class="custom-autocomplete"
+                                [classList]="'custom-autocomplete'">
+                @for (account of filteredAccounts(); track account) {
+                  <mat-option [value]="account">
+                    {{ account }}
+                  </mat-option>
+                }
+              </mat-autocomplete>
+            </div>
           </div>
-        </div>
 
         </div>
       </form>
