@@ -90,6 +90,7 @@
 
 .searchbar-placeholder {
   min-width: 17.813rem; /* 285px */
+  height: 2.625rem;
 }
 
 @media (max-width: 426px) {
@@ -109,4 +110,9 @@
   .searchbar-empty-space {
     order: 3
   }
+}
+
+.logo {
+  max-height:100%;
+  max-width:100%;
 }

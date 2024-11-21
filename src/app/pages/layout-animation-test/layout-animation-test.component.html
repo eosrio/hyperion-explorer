@@ -1,8 +1,48 @@
-<app-layout-transition [observedIds]="['header-container']"
+<app-layout-transition [observedIds]="['header-container', 'tagline']"
                        [sourceDiv]="logoSourceDiv" [targetDiv]="logoTargetDiv" [progress]="transitionProgress()">
   <div class="h-[4.375rem]" style="z-index: 100">
-    <img [ngSrc]="chainData().logo" alt="logo" class="h-full w-auto logo" width="192" height="70"
-         priority/>
+    <img [src]="chainData().logo" alt="logo" class="logo"/>
+  </div>
+</app-layout-transition>
+
+<app-layout-transition [observedIds]="['header-container', 'tagline']"
+                       [sourceDiv]="searchbarSourceDiv" [targetDiv]="searchbarTargetDiv"
+                       [progress]="transitionProgress()">
+  <div>
+    <form [formGroup]="searchForm" (ngSubmit)="submit()" class="flex flex-col">
+      <div class="custom-input-group grow w-full flex flex-row
+          rounded-full">
+        <input #searchField formControlName="search_field" [placeholder]="searchPlaceholder()"
+               class="custom-input grow outline-none ml-0 pl-5 py-4 rounded-l-full w-full sm:w-96 max-w-full"
+               [matAutocomplete]="auto">
+        <button mat-raised-button class="search-btn mr-2 place-self-center" [class.primary-btn]="validSearch()">
+          <fa-icon [icon]="icons.solid.search"></fa-icon>
+          @if (validSearch()) {
+            Search {{ searchService.searchType() }}
+          } @else {
+            Search
+          }
+        </button>
+      </div>
+      <div class="flex flex-row justify-center w-full min-h-8">
+        @if (err()) {
+
+          <div class="w-full sm:w-[525px] max-w-full pl-5">
+            <div class="justify-start text-red-600 pt-3 animate fast fadeInDown">{{ err() }}</div>
+          </div>
+
+        }
+        <mat-autocomplete #auto="matAutocomplete" (optionSelected)="submit()"
+                          class="custom-autocomplete"
+                          [classList]="'custom-autocomplete'">
+          @for (account of filteredAccounts(); track account) {
+            <mat-option [value]="account">
+              {{ account }}
+            </mat-option>
+          }
+        </mat-autocomplete>
+      </div>
+    </form>
   </div>
 </app-layout-transition>
 
@@ -26,14 +66,14 @@
           />
 
           <div class="logo-name">HYPERION</div>
-          <div class="tagline faded w-max">Lightweight Explorer</div>
+          <div id="tagline" class="tagline faded w-max">Lightweight Explorer</div>
         </div>
         <!--        @if (chainData()) {-->
-        <div class="searchbar-empty-space grow flex flex-row gap-2 md:gap-5 max-w-[46rem]">
-          <div #logoTargetDiv>
-            <img  [src]="chainData().logo" id="compact-logo" alt="logo" class="compact-logo "/>
+        <div class="searchbar-empty-space grow flex flex-row items-center gap-2 md:gap-5 max-w-[46rem]">
+          <div #logoTargetDiv class="compact-logo opacity-10">
+            <img [src]="chainData().logo" id="compact-logo" alt="logo" class="logo"/>
           </div>
-          <div class="searchbar-placeholder bg-gray-400 w-full"></div>
+          <div #searchbarTargetDiv class="searchbar-placeholder bg-red-400 w-full opacity-5"></div>
         </div>
         <!--        }-->
         <!--  </div>-->
@@ -47,53 +87,18 @@
 
     </div>
     <div id="searchbar-container"
-         class="flex flex-col justify-center items-center gap-10 pt-9 pb-10 w-full searchbar-container">
-      <form [formGroup]="searchForm" (ngSubmit)="submit()">
+         class="flex flex-col justify-center items-center gap-5 pt-9 pb-10 w-full searchbar-container">
 
-
-        <div class="w-full relative flex flex-col gap-5 justify-center items-center">
-
-          <div #logoSourceDiv id="logo-element" class="h-[4.375rem] invisible">
-            <img [ngSrc]="chainData().logo" id="main-logo" alt="logo" class="h-full w-auto logo" width="192" height="70"
-                 priority/>
-          </div>
-          <div id="search-bar" class="flex flex-col">
-            <div class="custom-input-group grow lg:w-[32.813rem] flex flex-row
+      <div #logoSourceDiv id="logo-element" class="h-[4.375rem] opacity-10">
+        <img [src]="chainData().logo" id="main-logo" alt="logo" class="logo"/>
+      </div>
+      <div #searchbarSourceDiv id="search-bar" class="flex flex-col bg-blue-400 h-[51px] opacity-5">
+        <div class="custom-input-group grow lg:w-[32.813rem] flex flex-row
           rounded-full">
-              <input #searchField formControlName="search_field" [placeholder]="searchPlaceholder()"
-                     class="custom-input grow outline-none ml-0 pl-5 py-4 rounded-l-full w-full sm:w-96 max-w-full"
-                     [matAutocomplete]="auto">
-              <button mat-raised-button class="search-btn mr-2 place-self-center" [class.primary-btn]="validSearch()">
-                <fa-icon [icon]="icons.solid.search"></fa-icon>
-                @if (validSearch()) {
-                  Search {{ searchService.searchType() }}
-                } @else {
-                  Search
-                }
-              </button>
-            </div>
-            <div class="flex flex-row justify-center w-full min-h-8">
-              @if (err()) {
-
-                <div class="w-full sm:w-[525px] max-w-full pl-5">
-                  <div class="justify-start text-red-600 pt-3 animate fast fadeInDown">{{ err() }}</div>
-                </div>
-
-              }
-              <mat-autocomplete #auto="matAutocomplete" (optionSelected)="submit()"
-                                class="custom-autocomplete"
-                                [classList]="'custom-autocomplete'">
-                @for (account of filteredAccounts(); track account) {
-                  <mat-option [value]="account">
-                    {{ account }}
-                  </mat-option>
-                }
-              </mat-autocomplete>
-            </div>
-          </div>
-
         </div>
-      </form>
+        <div class="flex flex-row justify-center w-full min-h-8"></div>
+      </div>
+
     </div>
   </div>
   <!--  </div>-->

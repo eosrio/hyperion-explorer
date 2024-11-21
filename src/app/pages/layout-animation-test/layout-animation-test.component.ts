@@ -106,7 +106,7 @@ export class LayoutAnimationTestComponent implements OnInit, OnDestroy {
   private isResizing = false;
 
 
-  transitionProgress = signal<number>(1);
+  transitionProgress = signal<number>(0);
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -240,6 +240,9 @@ export class LayoutAnimationTestComponent implements OnInit, OnDestroy {
         scrub: true,
         // markers: true,
         snap: {snapTo: 1, duration: 0.5, ease: 'linear'},
+        onUpdate: (self) => {
+          this.transitionProgress.set(self.progress);
+        }
         // onLeaveBack: () => {
         //   this.headerExpanded.set(true);
         // },
@@ -262,7 +265,7 @@ export class LayoutAnimationTestComponent implements OnInit, OnDestroy {
 
 
     // animate the tagline out
-    scrollTimeline.to('.tagline', {xPercent: '-100', opacity: 0, width: 0, duration: 0.5}, 0);
+    scrollTimeline.to('.tagline', {left: '-100', opacity: 0, width: 0, display: 'none', duration: 0.5}, 0);
     scrollTimeline.to(headerContainer, {height: '6.438rem', duration: 0.5}, 0);
 
     // const logoRect = logo.getBoundingClientRect();
