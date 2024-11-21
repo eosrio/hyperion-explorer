@@ -5,12 +5,13 @@ import {
   computed,
   effect,
   ElementRef,
-  HostListener,
+  HostListener, inject,
   input,
-  linkedSignal, OnInit,
+  linkedSignal, OnInit, PLATFORM_ID,
   signal
 } from '@angular/core';
 import {toObservable} from "@angular/core/rxjs-interop";
+import {isPlatformBrowser} from "@angular/common";
 
 @Component({
   selector: 'app-layout-transition',
@@ -21,6 +22,7 @@ import {toObservable} from "@angular/core/rxjs-interop";
 export class LayoutTransitionComponent {
 
   observedIds = input<string[]>([]);
+  platformId = inject(PLATFORM_ID);
 
   // The progress of the transition
   progress = input(0);
@@ -29,13 +31,29 @@ export class LayoutTransitionComponent {
   sourceDiv = input.required<HTMLDivElement>();
   targetDiv = input.required<HTMLDivElement>();
 
+  sourceDOMRect = computed(() => {
+    if (isPlatformBrowser(this.platformId)) {
+      return this.sourceDiv().getBoundingClientRect();
+    } else {
+      return { top: 0, left: 0, width: 0, height: 0 };
+    }
+  });
+
+  targetDOMRect = computed(() => {
+    if (isPlatformBrowser(this.platformId)) {
+      return this.targetDiv().getBoundingClientRect();
+    } else {
+      return { top: 0, left: 0, width: 0, height: 0 };
+    }
+  });
+
   // The deltas between the source and target divs
   topDelta = linkedSignal(() => {
-    return this.targetDiv().offsetTop - this.sourceDiv().offsetTop;
+    return this.targetDOMRect().top - this.sourceDOMRect().top;
   });
 
   leftDelta = linkedSignal(() => {
-    return this.targetDiv().offsetLeft - this.sourceDiv().offsetLeft;
+    return this.targetDOMRect().left - this.sourceDOMRect().left;
   });
 
   widthDelta = linkedSignal(() => {
@@ -48,11 +66,11 @@ export class LayoutTransitionComponent {
 
   // The computed styles for the transition
   top = computed(() => {
-    return (this.progress() * this.topDelta() + this.sourceDiv().offsetTop) + "px";
+    return (this.progress() * this.topDelta() + this.sourceDOMRect().top) + "px";
   });
 
   left = computed(() => {
-    return (this.progress() * this.leftDelta() + this.sourceDiv().offsetLeft) + "px";
+    return (this.progress() * this.leftDelta() + this.sourceDOMRect().left) + "px";
   });
 
   width = computed(() => {
@@ -87,16 +105,17 @@ export class LayoutTransitionComponent {
       if (element) {
         observer.observe(element, {
           attributes: true,
-          childList: true,
-          subtree: true
+          childList: false,
+          subtree: false
         });
       }
     }
   }
 
   refresh() {
-    this.topDelta.set(this.targetDiv().offsetTop - this.sourceDiv().offsetTop);
-    this.leftDelta.set(this.targetDiv().offsetLeft - this.sourceDiv().offsetLeft);
+    console.log('refresh');
+    this.topDelta.set(this.targetDOMRect().top - this.sourceDOMRect().top);
+    this.leftDelta.set(this.targetDOMRect().left - this.sourceDOMRect().left);
     this.widthDelta.set(this.targetDiv().clientWidth - this.sourceDiv().clientWidth);
     this.heightDelta.set(this.targetDiv().clientHeight - this.sourceDiv().clientHeight);
   }

@@ -106,7 +106,7 @@ export class LayoutAnimationTestComponent implements OnInit, OnDestroy {
   private isResizing = false;
 
 
-  transitionProgress = signal<number>(0);
+  transitionProgress = signal<number>(1);
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
