@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { LayoutAnimationTestComponent } from './layout-animation-test.component';
+import { MainSearchComponent } from './main-search.component';
 
 describe('LayoutAnimationTestComponent', () => {
-  let component: LayoutAnimationTestComponent;
-  let fixture: ComponentFixture<LayoutAnimationTestComponent>;
+  let component: MainSearchComponent;
+  let fixture: ComponentFixture<MainSearchComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [LayoutAnimationTestComponent]
+      imports: [MainSearchComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(LayoutAnimationTestComponent);
+    fixture = TestBed.createComponent(MainSearchComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

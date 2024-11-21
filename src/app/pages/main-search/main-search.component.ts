@@ -46,10 +46,10 @@ import {LayoutTransitionComponent} from "../../components/layout-transition/layo
     RouterLink
   ],
   standalone: true,
-  templateUrl: './layout-animation-test.component.html',
-  styleUrl: './layout-animation-test.component.css'
+  templateUrl: './main-search.component.html',
+  styleUrl: './main-search.component.css'
 })
-export class LayoutAnimationTestComponent implements OnInit, OnDestroy {
+export class MainSearchComponent implements OnInit, OnDestroy {
   // injected services
   searchService = inject(SearchService);
   accService = inject(AccountService);
@@ -96,13 +96,7 @@ export class LayoutAnimationTestComponent implements OnInit, OnDestroy {
 
   err = signal("");
 
-  headerExpanded = signal(true);
   private scrollTimeline?: gsap.core.Timeline;
-
-  globalWidth = signal(0);
-  $globalWidth = toObservable(this.globalWidth).pipe(debounceTime(200));
-  private isResizing = false;
-
 
   taglineMax = 145;
   transitionProgress = signal<number>(0);
@@ -115,20 +109,14 @@ export class LayoutAnimationTestComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    // window.removeEventListener('resize', this.debouncedResize.bind(this));
     if (this.scrollTimeline) {
       this.scrollTimeline.kill();
     }
-    // this.debouncedResize.cancel();
   }
 
   constructor() {
 
     this.initGsap();
-
-    this.$globalWidth.subscribe((width) => {
-      this.debouncedResize(width);
-    });
 
     if (this.dataService.explorerMetadata) {
       this.chainData.set(this.dataService.explorerMetadata);
@@ -203,7 +191,6 @@ export class LayoutAnimationTestComponent implements OnInit, OnDestroy {
       } else {
         this.err.set("");
         await this.router.navigateByUrl(`/${this.searchService.searchType()}/${this.searchService.searchQuery()}`);
-        // this.setupHeaderTransition();
       }
     }
   }
@@ -214,13 +201,9 @@ export class LayoutAnimationTestComponent implements OnInit, OnDestroy {
   }
 
   private createScrollAnimation() {
-
     const headerContainer = document.querySelector('#header-container');
-    const logo = document.querySelector('#logo-element') as HTMLDivElement;
-    const searchBar = document.querySelector('#search-bar') as HTMLDivElement;
     const contentContainer = document.querySelector('#content-container') as HTMLDivElement;
-
-    if (!headerContainer || !logo || !searchBar || !contentContainer) {
+    if (!headerContainer || !contentContainer) {
       return;
     }
 
@@ -229,10 +212,7 @@ export class LayoutAnimationTestComponent implements OnInit, OnDestroy {
       paddingBottom: `${headerContainer.clientHeight}px`
     });
 
-    // const logoGap = 10;
-
     const scrollTimeline = gsap.timeline({
-      // passive: true,
       scrollTrigger: {
         trigger: headerContainer,
         start: 'top top',
@@ -244,26 +224,8 @@ export class LayoutAnimationTestComponent implements OnInit, OnDestroy {
           this.transitionProgress.set(self.progress);
           this.taglineWidth.set(this.taglineMax - (self.progress * this.taglineMax));
         }
-        // onLeaveBack: () => {
-        //   this.headerExpanded.set(true);
-        // },
-        // onLeave: () => {
-        // gsap.set('#account-name-sticky', {position: 'sticky'});
-        // this.headerExpanded.set(false);
-        // if (!this.isResizing) {
-        // this.resizeHeader();
-        // }
-        // }
       },
     });
-
-
-    // gsap.to(searchBar, {opacity: 1, duration: 0.5});
-    //
-    // const logoInitialHeight = 4.375;
-    // const logoFinalHeight = logoInitialHeight - 1.75;
-    // const logoScale = logoFinalHeight / logoInitialHeight;
-
 
     // animate the tagline out
     scrollTimeline.to('.tagline', {
@@ -271,103 +233,13 @@ export class LayoutAnimationTestComponent implements OnInit, OnDestroy {
       opacity: 0,
       duration: 1
     }, 0);
+
     scrollTimeline.to(headerContainer, {
       height: '6.438rem',
       duration: 1,
       ease: 'power3.in'
     }, 0);
 
-    // const logoRect = logo.getBoundingClientRect();
-    // const hyperionLogo = (document.querySelector('.logo-name') as HTMLDivElement).getBoundingClientRect();
-    // const dataProviderElement = (document.querySelector('.provider') as HTMLDivElement).getBoundingClientRect();
-
-    // const leftMargin = hyperionLogo.right;
-    // const rightMargin = window.innerWidth - dataProviderElement.left;
-    // const sideMargin = Math.max(leftMargin, rightMargin);
-
-    // const finalSearchBarWidth = window.innerWidth - (sideMargin * 2) - ((logoRect.width + logoGap) * 2);
-
-    // const finalLogoWidth = logoRect.width * logoScale;
-    // const deltaX = -(window.innerWidth / 2) - (finalLogoWidth / 2) + ((window.innerWidth - finalSearchBarWidth) / 2) - logoGap;
-
-    // calculate how much both the logo and search bar need to move to the center
-    // const totalFinalWidth = finalLogoWidth + finalSearchBarWidth + (logoGap * 2);
-    // const remainingSpace = window.innerWidth - totalFinalWidth;
-    // const alignmentOffset = (remainingSpace / 2) - sideMargin;
-
-    // scrollTimeline.to(searchBar, {
-    //   height: '2.625rem',
-    //   width: finalSearchBarWidth + alignmentOffset,
-    //   x: alignmentOffset / 2
-    // }, 0);
-
-    // scrollTimeline.to(logo, {
-    //   duration: 0.5,
-    //   height: `${logoFinalHeight}rem`,
-    //   x: deltaX,
-    //   y: 0,
-    //   onComplete: () => {
-    // this.resizeHeader();
-    // }
-    // }, 0);
-
     this.scrollTimeline = scrollTimeline;
-  }
-
-
-  private debouncedResize(width: number) {
-    if (!this.scrollTimeline || this.isResizing) {
-      return;
-    }
-    if (!this.headerExpanded()) {
-      console.log('Resizing compact header...');
-      this.isResizing = true;
-
-      // kill the scroll timeline if the window is resized
-      this.scrollTimeline.kill();
-
-      const headerContainer = (document.querySelector('#header-container') as HTMLDivElement);
-      const contentContainer = document.querySelector('#content-container') as HTMLDivElement;
-
-      // reset the padding top of the content container
-      gsap.set(contentContainer, {paddingTop: `${headerContainer.clientHeight + 30}px`});
-
-      // this.resizeHeader();
-
-    } else {
-      console.log('Resizing expanded header...');
-      // this.scrollTimeline.pause(0);
-    }
-  }
-
-  resizeHeader() {
-    const logoElement = document.querySelector('#logo-element') as HTMLDivElement;
-    const searchBar = (document.querySelector('#search-bar') as HTMLDivElement).getBoundingClientRect();
-    const logo = logoElement.getBoundingClientRect();
-    const hyperionLogo = (document.querySelector('.logo-name') as HTMLDivElement).getBoundingClientRect();
-    const dataProviderElement = (document.querySelector('.provider') as HTMLDivElement).getBoundingClientRect();
-    const sideMargin = Math.max(hyperionLogo.right, (window.innerWidth - dataProviderElement.left)) + 10;
-    const currentTotalWidth = searchBar.width + logo.width + 20;
-    const availableWidth = window.innerWidth - (sideMargin * 2);
-
-    const timeline = gsap.timeline({
-      onComplete: () => {
-        this.isResizing = false;
-      }
-    });
-
-    // move the logo to the left
-    timeline.to(logoElement, {
-      x: "+=" + (sideMargin - logo.left),
-      duration: 0.3,
-      ease: "power3.out"
-    })
-
-    // resize the search bar
-    timeline.to('#search-bar', {
-      width: (searchBar.width + (availableWidth - currentTotalWidth)),
-      duration: 0.3,
-      ease: "power3.out"
-    });
   }
 }
