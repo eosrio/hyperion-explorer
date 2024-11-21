@@ -109,9 +109,9 @@ export class LayoutAnimationTestComponent implements OnInit, OnDestroy {
   transitionProgress = signal<number>(0);
 
   ngOnInit(): void {
-    // if (isPlatformBrowser(this.platformId)) {
-    //   this.createScrollAnimation();
-    // }
+    if (isPlatformBrowser(this.platformId)) {
+      this.createScrollAnimation();
+    }
   }
 
   ngOnDestroy() {
@@ -229,10 +229,10 @@ export class LayoutAnimationTestComponent implements OnInit, OnDestroy {
       paddingBottom: `${headerContainer.clientHeight}px`
     });
 
-    const logoGap = 10;
+    // const logoGap = 10;
 
     const scrollTimeline = gsap.timeline({
-      passive: true,
+      // passive: true,
       scrollTrigger: {
         trigger: headerContainer,
         start: 'top top',
@@ -240,78 +240,64 @@ export class LayoutAnimationTestComponent implements OnInit, OnDestroy {
         scrub: true,
         // markers: true,
         snap: {snapTo: 1, duration: 0.5, ease: 'linear'},
-
-        onLeaveBack: () => {
-          this.headerExpanded.set(true);
-        },
-        onLeave: () => {
+        // onLeaveBack: () => {
+        //   this.headerExpanded.set(true);
+        // },
+        // onLeave: () => {
           // gsap.set('#account-name-sticky', {position: 'sticky'});
-          this.headerExpanded.set(false);
-          if (!this.isResizing) {
+          // this.headerExpanded.set(false);
+          // if (!this.isResizing) {
             // this.resizeHeader();
-          }
-        }
+          // }
+        // }
       },
     });
 
-    // set initial opacity to 1
-    const gap = (1 - (0)) * logoGap;
-    const deltaY = logo.clientHeight + gap;
 
-    gsap.set(logo, {
-      borderRadius: "10px",
-      opacity: 0,
-      x: 0,
-      y: -deltaY,
-      // transform: `translateX(0px) translateY(-${deltaY}px)`,
-    });
-
-    // fade in the logo and search bar
-    gsap.to(logo, {opacity: 1, duration: 0.2});
-    gsap.to(searchBar, {opacity: 1, duration: 0.5});
-
-    const logoInitialHeight = 4.375;
-    const logoFinalHeight = logoInitialHeight - 1.75;
-    const logoScale = logoFinalHeight / logoInitialHeight;
+    // gsap.to(searchBar, {opacity: 1, duration: 0.5});
+    //
+    // const logoInitialHeight = 4.375;
+    // const logoFinalHeight = logoInitialHeight - 1.75;
+    // const logoScale = logoFinalHeight / logoInitialHeight;
 
 
     // animate the tagline out
     scrollTimeline.to('.tagline', {xPercent: '-100', opacity: 0, width: 0, duration: 0.5}, 0);
     scrollTimeline.to(headerContainer, {height: '6.438rem', duration: 0.5}, 0);
 
-    const logoRect = logo.getBoundingClientRect();
-    const hyperionLogo = (document.querySelector('.logo-name') as HTMLDivElement).getBoundingClientRect();
-    const dataProviderElement = (document.querySelector('.provider') as HTMLDivElement).getBoundingClientRect();
+    // const logoRect = logo.getBoundingClientRect();
+    // const hyperionLogo = (document.querySelector('.logo-name') as HTMLDivElement).getBoundingClientRect();
+    // const dataProviderElement = (document.querySelector('.provider') as HTMLDivElement).getBoundingClientRect();
 
-    const leftMargin = hyperionLogo.right;
-    const rightMargin = window.innerWidth - dataProviderElement.left;
-    const sideMargin = Math.max(leftMargin, rightMargin);
+    // const leftMargin = hyperionLogo.right;
+    // const rightMargin = window.innerWidth - dataProviderElement.left;
+    // const sideMargin = Math.max(leftMargin, rightMargin);
 
-    const finalSearchBarWidth = window.innerWidth - (sideMargin * 2) - ((logoRect.width + logoGap) * 2);
+    // const finalSearchBarWidth = window.innerWidth - (sideMargin * 2) - ((logoRect.width + logoGap) * 2);
 
-    const finalLogoWidth = logoRect.width * logoScale;
-    const deltaX = -(window.innerWidth / 2) - (finalLogoWidth / 2) + ((window.innerWidth - finalSearchBarWidth) / 2) - logoGap;
+    // const finalLogoWidth = logoRect.width * logoScale;
+    // const deltaX = -(window.innerWidth / 2) - (finalLogoWidth / 2) + ((window.innerWidth - finalSearchBarWidth) / 2) - logoGap;
 
     // calculate how much both the logo and search bar need to move to the center
-    const totalFinalWidth = finalLogoWidth + finalSearchBarWidth + (logoGap * 2);
-    const remainingSpace = window.innerWidth - totalFinalWidth;
-    const alignmentOffset = (remainingSpace / 2) - sideMargin;
+    // const totalFinalWidth = finalLogoWidth + finalSearchBarWidth + (logoGap * 2);
+    // const remainingSpace = window.innerWidth - totalFinalWidth;
+    // const alignmentOffset = (remainingSpace / 2) - sideMargin;
 
-    scrollTimeline.to(searchBar, {
-      height: '2.625rem',
-      width: finalSearchBarWidth + alignmentOffset,
-      x: alignmentOffset / 2
-    }, 0);
+    // scrollTimeline.to(searchBar, {
+    //   height: '2.625rem',
+    //   width: finalSearchBarWidth + alignmentOffset,
+    //   x: alignmentOffset / 2
+    // }, 0);
 
-    scrollTimeline.to(logo, {
-      duration: 0.5,
-      height: `${logoFinalHeight}rem`,
-      x: deltaX,
-      y: 0,
-      onComplete: () => {
+    // scrollTimeline.to(logo, {
+    //   duration: 0.5,
+    //   height: `${logoFinalHeight}rem`,
+    //   x: deltaX,
+    //   y: 0,
+    //   onComplete: () => {
         // this.resizeHeader();
-      }
-    }, 0);
+      // }
+    // }, 0);
 
     this.scrollTimeline = scrollTimeline;
   }
