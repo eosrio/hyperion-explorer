@@ -31,7 +31,7 @@ export class LayoutTransitionComponent {
   sourceDiv = input.required<HTMLDivElement>();
   targetDiv = input.required<HTMLDivElement>();
 
-  sourceDOMRect = computed(() => {
+  sourceDOMRect = linkedSignal(() => {
     if (isPlatformBrowser(this.platformId)) {
       return this.sourceDiv().getBoundingClientRect();
     } else {
@@ -39,7 +39,7 @@ export class LayoutTransitionComponent {
     }
   });
 
-  targetDOMRect = computed(() => {
+  targetDOMRect = linkedSignal(() => {
     if (isPlatformBrowser(this.platformId)) {
       return this.targetDiv().getBoundingClientRect();
     } else {
@@ -113,7 +113,10 @@ export class LayoutTransitionComponent {
   }
 
   refresh() {
-    console.log('refresh');
+    console.log(`refresh at ${this.progress()}`);
+    this.targetDOMRect.set(this.targetDiv().getBoundingClientRect());
+    this.sourceDOMRect.set(this.sourceDiv().getBoundingClientRect());
+
     this.topDelta.set(this.targetDOMRect().top - this.sourceDOMRect().top);
     this.leftDelta.set(this.targetDOMRect().left - this.sourceDOMRect().left);
     this.widthDelta.set(this.targetDiv().clientWidth - this.sourceDiv().clientWidth);
