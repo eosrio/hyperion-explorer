@@ -28,6 +28,7 @@ import {MatButton} from "@angular/material/button";
 import {version as PackageVersion} from '../../../../package.json';
 import {FaIconComponent} from "@fortawesome/angular-fontawesome";
 import {LayoutTransitionComponent} from "../../components/layout-transition/layout-transition.component";
+import {scroll, animate, progress} from "motion";
 
 
 @Component({
@@ -106,7 +107,8 @@ export class MainSearchComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
-      this.createScrollAnimation();
+      // this.createScrollAnimation();
+      this.createMotionAnimation();
     }
   }
 
@@ -195,6 +197,47 @@ export class MainSearchComponent implements OnInit, OnDestroy {
         await this.router.navigateByUrl(`/${this.searchService.searchType()}/${this.searchService.searchQuery()}`);
       }
     }
+  }
+
+  private createMotionAnimation() {
+    const headerContainer = document.querySelector('#header-container') as HTMLDivElement;
+    const contentContainer = document.querySelector('#content-container') as HTMLDivElement;
+
+    if (!headerContainer || !contentContainer) {
+      return;
+    }
+
+    animate([
+      [contentContainer, {
+        paddingTop: `${headerContainer.clientHeight + 30}px`,
+        paddingBottom: `${headerContainer.clientHeight}px`
+      }],
+    ]);
+
+    scroll(
+      (progress: any) => {
+        console.log('progress', progress);
+        this.transitionProgress.set(progress);
+        this.taglineWidth.set(this.taglineMax - (progress * this.taglineMax));
+        this.searchinputPadding.set((this.paddingMax * (1 - progress)) + (0.75 * progress));
+      },
+      {target: headerContainer, offset: ['start start', '300px 100px']}
+    );
+
+
+    scroll(animate('.tagline', {left: [0, -100], opacity: [1, 0]}, {duration: 0.25, type: "spring", stiffness: 100, bounce: 0, mass: 0.1}),
+      {target: headerContainer, offset: ['start start', '300px 100px']}
+    );
+
+
+    scroll(
+      // @ts-ignore
+      animate(headerContainer, {height: '6.7rem'}, {duration: 0.25, type: "spring", stiffness: 100, bounce: 0, mass: 0.1}),
+      {
+        target: headerContainer,
+        offset: ['start start', '300px 100px'],
+      }
+    );
   }
 
   initGsap() {
