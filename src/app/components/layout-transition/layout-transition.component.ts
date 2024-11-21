@@ -16,7 +16,7 @@ import {Subject} from "rxjs";
   selector: 'app-layout-transition',
   imports: [],
   template: `
-    <div #wrapper class="fixed" style="z-index: 99"
+    <div #wrapper class="fixed " style="z-index: 99"
          [style.opacity]="opacity()"
          [style.top]="top()"
          [style.width]="width()"

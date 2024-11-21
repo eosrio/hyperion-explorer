@@ -1,4 +1,4 @@
-import {Component, ElementRef, inject, OnDestroy, PLATFORM_ID, signal, viewChild, ViewChild} from '@angular/core';
+import {Component, ElementRef, inject, PLATFORM_ID, signal, viewChild, ViewChild} from '@angular/core';
 import {SearchService} from "../../../services/search.service";
 import {MatButton, MatIconButton} from "@angular/material/button";
 import {ActivatedRoute, Router, RouterLink} from "@angular/router";

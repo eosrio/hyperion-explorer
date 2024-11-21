@@ -22,7 +22,7 @@
 
 @media screen and (max-width: 959px) {
   .custom-input {
-    font-size: max(1.1rem, 16px);
+    /*font-size: max(1.1rem, 16px);*/
   }
 }
 

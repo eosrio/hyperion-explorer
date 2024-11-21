@@ -17,18 +17,19 @@ import {isPlatformBrowser, NgOptimizedImage} from "@angular/common";
 import {SearchService} from "../../services/search.service";
 import {AccountService} from "../../services/account.service";
 import {DataService} from "../../services/data.service";
-import {faSearch} from "@fortawesome/free-solid-svg-icons";
+import {faHeart, faSearch} from "@fortawesome/free-solid-svg-icons";
 import {toObservable} from "@angular/core/rxjs-interop";
 import {ExplorerMetadata} from "../../interfaces";
 import {MatAutocomplete, MatAutocompleteTrigger, MatOption} from "@angular/material/autocomplete";
 import {Router, RouterLink, RouterOutlet} from "@angular/router";
-import {debounceTime} from "rxjs";
+import {debounceTime, map} from "rxjs";
 import {MatButton} from "@angular/material/button";
 
 import {version as PackageVersion} from '../../../../package.json';
 import {FaIconComponent} from "@fortawesome/angular-fontawesome";
 import {LayoutTransitionComponent} from "../../components/layout-transition/layout-transition.component";
-import {scroll, animate, progress} from "motion";
+import {scroll, animate, AnimationPlaybackControls} from "motion";
+import {BreakpointObserver, Breakpoints} from "@angular/cdk/layout";
 
 
 @Component({
@@ -58,6 +59,7 @@ export class MainSearchComponent implements OnInit, OnDestroy {
   router = inject(Router);
   formBuilder = inject(FormBuilder);
   platformId = inject(PLATFORM_ID);
+  breakpointObserver = inject(BreakpointObserver);
 
   // get version from package.json
   version = PackageVersion;
@@ -65,6 +67,7 @@ export class MainSearchComponent implements OnInit, OnDestroy {
   icons = {
     solid: {
       search: faSearch,
+      heart: faHeart
     }
   }
 
@@ -103,7 +106,7 @@ export class MainSearchComponent implements OnInit, OnDestroy {
   paddingMax = 1;
   transitionProgress = signal<number>(0);
   taglineWidth = signal(this.taglineMax);
-  searchinputPadding = signal(this.paddingMax);
+  searchInputPadding = signal(this.paddingMax);
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -216,28 +219,57 @@ export class MainSearchComponent implements OnInit, OnDestroy {
 
     scroll(
       (progress: any) => {
-        console.log('progress', progress);
         this.transitionProgress.set(progress);
         this.taglineWidth.set(this.taglineMax - (progress * this.taglineMax));
-        this.searchinputPadding.set((this.paddingMax * (1 - progress)) + (0.75 * progress));
+        this.searchInputPadding.set((this.paddingMax * (1 - progress)) + (0.75 * progress));
       },
       {target: headerContainer, offset: ['start start', '300px 100px']}
     );
 
 
-    scroll(animate('.tagline', {left: [0, -100], opacity: [1, 0]}, {duration: 0.25, type: "spring", stiffness: 100, bounce: 0, mass: 0.1}),
+    scroll(animate('.tagline', {left: [0, -100], opacity: [1, 0]}, {duration: 1}),
       {target: headerContainer, offset: ['start start', '300px 100px']}
     );
 
+    let headerAnimation: AnimationPlaybackControls | null = null;
+    let scrollConfigured = false;
 
-    scroll(
-      // @ts-ignore
-      animate(headerContainer, {height: '6.7rem'}, {duration: 0.25, type: "spring", stiffness: 100, bounce: 0, mass: 0.1}),
-      {
-        target: headerContainer,
-        offset: ['start start', '300px 100px'],
-      }
-    );
+    this.breakpointObserver
+      .observe([Breakpoints.XSmall, Breakpoints.Small])
+      .pipe(map((result) => result.matches))
+      .subscribe((isSmall) => {
+
+        if (headerAnimation) {
+          console.log('Cancelling previous animation');
+          headerAnimation.stop();
+        }
+
+        headerAnimation = animate(headerContainer, {
+          height: [
+            '20.875rem', // Initial height
+            isSmall ? '9.5rem' : '6.7rem' // Final height
+          ]
+        }, {ease: "easeIn", duration: 1, autoplay: false});
+
+        if (!scrollConfigured) {
+          scrollConfigured = true;
+          scroll((p: number) => {
+            console.log(`scrolling`, p);
+            if (headerAnimation) {
+              headerAnimation.time = p;
+            }
+          }, {
+            target: headerContainer,
+            offset: ['start start', '300px 100px'],
+          });
+        }
+
+        // scroll(headerAnimation, {
+        //   target: headerContainer,
+        //   offset: ['start start', '300px 100px'],
+        // });
+
+      });
   }
 
   initGsap() {
@@ -268,7 +300,7 @@ export class MainSearchComponent implements OnInit, OnDestroy {
         onUpdate: (self) => {
           this.transitionProgress.set(self.progress);
           this.taglineWidth.set(this.taglineMax - (self.progress * this.taglineMax));
-          this.searchinputPadding.set((this.paddingMax * (1 - self.progress)) + (0.75 * self.progress));
+          this.searchInputPadding.set((this.paddingMax * (1 - self.progress)) + (0.75 * self.progress));
         }
       },
     });

@@ -9,6 +9,18 @@
   }
 }
 
+@media (max-width: 960px) {
+  #account-name-sticky {
+    top: 10.313rem;
+  }
+}
+
+@media (min-width: 961px) {
+  #account-name-sticky {
+    top: 7.625rem;
+  }
+}
+
 .total-balance {
   border-bottom: 1px solid rgba(0, 0, 0, .12);
   padding-bottom: 10px;

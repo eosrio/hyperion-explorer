@@ -14,8 +14,8 @@
       <div class="custom-input-group grow w-full flex flex-row rounded-full">
         <input #searchField formControlName="search_field" [placeholder]="searchPlaceholder()"
                class="custom-input grow outline-none pl-5 rounded-l-full w-full sm:w-96 max-w-full"
-               [style.padding-top]="searchinputPadding() +  'rem'"
-               [style.padding-bottom]="searchinputPadding() +  'rem'"
+               [style.padding-top]="searchInputPadding() +  'rem'"
+               [style.padding-bottom]="searchInputPadding() +  'rem'"
                [matAutocomplete]="auto">
         <button mat-raised-button class="search-btn mr-2 place-self-center" [class.primary-btn]="validSearch()">
           <fa-icon [icon]="icons.solid.search"></fa-icon>
@@ -72,10 +72,10 @@
         </div>
         <!--        @if (chainData()) {-->
         <div class="searchbar-empty-space grow flex flex-row items-center gap-2 md:gap-5 max-w-[46rem]">
-          <div #logoTargetDiv class="compact-logo opacity-10">
+          <div #logoTargetDiv class="compact-logo opacity-0">
             <img [src]="chainData().logo" id="compact-logo" alt="logo" class="logo"/>
           </div>
-          <div #searchbarTargetDiv class="searchbar-placeholder bg-red-400 w-full opacity-5"></div>
+          <div #searchbarTargetDiv class="searchbar-placeholder bg-red-400 w-full opacity-0"></div>
         </div>
         <!--        }-->
         <!--  </div>-->
@@ -105,6 +105,6 @@
 
   <div id="content-container" class="flex flex-col justify-center pb-10 w-full">
     <router-outlet></router-outlet>
-    <div class="text-slate-500 my-4 place-self-center">v{{ version }} | Made with ❤ by EOS Rio | RioBlocks</div>
+    <div class="text-slate-500 my-4 place-self-center">v{{ version }} | Made with <fa-icon [icon]="icons.solid.heart"></fa-icon> by EOS Rio | RioBlocks</div>
   </div>
 </div>
