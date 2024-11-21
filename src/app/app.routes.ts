@@ -3,7 +3,6 @@ import {AccountComponent} from "./components/search-results/account/account.comp
 import {TransactionComponent} from "./components/search-results/transaction/transaction.component";
 import {BlockComponent} from "./components/search-results/block/block.component";
 import {KeyComponent} from "./components/search-results/key/key.component";
-import {TestComponent} from "./pages/test/test.component";
 import {RenderMode, ServerRoute} from "@angular/ssr";
 import {MainSearchComponent} from "./pages/main-search/main-search.component";
 import {ContractComponent} from "./pages/contract/contract.component";
@@ -18,14 +17,19 @@ export const routes: Routes = [
         path: 'account/:account_name',
         component: AccountComponent,
       },
-      {path: 'block/:block_num_or_id', component: BlockComponent},
-      {path: 'key/:pub_key', component: KeyComponent},
-      {path: 'transaction/:transaction_id', component: TransactionComponent},
+      {
+        path: 'block/:block_num_or_id',
+        component: BlockComponent
+      },
+      {
+        path: 'key/:pub_key',
+        component: KeyComponent
+      },
+      {
+        path: 'transaction/:transaction_id',
+        component: TransactionComponent
+      },
     ]
-  },
-  {
-    path: 'test',
-    component: TestComponent
   },
   {
     path: 'contract/:code/:table/:scope',
@@ -44,7 +48,8 @@ export const routes: Routes = [
     component: ErrorComponent
   },
   {
-    path: '**', component: MainSearchComponent
+    path: '**',
+    component: MainSearchComponent
   }
 ];
 

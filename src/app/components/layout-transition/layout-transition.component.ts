@@ -1,18 +1,16 @@
 import {
-  AfterContentInit,
   afterNextRender,
   Component,
   computed,
-  effect,
-  ElementRef,
-  HostListener, inject,
+  HostListener,
+  inject,
   input,
-  linkedSignal, OnInit, PLATFORM_ID,
+  linkedSignal,
+  PLATFORM_ID,
   signal
 } from '@angular/core';
-import {toObservable} from "@angular/core/rxjs-interop";
 import {isPlatformBrowser} from "@angular/common";
-import {debounceTime, Subject} from "rxjs";
+import {Subject} from "rxjs";
 
 @Component({
   selector: 'app-layout-transition',
