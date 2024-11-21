@@ -86,12 +86,12 @@
 
 .compact-logo {
   height: 2.625rem;
-  /*width: auto;*/
 }
 
 .searchbar-placeholder {
   min-width: 17.813rem; /* 285px */
-  height: 2.625rem;
+  height: 2.7rem;
+  /*height: 2.625rem;*/
 }
 
 @media (max-width: 426px) {

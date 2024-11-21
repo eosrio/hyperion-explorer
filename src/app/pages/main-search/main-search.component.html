@@ -11,10 +11,11 @@
                        [progress]="transitionProgress()">
   <div>
     <form [formGroup]="searchForm" (ngSubmit)="submit()" class="flex flex-col">
-      <div class="custom-input-group grow w-full flex flex-row
-          rounded-full">
+      <div class="custom-input-group grow w-full flex flex-row rounded-full">
         <input #searchField formControlName="search_field" [placeholder]="searchPlaceholder()"
-               class="custom-input grow outline-none ml-0 pl-5 py-4 rounded-l-full w-full sm:w-96 max-w-full"
+               class="custom-input grow outline-none pl-5 rounded-l-full w-full sm:w-96 max-w-full"
+               [style.padding-top]="searchinputPadding() +  'rem'"
+               [style.padding-bottom]="searchinputPadding() +  'rem'"
                [matAutocomplete]="auto">
         <button mat-raised-button class="search-btn mr-2 place-self-center" [class.primary-btn]="validSearch()">
           <fa-icon [icon]="icons.solid.search"></fa-icon>
@@ -28,8 +29,8 @@
       <div class="flex flex-row justify-center w-full min-h-8">
         @if (err()) {
 
-          <div class="w-full sm:w-[525px] max-w-full pl-5">
-            <div class="justify-start text-red-600 pt-3 animate fast fadeInDown">{{ err() }}</div>
+          <div class="w-full max-w-full pl-5">
+            <div class="justify-start text-red-600 pt-2 animate fast fadeInDown">{{ err() }}</div>
           </div>
 
         }
@@ -88,16 +89,14 @@
 
     </div>
     <div id="searchbar-container"
-         class="flex flex-col justify-center items-center gap-5 pt-9 pb-10 w-full searchbar-container">
+         class="flex flex-col justify-center items-center gap-5 pt-9 pb-10 w-full searchbar-container pointer-events-none">
 
-      <div #logoSourceDiv id="logo-element" class="h-[4.375rem] opacity-10">
+      <div #logoSourceDiv id="logo-element" class="h-[4.375rem] opacity-0">
         <img [src]="chainData().logo" id="main-logo" alt="logo" class="logo"/>
       </div>
-      <div #searchbarSourceDiv id="search-bar" class="flex flex-col bg-blue-400 h-[51px] opacity-5">
-        <div class="custom-input-group grow lg:w-[32.813rem] flex flex-row
-          rounded-full">
-        </div>
-        <div class="flex flex-row justify-center w-full min-h-8"></div>
+      <div #searchbarSourceDiv id="search-bar" class="flex flex-col bg-red-400 opacity-0 w-full md:w-[32.813rem]">
+        <div class="grow w-full  flex flex-row h-[3.188rem]"></div>
+        <div class="flex flex-row justify-center w-full h-8 min-h-8"></div>
       </div>
 
     </div>

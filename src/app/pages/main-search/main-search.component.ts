@@ -99,8 +99,10 @@ export class MainSearchComponent implements OnInit, OnDestroy {
   private scrollTimeline?: gsap.core.Timeline;
 
   taglineMax = 145;
+  paddingMax = 1;
   transitionProgress = signal<number>(0);
   taglineWidth = signal(this.taglineMax);
+  searchinputPadding = signal(this.paddingMax);
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -223,6 +225,7 @@ export class MainSearchComponent implements OnInit, OnDestroy {
         onUpdate: (self) => {
           this.transitionProgress.set(self.progress);
           this.taglineWidth.set(this.taglineMax - (self.progress * this.taglineMax));
+          this.searchinputPadding.set((this.paddingMax * (1 - self.progress)) + (0.75 * self.progress));
         }
       },
     });
@@ -235,7 +238,7 @@ export class MainSearchComponent implements OnInit, OnDestroy {
     }, 0);
 
     scrollTimeline.to(headerContainer, {
-      height: '6.438rem',
+      height: '6.7rem',
       duration: 1,
       ease: 'power3.in'
     }, 0);
