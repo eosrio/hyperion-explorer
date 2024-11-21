@@ -124,6 +124,6 @@ $theme: mat.m2-define-light-theme((
   input[type="week"],
   select,
   textarea {
-    font-size: max(1.1rem, 16px);
+    font-size: max(1.1rem, 16px) !important;
   }
 }

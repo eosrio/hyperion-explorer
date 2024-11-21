@@ -20,6 +20,12 @@
   background-color: transparent;
 }
 
+@media screen and (max-width: 959px) {
+  .custom-input {
+    font-size: max(1.1rem, 16px);
+  }
+}
+
 .custom-input-group:focus-within {
   outline: none;
   box-shadow: var(--box-shadow-bg-sharp-inset);
