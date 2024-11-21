@@ -1,40 +1,32 @@
 import {Component, signal} from '@angular/core';
-import {NgClass} from "@angular/common";
-import {MatButton} from "@angular/material/button";
-import {animate, style, transition} from '@angular/animations';
-import {state, trigger} from "@angular/animations";
-import {AnimatedButtonComponent} from "../../components/animated-button/animated-button.component";
+import {LayoutTransitionComponent} from "../../components/layout-transition/layout-transition.component";
+import {MatSlider, MatSliderThumb} from "@angular/material/slider";
+import {FormsModule} from "@angular/forms";
 
 @Component({
   selector: 'app-test',
-  imports: [
-    MatButton,
-    AnimatedButtonComponent
-  ],
   templateUrl: './test.component.html',
-  styleUrl: './test.component.css',
-  standalone: true,
-  animations: [
-    trigger('flyInOut', [
-      transition(':enter', [style({opacity: 0}), animate('500ms', style({opacity: 1}))]),
-    ]),
-  ]
+  imports: [
+    LayoutTransitionComponent,
+    MatSlider,
+    MatSliderThumb,
+    FormsModule
+  ],
+  styleUrl: './test.component.css'
 })
 export class TestComponent {
+  animationProgress = signal(0);
+  headerHeight = signal(500);
 
-  expanded = signal(false);
-  color = signal<string>("#ffffff");
-
-  toggleExpansion() {
-    this.expanded.update(value => !value);
-    this.color.set("#85d494");
-  }
-
-  setColor1() {
-    this.color.set("#809bdb");
-  }
-
-  setColor2() {
-    this.color.set("#9e9b8c");
+  constructor() {
+    // // oscillate the animation progress between 0 and 1 every second using a sine wave
+    // setInterval(() => {
+    //   this.animationProgress.set(Math.sin(Date.now() / 500) / 2 + 0.5);
+    // }, 16);
+    //
+    // // oscillate the header height between 300 and 500 every 3 second using a sine wave
+    // setInterval(() => {
+    //   this.headerHeight.set(Math.sin(Date.now() / 3000) * 100 + 400);
+    // }, 16);
   }
 }

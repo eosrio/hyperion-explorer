@@ -1,22 +1,47 @@
-<div class="flex flex-col place-items-center gap-10 m-5">
+<div id="header" [style.min-height]="headerHeight() + 'px'"
+     class="fixed flex flex-col w-full bg-slate-500 items-center gap-4 justify-between">
+  <div class="flex flex-row w-full justify-evenly">
+    <div #containerA1 style="width: 100px; height: 60px" class="bg-green-200"></div>
+    <div #containerB1 style="width: 500px; height: 60px" class="bg-blue-200"></div>
+  </div>
+  <div class="flex flex-col w-full items-center gap-4">
+    <div #containerA2 style="width: 200px; height: 100px" class="bg-green-200"></div>
+    <div #containerB2 style="width: 100%; height: 100px" class="bg-blue-200"></div>
+  </div>
+</div>
 
-  <app-animated-button [buttonColor]="color()"
-                       [duration]="1000"
-                       [buttonText]="expanded() ? 'Search transaction' : 'Search'">
-  </app-animated-button>
+<app-layout-transition [observedIds]="['header']"
+                       [sourceDiv]="containerA2"
+                       [targetDiv]="containerA1"
+                       [progress]="animationProgress()">
 
-  <button mat-button mat-raised-button (click)="toggleExpansion()">
-    Toggle Expansion
-  </button>
-
-  <div class="flex flex-row gap-4">
-    <button mat-button mat-raised-button (click)="setColor1()">
-      Color 1
-    </button>
-    <button mat-button mat-raised-button (click)="setColor2()">
-      Color 2
-    </button>
+  <div class="w-full h-full p-1">
+    <div class="w-full h-full bg-blue-500 flex flex-row justify-center items-center">ELEMENT 1</div>
   </div>
 
+</app-layout-transition>
 
+<app-layout-transition [observedIds]="['header']"
+                       [sourceDiv]="containerB2"
+                       [targetDiv]="containerB1"
+                       [progress]="animationProgress()">
+
+  <div class="w-full h-full p-1">
+    <div class="w-full h-full bg-red-500 flex flex-row justify-center items-center">ELEMENT 2</div>
+  </div>
+
+</app-layout-transition>
+
+<div class="fixed bottom-0 left-0 w-full">
+
+  <p>Progress: {{ animationProgress() }}</p>
+  <mat-slider style="width: 300px" min="0" max="1" step="0.01" showTickMarks discrete>
+    <input [(ngModel)]="animationProgress" matSliderThumb>
+  </mat-slider>
+
+  <p>Header Height: {{ headerHeight() }}</p>
+  <mat-slider style="width: 300px" min="200" max="600" step="1" showTickMarks discrete>
+    <input [(ngModel)]="headerHeight" matSliderThumb>
+  </mat-slider>
 </div>
+
