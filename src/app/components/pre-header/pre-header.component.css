@@ -19,6 +19,28 @@
 
 .compact-logo {
   height: 2.625rem;
-  width: auto;
+  /*width: auto;*/
+}
 
+.searchbar-placeholder {
+  min-width: 17.813rem; /* 285px */
+}
+
+@media (max-width: 426px) {
+  .compact-logo {
+    height: 2.4rem;
+  }
+  .searchbar-placeholder {
+    min-width: unset; /* 285px */
+  }
+}
+
+@media (max-width: 795px) {
+  .provider {
+    order: 2;
+  }
+
+  .searchbar-empty-space {
+    order: 3
+  }
 }

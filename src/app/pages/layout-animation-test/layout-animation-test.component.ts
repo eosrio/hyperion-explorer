@@ -103,9 +103,9 @@ export class LayoutAnimationTestComponent implements OnInit, OnDestroy {
   private isResizing = false;
 
   ngOnInit(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      this.createScrollAnimation();
-    }
+    // if (isPlatformBrowser(this.platformId)) {
+    //   this.createScrollAnimation();
+    // }
   }
 
   ngOnDestroy() {
@@ -311,10 +311,10 @@ export class LayoutAnimationTestComponent implements OnInit, OnDestroy {
   }
 
   // resize event listener
-  @HostListener('window:resize', ['$event'])
-  onResize(event: Event) {
-    this.globalWidth.set(window.innerWidth);
-  }
+  // @HostListener('window:resize', ['$event'])
+  // onResize(event: Event) {
+    // this.globalWidth.set(window.innerWidth);
+  // }
 
   private debouncedResize(width: number) {
     if (!this.scrollTimeline || this.isResizing) {
@@ -333,7 +333,7 @@ export class LayoutAnimationTestComponent implements OnInit, OnDestroy {
       // reset the padding top of the content container
       gsap.set(contentContainer, {paddingTop: `${headerContainer.clientHeight + 30}px`});
 
-      this.resizeHeader();
+      // this.resizeHeader();
 
     } else {
       console.log('Resizing expanded header...');
