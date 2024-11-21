@@ -1,23 +1,24 @@
-<div class="hr-container flex flex-row justify-between items-center gap-[8px]">
-  <div class="flex flex-row items-center grow">
-  <div routerLink="/" style="cursor: pointer" class="flex flex-row flex-wrap justify-start items-center xs:gap-[6px]">
+<div class="hr-container flex flex-row flex-wrap justify-between items-center gap-5">
+<!--  <div class="flex flex-row items-center grow">-->
+    <div routerLink="/" style="cursor: pointer" class="flex flex-row flex-wrap justify-start items-center gap-1.5 xs:gap-1.5">
     <img
       ngSrc="assets/hyperion-pulse.svg"
       alt="logo"
       style="height: 19px"
-      class="logo mr-[6px] xs:mr-0"
+      class="logo"
       width="26.85" height="19"
     />
 
-    <div class="logo-name mr-[6px] xs:mr-0">HYPERION</div>
+    <div class="logo-name">HYPERION</div>
     <div class="tagline faded w-max">Lightweight Explorer</div>
   </div>
     @if (chainData) {
-<!--      <div class="searchbar-empty-space grow w-[1px] h-[1px] bg-amber-700" >-->
-<!--        <img [src]="chainData.logo" id="compact-logo" alt="logo" class="compact-logo "/>-->
-<!--      </div>-->
+      <div class="searchbar-empty-space grow flex flex-row gap-2 md:gap-5 max-w-[46rem]" >
+        <img [src]="chainData.logo" id="compact-logo" alt="logo" class="compact-logo "/>
+        <div class="searchbar-placeholder bg-gray-400 w-full"></div>
+      </div>
     }
-  </div>
+<!--  </div>-->
   @if (chainData) {
     <div class="faded provider">
       Data provider:

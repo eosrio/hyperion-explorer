@@ -1,63 +1,65 @@
-<div id="layout-container" class="w-full h-full flex flex-col">
+<div id="layout-container" class="w-full h-full flex flex-col justify-between">
 
-<!--  <div class="">-->
-    <div id="header-container"
-         class="header-card flex-col flex justify-end items-center fixed lg:rounded-b-2xl left-0 right-0 lg:left-3 lg:right-3 w-full lg:w-auto">
-      <div class="w-full absolute top-7">
-        <app-pre-header></app-pre-header>
-      </div>
-
+  <!--  <div class="">-->
+  <div id="header-container"
+       class="header-card flex flex-col justify-between items-center fixed top-0 lg:rounded-b-2xl left-0 right-0 lg:left-3 lg:right-3 w-full lg:w-auto">
+    <div class="w-full mt-7">
+      <app-pre-header></app-pre-header>
+    </div>
+    <div id="searchbar-container"
+         class="flex flex-col justify-center items-center gap-10 pt-9 pb-10 w-full searchbar-container">
       <form [formGroup]="searchForm" (ngSubmit)="submit()">
-        <div class="w-full relative flex flex-row justify-center my-1 lg:my-0">
-<!--          <div class="flex flex-row flex-wrap justify-start items-center xs:gap-[6px] invisible lg:hidden">-->
-<!--            <img ngSrc="assets/hyperion-pulse.svg"-->
-<!--                 alt="logo" style="height: 1.188rem" class="logo mr-[6px] xs:mr-0" height="16" width="16"/>-->
-<!--            <div class="logo-name mr-[6px] xs:mr-0">HYPERION</div>-->
-<!--          </div>-->
 
-          <div id="logo-element" class="absolute opacity-0
-          h-[4.375rem] flex flex-row justify-center items-center">
-            <img [ngSrc]="chainData().logo" id="main-logo" alt="logo" class="h-full w-auto logo" width="192" height="70" priority/>
-          </div>
-          <div id="search-bar" class="custom-input-group grow lg:w-[32.813rem] opacity-0 lg:mb-10 flex flex-row
-        rounded-full focus-within:outline focus-within:outline-2 focus-within:outline-amber-400 focus-within:-outline-offset-2
-          border-transparent">
-            <input #searchField formControlName="search_field" [placeholder]="searchPlaceholder()"
-                   class="custom-input grow outline-none ml-0 pl-5 py-4 rounded-l-full w-full sm:w-96 max-w-full"
-                   [matAutocomplete]="auto">
-            <button mat-raised-button class="search-btn mr-2 place-self-center" [class.primary-btn]="validSearch()">
-              <fa-icon [icon]="icons.solid.search"></fa-icon>
-              @if (validSearch()) {
-                Search {{ searchService.searchType() }}
-              } @else {
-                Search
-              }
-            </button>
-          </div>
 
-          <mat-autocomplete #auto="matAutocomplete" (optionSelected)="submit()"
-                            class="custom-autocomplete"
-                            [classList]="'custom-autocomplete'">
-            @for (account of filteredAccounts(); track account) {
-              <mat-option [value]="account">
-                {{ account }}
-              </mat-option>
-            }
-          </mat-autocomplete>
-        </div>
-        @if (err()) {
-          <div class="flex flex-row justify-center w-full">
-            <div class="w-full sm:w-[525px] max-w-full pl-5">
-              <div class="justify-start text-red-600 pt-3 animate fast fadeInDown">{{ err() }}</div>
+        <div class="w-full relative flex flex-col gap-5 justify-center items-center">
+
+          <div id="logo-element" class="h-[4.375rem]">
+            <img [ngSrc]="chainData().logo" id="main-logo" alt="logo" class="h-full w-auto logo" width="192" height="70"
+                 priority/>
+          </div>
+          <div id="search-bar" class="flex flex-col">
+            <div  class="custom-input-group grow lg:w-[32.813rem] flex flex-row
+          rounded-full">
+              <input #searchField formControlName="search_field" [placeholder]="searchPlaceholder()"
+                     class="custom-input grow outline-none ml-0 pl-5 py-4 rounded-l-full w-full sm:w-96 max-w-full"
+                     [matAutocomplete]="auto">
+              <button mat-raised-button class="search-btn mr-2 place-self-center" [class.primary-btn]="validSearch()">
+                <fa-icon [icon]="icons.solid.search"></fa-icon>
+                @if (validSearch()) {
+                  Search {{ searchService.searchType() }}
+                } @else {
+                  Search
+                }
+              </button>
             </div>
+            <div class="flex flex-row justify-center w-full min-h-8">
+              @if (err()) {
+
+                <div class="w-full sm:w-[525px] max-w-full pl-5">
+                  <div class="justify-start text-red-600 pt-3 animate fast fadeInDown">{{ err() }}</div>
+                </div>
+
+              }
+            <mat-autocomplete #auto="matAutocomplete" (optionSelected)="submit()"
+                              class="custom-autocomplete"
+                              [classList]="'custom-autocomplete'">
+              @for (account of filteredAccounts(); track account) {
+                <mat-option [value]="account">
+                  {{ account }}
+                </mat-option>
+              }
+            </mat-autocomplete>
           </div>
-        }
+        </div>
+
+        </div>
       </form>
     </div>
-<!--  </div>-->
+  </div>
+  <!--  </div>-->
 
   <div id="content-container" class="flex flex-col justify-center pb-10 w-full">
     <router-outlet></router-outlet>
-    <div class="text-slate-500 my-4 place-self-center">v{{version}} | Made with ❤ by EOS Rio | RioBlocks</div>
+    <div class="text-slate-500 my-4 place-self-center">v{{ version }} | Made with ❤ by EOS Rio | RioBlocks</div>
   </div>
 </div>
