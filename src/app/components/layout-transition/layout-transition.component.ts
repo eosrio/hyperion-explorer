@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import {toObservable} from "@angular/core/rxjs-interop";
 import {isPlatformBrowser} from "@angular/common";
+import {debounceTime, Subject} from "rxjs";
 
 @Component({
   selector: 'app-layout-transition',
@@ -35,7 +36,7 @@ export class LayoutTransitionComponent {
     if (isPlatformBrowser(this.platformId)) {
       return this.sourceDiv().getBoundingClientRect();
     } else {
-      return { top: 0, left: 0, width: 0, height: 0 };
+      return {top: 0, left: 0, width: 0, height: 0};
     }
   });
 
@@ -43,7 +44,7 @@ export class LayoutTransitionComponent {
     if (isPlatformBrowser(this.platformId)) {
       return this.targetDiv().getBoundingClientRect();
     } else {
-      return { top: 0, left: 0, width: 0, height: 0 };
+      return {top: 0, left: 0, width: 0, height: 0};
     }
   });
 
@@ -83,6 +84,8 @@ export class LayoutTransitionComponent {
 
   opacity = signal(0);
 
+  resize$ = new Subject<void>();
+
   constructor() {
     afterNextRender({
       write: () => {
@@ -93,6 +96,11 @@ export class LayoutTransitionComponent {
   }
 
   observeMutations() {
+
+    this.resize$.subscribe(() => {
+      this.refresh();
+    });
+
     const observer = new MutationObserver((list) => {
       if (list.length > 0) {
         this.refresh();
@@ -113,10 +121,9 @@ export class LayoutTransitionComponent {
   }
 
   refresh() {
-    console.log(`refresh at ${this.progress()}`);
+    // console.log(`refresh at ${this.progress()}`);
     this.targetDOMRect.set(this.targetDiv().getBoundingClientRect());
     this.sourceDOMRect.set(this.sourceDiv().getBoundingClientRect());
-
     this.topDelta.set(this.targetDOMRect().top - this.sourceDOMRect().top);
     this.leftDelta.set(this.targetDOMRect().left - this.sourceDOMRect().left);
     this.widthDelta.set(this.targetDiv().clientWidth - this.sourceDiv().clientWidth);
@@ -133,9 +140,8 @@ export class LayoutTransitionComponent {
     });
   }
 
-  @HostListener('window:resize', ['$event'])
-  onResize(event: Event) {
-    // Recalculate the deltas when the window is resized
-    this.refresh();
+  @HostListener('window:resize')
+  onResize(): void {
+    this.resize$.next();
   }
 }

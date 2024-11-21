@@ -6,7 +6,8 @@
 </app-layout-transition>
 
 <app-layout-transition [observedIds]="['header-container', 'tagline']"
-                       [sourceDiv]="searchbarSourceDiv" [targetDiv]="searchbarTargetDiv"
+                       [sourceDiv]="searchbarSourceDiv"
+                       [targetDiv]="searchbarTargetDiv"
                        [progress]="transitionProgress()">
   <div>
     <form [formGroup]="searchForm" (ngSubmit)="submit()" class="flex flex-col">
@@ -66,7 +67,7 @@
           />
 
           <div class="logo-name">HYPERION</div>
-          <div id="tagline" class="tagline faded w-max">Lightweight Explorer</div>
+          <div id="tagline" [style.width]="taglineWidth() +  'px'" class="tagline faded">Lightweight Explorer</div>
         </div>
         <!--        @if (chainData()) {-->
         <div class="searchbar-empty-space grow flex flex-row items-center gap-2 md:gap-5 max-w-[46rem]">

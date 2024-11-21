@@ -2,7 +2,8 @@ import {
   Component,
   ElementRef,
   HostListener,
-  inject, OnDestroy,
+  inject,
+  OnDestroy,
   OnInit,
   PLATFORM_ID,
   signal,
@@ -11,8 +12,6 @@ import {
 import gsap from "gsap";
 import {ScrollTrigger} from "gsap/ScrollTrigger";
 import {ScrollToPlugin} from "gsap/ScrollToPlugin";
-
-import {PreHeaderComponent} from "../../components/pre-header/pre-header.component";
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
 import {isPlatformBrowser, NgOptimizedImage} from "@angular/common";
 import {SearchService} from "../../services/search.service";
@@ -34,7 +33,6 @@ import {LayoutTransitionComponent} from "../../components/layout-transition/layo
 @Component({
   selector: 'app-layout-animation-test',
   imports: [
-    PreHeaderComponent,
     FormsModule,
     NgOptimizedImage,
     ReactiveFormsModule,
@@ -106,7 +104,9 @@ export class LayoutAnimationTestComponent implements OnInit, OnDestroy {
   private isResizing = false;
 
 
+  taglineMax = 145;
   transitionProgress = signal<number>(0);
+  taglineWidth = signal(this.taglineMax);
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
@@ -242,16 +242,17 @@ export class LayoutAnimationTestComponent implements OnInit, OnDestroy {
         snap: {snapTo: 1, duration: 0.5, ease: 'linear'},
         onUpdate: (self) => {
           this.transitionProgress.set(self.progress);
+          this.taglineWidth.set(this.taglineMax - (self.progress * this.taglineMax));
         }
         // onLeaveBack: () => {
         //   this.headerExpanded.set(true);
         // },
         // onLeave: () => {
-          // gsap.set('#account-name-sticky', {position: 'sticky'});
-          // this.headerExpanded.set(false);
-          // if (!this.isResizing) {
-            // this.resizeHeader();
-          // }
+        // gsap.set('#account-name-sticky', {position: 'sticky'});
+        // this.headerExpanded.set(false);
+        // if (!this.isResizing) {
+        // this.resizeHeader();
+        // }
         // }
       },
     });
@@ -265,8 +266,16 @@ export class LayoutAnimationTestComponent implements OnInit, OnDestroy {
 
 
     // animate the tagline out
-    scrollTimeline.to('.tagline', {left: '-100', opacity: 0, width: 0, display: 'none', duration: 0.5}, 0);
-    scrollTimeline.to(headerContainer, {height: '6.438rem', duration: 0.5}, 0);
+    scrollTimeline.to('.tagline', {
+      left: '-100',
+      opacity: 0,
+      duration: 1
+    }, 0);
+    scrollTimeline.to(headerContainer, {
+      height: '6.438rem',
+      duration: 1,
+      ease: 'power3.in'
+    }, 0);
 
     // const logoRect = logo.getBoundingClientRect();
     // const hyperionLogo = (document.querySelector('.logo-name') as HTMLDivElement).getBoundingClientRect();
@@ -298,18 +307,12 @@ export class LayoutAnimationTestComponent implements OnInit, OnDestroy {
     //   x: deltaX,
     //   y: 0,
     //   onComplete: () => {
-        // this.resizeHeader();
-      // }
+    // this.resizeHeader();
+    // }
     // }, 0);
 
     this.scrollTimeline = scrollTimeline;
   }
-
-  // resize event listener
-  // @HostListener('window:resize', ['$event'])
-  // onResize(event: Event) {
-    // this.globalWidth.set(window.innerWidth);
-  // }
 
 
   private debouncedResize(width: number) {
