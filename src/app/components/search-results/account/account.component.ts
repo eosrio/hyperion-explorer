@@ -1,14 +1,4 @@
-import {
-  afterNextRender,
-  Component,
-  ElementRef,
-  inject,
-  OnDestroy,
-  PLATFORM_ID,
-  signal,
-  viewChild,
-  ViewChild
-} from '@angular/core';
+import {Component, ElementRef, inject, OnDestroy, PLATFORM_ID, signal, viewChild, ViewChild} from '@angular/core';
 import {SearchService} from "../../../services/search.service";
 import {MatButton, MatIconButton} from "@angular/material/button";
 import {ActivatedRoute, Router, RouterLink} from "@angular/router";
@@ -20,22 +10,15 @@ import {MatTooltip} from "@angular/material/tooltip";
 import {
   MatTree,
   MatTreeFlatDataSource,
-  MatTreeFlattener, MatTreeModule,
+  MatTreeFlattener,
+  MatTreeModule,
   MatTreeNode,
   MatTreeNodePadding,
   MatTreeNodeToggle
 } from "@angular/material/tree";
 import {DatePipe, DecimalPipe, isPlatformBrowser, KeyValuePipe, NgClass} from "@angular/common";
 import {MatPaginator, PageEvent} from "@angular/material/paginator";
-import {
-  MatCell,
-  MatColumnDef,
-  MatHeaderCell,
-  MatHeaderRow,
-  MatRow,
-  MatTable,
-  MatTableModule
-} from "@angular/material/table";
+import {MatCell, MatColumnDef, MatHeaderCell, MatHeaderRow, MatRow, MatTableModule} from "@angular/material/table";
 import {AccountService} from "../../../services/account.service";
 import {faQuestionCircle} from "@fortawesome/free-regular-svg-icons";
 import {
@@ -141,10 +124,11 @@ interface FlatNode {
     DatePipe
   ],
   templateUrl: './account.component.html',
-  standalone: true,
   styleUrl: './account.component.css'
 })
-export class AccountComponent implements OnDestroy {
+export class AccountComponent {
+
+  accountService = inject(AccountService);
 
   @ViewChild(MatSort, {static: false}) sort?: MatSort;
   @ViewChild(MatPaginator, {static: false}) paginator?: MatPaginator;
@@ -200,8 +184,7 @@ export class AccountComponent implements OnDestroy {
     private dataService: DataService,
     private searchService: SearchService,
     private title: Title,
-    private router: Router,
-    public accountService: AccountService
+    private router: Router
   ) {
 
     this.searchService.searchType.set('account');

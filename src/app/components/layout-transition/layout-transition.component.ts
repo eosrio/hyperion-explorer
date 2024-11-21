@@ -15,8 +15,16 @@ import {Subject} from "rxjs";
 @Component({
   selector: 'app-layout-transition',
   imports: [],
-  templateUrl: './layout-transition.component.html',
-  styleUrl: './layout-transition.component.css'
+  template: `
+    <div #wrapper class="fixed" style="z-index: 99"
+         [style.opacity]="opacity()"
+         [style.top]="top()"
+         [style.width]="width()"
+         [style.height]="height()"
+         [style.left]="left()">
+      <ng-content></ng-content>
+    </div>
+  `
 })
 export class LayoutTransitionComponent {
 

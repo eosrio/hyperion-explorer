@@ -206,6 +206,9 @@ export class AccountService {
   // }
 
   async loadAccountData(accountName: string): Promise<boolean> {
+
+    console.log('Loading account data for: ' + accountName);
+
     this.loaded.set(false);
     try {
       this.jsonData = await lastValueFrom(this.httpClient.get(this.getAccountUrl + accountName)) as GetAccountResponse;
@@ -229,8 +232,8 @@ export class AccountService {
 
       this.loaded.set(true);
       return true;
-    } catch (error) {
-      console.log(error);
+    } catch (error: any) {
+      console.log(error.message);
       this.jsonData = null;
       this.loaded.set(true);
       return false;
@@ -281,9 +284,12 @@ export class AccountService {
   }
 
   async loadPubKey(key: string): Promise<any> {
+    console.log('Loading key data for: ' + key);
     this.loaded.set(false);
     try {
-      const data = await lastValueFrom(this.httpClient.get(this.getKeyUrl + key + '&details=true'));
+      const url = this.getKeyUrl + key + '&details=true';
+      console.log(url);
+      const data = await lastValueFrom(this.httpClient.get(url));
       this.loaded.set(true);
       return data;
     } catch (error) {

@@ -24,9 +24,9 @@
                   <div>{{ accountService.account["account_name"] }}</div>
                 </div>
                 <div id="totalBalance" class="font-medium faded text-[0.938rem] mt-1">
-                    {{ totalBalance() | number: "1.0-" + systemPrecision }}
+                  {{ totalBalance() | number: "1.0-" + systemPrecision }}
                   {{ systemSymbol }}
-                  </div>
+                </div>
               </div>
               <button (click)="openContractsDialog(null,null)" mat-raised-button>
                 Explore Smart Contract
@@ -574,7 +574,7 @@
             <ng-container matColumnDef="trx_id">
               <th mat-header-cell *matHeaderCellDef>TX</th>
               <td mat-cell *matCellDef="let action" data-label="TX">
-                @if (accountService.libNum() < action['block_num']) {
+                @if (accountService.libNum() > 0 && accountService.libNum() < action['block_num']) {
                   <span matTooltip="time until irreversible" matTooltipClass="tooltip-bigger">
                     <fa-icon [icon]="icons.solid.faClock" class="accent" style="margin-right: 1px"></fa-icon>
                     {{ (action["block_num"] - accountService.libNum()) / 2 }}s

@@ -1,7 +1,6 @@
 import {Component, OnDestroy, OnInit, signal} from '@angular/core';
 import {animate, state, style, transition, trigger} from "@angular/animations";
 import {MatProgressSpinner} from "@angular/material/progress-spinner";
-import {MatCard} from "@angular/material/card";
 import {FontAwesomeModule} from "@fortawesome/angular-fontawesome";
 import {MatChipsModule} from "@angular/material/chips";
 import {MatTableModule} from "@angular/material/table";

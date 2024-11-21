@@ -84,25 +84,28 @@ export class TransactionComponent implements OnInit, OnDestroy {
 
       this.searchService.searchQuery.set(value.get('transaction_id') ?? "");
 
-      this.tx.set(await this.accountService.loadTxData(this.txID()));
+      const trxId = this.txID();
+      this.tx.set(await this.accountService.loadTxData(trxId));
 
       const chainData = this.data.explorerMetadata;
 
       if (chainData && chainData.chain_name) {
-        this.title.setTitle(`TX ${this.txID().slice(0, 8)} • ${chainData.chain_name} Hyperion Explorer`);
+        this.title.setTitle(`TX ${trxId.slice(0, 8)} • ${chainData.chain_name} Hyperion Explorer`);
       } else {
-        this.title.setTitle(`TX ${this.txID().slice(0, 8)} • Hyperion Explorer`);
+        this.title.setTitle(`TX ${trxId.slice(0, 8)} • Hyperion Explorer`);
       }
 
-      if (this.tx()) {
-        this.accountService.libNum = this.tx().lib;
-        if (this.tx().actions[0].block_num > this.tx().lib) {
+      const tx = this.tx();
+
+      if (tx) {
+        this.accountService.libNum.set(tx.lib);
+        if (tx.actions[0].block_num > tx.lib) {
           await this.reloadCountdownTimer();
           this.countdownLoop = setInterval(async () => {
             this.countdownTimer--;
             if (this.countdownTimer <= 0) {
               await this.reloadCountdownTimer();
-              if (this.accountService.libNum > this.tx().actions[0].block_num) {
+              if (this.accountService.libNum > tx.actions[0].block_num) {
                 clearInterval(this.countdownLoop);
               }
             }
@@ -115,6 +118,7 @@ export class TransactionComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     if (this.countdownLoop) {
+      console.log('Clearing countdown loop');
       clearInterval(this.countdownLoop);
     }
   }

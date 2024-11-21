@@ -10,7 +10,7 @@
 <mat-dialog-content>
   <mat-tree [dataSource]="actionTree" [treeControl]="actionTreeControl" class="example-tree">
 
-    <mat-tree-node *matTreeNodeDef="let node" matTreeNodeToggle
+    <mat-nested-tree-node *matTreeNodeDef="let node" matTreeNodeToggle
                    class="flex flex-row flex-wrap
                    px-10
                    border-b-2
@@ -23,12 +23,11 @@
         <p class="font-light text-slate-800 text-wrap">{{ node.value }}</p>
       }
 
-    </mat-tree-node>
+    </mat-nested-tree-node>
 
     <mat-nested-tree-node *matTreeNodeDef="let node; when: hasChild">
       <div class="mat-tree-node border-b-2 px-10 py-2" matTreeNodeToggle>
-        <button mat-icon-button
-                [attr.aria-label]="'Toggle ' + node.name">
+        <button mat-icon-button [attr.aria-label]="'Toggle ' + node.name">
           <mat-icon class="mat-icon-rtl-mirror">
             {{ actionTreeControl.isExpanded(node) ? 'expand_more' : 'chevron_right' }}
           </mat-icon>
