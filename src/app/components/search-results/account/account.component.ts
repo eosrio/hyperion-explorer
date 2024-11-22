@@ -227,16 +227,15 @@ export class AccountComponent {
   private accountStickyMotion(accountNameSticky?: ElementRef<HTMLDivElement>) {
     const offset: any = ['start 200px', 'start 100px'];
 
-    scroll(
-      (progress: any) => {
-        console.log(progress);
-      },
-      {target: accountNameSticky?.nativeElement, offset}
-    );
-
     scroll(animate('#totalBalance', {x: [-100, 0], opacity: [0, 1]}, {duration: 1}),
       {target: accountNameSticky?.nativeElement, offset}
     );
+    // scroll(
+    //   (progress: any) => {
+    //     console.log(progress);
+    //   },
+    //   {target: accountNameSticky?.nativeElement, offset}
+    // );
   }
 
   private tableStickyMotion(tableSticky?: ElementRef<HTMLDivElement>) {
