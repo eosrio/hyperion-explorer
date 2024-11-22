@@ -33,7 +33,7 @@
     <!--    md:grid-cols-2 auto-cols-auto-->
     <div class="flex flex-col gap-5 text-black w-full appear">
       <!--      min-w-full-->
-      <div class="custom-card bg-no-transparency w-full h-full min-h-full sticky top-[122px] z-40">
+      <div class="custom-card card-top-sticky bg-no-transparency w-full h-full min-h-full sticky top-[122px] z-40">
         <div>
           <div class="flex flex-row gap-2.5 justify-start items-center">
             <div class="text-xl font-semibold faded">
@@ -94,7 +94,7 @@
 
 
       <div class="custom-card w-full min-w-full h-full min-h-full md:col-span-2">
-        <div class="text-lg font-bold">
+        <div #actionsTable class="text-lg font-bold">
           <fa-layers [fixedWidth]="true" style="margin-right: 5px">
             <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
             <fa-icon [icon]="icons.solid.faHistory" [inverse]="true" transform="shrink-5"></fa-icon>

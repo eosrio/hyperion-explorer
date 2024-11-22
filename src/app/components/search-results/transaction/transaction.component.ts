@@ -1,4 +1,4 @@
-import {Component, OnDestroy, OnInit, signal} from '@angular/core';
+import {Component, ElementRef, inject, OnDestroy, OnInit, PLATFORM_ID, signal, viewChild} from '@angular/core';
 import {ActivatedRoute, RouterLink} from '@angular/router';
 import {
   faCircle,
@@ -17,7 +17,9 @@ import {MatProgressSpinner} from "@angular/material/progress-spinner";
 import {FaIconComponent, FaLayersComponent} from "@fortawesome/angular-fontawesome";
 import {MatChipListbox, MatChipOption} from "@angular/material/chips";
 import {MatTableModule} from "@angular/material/table";
-import {KeyValuePipe, NgClass} from "@angular/common";
+import {isPlatformBrowser, KeyValuePipe, NgClass} from "@angular/common";
+import {animate, scroll} from "motion";
+import {toObservable} from "@angular/core/rxjs-interop";
 
 @Component({
   selector: 'app-transaction',
@@ -60,6 +62,8 @@ export class TransactionComponent implements OnInit, OnDestroy {
 
   countdownLoop: any;
   countdownTimer = 0;
+  actionsTable = viewChild<ElementRef<HTMLDivElement>>('actionsTable');
+  platformId = inject(PLATFORM_ID);
 
   objectKeyCount(obj: any): number {
     try {
@@ -74,6 +78,12 @@ export class TransactionComponent implements OnInit, OnDestroy {
               public accountService: AccountService,
               public data: DataService,
               private title: Title) {
+
+    toObservable(this.actionsTable).subscribe((value) => {
+      if (value && isPlatformBrowser(this.platformId)) {
+        this.tableStickyMotion(this.actionsTable());
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -134,5 +144,13 @@ export class TransactionComponent implements OnInit, OnDestroy {
       return;
     }
     this.countdownTimer = Math.ceil((this.tx().actions[0].block_num - lib) / 2);
+  }
+
+  private tableStickyMotion(tableSticky?: ElementRef<HTMLDivElement>) {
+    scroll(animate('.mat-mdc-header-row', {boxShadow: 'rgba(78 104 192, 0.25) 0px 4px 19px 0px, rgba(17, 12, 46, 0.15) 0px 20px 100px 0px',
+        background: 'linear-gradient(115deg, rgb(255 255 255 / 40%) 0%, rgb(255 255 255 / 90%) 87%, rgb(255 255 255 / 40%) 130%), var(--main-background)'
+      }, {duration: 1}),
+      {target: tableSticky?.nativeElement, offset: ['end 250px', '200px 250px']}
+    );
   }
 }

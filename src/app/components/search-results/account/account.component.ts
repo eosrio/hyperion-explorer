@@ -44,10 +44,8 @@ import {MatAccordion, MatExpansionModule} from "@angular/material/expansion";
 import {MatDialog, MatDialogRef} from "@angular/material/dialog";
 import {ActionDetailsComponent} from "../../action-details/action-details.component";
 import {ContractDialogComponent} from "../../contract-dialog/contract-dialog.component";
-import gsap from "gsap";
-import {ScrollTrigger} from "gsap/ScrollTrigger";
-import {ScrollToPlugin} from "gsap/ScrollToPlugin";
 import {toObservable} from "@angular/core/rxjs-interop";
+import {animate, scroll} from "motion";
 
 interface Permission {
   perm_name: string;
@@ -132,7 +130,7 @@ export class AccountComponent {
 
   @ViewChild(MatSort, {static: false}) sort?: MatSort;
   @ViewChild(MatPaginator, {static: false}) paginator?: MatPaginator;
-  accNameSticky = viewChild<ElementRef<HTMLDivElement>>('AccNameSticky');
+  balanceCard = viewChild<ElementRef<HTMLDivElement>>('balanceCard');
   actionsTable = viewChild<ElementRef<HTMLDivElement>>('actionsTable');
   readonly dialog = inject(MatDialog);
   platformId = inject(PLATFORM_ID);
@@ -211,54 +209,44 @@ export class AccountComponent {
 
     this.dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
 
-    this.initGsap();
-    toObservable(this.accNameSticky).subscribe((value) => {
+    toObservable(this.balanceCard).subscribe((value) => {
       if (value && isPlatformBrowser(this.platformId)) {
-        this.accountStickyAnimation(this.accNameSticky());
+        setTimeout(() => {
+          this.accountStickyMotion(this.balanceCard());
+        }, 1000);
       }
     });
     toObservable(this.actionsTable).subscribe((value) => {
       if (value && isPlatformBrowser(this.platformId)) {
-        this.tableStickyAnimation(this.actionsTable());
+        this.tableStickyMotion(this.actionsTable());
       }
     });
 
   }
 
-  initGsap() {
-    gsap.registerPlugin(ScrollTrigger);
-    gsap.registerPlugin(ScrollToPlugin);
-  }
+  private accountStickyMotion(accountNameSticky?: ElementRef<HTMLDivElement>) {
+    const offset: any = ['start 200px', 'start 100px'];
 
-  private accountStickyAnimation(accountNameSticky?: ElementRef<HTMLDivElement>) {
-    const scrollTimeline = gsap.timeline({
-      scrollTrigger: {
-        trigger: accountNameSticky?.nativeElement,
-        start: 'top 100px',
-        end: '100% 100px',
-        scrub: true,
-        // markers: false,
+    scroll(
+      (progress: any) => {
+        console.log(progress);
       },
-    });
+      {target: accountNameSticky?.nativeElement, offset}
+    );
 
-    scrollTimeline.from('#totalBalance', {xPercent: '-100', opacity: 0, width: 0}, 0);
+    scroll(animate('#totalBalance', {x: [-100, 0], opacity: [0, 1]}, {duration: 1}),
+      {target: accountNameSticky?.nativeElement, offset}
+    );
   }
 
-  private tableStickyAnimation(tableSticky?: ElementRef<HTMLDivElement>) {
-
-    const scrollTimeline = gsap.timeline({
-      scrollTrigger: {
-        trigger: tableSticky?.nativeElement,
-        start: 'bottom 250px',
-        end: '200px 250px',
-        scrub: true,
-        // markers: false,
-      },
-    });
-
-    // scrollTimeline.to('.mat-mdc-header-row', {boxShadow: 'rgba(104, 139, 255, 0.1) 0px 48px 100px 0px, rgba(17, 12, 46, 0.15) 0px 30px 100px 0px'}, 0);
-    scrollTimeline.to('.mat-mdc-header-row', {boxShadow: 'rgba(78 104 192, 0.25) 0px 4px 19px 0px, rgba(17, 12, 46, 0.15) 0px 20px 100px 0px'});
+  private tableStickyMotion(tableSticky?: ElementRef<HTMLDivElement>) {
+    scroll(animate('.mat-mdc-header-row', {boxShadow: 'rgba(78 104 192, 0.25) 0px 4px 19px 0px, rgba(17, 12, 46, 0.15) 0px 20px 100px 0px',
+      background: 'linear-gradient(115deg, rgb(255 255 255 / 40%) 0%, rgb(255 255 255 / 90%) 87%, rgb(255 255 255 / 40%) 130%), var(--main-background)'
+      }, {duration: 1}),
+      {target: tableSticky?.nativeElement, offset: ['end 250px', '200px 250px']}
+    );
   }
+
 
   transformer(node: Permission, level: number): any {
     return {

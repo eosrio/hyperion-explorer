@@ -15,7 +15,7 @@
       <div id="account-content" class="grid grid-cols-1 md:grid-cols-3 auto-cols-max gap-5 text-black appear">
         <!-- ACCOUNT NAME-->
         <div #AccNameSticky id="account-name-sticky"
-             class="custom-card bg-no-transparency w-full md:col-span-3 sticky z-40">
+             class="custom-card card-top-sticky bg-no-transparency w-full md:col-span-3 sticky z-40">
           <mat-card-header>
             <div class="flex flex-row flex-wrap justify-between items-center w-full">
               <div class="flex flex-row items-center gap-3">
@@ -23,7 +23,7 @@
                   <fa-icon [icon]="icons.solid.faUserCircle"></fa-icon>
                   <div>{{ accountService.account["account_name"] }}</div>
                 </div>
-                <div id="totalBalance" class="font-medium faded text-[0.938rem] mt-1">
+                <div id="totalBalance" class="font-medium faded text-[0.938rem] mt-1 opacity-0">
                   {{ totalBalance() | number: "1.0-" + systemPrecision }}
                   {{ systemSymbol }}
                 </div>
@@ -36,7 +36,7 @@
         </div>
 
         <!-- ACCOUNT BALANCE -->
-        <div class="custom-card">
+        <div #balanceCard class="custom-card" id="balance-card">
           <div class="flex-auto mt-7 flex flex-col justify-start items-start min-h-full">
 
             <!-- total balance-->
@@ -219,17 +219,17 @@
               <div class="mt-30 flex-grow">
                 <div>
                   <span class="title mt-6">RAM</span>
-                  <span class="faded used"
-                  >{{
+                  <span class="faded used">
+                    {{
                       (accountService.account["ram_usage"] /
                         accountService.account["ram_quota"]) *
                       100 | number
-                    }}% used</span
-                  >
-                  <span class="values float-r"
-                  >{{ convertBytes(accountService.account["ram_usage"]) }} /
+                    }}% used
+                  </span>
+                  <span class="values float-r">
+                    {{ convertBytes(accountService.account["ram_usage"]) }} /
                     {{ convertBytes(accountService.account["ram_quota"]) }}
-                                  </span>
+                  </span>
                 </div>
 
                 <mat-progress-bar

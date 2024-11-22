@@ -17,6 +17,41 @@
   padding-bottom: 4px;
 }
 
+@media (max-width: 960px) {
+  .actions-table .mat-mdc-header-row {
+    top: 304px;
+  }
+}
+
+@media (min-width: 961px) {
+  .actions-table .mat-mdc-header-row {
+    top: 260px;
+  }
+}
+
+@media (min-width: 600px) {
+  .actions-table .mat-mdc-header-row {
+    background: transparent;
+    position: sticky;
+  }
+
+  [mat-header-cell] {
+    background: transparent !important;
+  }
+
+  [mat-header-row] {
+    border-radius: var(--card-border-radius) !important;
+  }
+
+  [mat-header-cell].mat-column-contract {
+    border-radius:  var(--card-border-radius) 0 0  var(--card-border-radius);
+  }
+
+  [mat-header-cell].mat-column-auth {
+    border-radius: 0  var(--card-border-radius)  var(--card-border-radius) 0;
+  }
+}
+
 /*table responsive*/
 @media (max-width: 599px) {
   [mat-table] [mat-header-row] {
