@@ -248,11 +248,6 @@ export class AccountComponent {
   }
 
 
-  ngOnDestroy(): void {
-    console.log('ngOnDestroy');
-    // this.accountService.disconnectStream();
-  }
-
   transformer(node: Permission, level: number): any {
     return {
       expandable: !!node.children && node.children.length > 0,

@@ -1,6 +1,6 @@
-import { mergeApplicationConfig, ApplicationConfig } from '@angular/core';
-import { provideServerRendering } from '@angular/platform-server';
-import { appConfig } from './app.config';
+import {ApplicationConfig, mergeApplicationConfig} from '@angular/core';
+import {provideServerRendering} from '@angular/platform-server';
+import {appConfig} from './app.config';
 import {DataService, DataServiceServer} from "./services/data.service";
 import {provideServerRoutesConfig} from "@angular/ssr";
 import {serverRoutes} from "./app.routes";
@@ -11,10 +11,7 @@ const serverConfig: ApplicationConfig = {
     provideClientHydration(),
     provideServerRendering(),
     provideServerRoutesConfig(serverRoutes),
-    {
-      provide: DataService,
-      useClass: DataServiceServer
-    }
+    {provide: DataService, useClass: DataServiceServer}
   ]
 };
 

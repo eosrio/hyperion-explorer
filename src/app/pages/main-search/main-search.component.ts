@@ -24,7 +24,7 @@ import {MatButton} from "@angular/material/button";
 import {version as PackageVersion} from '../../../../package.json';
 import {FaIconComponent} from "@fortawesome/angular-fontawesome";
 import {LayoutTransitionComponent} from "../../components/layout-transition/layout-transition.component";
-import {scroll, animate, AnimationPlaybackControls} from "motion";
+import {scroll, animate} from "motion";
 import {BreakpointObserver, Breakpoints} from "@angular/cdk/layout";
 
 
@@ -217,7 +217,7 @@ export class MainSearchComponent implements OnInit {
       {target: headerContainer, offset: ['start start', '300px 100px']}
     );
 
-    let headerAnimation: AnimationPlaybackControls | null = null;
+    let headerAnimation: any | null = null;
     let scrollConfigured = false;
 
     this.breakpointObserver

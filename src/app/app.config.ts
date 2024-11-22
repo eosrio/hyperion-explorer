@@ -1,8 +1,8 @@
 import {
   ApplicationConfig,
-  provideExperimentalZonelessChangeDetection,
   inject,
-  provideAppInitializer
+  provideAppInitializer,
+  provideExperimentalZonelessChangeDetection
 } from '@angular/core';
 import {provideRouter, Router} from '@angular/router';
 
@@ -24,13 +24,10 @@ async function initApp() {
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideExperimentalZonelessChangeDetection(),
     provideRouter(routes),
+    provideExperimentalZonelessChangeDetection(),
     provideClientHydration(withIncrementalHydration()),
-    {
-      provide: DataService,
-      useClass: DataServiceBrowser
-    },
+    {provide: DataService, useClass: DataServiceBrowser},
     provideAppInitializer(initApp),
     provideAnimationsAsync(),
     provideHttpClient(withFetch())
