@@ -39,24 +39,11 @@ if (isMainModule(import.meta.url)) {
     console.log(`Node Express server listening on http://localhost:${port}`);
   });
 
-  const fastifyServer = fastify();
-  const fastifyAngularSSR = new FastifyAngularSSR();
-
-  fastifyServer.get('/*', async (req, reply) => {
-    await fastifyAngularSSR.render(req, reply);
-    return {};
+  const fastifyAngularSSR = new FastifyAngularSSR({
+    port: 3000,
+    host: '0.0.0.0',
   });
-
-  try {
-    await fastifyServer.listen({
-      port: 3000,
-      host: '0.0.0.0'
-    });
-    console.log(`Fastify server listening on http://localhost:3000`);
-  } catch (e) {
-    console.error(e);
-    process.exit(1);
-  }
+  await fastifyAngularSSR.start();
 
 }
 
