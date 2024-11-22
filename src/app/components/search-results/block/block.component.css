@@ -1,11 +1,11 @@
 .title {
-  font-size: 21px;
+  font-size: 1.313rem; /*21px*/
   color: var(--primary);
   font-weight: 500;
 }
 
 .used {
-  margin-left: 7px;
+  margin-left: 0.438rem;
 }
 
 .faded {
@@ -42,24 +42,24 @@ table {
 .actions-table {
   width: 100%;
   border: 1px solid #e0e0e0;
-  border-radius: 5px;
-  margin: 5px 0 15px;
-  padding: 2px 0 1px;
+  border-radius: 0.313rem;
+  margin: 0.313rem 0 0.938rem;
+  padding: 0.125rem 0 0.063rem;
 }
 
 .action-cell {
-  padding: 5px 10px;
-  font-size: 13px;
+  padding: 0.313rem 0.625rem;
+  font-size: 0.813rem; /*13px*/
   letter-spacing: 0.5px;
 }
 
 .action-border {
   border: 1px solid #f0f0f0;
-  border-radius: 3px;
+  border-radius: 0.188rem;
 }
 
 .data-item {
-  padding-bottom: 4px;
+  padding-bottom: 0.25rem;
 }
 
 /*table expand row START*/
@@ -90,16 +90,16 @@ tr.element-row:not(.expanded-row):active {
 .element-detail {
   overflow: hidden;
   display: flex;
-  max-width: 1118px;
+  max-width: 69.875rem;
 }
 
 .element-diagram {
-  min-width: 80px;
+  min-width: 5rem;
   border: 2px solid black;
-  padding: 8px;
+  padding: 0.5rem;
   font-weight: lighter;
-  margin: 8px 0;
-  height: 104px;
+  margin: 0.5rem 0;
+  height: 6.5rem;
 }
 
 .element-symbol {
@@ -109,7 +109,7 @@ tr.element-row:not(.expanded-row):active {
 }
 
 .element-description {
-  padding: 16px;
+  padding: 1rem;
 }
 
 .element-description-attribution {
@@ -175,7 +175,7 @@ tr.element-row:not(.expanded-row):active {
   }
 
   [mat-table] [mat-header-row] th[mat-header-cell]>.mat-sort-header-container {
-    padding-left: 15px;
+    padding-left: 0.938rem;
   }
 
   [mat-table] [mat-header-row] th[mat-header-cell]>.mat-sort-header-container:not([mat-sort-header]),
@@ -208,7 +208,7 @@ tr.element-row:not(.expanded-row):active {
   [mat-table] [mat-row] td[mat-cell]:not(.mat-column-actions):before {
     content: attr(data-label);
     text-align: left;
-    font-size: 12px;
+    font-size: 0.75rem; /*12px*/
     font-weight: 500;
     color: rgba(0, 0, 0, 0.54);
   }
@@ -245,11 +245,41 @@ tr.element-row:not(.expanded-row):active {
 
   [mat-table] .mat-column-expandedDetail [mat-row]:not(:last-of-type) td:last-of-type {
     border-bottom: 0.5rem solid #e5e5e5;
-    padding-bottom: 20px !important;
-    margin-bottom: 20px;
+    padding-bottom: 1.25rem !important;
+    margin-bottom: 1.25rem;
   }
 
   .custom-card .mat-expansion-panel [mat-table] {
     border: 0.5rem solid #fafafa;
   }
 }
+
+/*chevron animation start*/
+::ng-deep .arrowRight .svg-inline--fa {
+  transform: rotate(0deg);
+  animation: arrowRightAnimation 225ms cubic-bezier(0.4,0.0,0.2,1);
+}
+
+::ng-deep  .arrowDown .svg-inline--fa {
+  transform: rotate(90deg);
+  animation: arrowDownAnimation 225ms cubic-bezier(0.4,0.0,0.2,1);
+}
+
+@keyframes arrowRightAnimation {
+  from {
+    transform: rotate(90deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes arrowDownAnimation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(90deg);
+  }
+}
+/*chevron animation end*/

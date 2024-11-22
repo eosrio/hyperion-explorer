@@ -213,7 +213,7 @@ export class MainSearchComponent implements OnInit {
     );
 
 
-    scroll(animate('.tagline', {left: [0, -100], opacity: [1, 0]}, {duration: 1}),
+    scroll(animate('.tagline', {x: [0, -100], opacity: [1, 0]}, {duration: 1}),
       {target: headerContainer, offset: ['start start', '300px 100px']}
     );
 

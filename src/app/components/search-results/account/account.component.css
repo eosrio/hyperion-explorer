@@ -5,14 +5,14 @@
 
 @media (max-width: 599px) {
   .acc-title {
-    font-size: 20px;
+    font-size: 1.25rem; /*20px*/
   }
 }
 
 .total-balance {
   border-bottom: 1px solid rgba(0, 0, 0, .12);
-  padding-bottom: 10px;
-  margin-bottom: 10px;
+  padding-bottom: 0.625rem;
+  margin-bottom: 0.625rem;
 }
 
 .mb-5 {
@@ -28,26 +28,26 @@
 }
 
 .title {
-  font-size: 21px;
+  font-size: 1.313rem; /*21px*/
   color: var(--primary);
   font-weight: 500;
 }
 
 .used {
-  margin-left: 7px;
+  margin-left: 0.438rem;
 }
 
 .values {
-  margin-top: 7px;
+  margin-top: 0.438rem;
 }
 
 .progress-bar {
-  margin-top: 10px;
+  margin-top: 0.625rem;
 }
 
 .small-info {
-  font-size: 15px;
-  margin-top: 10px;
+  font-size: 0.938rem; /*15px*/
+  margin-top: 0.625rem;
   color: rgba(0, 0, 0, .45);
 }
 
@@ -76,23 +76,23 @@
 }
 
 ::ng-deep .bigger-tooltip {
-  font-size: 16px;
+  font-size: 1rem; /*16px*/
 }
 
 .middle-card {
-  max-height: 523px;
+  max-height: 32.688rem;
   overflow-y: auto;
 }
 
 .token-cell {
-  margin-bottom: 11px;
+  margin-bottom: 0.688rem;
   border-bottom: 1px solid rgba(0, 0, 0, .12);
-  padding-bottom: 14px;
-  border-radius: 3px;
+  padding-bottom: 0.875rem;
+  border-radius: 0.188rem;
 }
 
 .token {
-  font-size: 20px;
+  font-size: 1.25rem; /*20px*/
   color: var(--primary);
   font-weight: 500;
 }
@@ -104,18 +104,18 @@
 .permission-cell {
   border-bottom: 1px solid #e2e2e2;
   border-left: 1px solid #e2e2e2;
-  border-radius: 0 0 0 5px;
-  padding: 10px 0 8px 8px;
+  border-radius: 0 0 0 0.313rem;
+  padding: 0.625rem 0 0.5rem 0.5rem;
   width: 100%;
 }
 
 .monospace {
   font-family: 'Courier Prime', monospace;
-  font-size: 16px;
+  font-size: 1rem; /*16px*/
 }
 
 .m-left {
-  margin-left: 7px;
+  margin-left: 0.438rem;
 }
 
 .m-bottom {
@@ -131,11 +131,11 @@
 }
 
 .vote-card .mat-expansion-panel-header {
-  padding-left: 15px;
+  padding-left: 0.938rem;
 }
 
 .vote-card-title {
-  font-size: 19px;
+  font-size: 1.188rem; /*19px*/
   margin-bottom: 0 !important;
 }
 
@@ -149,25 +149,25 @@
 
 .action-cell {
   /*padding: 5px 10px;*/
-  font-size: 13px;
+  font-size: 0.813rem; /*13px*/
   letter-spacing: 0.5px;
   text-align: center;
   width: max-content;
   border: 1px solid #f0f0f0;
-  border-radius: 3px;
-  padding: 3px 5px;
+  border-radius: 0.188rem;
+  padding: 0.188rem 0.313rem;
 }
 
 .data-item {
-  padding-bottom: 3px;
+  padding-bottom: 0.188rem;
 }
 
 .dot {
-  width: 12px;
-  height: 12px;
+  width: 0.75rem;
+  height: 0.75rem;
   border-radius: 50%;
   display: inline-block;
-  margin-left: 10px;
+  margin-left: 0.625rem;
 }
 
 .red-dot {
@@ -232,13 +232,13 @@
 
 @media (max-width: 960px) {
   .actions-table .mat-mdc-header-row {
-    top: 260px;
+    top: 16.25rem;
   }
 }
 
 @media (min-width: 961px) {
   .actions-table .mat-mdc-header-row {
-    top: 225px;
+    top: 14.063rem;
   }
 }
 
@@ -292,7 +292,7 @@
 
 
   [mat-table] [mat-header-row] th[mat-header-cel] l > .mat-sort-header-container {
-    padding-left: 15px;
+    padding-left: 0.938rem;
   }
 
   [mat-table] [mat-header-row] th[mat-header-cell]:not([mat-sort-header]),
@@ -325,7 +325,7 @@
   [mat-table] [mat-row] td[mat-cell]:before {
     content: attr(data-label);
     text-align: left;
-    font-size: 12px;
+    font-size: 0.75rem; /*12px*/
     font-weight: 500;
     color: rgba(0, 0, 0, 0.54);
   }
@@ -350,8 +350,8 @@
 
   [mat-table] [mat-row]:not(:last-of-type) td:last-of-type {
     border-bottom: 0.5rem solid #e5e5e5;
-    padding-bottom: 20px !important;
-    margin-bottom: 20px;
+    padding-bottom: 1.25rem !important;
+    margin-bottom: 1.25rem;
   }
 
   [mat-card] [mat-expansion-panel][mat-table] {
@@ -373,17 +373,47 @@
   }
 
   .mt-responsive {
-    margin-top: 30px;
+    margin-top: 1.875rem;
   }
 }
 
 .lib {
-  font-size: 15px;
-  margin-top: 1px;
+  font-size: 0.938rem; /*15px*/
+  margin-top: 0.063rem;
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
-  padding-bottom: 13px;
+  padding-bottom: 0.813rem;
 }
 
 #totalBalance {
   width: auto !important;
 }
+
+/*chevron animation start*/
+::ng-deep .arrowRight .svg-inline--fa {
+  transform: rotate(0deg);
+  animation: arrowRightAnimation 225ms cubic-bezier(0.4,0.0,0.2,1);
+}
+
+::ng-deep  .arrowDown .svg-inline--fa {
+  transform: rotate(90deg);
+  animation: arrowDownAnimation 225ms cubic-bezier(0.4,0.0,0.2,1);
+}
+
+@keyframes arrowRightAnimation {
+  from {
+    transform: rotate(90deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes arrowDownAnimation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(90deg);
+  }
+}
+/*chevron animation end*/
