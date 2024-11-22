@@ -1,13 +1,4 @@
-import {
-  Component,
-  ElementRef,
-  HostListener,
-  inject,
-  OnInit,
-  PLATFORM_ID,
-  signal,
-  viewChild
-} from '@angular/core';
+import {Component, ElementRef, HostListener, inject, OnInit, PLATFORM_ID, signal, viewChild} from '@angular/core';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
 import {isPlatformBrowser, NgOptimizedImage} from "@angular/common";
 import {SearchService} from "../../services/search.service";
@@ -24,7 +15,7 @@ import {MatButton} from "@angular/material/button";
 import {version as PackageVersion} from '../../../../package.json';
 import {FaIconComponent} from "@fortawesome/angular-fontawesome";
 import {LayoutTransitionComponent} from "../../components/layout-transition/layout-transition.component";
-import {scroll, animate} from "motion";
+import {animate, scroll} from "motion";
 import {BreakpointObserver, Breakpoints} from "@angular/cdk/layout";
 
 
@@ -43,7 +34,6 @@ import {BreakpointObserver, Breakpoints} from "@angular/cdk/layout";
     LayoutTransitionComponent,
     RouterLink
   ],
-  standalone: true,
   templateUrl: './main-search.component.html',
   styleUrl: './main-search.component.css'
 })

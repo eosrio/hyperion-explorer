@@ -5,9 +5,7 @@ import {lastValueFrom} from "rxjs";
 import {GetTableByScopeResponse, TableData} from "../interfaces";
 import {DataService} from "./data.service";
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({providedIn: 'root'})
 export class SearchService {
 
   searchType = signal<string>("");

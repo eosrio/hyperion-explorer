@@ -10,8 +10,17 @@
     @for (item of data() | keyvalue; track item.key) {
       <div [ngClass]="{'data-item': objectKeyCount() > 1, 'ml-2': level() > 0}">
 
+        @if (level() === 0) {
+          <span class="faded"> ⨀ </span>
+        } @else if (level() === 1) {
+          <span class="faded"> ⨁ </span>
+        } @else if (level() === 2) {
+          <span class="faded"> ⨂ </span>
+        }
+
         <!--FIELD NAME-->
-        <span class="font-medium">{{ item.key }} ({{ getType(item.value) }})</span>:
+        <span class="font-medium">{{ item.key }}</span>:
+        <!--        <span [matTooltip]="'Type: ' + getType(item.value)" class="font-medium">{{ item.key }}</span>:-->
 
         <!--FIELD VALUE-->
         @if (item.value) {
@@ -50,7 +59,12 @@
         } @else if (item.value === 0) {
           <span class="break-word text-red-400">0</span>
         } @else {
-          <span class="break-word text-red-400">UNDEFINED</span>
+          <!--EMPTY STRING / UNDEFINED-->
+          @if (getType(item.value) === 'string') {
+            <span matTooltip="EMPTY STRING" class="break-word text-purple-400">""</span>
+          } @else {
+            <span class="break-word text-red-400">EMPTY ({{ getType(item.value) }})</span>
+          }
         }
       </div>
     } @empty {

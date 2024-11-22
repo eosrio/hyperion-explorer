@@ -24,7 +24,6 @@ import {MatIcon} from "@angular/material/icon";
     MatIcon
   ],
   templateUrl: './contract-dialog.component.html',
-  standalone: true,
   styleUrl: './contract-dialog.component.css'
 })
 export class ContractDialogComponent {

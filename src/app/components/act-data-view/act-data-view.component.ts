@@ -63,15 +63,15 @@ export class ActDataViewComponent {
     }
   });
 
-  constructor() {
-    effect(() => {
-      if (this.fieldName()) {
-        console.log(`ActData(${this.level()}) @ ${this.fieldName()}`, this.data());
-      } else {
-        console.log(`ActData(${this.level()})`, this.data());
-      }
-    });
-  }
+  // constructor() {
+  //   effect(() => {
+  //     if (this.fieldName()) {
+  //       console.log(`ActData(${this.level()}) @ ${this.fieldName()}`, this.data());
+  //     } else {
+  //       console.log(`ActData(${this.level()})`, this.data());
+  //     }
+  //   });
+  // }
 
   getType(subitem: any): "string" | "number" | "bigint" | "boolean" | "symbol" | "undefined" | "object" | "function" {
     return typeof subitem;

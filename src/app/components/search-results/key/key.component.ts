@@ -22,7 +22,6 @@ interface KeyResponse {
     FaLayersComponent
   ],
   templateUrl: './key.component.html',
-  standalone: true,
   styleUrl: './key.component.css'
 })
 export class KeyComponent implements OnInit {

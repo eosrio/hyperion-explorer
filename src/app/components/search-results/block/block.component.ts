@@ -41,7 +41,6 @@ import {ActDataViewComponent} from "../../act-data-view/act-data-view.component"
   ],
   templateUrl: './block.component.html',
   styleUrl: './block.component.css',
-  standalone: true,
   animations: [
     trigger('detailExpand', [
       state('collapsed', style({height: '0px', minHeight: '0'})),

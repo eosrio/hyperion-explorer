@@ -4,7 +4,6 @@ import { Component } from '@angular/core';
   selector: 'app-evm-block',
   imports: [],
   templateUrl: './evm-block.component.html',
-  standalone: true,
   styleUrl: './evm-block.component.css'
 })
 export class EvmBlockComponent {

@@ -17,27 +17,25 @@ import {MatProgressSpinner} from "@angular/material/progress-spinner";
 import {FaIconComponent, FaLayersComponent} from "@fortawesome/angular-fontawesome";
 import {MatChipListbox, MatChipOption} from "@angular/material/chips";
 import {MatTableModule} from "@angular/material/table";
-import {isPlatformBrowser, KeyValuePipe, NgClass} from "@angular/common";
+import {isPlatformBrowser, KeyValuePipe} from "@angular/common";
 import {animate, scroll} from "motion";
 import {toObservable} from "@angular/core/rxjs-interop";
 import {ActDataViewComponent} from "../../act-data-view/act-data-view.component";
 
 @Component({
   selector: 'app-transaction',
-    imports: [
-        MatProgressSpinner,
-        FaIconComponent,
-        FaLayersComponent,
-        MatChipListbox,
-        MatChipOption,
-        RouterLink,
-        MatTableModule,
-        KeyValuePipe,
-        NgClass,
-        ActDataViewComponent
-    ],
+  imports: [
+    MatProgressSpinner,
+    FaIconComponent,
+    FaLayersComponent,
+    MatChipListbox,
+    MatChipOption,
+    RouterLink,
+    MatTableModule,
+    KeyValuePipe,
+    ActDataViewComponent
+  ],
   templateUrl: './transaction.component.html',
-  standalone: true,
   styleUrls: ['./transaction.component.css']
 })
 export class TransactionComponent implements OnInit, OnDestroy {
@@ -149,7 +147,8 @@ export class TransactionComponent implements OnInit, OnDestroy {
   }
 
   private tableStickyMotion(tableSticky?: ElementRef<HTMLDivElement>) {
-    scroll(animate('.mat-mdc-header-row', {boxShadow: 'rgba(78 104 192, 0.25) 0px 4px 19px 0px, rgba(17, 12, 46, 0.15) 0px 20px 100px 0px',
+    scroll(animate('.mat-mdc-header-row', {
+        boxShadow: 'rgba(78 104 192, 0.25) 0px 4px 19px 0px, rgba(17, 12, 46, 0.15) 0px 20px 100px 0px',
         background: 'linear-gradient(115deg, rgb(255 255 255 / 40%) 0%, rgb(255 255 255 / 90%) 87%, rgb(255 255 255 / 40%) 130%), var(--main-background)'
       }, {duration: 1}),
       {target: tableSticky?.nativeElement, offset: ['end 250px', '200px 250px']}

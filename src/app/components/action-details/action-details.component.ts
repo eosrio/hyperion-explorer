@@ -39,7 +39,6 @@ interface KeyValueNode {
     MatTreeNodeDef
   ],
   templateUrl: './action-details.component.html',
-  standalone: true,
   styleUrl: './action-details.component.css'
 })
 export class ActionDetailsComponent {

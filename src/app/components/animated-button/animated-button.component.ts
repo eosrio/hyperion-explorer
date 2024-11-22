@@ -10,7 +10,6 @@ import {toObservable} from "@angular/core/rxjs-interop";
     MatIcon
   ],
   templateUrl: './animated-button.component.html',
-  standalone: true,
   styleUrl: './animated-button.component.css'
 })
 export class AnimatedButtonComponent implements OnInit {

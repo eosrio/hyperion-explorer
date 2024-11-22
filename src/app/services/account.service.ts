@@ -18,9 +18,7 @@ interface HealthResponse {
   };
 }
 
-@Injectable({
-  providedIn: 'root'
-})
+@Injectable({providedIn: 'root'})
 export class AccountService {
 
   platformId = inject(PLATFORM_ID);
