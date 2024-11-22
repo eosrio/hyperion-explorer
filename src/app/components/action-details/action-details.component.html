@@ -5,13 +5,12 @@
       <mat-icon class="faded">close</mat-icon>
     </button>
   </div>
-
 </div>
 <mat-dialog-content>
   <mat-tree [dataSource]="actionTree" [treeControl]="actionTreeControl" class="example-tree">
 
     <mat-nested-tree-node *matTreeNodeDef="let node" matTreeNodeToggle
-                   class="flex flex-row flex-wrap
+                          class="flex flex-row flex-wrap
                    px-10
                    border-b-2
                    justify-between place-content-center place-items-center content-center">

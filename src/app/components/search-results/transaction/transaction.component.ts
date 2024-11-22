@@ -20,20 +20,22 @@ import {MatTableModule} from "@angular/material/table";
 import {isPlatformBrowser, KeyValuePipe, NgClass} from "@angular/common";
 import {animate, scroll} from "motion";
 import {toObservable} from "@angular/core/rxjs-interop";
+import {ActDataViewComponent} from "../../act-data-view/act-data-view.component";
 
 @Component({
   selector: 'app-transaction',
-  imports: [
-    MatProgressSpinner,
-    FaIconComponent,
-    FaLayersComponent,
-    MatChipListbox,
-    MatChipOption,
-    RouterLink,
-    MatTableModule,
-    KeyValuePipe,
-    NgClass
-  ],
+    imports: [
+        MatProgressSpinner,
+        FaIconComponent,
+        FaLayersComponent,
+        MatChipListbox,
+        MatChipOption,
+        RouterLink,
+        MatTableModule,
+        KeyValuePipe,
+        NgClass,
+        ActDataViewComponent
+    ],
   templateUrl: './transaction.component.html',
   standalone: true,
   styleUrls: ['./transaction.component.css']

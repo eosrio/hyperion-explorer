@@ -1,0 +1,60 @@
+@switch (rootType()) {
+
+  <!--RAW HEX DATA-->
+  @case ("string") {
+    <span class="break-word italic">{{ data() }}</span>
+  }
+
+  <!--JSON OBJECT-->
+  @case ("object") {
+    @for (item of data() | keyvalue; track item.key) {
+      <div [ngClass]="{'data-item': objectKeyCount() > 1, 'ml-2': level() > 0}">
+
+        <!--FIELD NAME-->
+        <span class="font-medium">{{ item.key }} ({{ getType(item.value) }})</span>:
+
+        <!--FIELD VALUE-->
+        @if (item.value) {
+          @switch (getType(item.value)) {
+            @case ("string") {
+              @if (isAccountName(item.value)) {
+                <a [routerLink]="['/account', item.value]"
+                   class="break-word text-violet-600 text-pretty">{{ item.value }}</a>
+              } @else {
+                @if (String(item.value).length > 32) {
+                  <br>
+                  <span [matTooltip]="String(item.value)" class="break-word text-purple-400 text-pretty">
+                    {{ String(item.value) | slice:0:32 }}...
+                  </span>
+                } @else {
+                  <span class="break-word text-purple-400 text-pretty">{{ item.value }}</span>
+                }
+              }
+            }
+            @case ("number") {
+              <span class="break-word text-red-400">{{ item.value }}</span>
+            }
+            @case ("boolean") {
+              <span class="break-word">{{ item.value }}</span>
+            }
+            @case ("object") {
+              @if (!Array.isArray(item.value)) {
+                <app-act-data-view [fieldName]="item.key" [data]="item.value" [level]="level() + 1"></app-act-data-view>
+              } @else {
+                <span class="break-word">ARRAY</span>
+              }
+            }
+          }
+        } @else if (item.value === null) {
+          <span class="break-word text-red-400">NULL</span>
+        } @else if (item.value === 0) {
+          <span class="break-word text-red-400">0</span>
+        } @else {
+          <span class="break-word text-red-400">UNDEFINED</span>
+        }
+      </div>
+    } @empty {
+      <span class="break-word text-red-400">EMPTY</span>
+    }
+  }
+}

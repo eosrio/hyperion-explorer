@@ -4,7 +4,7 @@ import {rxResource} from "@angular/core/rxjs-interop";
 import {HttpClient} from "@angular/common/http";
 import {map, of} from "rxjs";
 import {environment} from "../../../env";
-import {MatButton} from "@angular/material/button";
+import {MatButton, MatIconButton} from "@angular/material/button";
 import {MatCell, MatColumnDef, MatHeaderCell, MatHeaderRow, MatRow, MatTableModule} from "@angular/material/table";
 import {MatSort, MatSortHeader, Sort} from "@angular/material/sort";
 import {MatTooltip} from "@angular/material/tooltip";
@@ -13,6 +13,7 @@ import {FormsModule} from '@angular/forms';
 import {MatDialogContent} from "@angular/material/dialog";
 import {JsonPipe, NgClass} from "@angular/common";
 import {MatInput} from "@angular/material/input";
+import {MatIcon} from "@angular/material/icon";
 
 function buildFieldArray(structs: any[], array: AbiStructField[], type: string): void {
   if (array && type) {
@@ -42,6 +43,8 @@ function buildFieldArray(structs: any[], array: AbiStructField[], type: string):
     NgClass,
     MatInput,
     JsonPipe,
+    MatIconButton,
+    MatIcon,
   ],
   templateUrl: './contract-explorer.component.html',
   styleUrl: './contract-explorer.component.css'
@@ -67,18 +70,6 @@ export class ContractExplorerComponent {
   getTableByScopeLimit = 20;
 
   constructor() {
-
-    effect(() => {
-      console.log('code', this.code());
-    });
-
-    effect(() => {
-      console.log('table', this.table());
-    });
-
-    effect(() => {
-      console.log('scope', this.scope());
-    });
   }
 
   // request new abi when the code signal changes
@@ -227,5 +218,17 @@ export class ContractExplorerComponent {
   announceSortChange(sortState: Sort) {
     this.sortBy.set(sortState.active);
     this.sortDirection.set(sortState.direction);
+  }
+
+  reloadTables() {
+    this.abiRes.reload();
+  }
+
+  reloadScopes() {
+    this.tableScopesRes.reload();
+  }
+
+  reloadRows() {
+    this.tableRowRes.reload();
   }
 }

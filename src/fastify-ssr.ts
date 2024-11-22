@@ -33,7 +33,7 @@ export class FastifyAngularSSR {
       prefix: '/explorer',
       wildcard: false,
       list: true,
-      preCompressed: true
+      preCompressed: false
     });
 
     this.fastify.get('/*', async (req: FastifyRequest, reply: FastifyReply) => {

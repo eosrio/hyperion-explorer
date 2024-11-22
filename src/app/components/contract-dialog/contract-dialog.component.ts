@@ -1,4 +1,4 @@
-import {Component, Inject, signal} from '@angular/core';
+import {Component, inject, Inject, signal} from '@angular/core';
 import {
   MAT_DIALOG_DATA,
   MatDialogClose,
@@ -29,7 +29,9 @@ import {MatIcon} from "@angular/material/icon";
 })
 export class ContractDialogComponent {
 
-  code = signal<string | null>(null);
+  data: ContractExplorerData = inject(MAT_DIALOG_DATA);
+
+  code = signal<string>(this.data.account);
   table = signal<string | null>(null);
   scope = signal<string | null>(null);
 
@@ -39,7 +41,7 @@ export class ContractDialogComponent {
     }
   }
 
-  constructor(@Inject(MAT_DIALOG_DATA) public data: ContractExplorerData) {
+  constructor() {
     if (this.data.account) {
       this.code.set(this.data.account);
     }

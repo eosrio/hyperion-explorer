@@ -1,4 +1,4 @@
-import {Component, ElementRef, inject, PLATFORM_ID, signal, viewChild, ViewChild} from '@angular/core';
+import {Component, ElementRef, inject, PLATFORM_ID, signal, viewChild} from '@angular/core';
 import {SearchService} from "../../../services/search.service";
 import {MatButton, MatIconButton} from "@angular/material/button";
 import {ActivatedRoute, Router, RouterLink} from "@angular/router";
@@ -16,7 +16,7 @@ import {
   MatTreeNodePadding,
   MatTreeNodeToggle
 } from "@angular/material/tree";
-import {DatePipe, DecimalPipe, isPlatformBrowser, KeyValuePipe, NgClass} from "@angular/common";
+import {DatePipe, DecimalPipe, isPlatformBrowser, NgClass} from "@angular/common";
 import {MatPaginator, PageEvent} from "@angular/material/paginator";
 import {MatCell, MatColumnDef, MatHeaderCell, MatHeaderRow, MatRow, MatTableModule} from "@angular/material/table";
 import {AccountService} from "../../../services/account.service";
@@ -46,6 +46,7 @@ import {ActionDetailsComponent} from "../../action-details/action-details.compon
 import {ContractDialogComponent} from "../../contract-dialog/contract-dialog.component";
 import {toObservable} from "@angular/core/rxjs-interop";
 import {animate, scroll} from "motion";
+import {ActDataViewComponent} from "../../act-data-view/act-data-view.component";
 
 interface Permission {
   perm_name: string;
@@ -111,7 +112,6 @@ interface FlatNode {
     MatColumnDef,
     MatHeaderCell,
     MatCell,
-    KeyValuePipe,
     NgClass,
     MatTreeNodePadding,
     MatRow,
@@ -119,7 +119,8 @@ interface FlatNode {
     MatCardContent,
     MatCardHeader,
     MatTreeModule,
-    DatePipe
+    DatePipe,
+    ActDataViewComponent
   ],
   templateUrl: './account.component.html',
   styleUrl: './account.component.css'
@@ -127,13 +128,18 @@ interface FlatNode {
 export class AccountComponent {
 
   accountService = inject(AccountService);
-
-  @ViewChild(MatSort, {static: false}) sort?: MatSort;
-  @ViewChild(MatPaginator, {static: false}) paginator?: MatPaginator;
-  balanceCard = viewChild<ElementRef<HTMLDivElement>>('balanceCard');
-  actionsTable = viewChild<ElementRef<HTMLDivElement>>('actionsTable');
   readonly dialog = inject(MatDialog);
   platformId = inject(PLATFORM_ID);
+  route = inject(ActivatedRoute);
+  dataService = inject(DataService);
+  searchService = inject(SearchService);
+  title = inject(Title);
+  router = inject(Router);
+
+  sort = viewChild<MatSort>(MatSort);
+  paginator = viewChild<MatPaginator>(MatPaginator);
+  balanceCard = viewChild<ElementRef<HTMLDivElement>>('balanceCard');
+  actionsTable = viewChild<ElementRef<HTMLDivElement>>('actionsTable');
 
   icons = {
     solid: {
@@ -177,13 +183,7 @@ export class AccountComponent {
   systemTokenContract = 'eosio.token';
   private contractDialogRef?: MatDialogRef<ContractDialogComponent, any>;
 
-  constructor(
-    private route: ActivatedRoute,
-    private dataService: DataService,
-    private searchService: SearchService,
-    private title: Title,
-    private router: Router
-  ) {
+  constructor() {
 
     this.searchService.searchType.set('account');
 
@@ -239,8 +239,9 @@ export class AccountComponent {
   }
 
   private tableStickyMotion(tableSticky?: ElementRef<HTMLDivElement>) {
-    scroll(animate('.mat-mdc-header-row', {boxShadow: 'rgba(78 104 192, 0.25) 0px 4px 19px 0px, rgba(17, 12, 46, 0.15) 0px 20px 100px 0px',
-      background: 'linear-gradient(115deg, rgb(255 255 255 / 40%) 0%, rgb(255 255 255 / 90%) 87%, rgb(255 255 255 / 40%) 130%), var(--main-background)'
+    scroll(animate('.mat-mdc-header-row', {
+        boxShadow: 'rgba(78 104 192, 0.25) 0px 4px 19px 0px, rgba(17, 12, 46, 0.15) 0px 20px 100px 0px',
+        background: 'linear-gradient(115deg, rgb(255 255 255 / 40%) 0%, rgb(255 255 255 / 90%) 87%, rgb(255 255 255 / 40%) 130%), var(--main-background)'
       }, {duration: 1}),
       {target: tableSticky?.nativeElement, offset: ['end 250px', '200px 250px']}
     );
@@ -316,19 +317,12 @@ export class AccountComponent {
         }
         this.processPermissions();
         setTimeout(() => {
-          if (this.sort) {
-            this.accountService.tableDataSource.sort = this.sort;
-          }
-          if (this.paginator) {
-            this.accountService.tableDataSource.paginator = this.paginator;
-          }
+          this.accountService.tableDataSource.sort = this.sort() || null;
+          this.accountService.tableDataSource.paginator = this.paginator() || null;
         }, 500);
         const creationData = await this.accountService.getCreator(routeParams.account_name);
         if (creationData) {
-          this.creationData.set({
-            creator: creationData.creator,
-            timestamp: creationData.timestamp
-          });
+          this.creationData.set({creator: creationData.creator, timestamp: creationData.timestamp});
         }
       }
     });
@@ -546,9 +540,16 @@ export class AccountComponent {
         autoFocus: false,
         panelClass: ['responsive-modal'],
       });
+
       this.contractDialogRef.afterClosed().subscribe(() => {
         this.contractDialogRef = undefined;
+        console.log('Contract Dialog closed');
+        // clear query params
+        this.router.navigate([], {
+          queryParams: {}
+        }).catch(console.log);
       });
+
     }
   }
 
@@ -557,9 +558,7 @@ export class AccountComponent {
   }
 
   checkKey(action: any, key: any) {
-    return action['act']['account'] === 'eosio.evm' &&
-      action['act']['name'] === 'raw' &&
-      ['to', 'from', 'hash', 'value', 'block'].includes(key as string);
+    return action['act']['account'] === 'eosio.evm' && action['act']['name'] === 'raw' && ['to', 'from', 'hash', 'value', 'block'].includes(key as string);
   }
 
   asArray(value: any): any[] {
@@ -581,5 +580,9 @@ export class AccountComponent {
       console.log('Action Detail dialog closed!');
       console.log(value);
     });
+  }
+
+  toRecord(value: any): Record<string, any> {
+    return value;
   }
 }

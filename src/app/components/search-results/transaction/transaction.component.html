@@ -131,24 +131,14 @@
               <span class="accent font-medium">{{ action.act.name }}</span>
             </td>
           </ng-container>
+
           <!-- Data Column -->
           <ng-container matColumnDef="data">
             <th mat-header-cell *matHeaderCellDef>Data</th>
-            <td
-              mat-cell
-              *matCellDef="let action"
-              data-label="Data"
-            >
-              @for (item of action["act"]["data"] | keyvalue; track item) {
-                <div
-                  [ngClass]="{
-                    'data-item': objectKeyCount(action['act']['data']) > 1
-                  }"
-                >
-                  <span class="font-medium">{{ item.key }}</span
-                  >: <span class="break-word">{{ item.value }}</span>
-                </div>
-              }
+            <td mat-cell *matCellDef="let action" data-label="Data">
+
+              <app-act-data-view [data]="action.act.data"></app-act-data-view>
+
             </td>
           </ng-container>
           <!-- Authorization Column -->

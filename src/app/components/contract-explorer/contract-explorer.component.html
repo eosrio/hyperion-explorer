@@ -1,7 +1,12 @@
 <mat-dialog-content>
   @if (code()) {
 
-    <div class="my-5">Please select a table:</div>
+    <div class="w-full flex flex-row justify-between items-center">
+      <div class="my-5">Please select a table:</div>
+      <button matTooltip="Reload Tables" (click)="reloadTables()" [disabled]="abiRes.isLoading()" mat-icon-button class="my-5">
+        <mat-icon>sync</mat-icon>
+      </button>
+    </div>
 
     <div class="grid dialog-grid-parent">
       @for (tableName of abiTableNames(); track tableName) {
@@ -20,7 +25,14 @@
           <span class="font-medium underline">{{ table() }}</span>
         </div>
 
-        <div class="my-5 faded">Please select a scope:</div>
+        <div class="w-full flex flex-row justify-between items-center">
+          <div class="my-5 faded">Please select a scope:</div>
+          <button matTooltip="Reload Scopes" (click)="reloadScopes()" [disabled]="tableScopesRes.isLoading()" mat-icon-button class="my-5">
+            <mat-icon>sync</mat-icon>
+          </button>
+        </div>
+
+
         <div class="grid dialog-grid-parent">
           @for (sName of scopeList(); track sName) {
             <button (click)="selectScope(sName)" mat-flat-button class="grid-item-btn"
@@ -67,7 +79,11 @@
           <div class="text-lg mt-5 flex flex-row items-center gap-3">
             <span class="underline">Scope: </span>
             <span class="font-medium underline">{{ scope() }}</span>
+            <button matTooltip="Reload Rows" (click)="reloadRows()" [disabled]="tableRowRes.isLoading()" mat-icon-button>
+              <mat-icon>sync</mat-icon>
+            </button>
           </div>
+
 
           @defer (when displayedColumns().length > 0) {
             <table mat-table [dataSource]="tableData()" class="transparent-table max-w-full w-full mt-5"

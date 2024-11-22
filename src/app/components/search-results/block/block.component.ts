@@ -24,6 +24,7 @@ import {SearchService} from "../../../services/search.service";
 import {DataService} from "../../../services/data.service";
 import {scroll, animate as motionAnimate} from "motion";
 import {toObservable} from "@angular/core/rxjs-interop";
+import {ActDataViewComponent} from "../../act-data-view/act-data-view.component";
 
 @Component({
   selector: 'app-block',
@@ -35,7 +36,8 @@ import {toObservable} from "@angular/core/rxjs-interop";
     MatProgressSpinner,
     MatIconButton,
     NgClass,
-    KeyValuePipe
+    KeyValuePipe,
+    ActDataViewComponent
   ],
   templateUrl: './block.component.html',
   styleUrl: './block.component.css',
@@ -122,11 +124,11 @@ export class BlockComponent implements OnInit, OnDestroy {
 
       const blockData = await this.accountService.loadBlockData(this.blockNum());
 
-      // TODO: remove after testing
-      for (let i = 0; i < 20; i++) {
-        blockData.transactions.push(blockData.transactions[0]);
-      }
-      // END TODO
+      // // TODO: remove after testing
+      // for (let i = 0; i < 20; i++) {
+      //   blockData.transactions.push(blockData.transactions[0]);
+      // }
+      // // END TODO
 
       if (blockData) {
         this.block.set(blockData);

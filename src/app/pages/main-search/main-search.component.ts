@@ -142,15 +142,17 @@ export class MainSearchComponent implements OnInit {
       }
     });
 
-    if (isPlatformBrowser(this.platformId)) {
-      setInterval(() => {
-        this.currentPlaceholder++;
-        if (!this.placeholders[this.currentPlaceholder]) {
-          this.currentPlaceholder = 0;
-        }
-        this.searchPlaceholder.set(this.placeholders[this.currentPlaceholder]);
-      }, 2000);
-    }
+    // TODO: temporarily disabled
+    // if (isPlatformBrowser(this.platformId)) {
+    //   setInterval(() => {
+    //     this.currentPlaceholder++;
+    //     if (!this.placeholders[this.currentPlaceholder]) {
+    //       this.currentPlaceholder = 0;
+    //     }
+    //     this.searchPlaceholder.set(this.placeholders[this.currentPlaceholder]);
+    //   }, 2000);
+    // }
+
   }
 
   @HostListener('window:keydown', ['$event'])

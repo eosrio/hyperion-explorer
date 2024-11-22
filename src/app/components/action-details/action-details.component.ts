@@ -9,7 +9,7 @@ import {
 import {
   MatNestedTreeNode,
   MatTree,
-  MatTreeNestedDataSource,
+  MatTreeNestedDataSource, MatTreeNodeDef,
   MatTreeNodeOutlet,
   MatTreeNodeToggle
 } from "@angular/material/tree";
@@ -35,7 +35,8 @@ interface KeyValueNode {
     MatTreeNodeOutlet,
     MatDialogTitle,
     MatDialogContent,
-    MatDialogClose
+    MatDialogClose,
+    MatTreeNodeDef
   ],
   templateUrl: './action-details.component.html',
   standalone: true,
