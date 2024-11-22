@@ -1,4 +1,4 @@
-import {Component, Inject, signal} from '@angular/core';
+import { Component, signal, inject } from '@angular/core';
 import {
   MAT_DIALOG_DATA,
   MatDialogClose,
@@ -42,16 +42,16 @@ interface KeyValueNode {
   styleUrl: './action-details.component.css'
 })
 export class ActionDetailsComponent {
+  dialogRef = inject<MatDialogRef<ActionDetailsComponent>>(MatDialogRef);
+  data = inject(MAT_DIALOG_DATA);
+
 
   action = signal<any>(null);
 
   actionTreeControl = new NestedTreeControl<KeyValueNode>(dataNode => dataNode.children);
   actionTree = new MatTreeNestedDataSource<KeyValueNode>();
 
-  constructor(
-    public dialogRef: MatDialogRef<ActionDetailsComponent>,
-    @Inject(MAT_DIALOG_DATA) public data: any
-  ) {
+  constructor() {
     console.log(this.data);
     if (this.data.action) {
       this.action.set(this.data.action);

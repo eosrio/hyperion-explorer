@@ -39,6 +39,12 @@ import {ActDataViewComponent} from "../../act-data-view/act-data-view.component"
   styleUrls: ['./transaction.component.css']
 })
 export class TransactionComponent implements OnInit, OnDestroy {
+  private route = inject(ActivatedRoute);
+  searchService = inject(SearchService);
+  accountService = inject(AccountService);
+  data = inject(DataService);
+  private title = inject(Title);
+
 
   columnsToDisplay: string[] = ['contract', 'action', 'data', 'auth'];
 
@@ -73,11 +79,7 @@ export class TransactionComponent implements OnInit, OnDestroy {
     }
   }
 
-  constructor(private route: ActivatedRoute,
-              public searchService: SearchService,
-              public accountService: AccountService,
-              public data: DataService,
-              private title: Title) {
+  constructor() {
 
     toObservable(this.actionsTable).subscribe((value) => {
       if (value && isPlatformBrowser(this.platformId)) {

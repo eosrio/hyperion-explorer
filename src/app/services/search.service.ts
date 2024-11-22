@@ -1,4 +1,4 @@
-import {Injectable, signal} from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import {environment} from "../../env";
 import {HttpClient} from "@angular/common/http";
 import {lastValueFrom} from "rxjs";
@@ -7,6 +7,9 @@ import {DataService} from "./data.service";
 
 @Injectable({providedIn: 'root'})
 export class SearchService {
+  private http = inject(HttpClient);
+  private data = inject(DataService);
+
 
   searchType = signal<string>("");
   searchQuery = signal<string>("");
@@ -16,7 +19,7 @@ export class SearchService {
 
   autoCompleteCache: Map<string, string[]> = new Map();
 
-  constructor(private http: HttpClient, private data: DataService) {
+  constructor() {
     this.searchAccountUrl = environment.hyperionApiUrl + '/v1/chain/get_table_by_scope';
     this.wildcardAccountUrl = environment.hyperionApiUrl + '/v2/state/get_voter_scopes';
   }

@@ -1,4 +1,4 @@
-import {Component, OnInit, signal} from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import {ActivatedRoute, RouterLink} from "@angular/router";
 import {AccountService} from "../../../services/account.service";
 import {DataService} from '../../../services/data.service';
@@ -25,6 +25,12 @@ interface KeyResponse {
   styleUrl: './key.component.css'
 })
 export class KeyComponent implements OnInit {
+  private route = inject(ActivatedRoute);
+  accountService = inject(AccountService);
+  private searchService = inject(SearchService);
+  data = inject(DataService);
+  private title = inject(Title);
+
 
   key = signal<KeyResponse>({} as KeyResponse);
 
@@ -37,13 +43,6 @@ export class KeyComponent implements OnInit {
       faSadTear: faSadTear,
       faSpinner: faSpinner
     }
-  }
-
-  constructor(private route: ActivatedRoute,
-              public accountService: AccountService,
-              private searchService: SearchService,
-              public data: DataService,
-              private title: Title) {
   }
 
   ngOnInit(): void {

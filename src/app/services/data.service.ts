@@ -49,13 +49,11 @@ export class DataServiceServer extends DataService {
 
 @Injectable({providedIn: 'root'})
 export class DataServiceBrowser extends DataService {
+  private title = inject(Title);
+
   state = inject(TransferState);
   initError: string | null = null;
   explorerMetadata: ExplorerMetadata | null = null;
-
-  constructor(private title: Title) {
-    super();
-  }
 
   async load() {
     this.explorerMetadata = this.state.get(makeStateKey<ExplorerMetadata>('chain_data'), null);

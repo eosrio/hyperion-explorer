@@ -20,6 +20,9 @@ interface HealthResponse {
 
 @Injectable({providedIn: 'root'})
 export class AccountService {
+  private httpClient = inject(HttpClient);
+  private pagService = inject(PaginationService);
+
 
   platformId = inject(PLATFORM_ID);
 
@@ -55,7 +58,7 @@ export class AccountService {
   // signals
   public loaded = signal(false);
 
-  constructor(private httpClient: HttpClient, private pagService: PaginationService) {
+  constructor() {
     this.getServerUrl();
     this.getAccountUrl = environment.hyperionApiUrl + '/v2/state/get_account?account=';
     this.getActionsUrl = environment.hyperionApiUrl + '/v2/history/get_actions?account=';

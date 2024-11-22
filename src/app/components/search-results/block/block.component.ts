@@ -50,6 +50,12 @@ import {ActDataViewComponent} from "../../act-data-view/act-data-view.component"
   ]
 })
 export class BlockComponent implements OnInit, OnDestroy {
+  private route = inject(ActivatedRoute);
+  private dataService = inject(DataService);
+  private searchService = inject(SearchService);
+  accountService = inject(AccountService);
+  private title = inject(Title);
+
   columnsToDisplay: string[] = ['icon', 'id', 'root', 'action'];
   columnsInside: string[] = ['action', 'data', 'auth'];
   expandedElement: any | null;
@@ -91,11 +97,7 @@ export class BlockComponent implements OnInit, OnDestroy {
     }
   }
 
-  constructor(private route: ActivatedRoute,
-              private dataService: DataService,
-              private searchService: SearchService,
-              public accountService: AccountService,
-              private title: Title) {
+  constructor() {
 
     toObservable(this.actionsTable).subscribe((value) => {
       if (value && isPlatformBrowser(this.platformId)) {
