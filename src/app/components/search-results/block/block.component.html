@@ -104,12 +104,8 @@
               data-label="Tap to see all actions"
             >
               <button mat-icon-button>
-                <fa-icon
-                  [icon]="
-                  expandedElement === transaction
-                    ? icons.solid.faChevronDown
-                    : icons.solid.faChevronRight
-                "
+                <fa-icon [ngClass]="expandedElement === transaction ? 'arrowDown' : 'arrowRight'"
+                  [icon]="icons.solid.faChevronRight" class="arrowSize"
                 ></fa-icon>
               </button>
             </td>

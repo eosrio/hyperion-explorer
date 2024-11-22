@@ -394,13 +394,8 @@
               matTreeNodePadding
             >
               <button mat-icon-button matTreeNodeToggle>
-                <fa-icon
-                  [icon]="
-                      treeControl.isExpanded(node)
-                        ? icons.solid.faChevronDown
-                        : icons.solid.faChevronRight
-                    "
-                ></fa-icon>
+                <fa-icon [ngClass]=" treeControl.isExpanded(node) ? 'arrowDown' : 'arrowRight'"
+                  [icon]="icons.solid.faChevronRight" class="arrowSize"></fa-icon>
               </button>
               <div class="permission-cell flex flex-col gap-[7px]">
                 <div>

@@ -85,6 +85,18 @@
   /*width: max-content !important;*/
 }
 
+@media (max-width: 953px) {
+  .tagline {
+    display: none;
+  }
+}
+
+@media (min-width: 954px) {
+  .tagline {
+    display: inline;
+  }
+}
+
 .provider, .provider a {
   font-size: 13px;
   font-family: Montserrat, sans-serif;
