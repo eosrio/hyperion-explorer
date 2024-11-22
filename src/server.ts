@@ -7,6 +7,8 @@ import {
 import express from 'express';
 import {dirname, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
+import {FastifyAngularSSR} from "./fastify-ssr";
+import fastify from "fastify";
 
 const serverDistFolder = dirname(fileURLToPath(import.meta.url));
 const browserDistFolder = resolve(serverDistFolder, '../browser');
@@ -36,6 +38,26 @@ if (isMainModule(import.meta.url)) {
   app.listen(port, () => {
     console.log(`Node Express server listening on http://localhost:${port}`);
   });
+
+  const fastifyServer = fastify();
+  const fastifyAngularSSR = new FastifyAngularSSR();
+
+  fastifyServer.get('/*', async (req, reply) => {
+    await fastifyAngularSSR.render(req, reply);
+    return {};
+  });
+
+  try {
+    await fastifyServer.listen({
+      port: 3000,
+      host: '0.0.0.0'
+    });
+    console.log(`Fastify server listening on http://localhost:3000`);
+  } catch (e) {
+    console.error(e);
+    process.exit(1);
+  }
+
 }
 
 export const reqHandler = createNodeRequestHandler(app);

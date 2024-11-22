@@ -254,7 +254,7 @@ export class MainSearchComponent implements OnInit, OnDestroy {
         if (!scrollConfigured) {
           scrollConfigured = true;
           scroll((p: number) => {
-            console.log(`scrolling`, p);
+            // console.log(`scrolling`, p);
             if (headerAnimation) {
               headerAnimation.time = p;
             }
