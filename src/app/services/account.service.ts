@@ -1,4 +1,4 @@
-import {Injectable, signal} from '@angular/core';
+import {inject, Injectable, PLATFORM_ID, signal} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {AccountCreationData, GetAccountResponse} from '../interfaces';
 // import {HyperionStreamClient} from '@eosrio/hyperion-stream-client';
@@ -6,6 +6,7 @@ import {MatTableDataSource} from '@angular/material/table';
 import {PaginationService} from "./pagination.service";
 import {environment} from "../../env";
 import {lastValueFrom} from "rxjs";
+import {isPlatformBrowser} from "@angular/common";
 
 interface HealthResponse {
   features: {
@@ -21,6 +22,9 @@ interface HealthResponse {
   providedIn: 'root'
 })
 export class AccountService {
+
+  platformId = inject(PLATFORM_ID);
+
   getAccountUrl: string;
   getActionsUrl: string;
   getCreatorUrl: string;
@@ -222,7 +226,9 @@ export class AccountService {
 
       if (this.jsonData.actions) {
         this.actions = this.jsonData.actions;
-        this.checkIrreversibility().catch(console.log);
+        if (isPlatformBrowser(this.platformId)) {
+          this.checkIrreversibility().catch(console.log);
+        }
         this.tableDataSource.data = this.actions;
       }
 

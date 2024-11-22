@@ -260,11 +260,6 @@ export class AccountComponent {
     scrollTimeline.to('.mat-mdc-header-row', {boxShadow: 'rgba(78 104 192, 0.25) 0px 4px 19px 0px, rgba(17, 12, 46, 0.15) 0px 20px 100px 0px'});
   }
 
-  ngOnDestroy(): void {
-    console.log('ngOnDestroy');
-    // this.accountService.disconnectStream();
-  }
-
   transformer(node: Permission, level: number): any {
     return {
       expandable: !!node.children && node.children.length > 0,

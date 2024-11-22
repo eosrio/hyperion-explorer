@@ -261,28 +261,6 @@ body {
   }
 }
 
-@-moz-keyframes scaleAnimation {
-  from {
-    -moz-transform: rotate(0deg) scale(0.955) skew(0deg) translate(0px);
-    visibility: hidden;
-  }
-  to {
-    -moz-transform: rotate(0deg) scale(1) skew(0deg) translate(0px);
-    visibility: visible;
-  }
-}
-
-@-o-keyframes scaleAnimation {
-  from {
-    -o-transform: rotate(0deg) scale(0.955) skew(0deg) translate(0px);
-    visibility: hidden;
-  }
-  to {
-    -o-transform: rotate(0deg) scale(1) skew(0deg) translate(0px);
-    visibility: visible;
-  }
-}
-
 @keyframes fadeInDown {
   from {
     opacity: 0;
