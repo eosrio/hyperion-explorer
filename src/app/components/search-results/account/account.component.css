@@ -9,18 +9,6 @@
   }
 }
 
-@media (max-width: 960px) {
-  #account-name-sticky {
-    top: 10.313rem;
-  }
-}
-
-@media (min-width: 961px) {
-  #account-name-sticky {
-    top: 7.625rem;
-  }
-}
-
 .total-balance {
   border-bottom: 1px solid rgba(0, 0, 0, .12);
   padding-bottom: 10px;
@@ -242,19 +230,26 @@
 }
 
 
+@media (max-width: 960px) {
+  .actions-table .mat-mdc-header-row {
+    top: 260px;
+  }
+}
+
+@media (min-width: 961px) {
+  .actions-table .mat-mdc-header-row {
+    top: 225px;
+  }
+}
 
 /*table responsive*/
 @media (min-width: 600px) {
   .actions-table .mat-mdc-header-row {
-    /*background: linear-gradient(115deg, #e4ecfa 0%, #eaf0fa 30%, #edf3fb 44%, #f3f7fd 100%);*/
-    background: linear-gradient(115deg, rgb(255 255 255 / 40%) 0%, rgb(255 255 255 / 90%) 87%, rgb(255 255 255 / 40%) 130%), var(--main-background);
-    /*background: linear-gradient(115deg, blue 0%, red 87%, green 130%), var(--main-background);*/
+    background: transparent;
     position: sticky;
-    top: 225px;
   }
 
   [mat-header-cell].mat-mdc-table-sticky {
-    top: 220px !important;
     border-bottom: 1px solid var(--line-divider);
   }
 

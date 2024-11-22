@@ -64,21 +64,23 @@ table {
 
 /*table expand row START*/
 .expanded-row {
-  background: whitesmoke;
+  background: rgba(0, 0, 0, 0.015);
 }
 
 tr.detail-row {
   height: 0 !important;
-  background: whitesmoke;
+  background: rgba(0, 0, 0, 0.015);
 }
 
 tr.element-row:not(.expanded-row):hover {
-  background: whitesmoke;
+  background-color: rgba(0, 0, 0, 0.015);
   cursor: pointer;
+  transition: background-color 0.5s;
+  /*box-shadow: rgba(78 104 192, 0.25) 0px 4px 19px 0px, rgba(17, 12, 46, 0.15) 0px 20px 100px 0px !important;*/
 }
 
 tr.element-row:not(.expanded-row):active {
-  background: #efefef;
+  background: rgba(0, 0, 0, 0.02);
 }
 
 .element-row td {
@@ -114,6 +116,43 @@ tr.element-row:not(.expanded-row):active {
   opacity: 0.5;
 }
 /*table expand row END*/
+
+@media (max-width: 960px) {
+  ::ng-deep .transactions-table > thead > .mat-mdc-header-row {
+    top: 10.313rem;
+  }
+}
+
+@media (min-width: 961px) {
+  ::ng-deep .transactions-table > thead >.mat-mdc-header-row {
+    top: 7.625rem;
+  }
+}
+
+@media (min-width: 600px) {
+  ::ng-deep .transactions-table > thead >  .mat-mdc-header-row {
+    background: transparent;
+    position: sticky;
+    z-index: 100;
+  }
+
+  [mat-header-cell] {
+    background: transparent !important;
+  }
+
+  [mat-header-row], [mat-row] {
+    border-radius: var(--card-border-radius) !important;
+  }
+
+  tr.element-row:not(.expanded-row) .mat-column-icon, [mat-header-cell].mat-column-icon {
+    border-radius:  var(--card-border-radius) 0 0  var(--card-border-radius);
+  }
+
+  tr.element-row:not(.expanded-row) .mat-column-action, [mat-header-cell].mat-column-action {
+    border-radius: 0  var(--card-border-radius)  var(--card-border-radius) 0;
+  }
+
+}
 
 /*table responsive*/
 @media (max-width: 599px) {

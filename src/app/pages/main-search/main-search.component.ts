@@ -3,15 +3,11 @@ import {
   ElementRef,
   HostListener,
   inject,
-  OnDestroy,
   OnInit,
   PLATFORM_ID,
   signal,
   viewChild
 } from '@angular/core';
-import gsap from "gsap";
-import {ScrollTrigger} from "gsap/ScrollTrigger";
-import {ScrollToPlugin} from "gsap/ScrollToPlugin";
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
 import {isPlatformBrowser, NgOptimizedImage} from "@angular/common";
 import {SearchService} from "../../services/search.service";
@@ -51,7 +47,7 @@ import {BreakpointObserver, Breakpoints} from "@angular/cdk/layout";
   templateUrl: './main-search.component.html',
   styleUrl: './main-search.component.css'
 })
-export class MainSearchComponent implements OnInit, OnDestroy {
+export class MainSearchComponent implements OnInit {
   // injected services
   searchService = inject(SearchService);
   accService = inject(AccountService);
@@ -100,8 +96,6 @@ export class MainSearchComponent implements OnInit, OnDestroy {
 
   err = signal("");
 
-  private scrollTimeline?: gsap.core.Timeline;
-
   taglineMax = 145;
   paddingMax = 1;
   transitionProgress = signal<number>(0);
@@ -115,15 +109,7 @@ export class MainSearchComponent implements OnInit, OnDestroy {
     }
   }
 
-  ngOnDestroy() {
-    if (this.scrollTimeline) {
-      this.scrollTimeline.kill();
-    }
-  }
-
   constructor() {
-
-    this.initGsap();
 
     if (this.dataService.explorerMetadata) {
       this.chainData.set(this.dataService.explorerMetadata);
@@ -213,7 +199,7 @@ export class MainSearchComponent implements OnInit, OnDestroy {
     animate([
       [contentContainer, {
         paddingTop: `${headerContainer.clientHeight + 30}px`,
-        paddingBottom: `${headerContainer.clientHeight}px`
+        // paddingBottom: `${headerContainer.clientHeight}px`
       }],
     ]);
 
@@ -240,7 +226,6 @@ export class MainSearchComponent implements OnInit, OnDestroy {
       .subscribe((isSmall) => {
 
         if (headerAnimation) {
-          console.log('Cancelling previous animation');
           headerAnimation.stop();
         }
 
@@ -254,7 +239,6 @@ export class MainSearchComponent implements OnInit, OnDestroy {
         if (!scrollConfigured) {
           scrollConfigured = true;
           scroll((p: number) => {
-            console.log(`scrolling`, p);
             if (headerAnimation) {
               headerAnimation.time = p;
             }
@@ -270,54 +254,5 @@ export class MainSearchComponent implements OnInit, OnDestroy {
         // });
 
       });
-  }
-
-  initGsap() {
-    gsap.registerPlugin(ScrollTrigger);
-    gsap.registerPlugin(ScrollToPlugin);
-  }
-
-  private createScrollAnimation() {
-    const headerContainer = document.querySelector('#header-container');
-    const contentContainer = document.querySelector('#content-container') as HTMLDivElement;
-    if (!headerContainer || !contentContainer) {
-      return;
-    }
-
-    gsap.set(contentContainer, {
-      paddingTop: `${headerContainer.clientHeight + 30}px`,
-      paddingBottom: `${headerContainer.clientHeight}px`
-    });
-
-    const scrollTimeline = gsap.timeline({
-      scrollTrigger: {
-        trigger: headerContainer,
-        start: 'top top',
-        end: '300px 100px',
-        scrub: true,
-        // markers: true,
-        snap: {snapTo: 1, duration: 0.5, ease: 'linear'},
-        onUpdate: (self) => {
-          this.transitionProgress.set(self.progress);
-          this.taglineWidth.set(this.taglineMax - (self.progress * this.taglineMax));
-          this.searchInputPadding.set((this.paddingMax * (1 - self.progress)) + (0.75 * self.progress));
-        }
-      },
-    });
-
-    // animate the tagline out
-    scrollTimeline.to('.tagline', {
-      left: '-100',
-      opacity: 0,
-      duration: 1
-    }, 0);
-
-    scrollTimeline.to(headerContainer, {
-      height: '6.7rem',
-      duration: 1,
-      ease: 'power3.in'
-    }, 0);
-
-    this.scrollTimeline = scrollTimeline;
   }
 }

@@ -318,5 +318,17 @@ body {
 }
 /*Appear animation END*/
 
+@media (max-width: 960px) {
+  .card-top-sticky  {
+    top: 10.313rem;
+  }
+}
+
+@media (min-width: 961px) {
+  .card-top-sticky {
+    top: 7.625rem;
+  }
+}
+
 
 
