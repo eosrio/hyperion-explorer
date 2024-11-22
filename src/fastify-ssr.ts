@@ -24,7 +24,7 @@ export class FastifyAngularSSR {
     const serverDistFolder = dirname(fileURLToPath(import.meta.url));
     const browserDistFolder = resolve(serverDistFolder, '../browser');
 
-    this.fastify.register(fastifyCompress, {global: true});
+    // this.fastify.register(fastifyCompress, {global: true});
 
     this.fastify.register(fastifyStatic, {
       root: browserDistFolder,
