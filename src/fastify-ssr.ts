@@ -54,7 +54,9 @@ export class FastifyAngularSSR {
       const host = this.options.host || 'localhost';
       const port = this.options.port || 3000;
       await this.fastify.listen({port, host});
-      console.log(`Fastify server listening on http://${host}:${port}${this.baseHref}`);
+      const protocol = 'http';
+      const url = `${protocol}://${host === '0.0.0.0' ? '127.0.0.1' : host}:${port}${this.baseHref}`;
+      console.log(`Fastify server listening on [${host}] - ${url}`);
     } catch (e) {
       console.error(e);
       process.exit(1);
