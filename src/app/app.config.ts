@@ -1,8 +1,9 @@
 import {
   ApplicationConfig,
-  inject, PLATFORM_ID,
+  inject,
+  PLATFORM_ID,
   provideAppInitializer,
-  provideExperimentalZonelessChangeDetection
+  provideExperimentalZonelessChangeDetection, REQUEST
 } from '@angular/core';
 import {provideRouter, Router} from '@angular/router';
 
