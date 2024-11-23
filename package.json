@@ -4,7 +4,7 @@
   "description": "Official Lightweight Explorer for Hyperion History APIs",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --host 0.0.0.0",
+    "start": "ng serve --hmr --host 0.0.0.0",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "watch:prod": "ng build --watch --configuration production",

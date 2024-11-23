@@ -1,7 +1,7 @@
 import {
   afterNextRender,
   Component,
-  computed,
+  computed, effect,
   HostListener,
   inject,
   input,
@@ -125,7 +125,6 @@ export class LayoutTransitionComponent {
   }
 
   refresh() {
-    // console.log(`refresh at ${this.progress()}`);
     this.targetDOMRect.set(this.targetDiv().getBoundingClientRect());
     this.sourceDOMRect.set(this.sourceDiv().getBoundingClientRect());
     this.topDelta.set(this.targetDOMRect().top - this.sourceDOMRect().top);

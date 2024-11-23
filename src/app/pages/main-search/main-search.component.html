@@ -1,4 +1,4 @@
-<app-layout-transition [observedIds]="['header-container', 'tagline']"
+<app-layout-transition #logoLayoutTransition [observedIds]="['header-container', 'tagline']"
                        [sourceDiv]="logoSourceDiv" [targetDiv]="logoTargetDiv" [progress]="transitionProgress()">
   <div class="h-[4.375rem]" style="z-index: 100">
     <img [src]="chainData().logo" alt="logo" class="logo"/>
@@ -91,7 +91,7 @@
          class="flex flex-col justify-center items-center gap-5 pt-9 pb-10 w-full searchbar-container pointer-events-none">
 
       <div #logoSourceDiv id="logo-element" class="h-[4.375rem] opacity-0">
-        <img [src]="chainData().logo" id="main-logo" alt="logo" class="logo"/>
+        <img (load)="logoLayoutTransition.refresh()" [src]="chainData().logo" id="main-logo" alt="logo" class="logo"/>
       </div>
       <div #searchbarSourceDiv id="search-bar" class="flex flex-col bg-red-400 opacity-0 w-full md:w-[32.813rem]">
         <div class="grow w-full  flex flex-row h-[3.188rem]"></div>

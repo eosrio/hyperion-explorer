@@ -21,7 +21,7 @@ async function initApp() {
     console.error(`[${platformId}] Error loading explorer metadata:`, ds.initError);
     await router.navigate(['/error']);
   } else {
-    console.log(`[${platformId}] Explorer metadata loaded:`, ds.explorerMetadata);
+    console.log(`[${platformId}] Explorer metadata loaded for ${ds.explorerMetadata.chain_name}:`, ds.explorerMetadata.chain_id);
   }
   return ds;
 }

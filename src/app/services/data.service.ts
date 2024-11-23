@@ -61,8 +61,6 @@ export class DataServiceBrowser extends DataService {
     if (this.explorerMetadata) {
       this.title.setTitle(`${this.explorerMetadata.chain_name} Hyperion Explorer`);
     } else {
-      console.log('Explorer metadata not found in state');
-      console.log(this.url);
       await this.loadChainData();
     }
   }
