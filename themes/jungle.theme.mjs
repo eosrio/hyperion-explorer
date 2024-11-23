@@ -1,6 +1,6 @@
 // Description: Theme for Jungle Testnet
 
-export const hyperionExplorerTheme = {
+globalThis.themeData = {
   "--primary": "#00a6de",
   "--primary-hover": "#087487",
   "--primary-gradient": "linear-gradient(145deg, #00b2ee, #0095c8)",
@@ -26,5 +26,3 @@ export const hyperionExplorerTheme = {
   "--card-border-radius": "1rem",
   "--line-divider": "rgba(0, 0, 0, .12)"
 }
-
-export default hyperionExplorerTheme;
