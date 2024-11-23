@@ -1,5 +1,16 @@
-import {Component, computed, effect, inject, input, model, signal} from '@angular/core';
-import {Router} from "@angular/router";
+import {
+  Component,
+  computed,
+  effect,
+  inject,
+  input,
+  linkedSignal,
+  model,
+  PLATFORM_ID,
+  signal,
+  viewChild
+} from '@angular/core';
+import {NavigationEnd, Router} from "@angular/router";
 import {rxResource} from "@angular/core/rxjs-interop";
 import {HttpClient} from "@angular/common/http";
 import {map, of} from "rxjs";
@@ -11,9 +22,10 @@ import {MatTooltip} from "@angular/material/tooltip";
 import {AbiStructField, AbiTable, GetAbiResponse} from "../../interfaces";
 import {FormsModule} from '@angular/forms';
 import {MatDialogContent} from "@angular/material/dialog";
-import {JsonPipe, NgClass} from "@angular/common";
+import {isPlatformBrowser, JsonPipe, NgClass} from "@angular/common";
 import {MatInput} from "@angular/material/input";
 import {MatIcon} from "@angular/material/icon";
+import {ActDataViewComponent} from "../act-data-view/act-data-view.component";
 
 function buildFieldArray(structs: any[], array: AbiStructField[], type: string): void {
   if (array && type) {
@@ -45,6 +57,7 @@ function buildFieldArray(structs: any[], array: AbiStructField[], type: string):
     JsonPipe,
     MatIconButton,
     MatIcon,
+    ActDataViewComponent,
   ],
   templateUrl: './contract-explorer.component.html',
   styleUrl: './contract-explorer.component.css'
@@ -68,8 +81,26 @@ export class ContractExplorerComponent {
   };
 
   getTableByScopeLimit = 20;
+  private platformId = inject(PLATFORM_ID);
 
   constructor() {
+
+    effect(() => {
+      console.log(this.scopeList());
+    });
+
+    // if (isPlatformBrowser(this.platformId))
+    //   this.router.events.subscribe((event) => {
+    //     console.log('event', event);
+    //     if (event instanceof NavigationEnd) {
+    //       setTimeout(() => {
+    //         if (this.scrollContainer) {
+    //           this.scrollContainer.scrollTop = this.currentScroll;
+    //         }
+    //       }, 50);
+    //     }
+    //   });
+
   }
 
   // request new abi when the code signal changes
@@ -123,50 +154,88 @@ export class ContractExplorerComponent {
     }
   });
 
-  scopeList = computed<string[]>(() => {
-    const data = this.tableScopesRes.value();
-    const scopeSet = new Set<string>();
-    if (data) {
-      // include contract name in the list if the list of scopes is too large
-      if (data.more) {
-        const contract = this.code();
-        if (contract) {
-          scopeSet.add(contract);
+  scopeList = linkedSignal<any, string[]>({
+    source: () => this.tableScopesRes.value(),
+    computation: (source, previous): string[] => {
+      if (source) {
+        const scopeSet = new Set<string>();
+        // include contract name in the list if the list of scopes is too large
+        if (source.more) {
+          const contract = this.code();
+          if (contract) {
+            scopeSet.add(contract);
+          }
         }
+        source.rows.forEach((row: any) => scopeSet.add(row.scope));
+        return Array.from(scopeSet);
+      } else {
+        return previous ? previous.value : [];
       }
-      data.rows.forEach((row: any) => scopeSet.add(row.scope));
-      return Array.from(scopeSet);
-    } else {
-      return [];
     }
   });
 
 
-  nextScope = computed<string>(() => this.tableScopesRes.value()?.more ?? "");
+  nextScope = linkedSignal<any, string>({
+    source: () => this.tableScopesRes.value(),
+    computation: (source, previous): string => {
+      if (source) {
+        return source.more;
+      } else {
+        return previous ? previous.value : "";
+      }
+    }
+  });
 
   sortBy = signal<string>("");
   sortDirection = signal<string>("desc");
 
-  tableData = computed<any[]>(() => {
-    const rows = this.tableRowRes.value();
-    const sort = this.sortBy();
-    const dir = this.sortDirection();
-    if (rows && rows.length > 0) {
-      if (dir === '') {
-        return rows;
+  tableData = linkedSignal<any, any[]>({
+    source: () => {
+      return {
+        rows: this.tableRowRes.value(),
+        sort: this.sortBy(),
+        dir: this.sortDirection()
+      };
+    },
+    computation: (source, previous): any[] => {
+      if (source.rows && source.rows.length > 0) {
+        if (source.dir === '') {
+          return source.rows;
+        } else {
+          return [...source.rows].sort((a: any, b: any) => {
+            if (source.dir === 'desc') {
+              return a[source.sort] > b[source.sort] ? 1 : -1;
+            } else {
+              return a[source.sort] > b[source.sort] ? -1 : 1;
+            }
+          });
+        }
       } else {
-        return [...rows].sort((a: any, b: any) => {
-          if (dir === 'desc') {
-            return a[sort] > b[sort] ? 1 : -1;
-          } else {
-            return a[sort] > b[sort] ? -1 : 1;
-          }
-        });
+        return previous ? previous.value : [];
       }
-    } else {
-      return [];
     }
   });
+
+  // tableData = computed<any[]>(() => {
+  //   const rows = this.tableRowRes.value();
+  //   const sort = this.sortBy();
+  //   const dir = this.sortDirection();
+  //   if (rows && rows.length > 0) {
+  //     if (dir === '') {
+  //       return rows;
+  //     } else {
+  //       return [...rows].sort((a: any, b: any) => {
+  //         if (dir === 'desc') {
+  //           return a[sort] > b[sort] ? 1 : -1;
+  //         } else {
+  //           return a[sort] > b[sort] ? -1 : 1;
+  //         }
+  //       });
+  //     }
+  //   } else {
+  //     return [];
+  //   }
+  // });
 
   fields = computed<AbiStructField[]>(() => {
     const abi = this.abiRes.value()?.abi;
@@ -184,15 +253,13 @@ export class ContractExplorerComponent {
 
   async selectTable(name: string) {
     this.table.set(name);
+    this.scope.set(null);
+    this.tableData.set([]);
     if (this.navMode() === 'dialog') {
-
       // append scope as a query parameter
-      await this.router.navigate([], {
-        queryParams: {
-          table: name
-        }
-      });
-
+      await this.router.navigate([], {queryParams: {table: name}});
+      this.scrollElementIntoView('scope-section');
+      // this.scrollToBottom();
     } else {
       await this.router.navigate(['contract', this.code(), name]);
     }
@@ -201,15 +268,9 @@ export class ContractExplorerComponent {
   async selectScope(name: string) {
     this.scope.set(name);
     if (this.navMode() === 'dialog') {
-
       // append scope as a query parameter
-      await this.router.navigate([], {
-        queryParams: {
-          table: this.table(),
-          scope: name
-        }
-      });
-
+      await this.router.navigate([], {queryParams: {table: this.table(), scope: name}});
+      this.scrollElementIntoView('data-section');
     } else {
       await this.router.navigate(['contract', this.code(), this.table(), name]);
     }
@@ -230,5 +291,17 @@ export class ContractExplorerComponent {
 
   reloadRows() {
     this.tableRowRes.reload();
+  }
+
+  scrollElementIntoView(id: string) {
+    if (isPlatformBrowser(this.platformId)) {
+      setTimeout(() => {
+        const element = document.getElementById(id);
+        if (!element) {
+          return;
+        }
+        element.scrollIntoView({behavior: "smooth", block: "start", inline: "nearest"});
+      }, 100);
+    }
   }
 }

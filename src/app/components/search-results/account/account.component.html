@@ -569,17 +569,28 @@
             <!-- TX Column -->
             <ng-container matColumnDef="trx_id">
               <th mat-header-cell *matHeaderCellDef>TX</th>
-              <td mat-cell *matCellDef="let action" data-label="TX">
-                @if (accountService.libNum() > 0 && accountService.libNum() < action['block_num']) {
-                  <span matTooltip="time until irreversible" matTooltipClass="tooltip-bigger">
-                    <fa-icon [icon]="icons.solid.faClock" class="accent" style="margin-right: 1px"></fa-icon>
-                    {{ (action["block_num"] - accountService.libNum()) / 2 }}s
-                  </span>
-                }
-                <a [routerLink]="['/transaction', action['trx_id']]" class="link-primary">
-                  {{ action["trx_id"].slice(0, 8) }}...
-                </a>
-                <div (click)="onRowClick(action)">Expand Details</div>
+              <td mat-cell *matCellDef="let action" data-label="TX" class="h-full">
+                <!--                justify-between items-start h-full-->
+                <div class="flex flex-col items-start gap-1">
+                  <div class="flex flex-row items-center">
+                    @if (accountService.libNum() > 0 && accountService.libNum() < action['block_num']) {
+                      <span matTooltip="time until irreversible" matTooltipClass="tooltip-bigger">
+                      <fa-icon [icon]="icons.solid.faClock" class="accent"></fa-icon>
+                        {{ (action["block_num"] - accountService.libNum()) / 2 }}s
+                    </span>
+                    }
+                    <a matRipple [routerLink]="['/transaction', action['trx_id']]" class="link-primary p-2">
+                      {{ action["trx_id"].slice(0, 8) }}...
+                    </a>
+                  </div>
+                  <a matRipple (click)="onRowClick(action)" class="link-btn faded">
+                    <div class="flex flex-row gap-2 items-center">
+                      <!--                      <fa-icon [icon]="icons.solid.glassMore"></fa-icon>-->
+                      <fa-icon [icon]="icons.solid.dots"></fa-icon>
+                      <div class="text-xs uppercase">Expand Details</div>
+                    </div>
+                  </a>
+                </div>
               </td>
             </ng-container>
 
@@ -604,101 +615,101 @@
               <th mat-header-cell *matHeaderCellDef>Data</th>
 
               <td mat-cell *matCellDef="let action" data-label="Data">
+                <div class="py-4">
+                  <app-act-data-view [data]="action.act.data"></app-act-data-view>
+                </div>
+                <!--                &lt;!&ndash; DETAILED ACTION DATA VIEW&ndash;&gt;-->
+                <!--                @if (detailedView) {-->
+                <!--                  &lt;!&ndash;KEY-VALUE PAIRS&ndash;&gt;-->
+                <!--                  @for (item of action.act.data | keyvalue; track item) {-->
 
-                <app-act-data-view [data]="action.act.data"></app-act-data-view>
+                <!--                    <div [ngClass]="{'data-item': objectKeyCount(action.act.data) > 1}">-->
 
-<!--                &lt;!&ndash; DETAILED ACTION DATA VIEW&ndash;&gt;-->
-<!--                @if (detailedView) {-->
-<!--                  &lt;!&ndash;KEY-VALUE PAIRS&ndash;&gt;-->
-<!--                  @for (item of action.act.data | keyvalue; track item) {-->
+                <!--                      &lt;!&ndash;ARRAY FIELD&ndash;&gt;-->
+                <!--                      @if (isArray(item.value) && action.act.account !== 'eosio.evm' && action.act.name !== 'raw') {-->
+                <!--                        <span class="font-medium">{{ item.key }} [{{ asArray(item.value).length }}]</span>:-->
+                <!--                        @for (subitem of asArray(item.value); track subitem) {-->
+                <!--                          <div class="mt-1.5">-->
 
-<!--                    <div [ngClass]="{'data-item': objectKeyCount(action.act.data) > 1}">-->
+                <!--                            &lt;!&ndash;ARRAY ITEM IS STRING&ndash;&gt;-->
+                <!--                            @if (getType(subitem) === 'string') {-->
+                <!--                              <div class="ml-3.5">-->
+                <!--                                <span class="break-word">• {{ subitem }}</span>-->
+                <!--                              </div>-->
+                <!--                            } @else if (getType(subitem) === 'object') {-->
+                <!--                              &lt;!&ndash;ARRAY ITEM IS OBJECT&ndash;&gt;-->
+                <!--                              @for (elem of subitem | keyvalue; track elem) {-->
+                <!--                                <div [ngClass]="{'data-item': objectKeyCount(subitem) > 1}">-->
+                <!--                                  <span class="font-medium" style="margin-left: 15px">{{ elem.key }}</span>:-->
+                <!--                                  <span class="break-word">{{ elem.value }}</span>-->
+                <!--                                </div>-->
+                <!--                              }-->
+                <!--                            }-->
+                <!--                          </div>-->
+                <!--                        }-->
+                <!--                      }-->
 
-<!--                      &lt;!&ndash;ARRAY FIELD&ndash;&gt;-->
-<!--                      @if (isArray(item.value) && action.act.account !== 'eosio.evm' && action.act.name !== 'raw') {-->
-<!--                        <span class="font-medium">{{ item.key }} [{{ asArray(item.value).length }}]</span>:-->
-<!--                        @for (subitem of asArray(item.value); track subitem) {-->
-<!--                          <div class="mt-1.5">-->
+                <!--                      &lt;!&ndash;OTHER FIELDS&ndash;&gt;-->
+                <!--                      @if (!isArray(item.value)) {-->
 
-<!--                            &lt;!&ndash;ARRAY ITEM IS STRING&ndash;&gt;-->
-<!--                            @if (getType(subitem) === 'string') {-->
-<!--                              <div class="ml-3.5">-->
-<!--                                <span class="break-word">• {{ subitem }}</span>-->
-<!--                              </div>-->
-<!--                            } @else if (getType(subitem) === 'object') {-->
-<!--                              &lt;!&ndash;ARRAY ITEM IS OBJECT&ndash;&gt;-->
-<!--                              @for (elem of subitem | keyvalue; track elem) {-->
-<!--                                <div [ngClass]="{'data-item': objectKeyCount(subitem) > 1}">-->
-<!--                                  <span class="font-medium" style="margin-left: 15px">{{ elem.key }}</span>:-->
-<!--                                  <span class="break-word">{{ elem.value }}</span>-->
-<!--                                </div>-->
-<!--                              }-->
-<!--                            }-->
-<!--                          </div>-->
-<!--                        }-->
-<!--                      }-->
+                <!--                        &lt;!&ndash;EVM FIELDS&ndash;&gt;-->
+                <!--                        @if (checkKey(action, item.key)) {-->
+                <!--                          <div>-->
+                <!--                            <span class="font-medium">{{ item.key }}</span>:-->
+                <!--                            @if (item.value) {-->
+                <!--                              <span class="break-word">-->
+                <!--                                @if (item.key === 'to' || item.key === 'from') {-->
+                <!--                                  <a [routerLink]="['/evm/address', item.value]" class="link-primary">-->
+                <!--                                    {{ item.value }}-->
+                <!--                                  </a>-->
+                <!--                                } @else {-->
+                <!--                                  @if (item.key === 'hash') {-->
+                <!--                                    <a class="link-primary" [routerLink]="['/evm/transaction', item.value]">-->
+                <!--                                        {{ item.value }}-->
+                <!--                                    </a>-->
+                <!--                                  } @else {-->
+                <!--                                    @if (item.key === "block") {-->
+                <!--                                      <a class="link-primary" [routerLink]="['/evm/block', item.value]">-->
+                <!--                                        {{ item.value }}-->
+                <!--                                      </a>-->
+                <!--                                    } @else {-->
+                <!--                                      {{ formatEVMValue(item.value) }}TLOS-->
+                <!--                                    }-->
+                <!--                                  }-->
+                <!--                                }-->
+                <!--                                </span>-->
+                <!--                            }-->
+                <!--                          </div>-->
 
-<!--                      &lt;!&ndash;OTHER FIELDS&ndash;&gt;-->
-<!--                      @if (!isArray(item.value)) {-->
+                <!--                        } @else {-->
 
-<!--                        &lt;!&ndash;EVM FIELDS&ndash;&gt;-->
-<!--                        @if (checkKey(action, item.key)) {-->
-<!--                          <div>-->
-<!--                            <span class="font-medium">{{ item.key }}</span>:-->
-<!--                            @if (item.value) {-->
-<!--                              <span class="break-word">-->
-<!--                                @if (item.key === 'to' || item.key === 'from') {-->
-<!--                                  <a [routerLink]="['/evm/address', item.value]" class="link-primary">-->
-<!--                                    {{ item.value }}-->
-<!--                                  </a>-->
-<!--                                } @else {-->
-<!--                                  @if (item.key === 'hash') {-->
-<!--                                    <a class="link-primary" [routerLink]="['/evm/transaction', item.value]">-->
-<!--                                        {{ item.value }}-->
-<!--                                    </a>-->
-<!--                                  } @else {-->
-<!--                                    @if (item.key === "block") {-->
-<!--                                      <a class="link-primary" [routerLink]="['/evm/block', item.value]">-->
-<!--                                        {{ item.value }}-->
-<!--                                      </a>-->
-<!--                                    } @else {-->
-<!--                                      {{ formatEVMValue(item.value) }}TLOS-->
-<!--                                    }-->
-<!--                                  }-->
-<!--                                }-->
-<!--                                </span>-->
-<!--                            }-->
-<!--                          </div>-->
+                <!--                          &lt;!&ndash;GENERIC FIELDS&ndash;&gt;-->
+                <!--                          <span class="font-medium">{{ item.key }}</span>:-->
+                <!--                          @if (getType(item.value) === 'string') {-->
+                <!--                            <span class="break-word">{{ item.value }}</span>-->
+                <!--                          } @else if (getType(item.value) === 'object') {-->
+                <!--                            @for (elem of toRecord(item.value) | keyvalue; track elem.key) {-->
+                <!--                              <div [ngClass]="{'data-item': objectKeyCount(item.value) > 1}">-->
+                <!--                                <span class="font-medium" style="margin-left: 15px">{{ elem.key }}</span>:-->
+                <!--                                <span class="break-word">{{ elem.value }}</span>-->
+                <!--                              </div>-->
+                <!--                            }-->
+                <!--                          }-->
+                <!--                          @if (!item.value) {-->
+                <!--                            <span class="break-word italic">empty</span>-->
+                <!--                          }-->
 
-<!--                        } @else {-->
-
-<!--                          &lt;!&ndash;GENERIC FIELDS&ndash;&gt;-->
-<!--                          <span class="font-medium">{{ item.key }}</span>:-->
-<!--                          @if (getType(item.value) === 'string') {-->
-<!--                            <span class="break-word">{{ item.value }}</span>-->
-<!--                          } @else if (getType(item.value) === 'object') {-->
-<!--                            @for (elem of toRecord(item.value) | keyvalue; track elem.key) {-->
-<!--                              <div [ngClass]="{'data-item': objectKeyCount(item.value) > 1}">-->
-<!--                                <span class="font-medium" style="margin-left: 15px">{{ elem.key }}</span>:-->
-<!--                                <span class="break-word">{{ elem.value }}</span>-->
-<!--                              </div>-->
-<!--                            }-->
-<!--                          }-->
-<!--                          @if (!item.value) {-->
-<!--                            <span class="break-word italic">empty</span>-->
-<!--                          }-->
-
-<!--                        }-->
-<!--                      }-->
-<!--                    </div>-->
-<!--                  }-->
-<!--                  &lt;!&ndash;RAW HEX DATA&ndash;&gt;-->
-<!--                  @if (getType(action['act']['data']) === 'string') {-->
-<!--                    <span class="break-word italic">-->
-<!--                      {{ action["act"]["data"] }}-->
-<!--                    </span>-->
-<!--                  }-->
-<!--                }-->
+                <!--                        }-->
+                <!--                      }-->
+                <!--                    </div>-->
+                <!--                  }-->
+                <!--                  &lt;!&ndash;RAW HEX DATA&ndash;&gt;-->
+                <!--                  @if (getType(action['act']['data']) === 'string') {-->
+                <!--                    <span class="break-word italic">-->
+                <!--                      {{ action["act"]["data"] }}-->
+                <!--                    </span>-->
+                <!--                  }-->
+                <!--                }-->
 
               </td>
             </ng-container>

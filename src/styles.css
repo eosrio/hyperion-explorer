@@ -16,6 +16,7 @@
   /*buttons*/
   --btn-primary-color: white;
   --btn-accent-color: white;
+  --btn-link-border-radius: 0.625rem;
 
   /*typography*/
   --main-font-family: Montserrat, sans-serif;
@@ -41,7 +42,7 @@
   /*--card-bg-gradient: linear-gradient(115deg, blue 0%, red 70%, green 100%);*/
   --card-box-shadow: rgba(104, 139, 255, 0.1) 0px 48px 100px 0px, rgba(17, 12, 46, 0.15) 0px 30px 100px 0px;
   --card-border-radius: 1rem;
-  --line-divider: rgba(0, 0, 0, .12);
+  --line-divider: rgba(0, 0, 0, .10);
 }
 
 html,
@@ -220,11 +221,14 @@ body {
 
 .link-primary {
   color: oklch(from var(--primary) 68% c h);
+  border-radius: var(--btn-link-border-radius);
 }
 
 .link-primary:hover {
-  color: oklch(from var(--primary) 60% c h);
+  color: oklch(from var(--primary) 50% c h);
+  /*font-weight: 500;*/
   transition: color 0.7s;
+  /*text-decoration: underline;*/
 }
 
 /*Appear animation START*/

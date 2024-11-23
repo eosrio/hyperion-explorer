@@ -25,10 +25,10 @@ import {
   faChevronDown,
   faChevronRight,
   faCircle,
-  faClock,
+  faClock, faEllipsisV,
   faHistory,
   faKey,
-  faLink,
+  faLink, faMagnifyingGlassPlus,
   faSadTear,
   faStar,
   faUser,
@@ -47,6 +47,7 @@ import {ContractDialogComponent} from "../../contract-dialog/contract-dialog.com
 import {toObservable} from "@angular/core/rxjs-interop";
 import {animate, scroll} from "motion";
 import {ActDataViewComponent} from "../../act-data-view/act-data-view.component";
+import {MatRipple} from "@angular/material/core";
 
 interface Permission {
   perm_name: string;
@@ -120,7 +121,8 @@ interface FlatNode {
     MatCardHeader,
     MatTreeModule,
     DatePipe,
-    ActDataViewComponent
+    ActDataViewComponent,
+    MatRipple
   ],
   templateUrl: './account.component.html',
   styleUrl: './account.component.css'
@@ -154,7 +156,9 @@ export class AccountComponent {
       faSadTear: faSadTear,
       faKey: faKey,
       faUser: faUser,
-      faVote: faVoteYea
+      faVote: faVoteYea,
+      dots: faEllipsisV,
+      glassMore: faMagnifyingGlassPlus
     },
     regular: {
       faQuestionCircle: faQuestionCircle

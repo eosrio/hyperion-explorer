@@ -153,7 +153,7 @@
   letter-spacing: 0.5px;
   text-align: center;
   width: max-content;
-  border: 1px solid #f0f0f0;
+  border: 1px solid #e1e1e1;
   border-radius: 0.188rem;
   padding: 0.188rem 0.313rem;
 }
@@ -247,6 +247,7 @@
   .actions-table .mat-mdc-header-row {
     background: transparent;
     position: sticky;
+    z-index: 100;
   }
 
   [mat-header-cell].mat-mdc-table-sticky {
@@ -278,7 +279,7 @@
     height: auto;
     position: sticky;
     top: 0;
-    z-index: 2;
+    z-index: 101;
   }
 
   [mat-table] [mat-header-row] th[mat-header-cell] {
@@ -417,3 +418,15 @@
   }
 }
 /*chevron animation end*/
+
+.link-btn {
+  display: block;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: var(--btn-link-border-radius);
+}
+
+.link-btn:hover {
+  color: oklch(from var(--faded) 52% c h);
+  transition: color 0.7s;
+}

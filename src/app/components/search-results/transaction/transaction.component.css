@@ -13,6 +13,18 @@
   background-color: transparent;
 }
 
+.action-cell {
+  /*padding: 5px 10px;*/
+  font-size: 0.813rem; /*13px*/
+  letter-spacing: 0.5px;
+  text-align: center;
+  width: max-content;
+  border: 1px solid #e1e1e1;
+  border-radius: 0.188rem;
+  padding: 0.188rem 0.313rem;
+}
+
+
 .data-item {
   padding-bottom: 4px;
 }
@@ -33,6 +45,7 @@
   .actions-table .mat-mdc-header-row {
     background: transparent;
     position: sticky;
+    z-index: 100;
   }
 
   [mat-header-cell] {

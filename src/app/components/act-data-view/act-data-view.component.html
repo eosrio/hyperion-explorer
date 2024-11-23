@@ -4,6 +4,9 @@
   @case ("string") {
     <span class="break-word italic">{{ data() }}</span>
   }
+  @case ("number") {
+    <span class="break-word accent">{{ data() }}</span>
+  }
 
   <!--JSON OBJECT-->
   @case ("object") {
@@ -14,11 +17,11 @@
       <div [ngClass]="{'data-item': objectKeyCount() > 1, 'ml-2': level() > 0}">
 
         @if (level() === 0) {
-          <span class="faded"> ⨀ </span>
+          <span class="faded"> </span>
         } @else if (level() === 1) {
-          <span class="faded"> ⨁ </span>
+          <span class="faded ml-1"> ▪ </span>
         } @else if (level() === 2) {
-          <span class="faded"> ⨂ </span>
+          <span class="faded ml-3"> ‣ </span>
         }
 
         <!--FIELD NAME-->
@@ -31,23 +34,25 @@
             @case ("string") {
               @if (isAccountName(item.value)) {
                 <a [routerLink]="['/account', item.value]"
-                   class="break-word text-violet-600 text-pretty">{{ item.value }}</a>
+                   class="break-word link-primary text-pretty">{{ item.value }}</a>
               } @else {
 
                 @let stringValue = String(item.value);
+                @let hasSpaces = stringValue.includes(' ');
 
                 @if (stringValue.length > 32) {
                   <br>
-                  <span [matTooltip]="stringValue" class="break-word text-purple-400 text-pretty">
+                  <span [matTooltip]="stringValue" class="faded text-wrap ml-3"
+                        [ngClass]="hasSpaces ? 'break-words' : 'break-all'">
                     {{ stringValue | slice:0:32 }}...
                   </span>
                 } @else {
-                  <span class="break-word text-purple-400 text-pretty">{{ item.value }}</span>
+                  <span class="break-word faded text-pretty">{{ item.value }}</span>
                 }
               }
             }
             @case ("number") {
-              <span class="break-word text-red-400">{{ item.value }}</span>
+              <span class="break-word accent">{{ item.value }}</span>
             }
             @case ("boolean") {
               <span class="break-word">{{ item.value }}</span>
@@ -61,9 +66,9 @@
             }
           }
         } @else if (item.value === null) {
-          <span class="break-word text-red-400">NULL</span>
+          <span class="break-word accent">NULL</span>
         } @else if (item.value === 0) {
-          <span class="break-word text-red-400">0</span>
+          <span class="break-word accent">0</span>
         } @else {
           <!--EMPTY STRING / UNDEFINED-->
           @if (itemType === 'string') {
