@@ -8,6 +8,7 @@ export interface ExplorerMetadata {
   query_time_ms: number;
   last_indexed_block: number;
   last_indexed_block_time: string;
+  theme: Record<string, any>;
 }
 
 export interface GetAccountResponse {

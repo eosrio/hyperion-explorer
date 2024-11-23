@@ -1,25 +1,36 @@
-import {inject, Injectable, makeStateKey, TransferState} from '@angular/core';
+import {inject, Injectable, makeStateKey, signal, TransferState} from '@angular/core';
 import {environment} from "../../env";
 import {ExplorerMetadata} from "../interfaces";
 import {Title} from "@angular/platform-browser";
+import {defaultTheme} from "../default.theme";
 
 export abstract class DataService {
+  metadataKey = makeStateKey<ExplorerMetadata>('chain_data');
+  initErrorKey = makeStateKey<string>('init_error');
   url = environment.hyperionApiUrl + '/v2/explorer_metadata';
   abstract explorerMetadata: ExplorerMetadata | null;
   abstract initError: string | null;
 
   abstract load(): Promise<void>;
+
+  abstract activateTheme(): Promise<void>
+
+  ready = signal(false);
 }
 
 @Injectable({providedIn: 'root'})
 export class DataServiceServer extends DataService {
+
+  override async activateTheme(): Promise<void> {
+    console.log('activateTheme not implemented on server');
+  }
 
   state = inject(TransferState);
   explorerMetadata: ExplorerMetadata | null = null;
   initError: string | null = null;
 
   async load() {
-    // fetch explorer metadata
+    // fetch explorer metadata on server
     await this.loadChainData();
   }
 
@@ -30,19 +41,20 @@ export class DataServiceServer extends DataService {
         const data: ExplorerMetadata = await response.json();
         if (data && data.last_indexed_block && data.last_indexed_block > 1) {
           data.logo = environment.hyperionApiUrl + '/v2/explorer_logo';
-          this.state.set(makeStateKey<Awaited<ReturnType<ExplorerMetadata | any>>>('chain_data'), data);
+          data.theme = defaultTheme;
+          this.state.set(this.metadataKey, data);
           this.explorerMetadata = data;
         } else {
           this.initError = `Error fetching ${this.url}: Invalid response`;
-          this.state.set(makeStateKey<string>('init_error'), this.initError);
+          this.state.set(this.initErrorKey, this.initError);
         }
       } else {
         this.initError = `Error fetching ${this.url}: ${response.statusText}`;
-        this.state.set(makeStateKey<string>('init_error'), this.initError);
+        this.state.set(this.initErrorKey, this.initError);
       }
     } catch (error: any) {
       this.initError = `Error fetching ${this.url}: ${error.message}`;
-      this.state.set(makeStateKey<string>('init_error'), this.initError);
+      this.state.set(this.initErrorKey, this.initError);
     }
   }
 }
@@ -56,8 +68,9 @@ export class DataServiceBrowser extends DataService {
   explorerMetadata: ExplorerMetadata | null = null;
 
   async load() {
-    this.explorerMetadata = this.state.get(makeStateKey<ExplorerMetadata>('chain_data'), null);
-    this.initError = this.state.get(makeStateKey<string>('init_error'), null);
+    // load metadata from state on browser
+    this.explorerMetadata = this.state.get(this.metadataKey, null);
+    this.initError = this.state.get(this.initErrorKey, null);
     if (this.explorerMetadata) {
       this.title.setTitle(`${this.explorerMetadata.chain_name} Hyperion Explorer`);
     } else {
@@ -72,6 +85,7 @@ export class DataServiceBrowser extends DataService {
         const data: ExplorerMetadata = await response.json();
         if (data && data.last_indexed_block && data.last_indexed_block > 1) {
           data.logo = environment.hyperionApiUrl + '/v2/explorer_logo';
+          data.theme = defaultTheme;
           this.explorerMetadata = data;
         } else {
           this.initError = `Error fetching ${this.url}: Invalid response`;
@@ -82,5 +96,14 @@ export class DataServiceBrowser extends DataService {
     } catch (error: any) {
       this.initError = `Error fetching ${this.url}: ${error.message}`;
     }
+  }
+
+  override async activateTheme(): Promise<void> {
+    if (this.explorerMetadata?.theme) {
+      for (const [key, value] of Object.entries(this.explorerMetadata?.theme)) {
+        document.documentElement.style.setProperty(key, value);
+      }
+    }
+    this.ready.set(true);
   }
 }

@@ -56,7 +56,7 @@ export const routes: Routes = [
 export const serverRoutes: ServerRoute[] = [
   {
     path: '',
-    renderMode: RenderMode.Client
+    renderMode: RenderMode.Server
   },
   {
     path: 'account/:account_name',
