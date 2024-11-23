@@ -26,31 +26,35 @@ async function initApp(): Promise<void> {
   if (isPlatformBrowser(platformId)) {
     href = location.href;
   } else if (request) {
-    href = request.url;
+    const hyperionServer = request.headers.get('x-hyperion-server');
+    if (hyperionServer) {
+      href = hyperionServer;
+    } else {
+      href = request.headers.get('referer') ?? request.url;
+    }
   }
 
-  console.log(`[${platformId}] HREF:`, href);
+  // console.log(`[${platformId}] HREF:`, href);
 
   if (href) {
     const url = new URL(href);
     if (url.host === 'localhost:4200') {
-      console.log('Localhost detected, setting API URL to local server');
       ds.env.hyperionApiUrl = devEnv.hyperionApiUrl;
     } else {
-      console.log('External host detected, setting API URL to external server');
-      ds.env.hyperionApiUrl = `${url.protocol}://${url.host}`;
+      ds.env.hyperionApiUrl = url.origin;
     }
+  } else {
+    ds.env.hyperionApiUrl = devEnv.hyperionApiUrl;
   }
 
-  console.log(`[${platformId}] Initializing app...`);
-
   await ds.load();
+
   if (!ds.explorerMetadata) {
     console.error(`[${platformId}] Error loading explorer metadata:`, ds.initError);
     ds.ready.set(true);
     await router.navigate(['/error']);
   } else {
-    console.log(`[${platformId}] Explorer metadata loaded for ${ds.explorerMetadata.chain_name}:`, ds.explorerMetadata.chain_id);
+    // console.log(`[${platformId}] Explorer metadata loaded for ${ds.explorerMetadata.chain_name}:`, ds.explorerMetadata.chain_id);
     if (isPlatformBrowser(platformId)) {
       await ds.activateTheme();
     } else {

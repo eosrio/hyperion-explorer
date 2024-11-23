@@ -13,7 +13,9 @@ export abstract class DataService {
   metadataKey = makeStateKey<ExplorerMetadata>('chain_data');
   initErrorKey = makeStateKey<string>('init_error');
 
-  url = () => this.env.hyperionApiUrl + '/v2/explorer_metadata';
+  url = () => {
+    return this.env.hyperionApiUrl + '/v2/explorer_metadata';
+  };
 
   abstract explorerMetadata: ExplorerMetadata | null;
   abstract initError: string | null;
@@ -55,15 +57,15 @@ export class DataServiceServer extends DataService {
           this.state.set(this.metadataKey, data);
           this.explorerMetadata = data;
         } else {
-          this.initError = `Error fetching ${this.url}: Invalid response`;
+          this.initError = `Error fetching ${this.url()}: Invalid response`;
           this.state.set(this.initErrorKey, this.initError);
         }
       } else {
-        this.initError = `Error fetching ${this.url}: ${response.statusText}`;
+        this.initError = `Error fetching ${this.url()}: ${response.statusText}`;
         this.state.set(this.initErrorKey, this.initError);
       }
     } catch (error: any) {
-      this.initError = `Error fetching ${this.url}: ${error.message}`;
+      this.initError = `Error fetching ${this.url()}: ${error.message}`;
       this.state.set(this.initErrorKey, this.initError);
     }
   }

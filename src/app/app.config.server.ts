@@ -7,6 +7,7 @@ import {serverRoutes} from "./app.routes";
 import {provideClientHydration} from "@angular/platform-browser";
 import {readFileSync} from "node:fs";
 import {createContext, runInContext} from "node:vm";
+import {devEnv} from "./dev.env";
 
 async function injectCustomTheme(file: string, ds: DataService) {
   // const fsModule = await import('node:fs');
@@ -25,8 +26,28 @@ const serverConfig: ApplicationConfig = {
     provideAppInitializer(async () => {
       const request = inject(REQUEST);
       const ds = inject(DataService);
-      console.log('Server app initialized');
-      console.log('Current server:', ds.env.hyperionApiUrl);
+
+      let href = '';
+      if (request) {
+        const hyperionServer = request.headers.get('x-hyperion-server');
+        if (hyperionServer) {
+          href = hyperionServer;
+        } else {
+          href = request.headers.get('referer') ?? request.url;
+        }
+      }
+
+      if (href) {
+        const url = new URL(href);
+        if (url.host === 'localhost:4200') {
+          ds.env.hyperionApiUrl = devEnv.hyperionApiUrl;
+        } else {
+          ds.env.hyperionApiUrl = url.origin;
+        }
+      } else {
+        ds.env.hyperionApiUrl = devEnv.hyperionApiUrl;
+      }
+
       // handle custom theme override
       if (request) {
         const url = new URL(request.url);
