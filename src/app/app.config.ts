@@ -3,7 +3,8 @@ import {
   inject,
   PLATFORM_ID,
   provideAppInitializer,
-  provideExperimentalZonelessChangeDetection, REQUEST
+  provideExperimentalZonelessChangeDetection,
+  REQUEST
 } from '@angular/core';
 import {provideRouter, Router} from '@angular/router';
 
@@ -13,11 +14,36 @@ import {provideAnimationsAsync} from '@angular/platform-browser/animations/async
 import {provideHttpClient, withFetch} from "@angular/common/http";
 import {DataService, DataServiceBrowser} from "./services/data.service";
 import {isPlatformBrowser} from "@angular/common";
+import {devEnv} from "./dev.env";
 
 async function initApp(): Promise<void> {
   const ds = inject(DataService);
   const router = inject(Router);
   const platformId = inject(PLATFORM_ID);
+  const request = inject(REQUEST);
+
+  let href = '';
+  if (isPlatformBrowser(platformId)) {
+    href = location.href;
+  } else if (request) {
+    href = request.url;
+  }
+
+  console.log(`[${platformId}] HREF:`, href);
+
+  if (href) {
+    const url = new URL(href);
+    if (url.host === 'localhost:4200') {
+      console.log('Localhost detected, setting API URL to local server');
+      ds.env.hyperionApiUrl = devEnv.hyperionApiUrl;
+    } else {
+      console.log('External host detected, setting API URL to external server');
+      ds.env.hyperionApiUrl = `${url.protocol}://${url.host}`;
+    }
+  }
+
+  console.log(`[${platformId}] Initializing app...`);
+
   await ds.load();
   if (!ds.explorerMetadata) {
     console.error(`[${platformId}] Error loading explorer metadata:`, ds.initError);

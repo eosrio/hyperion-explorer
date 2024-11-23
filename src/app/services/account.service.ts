@@ -4,9 +4,9 @@ import {AccountCreationData, GetAccountResponse} from '../interfaces';
 // import {HyperionStreamClient} from '@eosrio/hyperion-stream-client';
 import {MatTableDataSource} from '@angular/material/table';
 import {PaginationService} from "./pagination.service";
-import {environment} from "../../env";
 import {lastValueFrom} from "rxjs";
 import {isPlatformBrowser} from "@angular/common";
+import {DataService} from "./data.service";
 
 interface HealthResponse {
   features: {
@@ -20,18 +20,12 @@ interface HealthResponse {
 
 @Injectable({providedIn: 'root'})
 export class AccountService {
+
+  private data = inject(DataService);
   private httpClient = inject(HttpClient);
   private pagService = inject(PaginationService);
-
-
   platformId = inject(PLATFORM_ID);
 
-  getAccountUrl: string;
-  getActionsUrl: string;
-  getCreatorUrl: string;
-  getTxUrl: string;
-  getBlockUrl: string;
-  getKeyUrl: string;
   jsonData: any;
   account: any = {
     cpu_limit: {
@@ -59,13 +53,7 @@ export class AccountService {
   public loaded = signal(false);
 
   constructor() {
-    this.getServerUrl();
-    this.getAccountUrl = environment.hyperionApiUrl + '/v2/state/get_account?account=';
-    this.getActionsUrl = environment.hyperionApiUrl + '/v2/history/get_actions?account=';
-    this.getCreatorUrl = environment.hyperionApiUrl + '/v2/history/get_creator?account=';
-    this.getTxUrl = environment.hyperionApiUrl + '/v2/history/get_transaction?id=';
-    this.getBlockUrl = environment.hyperionApiUrl + '/v1/trace_api/get_block';
-    this.getKeyUrl = environment.hyperionApiUrl + '/v2/state/get_key_accounts?public_key=';
+    const baseUrl = this.data.env.hyperionApiUrl;
     this.tableDataSource = new MatTableDataSource([] as any[]);
     // this.initStreamClient().catch(console.log);
   }
@@ -121,23 +109,13 @@ export class AccountService {
     }
   }
 
-  getServerUrl(): void {
-    let server;
-    if (environment.production) {
-      server = window.location.origin;
-    } else {
-      server = environment.hyperionApiUrl;
-    }
-    this.server = server;
-  }
-
   async updateLib(): Promise<void> {
     this.libNum.set(await this.checkLib() ?? 0);
   }
 
   async checkLib(): Promise<number | null> {
     try {
-      const info = await lastValueFrom(this.httpClient.get(this.server + '/v1/chain/get_info')) as any;
+      const info = await lastValueFrom(this.httpClient.get(this.data.env.hyperionApiUrl + '/v1/chain/get_info')) as any;
       if (info) {
         return info.last_irreversible_block_num;
       } else {
@@ -216,7 +194,9 @@ export class AccountService {
 
     this.loaded.set(false);
     try {
-      this.jsonData = await lastValueFrom(this.httpClient.get(this.getAccountUrl + accountName)) as GetAccountResponse;
+      const url = this.data.env.hyperionApiUrl + '/v2/state/get_account?account=' + accountName;
+      console.log(url);
+      this.jsonData = await lastValueFrom(this.httpClient.get(url)) as GetAccountResponse;
       if (this.jsonData.account) {
         this.account = this.jsonData.account;
       }
@@ -251,7 +231,7 @@ export class AccountService {
     const firstAction = this.actions[this.actions.length - 1];
     const maxGs = (firstAction.global_sequence - 1);
     try {
-      const q = this.getActionsUrl + accountName + '&global_sequence=0-' + maxGs + '&limit=50';
+      const q = `${this.data.env.hyperionApiUrl}/v2/history/get_actions?account=${accountName}&global_sequence=0-${maxGs}&limit=50`;
       const results = await lastValueFrom(this.httpClient.get(q)) as any;
       if (results.actions && results.actions.length > 0) {
         this.actions.push(...results.actions);
@@ -265,7 +245,8 @@ export class AccountService {
   async loadTxData(txId: string): Promise<any> {
     this.loaded.set(false);
     try {
-      const data = await lastValueFrom(this.httpClient.get(this.getTxUrl + txId));
+      const url = this.data.env.hyperionApiUrl + '/v2/history/get_transaction?id=' + txId;
+      const data = await lastValueFrom(this.httpClient.get(url));
       this.loaded.set(true);
       return data;
     } catch (error) {
@@ -278,7 +259,8 @@ export class AccountService {
   async loadBlockData(blockNum: number): Promise<any> {
     this.loaded.set(false);
     try {
-      const data = await lastValueFrom(this.httpClient.post(this.getBlockUrl, {
+      const url = this.data.env.hyperionApiUrl + '/v1/trace_api/get_block';
+      const data = await lastValueFrom(this.httpClient.post(url, {
         block_num: blockNum
       }));
       this.loaded.set(true);
@@ -294,8 +276,7 @@ export class AccountService {
     console.log('Loading key data for: ' + key);
     this.loaded.set(false);
     try {
-      const url = this.getKeyUrl + key + '&details=true';
-      console.log(url);
+      const url = this.data.env.hyperionApiUrl + '/v2/state/get_key_accounts?public_key=' + key + '&details=true';
       const data = await lastValueFrom(this.httpClient.get(url));
       this.loaded.set(true);
       return data;
@@ -308,7 +289,8 @@ export class AccountService {
 
   async getCreator(accountName: string): Promise<AccountCreationData | null> {
     try {
-      return await lastValueFrom(this.httpClient.get(this.getCreatorUrl + accountName)) as AccountCreationData;
+      const url = this.data.env.hyperionApiUrl + '/v2/history/get_creator?account=' + accountName;
+      return await lastValueFrom(this.httpClient.get(url)) as AccountCreationData;
     } catch (error) {
       console.log(error);
       return null;

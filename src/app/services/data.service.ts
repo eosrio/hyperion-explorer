@@ -1,12 +1,20 @@
 import {inject, Injectable, makeStateKey, signal, TransferState} from '@angular/core';
-import {environment} from "../../env";
 import {ExplorerMetadata} from "../interfaces";
 import {Title} from "@angular/platform-browser";
 
 export abstract class DataService {
+
+  env = {
+    hyperionApiUrl: '',
+    systemContract: 'eosio',
+    userResourcesTable: 'userres'
+  };
+
   metadataKey = makeStateKey<ExplorerMetadata>('chain_data');
   initErrorKey = makeStateKey<string>('init_error');
-  url = environment.hyperionApiUrl + '/v2/explorer_metadata';
+
+  url = () => this.env.hyperionApiUrl + '/v2/explorer_metadata';
+
   abstract explorerMetadata: ExplorerMetadata | null;
   abstract initError: string | null;
   customTheme?: Record<string, any>;
@@ -36,11 +44,11 @@ export class DataServiceServer extends DataService {
 
   async loadChainData(): Promise<void> {
     try {
-      const response = await fetch(this.url);
+      const response = await fetch(this.url());
       if (response.ok) {
         const data: ExplorerMetadata = await response.json();
         if (data && data.last_indexed_block && data.last_indexed_block > 1) {
-          data.logo = environment.hyperionApiUrl + '/v2/explorer_logo';
+          data.logo = this.env.hyperionApiUrl + '/v2/explorer_logo';
           if (this.customTheme) {
             data.theme = this.customTheme;
           }
@@ -72,6 +80,7 @@ export class DataServiceBrowser extends DataService {
   async load() {
     // load metadata from state on browser
     this.explorerMetadata = this.state.get(this.metadataKey, null);
+    console.log('Loaded metadata from state:', this.explorerMetadata);
     this.initError = this.state.get(this.initErrorKey, null);
     if (this.explorerMetadata) {
       this.title.setTitle(`${this.explorerMetadata.chain_name} Hyperion Explorer`);
@@ -82,11 +91,11 @@ export class DataServiceBrowser extends DataService {
 
   async loadChainData(): Promise<void> {
     try {
-      const response = await fetch(this.url);
+      const response = await fetch(this.url());
       if (response.ok) {
         const data: ExplorerMetadata = await response.json();
         if (data && data.last_indexed_block && data.last_indexed_block > 1) {
-          data.logo = environment.hyperionApiUrl + '/v2/explorer_logo';
+          data.logo = this.env.hyperionApiUrl + '/v2/explorer_logo';
           if (this.customTheme) {
             data.theme = this.customTheme;
           }

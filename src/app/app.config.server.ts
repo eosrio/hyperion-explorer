@@ -22,12 +22,11 @@ async function injectCustomTheme(file: string, ds: DataService) {
 
 const serverConfig: ApplicationConfig = {
   providers: [
-    provideClientHydration(),
-    provideServerRendering(),
     provideAppInitializer(async () => {
       const request = inject(REQUEST);
       const ds = inject(DataService);
       console.log('Server app initialized');
+      console.log('Current server:', ds.env.hyperionApiUrl);
       // handle custom theme override
       if (request) {
         const url = new URL(request.url);
@@ -38,6 +37,8 @@ const serverConfig: ApplicationConfig = {
         }
       }
     }),
+    provideClientHydration(),
+    provideServerRendering(),
     provideServerRoutesConfig(serverRoutes),
     {provide: DataService, useClass: DataServiceServer}
   ]

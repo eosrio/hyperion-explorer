@@ -14,5 +14,5 @@ if (isMainModule(import.meta.url) || process.env["HYP_EXPLORER_PORT"]) {
 export const reqHandler = createNodeRequestHandler(async (req, res) => {
   await fastifyAngularSSR.fastify.ready();
   fastifyAngularSSR.fastify.server.emit('request', req, res);
-  console.log('Got request in Fastify:', req.url);
+  // console.log('Got request in Fastify:', req.url);
 });

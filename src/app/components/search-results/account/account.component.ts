@@ -129,11 +129,11 @@ interface FlatNode {
 })
 export class AccountComponent {
 
+  dataService = inject(DataService);
   accountService = inject(AccountService);
   readonly dialog = inject(MatDialog);
   platformId = inject(PLATFORM_ID);
   route = inject(ActivatedRoute);
-  dataService = inject(DataService);
   searchService = inject(SearchService);
   title = inject(Title);
   router = inject(Router);

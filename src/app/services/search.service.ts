@@ -1,5 +1,4 @@
 import { Injectable, signal, inject } from '@angular/core';
-import {environment} from "../../env";
 import {HttpClient} from "@angular/common/http";
 import {lastValueFrom} from "rxjs";
 import {GetTableByScopeResponse, TableData} from "../interfaces";
@@ -20,8 +19,8 @@ export class SearchService {
   autoCompleteCache: Map<string, string[]> = new Map();
 
   constructor() {
-    this.searchAccountUrl = environment.hyperionApiUrl + '/v1/chain/get_table_by_scope';
-    this.wildcardAccountUrl = environment.hyperionApiUrl + '/v2/state/get_voter_scopes';
+    this.searchAccountUrl = this.data.env.hyperionApiUrl + '/v1/chain/get_table_by_scope';
+    this.wildcardAccountUrl = this.data.env.hyperionApiUrl + '/v2/state/get_voter_scopes';
   }
 
   async filterAccountNames(value: string): Promise<any> {
@@ -40,8 +39,8 @@ export class SearchService {
     try {
       const sValue = value.toLowerCase();
       const requestBody = {
-        code: environment.systemContract,
-        table: environment.userResourcesTable,
+        code: this.data.env.systemContract,
+        table: this.data.env.userResourcesTable,
         lower_bound: sValue,
         limit: 100
       };

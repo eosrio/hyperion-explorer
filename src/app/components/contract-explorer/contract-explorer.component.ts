@@ -1,20 +1,8 @@
-import {
-  Component,
-  computed,
-  effect,
-  inject,
-  input,
-  linkedSignal,
-  model,
-  PLATFORM_ID,
-  signal,
-  viewChild
-} from '@angular/core';
-import {NavigationEnd, Router} from "@angular/router";
+import {Component, computed, effect, inject, input, linkedSignal, model, PLATFORM_ID, signal} from '@angular/core';
+import {Router} from "@angular/router";
 import {rxResource} from "@angular/core/rxjs-interop";
 import {HttpClient} from "@angular/common/http";
 import {map, of} from "rxjs";
-import {environment} from "../../../env";
 import {MatButton, MatIconButton} from "@angular/material/button";
 import {MatCell, MatColumnDef, MatHeaderCell, MatHeaderRow, MatRow, MatTableModule} from "@angular/material/table";
 import {MatSort, MatSortHeader, Sort} from "@angular/material/sort";
@@ -22,10 +10,11 @@ import {MatTooltip} from "@angular/material/tooltip";
 import {AbiStructField, AbiTable, GetAbiResponse} from "../../interfaces";
 import {FormsModule} from '@angular/forms';
 import {MatDialogContent} from "@angular/material/dialog";
-import {isPlatformBrowser, JsonPipe, NgClass} from "@angular/common";
+import {isPlatformBrowser, NgClass} from "@angular/common";
 import {MatInput} from "@angular/material/input";
 import {MatIcon} from "@angular/material/icon";
 import {ActDataViewComponent} from "../act-data-view/act-data-view.component";
+import {DataService} from "../../services/data.service";
 
 function buildFieldArray(structs: any[], array: AbiStructField[], type: string): void {
   if (array && type) {
@@ -54,7 +43,6 @@ function buildFieldArray(structs: any[], array: AbiStructField[], type: string):
     MatDialogContent,
     NgClass,
     MatInput,
-    JsonPipe,
     MatIconButton,
     MatIcon,
     ActDataViewComponent,
@@ -66,6 +54,7 @@ export class ContractExplorerComponent {
 
   http = inject(HttpClient);
   router = inject(Router);
+  data = inject(DataService);
 
   code = model<string | null | undefined>(null);
   table = model<string | null | undefined>(null);
@@ -75,9 +64,9 @@ export class ContractExplorerComponent {
 
   // request endpoints
   endpoints = {
-    getAbi: `${environment.hyperionApiUrl}/v1/chain/get_abi`,
-    getTableByScope: `${environment.hyperionApiUrl}/v1/chain/get_table_by_scope`,
-    getTableRows: `${environment.hyperionApiUrl}/v1/chain/get_table_rows`
+    getAbi: `${this.data.env.hyperionApiUrl}/v1/chain/get_abi`,
+    getTableByScope: `${this.data.env.hyperionApiUrl}/v1/chain/get_table_by_scope`,
+    getTableRows: `${this.data.env.hyperionApiUrl}/v1/chain/get_table_rows`
   };
 
   getTableByScopeLimit = 20;
