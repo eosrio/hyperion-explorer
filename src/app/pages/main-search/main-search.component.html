@@ -4,7 +4,6 @@
     <img [src]="chainData().logo" alt="logo" class="logo"/>
   </div>
 </app-layout-transition>
-
 <app-layout-transition [observedIds]="['header-container', 'tagline']"
                        [sourceDiv]="searchbarSourceDiv"
                        [targetDiv]="searchbarTargetDiv"
@@ -105,6 +104,9 @@
 
   <div id="content-container" class="flex flex-col justify-center pb-10 w-full">
     <router-outlet></router-outlet>
-    <div class="text-slate-500 my-4 place-self-center">v{{ version }} | Made with <fa-icon [icon]="icons.solid.heart"></fa-icon> by EOS Rio | RioBlocks</div>
+    <div class="text-slate-500 my-4 place-self-center">v{{ version }} | Made with
+      <fa-icon [icon]="icons.solid.heart"></fa-icon>
+      by EOS Rio | RioBlocks
+    </div>
   </div>
 </div>

@@ -39,17 +39,17 @@ import {BreakpointObserver, Breakpoints} from "@angular/cdk/layout";
 })
 export class MainSearchComponent implements OnInit {
   // injected services
+  breakpointObserver = inject(BreakpointObserver);
   searchService = inject(SearchService);
-  accService = inject(AccountService);
   dataService = inject(DataService);
-  router = inject(Router);
   formBuilder = inject(FormBuilder);
   platformId = inject(PLATFORM_ID);
-  breakpointObserver = inject(BreakpointObserver);
+  router = inject(Router);
 
   // get version from package.json
   version = PackageVersion;
 
+  // fontawesome icons
   icons = {
     solid: {
       search: faSearch,
@@ -197,6 +197,7 @@ export class MainSearchComponent implements OnInit {
 
     scroll(
       (progress: any) => {
+        // console.log(`scrolling`, progress);
         this.transitionProgress.set(progress);
         this.taglineWidth.set(this.taglineMax - (progress * this.taglineMax));
         this.searchInputPadding.set((this.paddingMax * (1 - progress)) + (0.75 * progress));

@@ -93,11 +93,9 @@ export class LayoutTransitionComponent {
   resize$ = new Subject<void>();
 
   constructor() {
-    afterNextRender({
-      write: () => {
-        this.fadeIn();
-        this.observeMutations();
-      }
+    afterNextRender(() => {
+      this.fadeIn();
+      this.observeMutations();
     });
   }
 

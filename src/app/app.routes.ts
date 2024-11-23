@@ -55,6 +55,10 @@ export const routes: Routes = [
 
 export const serverRoutes: ServerRoute[] = [
   {
+    path: '',
+    renderMode: RenderMode.Client
+  },
+  {
     path: 'account/:account_name',
     renderMode: RenderMode.Server
   },
@@ -69,6 +73,10 @@ export const serverRoutes: ServerRoute[] = [
   {
     path: 'contract/:code',
     renderMode: RenderMode.Server
+  },
+  {
+    path: 'error',
+    renderMode: RenderMode.Prerender,
   },
   {
     path: '**',

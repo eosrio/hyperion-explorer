@@ -8,6 +8,9 @@
   <!--JSON OBJECT-->
   @case ("object") {
     @for (item of data() | keyvalue; track item.key) {
+
+      @let itemType = getType(item.value);
+
       <div [ngClass]="{'data-item': objectKeyCount() > 1, 'ml-2': level() > 0}">
 
         @if (level() === 0) {
@@ -20,20 +23,23 @@
 
         <!--FIELD NAME-->
         <span class="font-medium">{{ item.key }}</span>:
-        <!--        <span [matTooltip]="'Type: ' + getType(item.value)" class="font-medium">{{ item.key }}</span>:-->
+        <!--        <span [matTooltip]="'Type: ' + itemType" class="font-medium">{{ item.key }}</span>:-->
 
         <!--FIELD VALUE-->
         @if (item.value) {
-          @switch (getType(item.value)) {
+          @switch (itemType) {
             @case ("string") {
               @if (isAccountName(item.value)) {
                 <a [routerLink]="['/account', item.value]"
                    class="break-word text-violet-600 text-pretty">{{ item.value }}</a>
               } @else {
-                @if (String(item.value).length > 32) {
+
+                @let stringValue = String(item.value);
+
+                @if (stringValue.length > 32) {
                   <br>
-                  <span [matTooltip]="String(item.value)" class="break-word text-purple-400 text-pretty">
-                    {{ String(item.value) | slice:0:32 }}...
+                  <span [matTooltip]="stringValue" class="break-word text-purple-400 text-pretty">
+                    {{ stringValue | slice:0:32 }}...
                   </span>
                 } @else {
                   <span class="break-word text-purple-400 text-pretty">{{ item.value }}</span>
@@ -60,10 +66,10 @@
           <span class="break-word text-red-400">0</span>
         } @else {
           <!--EMPTY STRING / UNDEFINED-->
-          @if (getType(item.value) === 'string') {
+          @if (itemType === 'string') {
             <span matTooltip="EMPTY STRING" class="break-word text-purple-400">""</span>
           } @else {
-            <span class="break-word text-red-400">EMPTY ({{ getType(item.value) }})</span>
+            <span class="break-word text-red-400">EMPTY ({{ itemType }})</span>
           }
         }
       </div>
