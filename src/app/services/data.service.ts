@@ -2,7 +2,6 @@ import {inject, Injectable, makeStateKey, signal, TransferState} from '@angular/
 import {environment} from "../../env";
 import {ExplorerMetadata} from "../interfaces";
 import {Title} from "@angular/platform-browser";
-import {defaultTheme} from "../default.theme";
 
 export abstract class DataService {
   metadataKey = makeStateKey<ExplorerMetadata>('chain_data');
@@ -10,6 +9,7 @@ export abstract class DataService {
   url = environment.hyperionApiUrl + '/v2/explorer_metadata';
   abstract explorerMetadata: ExplorerMetadata | null;
   abstract initError: string | null;
+  customTheme?: Record<string, any>;
 
   abstract load(): Promise<void>;
 
@@ -41,8 +41,9 @@ export class DataServiceServer extends DataService {
         const data: ExplorerMetadata = await response.json();
         if (data && data.last_indexed_block && data.last_indexed_block > 1) {
           data.logo = environment.hyperionApiUrl + '/v2/explorer_logo';
-          // console.log('data', data);
-          // data.theme = defaultTheme;
+          if (this.customTheme) {
+            data.theme = this.customTheme;
+          }
           this.state.set(this.metadataKey, data);
           this.explorerMetadata = data;
         } else {
@@ -86,6 +87,9 @@ export class DataServiceBrowser extends DataService {
         const data: ExplorerMetadata = await response.json();
         if (data && data.last_indexed_block && data.last_indexed_block > 1) {
           data.logo = environment.hyperionApiUrl + '/v2/explorer_logo';
+          if (this.customTheme) {
+            data.theme = this.customTheme;
+          }
           this.explorerMetadata = data;
         } else {
           this.initError = `Error fetching ${this.url}: Invalid response`;
