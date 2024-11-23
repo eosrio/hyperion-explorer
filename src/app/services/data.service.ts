@@ -41,7 +41,8 @@ export class DataServiceServer extends DataService {
         const data: ExplorerMetadata = await response.json();
         if (data && data.last_indexed_block && data.last_indexed_block > 1) {
           data.logo = environment.hyperionApiUrl + '/v2/explorer_logo';
-          data.theme = defaultTheme;
+          // console.log('data', data);
+          // data.theme = defaultTheme;
           this.state.set(this.metadataKey, data);
           this.explorerMetadata = data;
         } else {
@@ -85,7 +86,6 @@ export class DataServiceBrowser extends DataService {
         const data: ExplorerMetadata = await response.json();
         if (data && data.last_indexed_block && data.last_indexed_block > 1) {
           data.logo = environment.hyperionApiUrl + '/v2/explorer_logo';
-          data.theme = defaultTheme;
           this.explorerMetadata = data;
         } else {
           this.initError = `Error fetching ${this.url}: Invalid response`;

@@ -1,8 +1,9 @@
 import {
   ApplicationConfig,
-  inject, PLATFORM_ID,
+  inject,
+  PLATFORM_ID,
   provideAppInitializer,
-  provideExperimentalZonelessChangeDetection
+  provideExperimentalZonelessChangeDetection, REQUEST
 } from '@angular/core';
 import {provideRouter, Router} from '@angular/router';
 
@@ -13,7 +14,24 @@ import {provideHttpClient, withFetch} from "@angular/common/http";
 import {DataService, DataServiceBrowser} from "./services/data.service";
 import {isPlatformBrowser} from "@angular/common";
 
+async function injectCustomTheme(file: string, ds: DataService) {
+
+  const fsModule = await import('node:fs');
+  const vmModule = await import('node:vm');
+
+  const themeSourceData = fsModule.readFileSync(file).toString();
+  // create VM context to run theme data
+  const context = {themeData: {}};
+  vmModule.createContext(context);
+  // run theme data in context
+  vmModule.runInContext(themeSourceData, context);
+  if (ds.explorerMetadata) {
+    ds.explorerMetadata.theme = context.themeData;
+  }
+}
+
 async function initApp(): Promise<void> {
+  const request = inject(REQUEST);
   const ds = inject(DataService);
   const router = inject(Router);
   const platformId = inject(PLATFORM_ID);
@@ -27,6 +45,17 @@ async function initApp(): Promise<void> {
     if (isPlatformBrowser(platformId)) {
       await ds.activateTheme();
     } else {
+
+      // handle custom theme override
+      if (request) {
+        const url = new URL(request.url);
+        const themeName = url.searchParams.get('theme');
+        if (themeName) {
+          console.log(`Injecting ${themeName} theme...`);
+          await injectCustomTheme(`./themes/${themeName}.theme.mjs`, ds);
+        }
+      }
+
       ds.ready.set(true);
     }
   }

@@ -1,7 +1,7 @@
 // Description: Theme for Jungle Testnet
 
 globalThis.themeData = {
-  "--primary": "#7ac1ae",
+  "--primary": "#00a6de",
   "--primary-hover": "#087487",
   "--primary-gradient": "linear-gradient(145deg, #00b2ee, #0095c8)",
   "--accent": "#fa7600",
@@ -11,7 +11,7 @@ globalThis.themeData = {
   "--main-font-family": "Montserrat, sans-serif",
   "--main-font-size": "16px",
   "--faded": "#a4a4a4",
-  "--main-background": "#fefff6",
+  "--main-background": "#d2e1f8",
   "--main-text": "#141519",
   "--container-width": "1302px",
   "--colour-bg-shadow": "rgb(200, 200, 220)",
