@@ -1,4 +1,6 @@
-export const jungleTheme: Record<string, any> = {
+// Description: Theme for Jungle Testnet
+
+export const hyperionExplorerTheme = {
   "--primary": "#00a6de",
   "--primary-hover": "#087487",
   "--primary-gradient": "linear-gradient(145deg, #00b2ee, #0095c8)",
@@ -25,4 +27,4 @@ export const jungleTheme: Record<string, any> = {
   "--line-divider": "rgba(0, 0, 0, .12)"
 }
 
-export default jungleTheme;
+export default hyperionExplorerTheme;
