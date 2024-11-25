@@ -248,6 +248,7 @@
     background: transparent;
     position: sticky;
     z-index: 100;
+    color: var(--main-text);
   }
 
   [mat-header-cell].mat-mdc-table-sticky {
@@ -279,7 +280,7 @@
     height: auto;
     position: sticky;
     top: 0;
-    z-index: 101;
+    color: var(--main-text);
   }
 
   [mat-table] [mat-header-row] th[mat-header-cell] {
@@ -328,7 +329,7 @@
     text-align: left;
     font-size: 0.75rem; /*12px*/
     font-weight: 500;
-    color: rgba(0, 0, 0, 0.54);
+    color: var(--main-text);
   }
 
   /*[mat-table] [mat-row] td.mat-column-action {*/

@@ -41,7 +41,7 @@
               @if (key().permissions.length > 0) {
                 @for (acc of key().permissions; track acc) {
                   <div class="account-cell">
-                    <a class="acc-name" [routerLink]="['/account', acc['owner']]">{{acc["owner"] }}</a>
+                    <a class="font-medium link-primary" [routerLink]="['/account', acc['owner']]">{{acc["owner"] }}</a>
                     <span class="faded permission">{{ acc.name }}</span>
                   </div>
                 }
@@ -49,7 +49,7 @@
               @if (key().permissions.length === 0) {
                 @for (acc of key().account_names; track acc) {
                   <div class="account-cell">
-                    <a class="acc-name" [routerLink]="['/account', acc]">{{ acc }}</a>
+                    <a class="font-medium link-primary" [routerLink]="['/account', acc]">{{ acc }}</a>
                   </div>
                 }
               }

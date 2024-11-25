@@ -151,7 +151,7 @@ export class TransactionComponent implements OnInit, OnDestroy {
   private tableStickyMotion(tableSticky?: ElementRef<HTMLDivElement>) {
     scroll(animate('.mat-mdc-header-row', {
         boxShadow: 'rgba(78 104 192, 0.25) 0px 4px 19px 0px, rgba(17, 12, 46, 0.15) 0px 20px 100px 0px',
-        background: 'linear-gradient(115deg, rgb(255 255 255 / 40%) 0%, rgb(255 255 255 / 90%) 87%, rgb(255 255 255 / 40%) 130%), var(--main-background)'
+        background: 'var(--table-top-bg-gradient)'
       }, {duration: 1}),
       {target: tableSticky?.nativeElement, offset: ['end 250px', '200px 250px']}
     );
