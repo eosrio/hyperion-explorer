@@ -2,7 +2,7 @@
   @if (code()) {
 
     <div class="w-full flex flex-row justify-between items-center">
-      <div class="my-5">Please select a table:</div>
+      <div class="my-5 main-color">Please select a table:</div>
       <button matTooltip="Reload Tables" (click)="reloadTables()" [disabled]="abiRes.isLoading()" mat-icon-button
               class="my-5">
         <mat-icon>sync</mat-icon>
@@ -22,12 +22,12 @@
     @if (table()) {
       <div id="scope-section" class="acc-header px-5 py-3 mt-5">
         <div class=" text-lg  mt-5 flex flex-row items-center gap-3">
-          <span class="underline">Table: </span>
+          <span class="underline main-color">Table: </span>
           <span class="font-medium underline">{{ table() }}</span>
         </div>
 
         <div class="w-full flex flex-row justify-between items-center">
-          <div class="my-5 faded">Please select a scope:</div>
+          <div class="my-5 faded main-color">Please select a scope:</div>
           <button matTooltip="Reload Scopes" (click)="reloadScopes()" [disabled]="tableScopesRes.isLoading()"
                   mat-icon-button class="my-5">
             <mat-icon>sync</mat-icon>
@@ -79,7 +79,7 @@
       @if (scope()) {
         <div id="data-section" class="acc-header px-5 py-3 mt-5 overflow-x-scroll">
           <div class="text-lg mt-5 flex flex-row items-center gap-3">
-            <span class="underline">Scope: </span>
+            <span class="underline main-color">Scope: </span>
             <span class="font-medium underline">{{ scope() }}</span>
             <span class="faded text-sm">with {{ tableData().length }} row@if (tableData().length > 1) {
               <span>s</span>
