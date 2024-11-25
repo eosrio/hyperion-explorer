@@ -72,32 +72,15 @@ export class ContractExplorerComponent {
   getTableByScopeLimit = 20;
   private platformId = inject(PLATFORM_ID);
 
-  constructor() {
-
-    effect(() => {
-      console.log(this.scopeList());
-    });
-
-    // if (isPlatformBrowser(this.platformId))
-    //   this.router.events.subscribe((event) => {
-    //     console.log('event', event);
-    //     if (event instanceof NavigationEnd) {
-    //       setTimeout(() => {
-    //         if (this.scrollContainer) {
-    //           this.scrollContainer.scrollTop = this.currentScroll;
-    //         }
-    //       }, 50);
-    //     }
-    //   });
-
-  }
-
   // request new abi when the code signal changes
   abiRes = rxResource({
     request: () => this.code(),
     loader: ({request: code}) => {
       if (code) {
-        return this.http.get<GetAbiResponse>(this.endpoints.getAbi + '?account_name=' + code);
+        return this.http.post<GetAbiResponse>(this.endpoints.getAbi, {
+          account_name: code,
+          json: true
+        });
       } else {
         return of(null);
       }
@@ -110,8 +93,12 @@ export class ContractExplorerComponent {
     loader: ({request: table}) => {
       if (table) {
         // request table scopes
-        const reqParams = `?code=${this.code()}&table=${table}&limit=${this.getTableByScopeLimit}`;
-        return this.http.get<any>(this.endpoints.getTableByScope + reqParams);
+        return this.http.post<any>(this.endpoints.getTableByScope, {
+          code: this.code(),
+          table: this.table(),
+          limit: this.getTableByScopeLimit,
+          json: true
+        });
       } else {
         // return empty array if no table is selected
         return of([]);
@@ -124,8 +111,13 @@ export class ContractExplorerComponent {
     loader: ({request: scope}) => {
       if (scope) {
         // request table scopes
-        const reqParams = `?code=${this.code()}&table=${this.table()}&scope=${scope}`;
-        return this.http.get<any>(this.endpoints.getTableRows + reqParams).pipe(map(d => d.rows));
+        return this.http.post<any>(this.endpoints.getTableRows, {
+          code: this.code(),
+          table: this.table(),
+          scope: scope,
+          limit: this.getTableByScopeLimit,
+          json: true
+        }).pipe(map(d => d.rows));
       } else {
         // return empty array if no table is selected
         return of([]);
@@ -155,8 +147,12 @@ export class ContractExplorerComponent {
             scopeSet.add(contract);
           }
         }
-        source.rows.forEach((row: any) => scopeSet.add(row.scope));
-        return Array.from(scopeSet);
+        if (source.rows) {
+          source.rows.forEach((row: any) => scopeSet.add(row.scope));
+          return Array.from(scopeSet);
+        } else {
+          return [];
+        }
       } else {
         return previous ? previous.value : [];
       }
@@ -204,27 +200,6 @@ export class ContractExplorerComponent {
       }
     }
   });
-
-  // tableData = computed<any[]>(() => {
-  //   const rows = this.tableRowRes.value();
-  //   const sort = this.sortBy();
-  //   const dir = this.sortDirection();
-  //   if (rows && rows.length > 0) {
-  //     if (dir === '') {
-  //       return rows;
-  //     } else {
-  //       return [...rows].sort((a: any, b: any) => {
-  //         if (dir === 'desc') {
-  //           return a[sort] > b[sort] ? 1 : -1;
-  //         } else {
-  //           return a[sort] > b[sort] ? -1 : 1;
-  //         }
-  //       });
-  //     }
-  //   } else {
-  //     return [];
-  //   }
-  // });
 
   fields = computed<AbiStructField[]>(() => {
     const abi = this.abiRes.value()?.abi;

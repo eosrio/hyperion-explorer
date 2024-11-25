@@ -4,12 +4,7 @@ import {MatButton, MatIconButton} from "@angular/material/button";
 import {ActivatedRoute, Router, RouterLink} from "@angular/router";
 import {MatProgressSpinner} from "@angular/material/progress-spinner";
 import {MatCardContent, MatCardHeader} from "@angular/material/card";
-import {
-  FaIconComponent,
-  FaLayersComponent,
-  FaStackComponent,
-  FaStackItemSizeDirective
-} from "@fortawesome/angular-fontawesome";
+import {FaIconComponent, FaLayersComponent, FaStackItemSizeDirective} from "@fortawesome/angular-fontawesome";
 import {MatProgressBar} from "@angular/material/progress-bar";
 import {MatTooltip} from "@angular/material/tooltip";
 import {
@@ -31,11 +26,14 @@ import {
   faChevronDown,
   faChevronRight,
   faCircle,
-  faClock, faEllipsisV,
+  faClock,
+  faEllipsisV,
   faHistory,
   faKey,
-  faLink, faMagnifyingGlassPlus,
-  faSadTear, faShield,
+  faLink,
+  faMagnifyingGlassPlus,
+  faSadTear,
+  faShield,
   faStar,
   faUser,
   faUserCircle,
@@ -128,9 +126,7 @@ interface FlatNode {
     MatTreeModule,
     DatePipe,
     ActDataViewComponent,
-    MatRipple,
-    FaStackComponent,
-    FaStackItemSizeDirective
+    MatRipple
   ],
   templateUrl: './account.component.html',
   styleUrl: './account.component.css'
