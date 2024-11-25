@@ -12,7 +12,7 @@ import {DataService, DataServiceServer} from "./services/data.service";
 import {provideServerRoutesConfig} from "@angular/ssr";
 import {serverRoutes} from "./app.routes";
 import {provideClientHydration} from "@angular/platform-browser";
-import {readFileSync} from "node:fs";
+import {readdirSync, readFileSync} from "node:fs";
 import {createContext, runInContext} from "node:vm";
 import {devEnv} from "./dev.env";
 import {defineOrigin} from "./origin-config";
@@ -35,6 +35,12 @@ const serverConfig: ApplicationConfig = {
       const request = inject(REQUEST);
       const ds = inject(DataService);
       const platformId = inject(PLATFORM_ID);
+
+      readdirSync('./themes').forEach(file => {
+        if (file.endsWith('.theme.mjs')) {
+          ds.availableThemes.push(file.replace('.theme.mjs', ''));
+        }
+      });
 
       // await defineOrigin(ds, request, platformId);
       // console.log('app.config.server.ts initApp()');

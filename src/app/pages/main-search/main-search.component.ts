@@ -4,7 +4,6 @@ import {isPlatformBrowser, NgOptimizedImage} from "@angular/common";
 import {SearchService} from "../../services/search.service";
 import {DataService} from "../../services/data.service";
 import {faHeart, faSearch} from "@fortawesome/free-solid-svg-icons";
-import {toObservable} from "@angular/core/rxjs-interop";
 import {ExplorerMetadata} from "../../interfaces";
 import {MatAutocomplete, MatAutocompleteTrigger, MatOption} from "@angular/material/autocomplete";
 import {Router, RouterLink, RouterOutlet} from "@angular/router";
@@ -16,6 +15,7 @@ import {FaIconComponent} from "@fortawesome/angular-fontawesome";
 import {LayoutTransitionComponent} from "../../components/layout-transition/layout-transition.component";
 import {animate, scroll} from "motion";
 import {BreakpointObserver, Breakpoints} from "@angular/cdk/layout";
+import {ThemeSelectorComponent} from "../../components/theme-selector/theme-selector.component";
 
 
 @Component({
@@ -31,7 +31,8 @@ import {BreakpointObserver, Breakpoints} from "@angular/cdk/layout";
     RouterOutlet,
     FaIconComponent,
     LayoutTransitionComponent,
-    RouterLink
+    RouterLink,
+    ThemeSelectorComponent
   ],
   templateUrl: './main-search.component.html',
   styleUrl: './main-search.component.css'
@@ -56,16 +57,9 @@ export class MainSearchComponent implements OnInit {
     }
   }
 
-  // local signals
-  public chainData = signal<ExplorerMetadata>({} as ExplorerMetadata);
-
-  // shared signals
-  // searchValue = this.searchService.searchQuery.asReadonly();
-  $searchValue = toObservable(this.searchService.searchQuery);
-
+  chainData = signal<ExplorerMetadata>({} as ExplorerMetadata);
   searchField = viewChild<ElementRef<HTMLInputElement>>('searchField');
   validSearch = signal<boolean>(false);
-
   filteredAccounts = signal<string[]>([]);
 
   searchForm: FormGroup;
@@ -75,11 +69,12 @@ export class MainSearchComponent implements OnInit {
   autocomplete = viewChild(MatAutocompleteTrigger);
 
   private currentPlaceholder = 0;
+
   placeholders = [
     'Search by account name...',
     'Search by block number...',
     'Search by transaction id...',
-    'Search by EVM hash...',
+    // 'Search by EVM hash...',
     'Search by public key...'
   ];
 
@@ -90,6 +85,8 @@ export class MainSearchComponent implements OnInit {
   transitionProgress = signal<number>(0);
   taglineWidth = signal(this.taglineMax);
   searchInputPadding = signal(this.paddingMax);
+
+  showThemeSelector = signal(false);
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {

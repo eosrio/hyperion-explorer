@@ -11,11 +11,13 @@ export async function defineOrigin(ds: DataService, request: Request | null, pla
     if (HYP_API_URL === 'devEnv') {
       apiUrl = (await import('./dev.env')).devEnv.hyperionApiUrl;
     } else {
+      console.log(`[dev::${platform}] Using HYP_API_URL:`, HYP_API_URL, typeof HYP_API_URL);
       apiUrl = HYP_API_URL;
     }
   } else {
     // production mode use the current origin as the API URL unless its overridden by the server
     if (HYP_API_URL) {
+      console.log(`[prod::${platform}] Using HYP_API_URL:`, HYP_API_URL, typeof HYP_API_URL);
       apiUrl = HYP_API_URL;
     } else {
       // if there is a request object it means its being executed on the server
@@ -38,5 +40,7 @@ export async function defineOrigin(ds: DataService, request: Request | null, pla
       }
     }
   }
-  ds.setOrigin(apiUrl, platform.toString());
+  if (apiUrl) {
+    ds.setOrigin(apiUrl, platform.toString());
+  }
 }

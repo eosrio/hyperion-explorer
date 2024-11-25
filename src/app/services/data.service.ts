@@ -12,6 +12,7 @@ export abstract class DataService {
 
   metadataKey = makeStateKey<ExplorerMetadata>('chain_data');
   initErrorKey = makeStateKey<string>('init_error');
+  themesKey = makeStateKey<string[]>('available_themes');
 
   url = () => {
     return this.env.hyperionApiUrl + '/v2/explorer_metadata';
@@ -21,6 +22,7 @@ export abstract class DataService {
   abstract initError: string | null;
   customTheme?: Record<string, any>;
   routeError?: string = '';
+  availableThemes: string[] = [];
 
   abstract load(): Promise<void>;
 
@@ -29,9 +31,14 @@ export abstract class DataService {
   ready = signal(false);
 
   setOrigin(hyperionServer: string, platform?: string): void {
-    const url = new URL(hyperionServer);
-    this.env.hyperionApiUrl = url.origin;
-    console.log(`(${platform}) Setting origin to:`, this.env.hyperionApiUrl);
+    try {
+      const url = new URL(hyperionServer);
+      this.env.hyperionApiUrl = url.origin;
+      console.log(`(${platform}) Setting origin to:`, this.env.hyperionApiUrl);
+    } catch (e) {
+      console.log(hyperionServer);
+      console.log('Error setting origin:', e);
+    }
   }
 }
 
@@ -48,7 +55,10 @@ export class DataServiceServer extends DataService {
 
   async load() {
     // fetch explorer metadata on server
-    await this.loadChainData();
+    if (this.env.hyperionApiUrl) {
+      await this.loadChainData();
+    }
+    this.state.set(this.themesKey, this.availableThemes);
   }
 
   async loadChainData(): Promise<void> {
@@ -92,10 +102,17 @@ export class DataServiceBrowser extends DataService {
     console.log('Loaded metadata from state:', this.explorerMetadata);
     this.initError = this.state.get(this.initErrorKey, null);
     if (this.explorerMetadata) {
+
+      const savedTheme = localStorage.getItem('theme-override');
+      if (savedTheme) {
+        this.explorerMetadata.theme = JSON.parse(savedTheme);
+      }
+
       this.title.setTitle(`${this.explorerMetadata.chain_name} Hyperion Explorer`);
     } else {
       await this.loadChainData();
     }
+    this.availableThemes = this.state.get(this.themesKey, []);
   }
 
   async loadChainData(): Promise<void> {
@@ -108,6 +125,12 @@ export class DataServiceBrowser extends DataService {
           if (this.customTheme) {
             data.theme = this.customTheme;
           }
+
+          const savedTheme = localStorage.getItem('theme-override');
+          if (savedTheme) {
+            data.theme = JSON.parse(savedTheme);
+          }
+
           this.explorerMetadata = data;
         } else {
           this.initError = `Error fetching ${this.url()}: Invalid response`;

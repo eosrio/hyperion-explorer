@@ -5,6 +5,7 @@
   </div>
 }
 
+
 <!--MAIN CONTENT-->
 <div class="hr-container">
 
@@ -25,10 +26,10 @@
                 <div class="text-2xl acc-title flex flex-row items-center gap-3">
 
                   @if (acServ.accountComputed().privileged) {
-                    <fa-stack matTooltip="System Account (privileged)" size="2xs">
-                      <fa-icon stackItemSize="2x" [icon]="icons.solid.faShield"></fa-icon>
-                      <fa-icon stackItemSize="1x" [inverse]="true" [icon]="icons.solid.faCheck" transform="shrink-1"></fa-icon>
-                    </fa-stack>
+                    <fa-layers matTooltip="System Account (privileged)" [fixedWidth]="true" style="margin-right: 5px">
+                      <fa-icon [icon]="icons.solid.faShield" transform="grow-3"></fa-icon>
+                      <fa-icon [icon]="icons.solid.faCheck" [inverse]="true" transform="shrink-5"></fa-icon>
+                    </fa-layers>
                   } @else {
                     <fa-icon [icon]="icons.solid.faUserCircle"></fa-icon>
                   }
@@ -175,7 +176,9 @@
                   }
                   <span class="values float-r">{{ acServ.userResPct().netStr }}</span>
                 </div>
-                <mat-progress-bar class="progress-bar" mode="determinate" [value]="acServ.userResPct().net"></mat-progress-bar>
+
+                <mat-progress-bar class="progress-bar" mode="determinate" [value]="acServ.userResPct().net">
+                </mat-progress-bar>
 
                 <div class="small-info">
                   <div class="m-bottom main-color">
@@ -215,15 +218,9 @@
                   <span class="values float-r">{{ acServ.userResPct().ramStr }}</span>
                 </div>
 
-                <mat-progress-bar
-                  class="progress-bar"
-                  mode="determinate"
-                  [value]="
-                    (acServ.account['ram_usage'] /
-                      acServ.account['ram_quota']) *
-                    100
-                  "
-                ></mat-progress-bar>
+                <mat-progress-bar class="progress-bar" mode="determinate" [value]="acServ.userResPct().ram">
+                </mat-progress-bar>
+
               </div>
             </div>
 
@@ -234,23 +231,13 @@
         <div class="custom-card">
           <h3>
             <fa-layers [fixedWidth]="true" style="margin-right: 5px">
-              <fa-icon
-                [icon]="icons.solid.faCircle"
-                transform="grow-3"
-              ></fa-icon>
-              <fa-icon
-                [icon]="icons.solid.faStar"
-                [inverse]="true"
-                transform="shrink-5"
-              ></fa-icon>
+              <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
+              <fa-icon [icon]="icons.solid.faStar" [inverse]="true" transform="shrink-5"></fa-icon>
             </fa-layers>
             Tokens
-            <fa-icon
-              [icon]="icons.regular.faQuestionCircle"
-              class="faded float-r pointer"
-              matTooltip="Only liquid balances are displayed"
-              matTooltipClass="tooltip-bigger"
-            ></fa-icon>
+            <fa-icon [icon]="icons.regular.faQuestionCircle" class="faded float-r pointer"
+                     matTooltip="Only liquid balances are displayed" matTooltipClass="tooltip-bigger">
+            </fa-icon>
           </h3>
 
 
@@ -281,19 +268,11 @@
         <div class="custom-card md:col-span-2">
           <h3>
             <fa-layers [fixedWidth]="true" style="margin-right: 5px">
-              <fa-icon
-                [icon]="icons.solid.faCircle"
-                transform="grow-3"
-              ></fa-icon>
-              <fa-icon
-                [icon]="icons.solid.faLink"
-                [inverse]="true"
-                transform="shrink-5"
-              ></fa-icon>
+              <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
+              <fa-icon [icon]="icons.solid.faLink" [inverse]="true" transform="shrink-5"></fa-icon>
             </fa-layers>
             Permissions & Keys
           </h3>
-
           <mat-tree [dataSource]="dataSource" [treeControl]="treeControl" class="keys-tree">
             <!-- This is the tree node template for leaf nodes -->
 
@@ -419,13 +398,12 @@
         </div>
 
         <!--VOTE CARD-->
-        @if (acServ.account['voter_info'] &&
-        (acServ.account['voter_info'].proxy ||
-          acServ.account['voter_info'].producers.length > 0)) {
+        @let voterInfo = acServ.accountComputed().voter_info;
+        @if (voterInfo && (voterInfo.proxy || voterInfo.producers.length > 0)) {
           <mat-accordion class="custom-card w-full vote-card md:col-span-3 text-black">
             <mat-expansion-panel
-              [disabled]="acServ.account['voter_info'].producers.length <= 0"
-              [hideToggle]="acServ.account['voter_info'].producers.length <= 0">
+              [disabled]="voterInfo.producers.length <= 0"
+              [hideToggle]="voterInfo.producers.length <= 0">
               <mat-expansion-panel-header>
                 <div class="flex flex-row justify-center w-full">
                   <mat-panel-title>
@@ -438,38 +416,36 @@
                     </h3>
                   </mat-panel-title>
                   <mat-panel-description>
-                    @if (acServ.account['voter_info']) {
+                    @if (voterInfo) {
                       <div>
                         {{ acServ.account["account_name"] }} is voting in
-                        @if (acServ.account['voter_info'].proxy) {
+                        @if (voterInfo.proxy) {
                           <span>proxy
-                            <a [routerLink]="['/account', acServ.account['voter_info'].proxy]"
-                               class="link-primary">{{ acServ.account["voter_info"].proxy }}</a>
+                            <a [routerLink]="['/account', voterInfo.proxy]"
+                               class="link-primary">{{ voterInfo.proxy }}</a>
                           </span>
-                        }
-                        @if (acServ.account['voter_info'].producers.length > 0) {
-                          <span>
-                            <strong>{{
-                                acServ.account["voter_info"].producers.length
-                              }}</strong>
-                              producer@if (acServ.account['voter_info'].producers.length > 1) {
-                            <span>s</span>
-                          } </span>
+                        } @else {
+                          @if (voterInfo.producers.length > 0) {
+                            <span>
+                            <strong>{{ voterInfo.producers.length }}</strong>producer@if (voterInfo.producers.length > 1) {
+                              <span>s</span>
+                            }
+                          </span>
+                          }
                         }
                       </div>
                     }
                   </mat-panel-description>
                 </div>
               </mat-expansion-panel-header>
-              @if (acServ.account['voter_info'].producers.length > 0) {
+              @if (voterInfo.producers.length > 0) {
                 <div>
-                  @for (producer of acServ.account['voter_info'].producers; track producer; let last = $last) {
+                  @for (producer of voterInfo.producers; track producer; let last = $last) {
                     <span>
-                      <a [routerLink]="['/account', producer]" class="link-primary">{{
-                          producer
-                        }}</a>@if (!last) {
-                      <span>, </span>
-                    }
+                      <a [routerLink]="['/account', producer]" class="link-primary">{{ producer }}</a>
+                      @if (!last) {
+                        <span>, </span>
+                      }
                     </span>
                   }
                 </div>
@@ -483,15 +459,8 @@
           <div #actionsTable class="flex flex-row justify-between items-start">
             <h3 style="margin-top: 0">
               <fa-layers [fixedWidth]="true" style="margin-right: 5px">
-                <fa-icon
-                  [icon]="icons.solid.faCircle"
-                  transform="grow-3"
-                ></fa-icon>
-                <fa-icon
-                  [icon]="icons.solid.faHistory"
-                  [inverse]="true"
-                  transform="shrink-5"
-                ></fa-icon>
+                <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
+                <fa-icon [icon]="icons.solid.faHistory" [inverse]="true" transform="shrink-5"></fa-icon>
               </fa-layers>
               Actions
             </h3>
@@ -513,6 +482,8 @@
               </div>
             }
           </div>
+
+
           <table mat-table matSort matSortActive="block_num" matSortStart="desc" matSortDirection="desc"
                  class="actions-table" [dataSource]="acServ.tableDataSource">
 
@@ -551,8 +522,7 @@
                 <div class="action-cell">
                   <span class="accent font-medium pointer">{{ action["act"]["name"] }}</span>
                   <span class="main-color"> on </span>
-                  <span [routerLink]="['/account', action['act']['account']]"
-                        class="font-medium div-link main-color">
+                  <span [routerLink]="['/account', action['act']['account']]" class="font-medium div-link main-color">
                     {{ action["act"]["account"] }}
                   </span>
                 </div>
@@ -561,106 +531,11 @@
 
             <!-- Data Column -->
             <ng-container matColumnDef="data">
-
               <th mat-header-cell *matHeaderCellDef>Data</th>
-
               <td mat-cell *matCellDef="let action" data-label="Data">
                 <div class="py-4">
                   <app-act-data-view [data]="action.act.data"></app-act-data-view>
                 </div>
-                <!--                &lt;!&ndash; DETAILED ACTION DATA VIEW&ndash;&gt;-->
-                <!--                @if (detailedView) {-->
-                <!--                  &lt;!&ndash;KEY-VALUE PAIRS&ndash;&gt;-->
-                <!--                  @for (item of action.act.data | keyvalue; track item) {-->
-
-                <!--                    <div [ngClass]="{'data-item': objectKeyCount(action.act.data) > 1}">-->
-
-                <!--                      &lt;!&ndash;ARRAY FIELD&ndash;&gt;-->
-                <!--                      @if (isArray(item.value) && action.act.account !== 'eosio.evm' && action.act.name !== 'raw') {-->
-                <!--                        <span class="font-medium">{{ item.key }} [{{ asArray(item.value).length }}]</span>:-->
-                <!--                        @for (subitem of asArray(item.value); track subitem) {-->
-                <!--                          <div class="mt-1.5">-->
-
-                <!--                            &lt;!&ndash;ARRAY ITEM IS STRING&ndash;&gt;-->
-                <!--                            @if (getType(subitem) === 'string') {-->
-                <!--                              <div class="ml-3.5">-->
-                <!--                                <span class="break-word">• {{ subitem }}</span>-->
-                <!--                              </div>-->
-                <!--                            } @else if (getType(subitem) === 'object') {-->
-                <!--                              &lt;!&ndash;ARRAY ITEM IS OBJECT&ndash;&gt;-->
-                <!--                              @for (elem of subitem | keyvalue; track elem) {-->
-                <!--                                <div [ngClass]="{'data-item': objectKeyCount(subitem) > 1}">-->
-                <!--                                  <span class="font-medium" style="margin-left: 15px">{{ elem.key }}</span>:-->
-                <!--                                  <span class="break-word">{{ elem.value }}</span>-->
-                <!--                                </div>-->
-                <!--                              }-->
-                <!--                            }-->
-                <!--                          </div>-->
-                <!--                        }-->
-                <!--                      }-->
-
-                <!--                      &lt;!&ndash;OTHER FIELDS&ndash;&gt;-->
-                <!--                      @if (!isArray(item.value)) {-->
-
-                <!--                        &lt;!&ndash;EVM FIELDS&ndash;&gt;-->
-                <!--                        @if (checkKey(action, item.key)) {-->
-                <!--                          <div>-->
-                <!--                            <span class="font-medium">{{ item.key }}</span>:-->
-                <!--                            @if (item.value) {-->
-                <!--                              <span class="break-word">-->
-                <!--                                @if (item.key === 'to' || item.key === 'from') {-->
-                <!--                                  <a [routerLink]="['/evm/address', item.value]" class="link-primary">-->
-                <!--                                    {{ item.value }}-->
-                <!--                                  </a>-->
-                <!--                                } @else {-->
-                <!--                                  @if (item.key === 'hash') {-->
-                <!--                                    <a class="link-primary" [routerLink]="['/evm/transaction', item.value]">-->
-                <!--                                        {{ item.value }}-->
-                <!--                                    </a>-->
-                <!--                                  } @else {-->
-                <!--                                    @if (item.key === "block") {-->
-                <!--                                      <a class="link-primary" [routerLink]="['/evm/block', item.value]">-->
-                <!--                                        {{ item.value }}-->
-                <!--                                      </a>-->
-                <!--                                    } @else {-->
-                <!--                                      {{ formatEVMValue(item.value) }}TLOS-->
-                <!--                                    }-->
-                <!--                                  }-->
-                <!--                                }-->
-                <!--                                </span>-->
-                <!--                            }-->
-                <!--                          </div>-->
-
-                <!--                        } @else {-->
-
-                <!--                          &lt;!&ndash;GENERIC FIELDS&ndash;&gt;-->
-                <!--                          <span class="font-medium">{{ item.key }}</span>:-->
-                <!--                          @if (getType(item.value) === 'string') {-->
-                <!--                            <span class="break-word">{{ item.value }}</span>-->
-                <!--                          } @else if (getType(item.value) === 'object') {-->
-                <!--                            @for (elem of toRecord(item.value) | keyvalue; track elem.key) {-->
-                <!--                              <div [ngClass]="{'data-item': objectKeyCount(item.value) > 1}">-->
-                <!--                                <span class="font-medium" style="margin-left: 15px">{{ elem.key }}</span>:-->
-                <!--                                <span class="break-word">{{ elem.value }}</span>-->
-                <!--                              </div>-->
-                <!--                            }-->
-                <!--                          }-->
-                <!--                          @if (!item.value) {-->
-                <!--                            <span class="break-word italic">empty</span>-->
-                <!--                          }-->
-
-                <!--                        }-->
-                <!--                      }-->
-                <!--                    </div>-->
-                <!--                  }-->
-                <!--                  &lt;!&ndash;RAW HEX DATA&ndash;&gt;-->
-                <!--                  @if (getType(action['act']['data']) === 'string') {-->
-                <!--                    <span class="break-word italic">-->
-                <!--                      {{ action["act"]["data"] }}-->
-                <!--                    </span>-->
-                <!--                  }-->
-                <!--                }-->
-
               </td>
             </ng-container>
 
@@ -682,38 +557,18 @@
 
           <mat-paginator class="actions-table-paginator"
                          [pageSizeOptions]="[10, 20, 50, 100]"
-                         [length]="acServ.tableDataSource.filteredData.length"
+                         [length]="acServ.actionsComputed().length"
                          (page)="changePage($event)"
                          showFirstLastButtons>
           </mat-paginator>
 
           <button mat-raised-button class="float-r" style="margin-right: 16px"
-                  (click)="acServ.loadMoreActions(accountName)">
+                  (click)="acServ.loadMoreActions()">
             load more actions
           </button>
+
         </div>
       </div>
-
-      <!--      &lt;!&ndash; LIST OF CARDS&ndash;&gt;-->
-        <!--      <div class="flex flex-col justify-start items-center gap-4 ">-->
-
-
-        <!--        <div class="flex flex-row gap-4 w-full">-->
-
-
-        <!--        </div>-->
-        <!--        <div class="flex-->
-        <!--          md:flex-row md:justify-between md:content-stretch-->
-        <!--          sm:flex-column sm:justify-start sm:content-->
-        <!--          gap-2 w-full min-w-full h-full min-h-full flex-auto">-->
-
-
-        <!--        </div>-->
-
-
-        <!--        -->
-        <!--      </div>-->
-
 
     } @else {
 
@@ -725,7 +580,7 @@
             Account not found
           </h1>
           <div>
-            We couldn't find the account <strong>{{ accountName }}</strong>
+            We couldn't find the account <strong>{{ acServ.accountName() }}</strong>
           </div>
         </div>
       </div>

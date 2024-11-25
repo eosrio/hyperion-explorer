@@ -1,6 +1,5 @@
 import {
   computed,
-  effect,
   inject,
   Injectable,
   PLATFORM_ID,
@@ -12,11 +11,12 @@ import {
 import {HttpClient} from '@angular/common/http';
 import {AccountCreationData, AccountData, GetAccountResponse, TokenData} from '../interfaces';
 // import {HyperionStreamClient} from '@eosrio/hyperion-stream-client';
-import {MatTableDataSource} from '@angular/material/table';
 import {PaginationService} from "./pagination.service";
-import {lastValueFrom} from "rxjs";
+import {lastValueFrom, Observable} from "rxjs";
 import {isPlatformBrowser} from "@angular/common";
 import {DataService} from "./data.service";
+import {toObservable} from "@angular/core/rxjs-interop";
+import {convertMicroS, getPrecision, getSymbol} from "../utils";
 
 interface HealthResponse {
   features: {
@@ -26,55 +26,6 @@ interface HealthResponse {
       traces: boolean;
     }
   };
-}
-
-function getPrecision(asset: string): number {
-  if (asset) {
-    try {
-      return asset.split(' ')[0].split('.')[1].length;
-    } catch (e) {
-      return 4;
-    }
-  } else {
-    return 4;
-  }
-}
-
-function getSymbol(asset: string): string | null {
-  if (asset) {
-    try {
-      return asset.split(' ')[1];
-    } catch (e) {
-      return null;
-    }
-  } else {
-    return null;
-  }
-}
-
-function convertMicroS(micros: number): string {
-  let int = 0;
-  let remainder = 0;
-  const calcSec = 1000 ** 2;
-  const calcMin = calcSec * 60;
-  const calcHour = calcMin * 60;
-  if (micros > calcHour) {
-    int = Math.floor(micros / calcHour);
-    remainder = micros % calcHour;
-    return int + 'h ' + Math.round(remainder / calcMin) + 'min';
-  }
-  if (micros > calcMin) {
-    int = Math.floor(micros / calcMin);
-    remainder = micros % calcMin;
-    return int + 'min ' + Math.round(remainder / calcSec) + 's';
-  }
-  if (micros > calcSec) {
-    return (micros / calcSec).toFixed(2) + 's';
-  }
-  if (micros > 1000) {
-    return (micros / (1000)).toFixed(2) + 'ms';
-  }
-  return micros + 'µs';
 }
 
 @Injectable({providedIn: 'root'})
@@ -110,11 +61,10 @@ export class AccountService {
   };
 
   actions: any[] = [];
-  public tableDataSource: MatTableDataSource<any[]>;
+  public tableDataSource: Observable<any[]>;
   // streamClient?: HyperionStreamClient;
   public streamClientStatus = false;
   public libNum = signal<number>(0);
-  private server?: string;
   private verificationLoop: any;
   private predictionLoop: any;
   private pendingSet = new Set<number>();
@@ -128,10 +78,8 @@ export class AccountService {
   public accountDataRes: ResourceRef<GetAccountResponse | null> = resource<GetAccountResponse | null, string>({
     request: () => this.accountName(),
     loader: async (param: ResourceLoaderParams<string>): Promise<GetAccountResponse | null> => {
-      console.log(param);
       if (param.request) {
         const url = this.data.env.hyperionApiUrl + '/v2/state/get_account?account=' + param.request;
-        console.log('Account resource loader:', param.request);
         return await lastValueFrom(this.httpClient.get(url)) as GetAccountResponse;
       } else {
         return null;
@@ -146,6 +94,10 @@ export class AccountService {
 
   public accountComputed = computed<AccountData>(() => {
     return this.accountDataRes.value()?.account ?? this.emptyAccount;
+  });
+
+  public actionsComputed = computed(() => {
+    return this.accountDataRes.value()?.actions ?? [];
   });
 
   public userResPct = computed(() => {
@@ -252,19 +204,26 @@ export class AccountService {
 
   constructor() {
 
-    console.log('AccountService created');
+    // console.log('AccountService created');
 
-    effect(() => {
-      console.log('Account data:', this.accountDataRes.value());
-    });
-
-    effect(() => {
-      console.log('tokensComputed:', this.tokensComputed());
-    });
-
+    // effect(() => {
+    //   console.log('Account data:', this.accountDataRes.value());
+    // });
+    //
+    // effect(() => {
+    //   console.log('tokensComputed:', this.tokensComputed());
+    // });
+    //
+    // effect(() => {
+    //   console.log('accountComputed:', this.accountComputed());
+    // });
+    //
+    // effect(() => {
+    //   console.log('actionsComputed:', this.actionsComputed());
+    // });
 
     const baseUrl = this.data.env.hyperionApiUrl;
-    this.tableDataSource = new MatTableDataSource([] as any[]);
+    this.tableDataSource = toObservable(this.actionsComputed);
     // this.initStreamClient().catch(console.log);
   }
 
@@ -419,7 +378,6 @@ export class AccountService {
         if (isPlatformBrowser(this.platformId)) {
           this.checkIrreversibility().catch(console.log);
         }
-        this.tableDataSource.data = this.actions;
       }
 
       if (this.jsonData.total_actions) {
@@ -436,7 +394,8 @@ export class AccountService {
     }
   }
 
-  async loadMoreActions(accountName: string): Promise<void> {
+  async loadMoreActions(): Promise<void> {
+    const accountName = this.accountName();
     const firstAction = this.actions[this.actions.length - 1];
     const maxGs = (firstAction.global_sequence - 1);
     try {
@@ -444,7 +403,7 @@ export class AccountService {
       const results = await lastValueFrom(this.httpClient.get(q)) as any;
       if (results.actions && results.actions.length > 0) {
         this.actions.push(...results.actions);
-        this.tableDataSource.data = this.actions;
+        // this.tableDataSource.data = this.actions;
       }
     } catch (e) {
       console.log(e);

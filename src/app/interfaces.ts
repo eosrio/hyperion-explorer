@@ -44,6 +44,10 @@ export interface AccountData {
   },
   ram_quota: number;
   ram_usage: number;
+  voter_info: {
+    producers: string[];
+    proxy: string;
+  }
 }
 
 export interface GetAccountResponse {

@@ -25,7 +25,7 @@ async function initApp(): Promise<void> {
   await defineOrigin(ds, request, platformId);
   await ds.load();
 
-  if (!ds.explorerMetadata) {
+  if (!ds.explorerMetadata && ds.env.hyperionApiUrl) {
     console.error(`[${platformId}] Error loading explorer metadata:`, ds.initError);
     ds.ready.set(true);
     await router.navigate(['/error']);

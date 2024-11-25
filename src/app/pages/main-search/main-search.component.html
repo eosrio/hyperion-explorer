@@ -105,8 +105,11 @@
   <div id="content-container" class="flex flex-col justify-center pb-10 w-full">
     <router-outlet></router-outlet>
     <div class="text-slate-500 my-4 place-self-center">v{{ version }} | Made with
-      <fa-icon [icon]="icons.solid.heart"></fa-icon>
+      <fa-icon (click)="showThemeSelector.set(!showThemeSelector())" [icon]="icons.solid.heart"></fa-icon>
       by EOS Rio | RioBlocks
     </div>
+    @if (showThemeSelector()) {
+      <app-theme-selector></app-theme-selector>
+    }
   </div>
 </div>

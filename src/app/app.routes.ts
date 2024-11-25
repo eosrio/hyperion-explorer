@@ -1,90 +1,100 @@
 import {Routes} from '@angular/router';
-import {AccountComponent} from "./components/search-results/account/account.component";
-import {TransactionComponent} from "./components/search-results/transaction/transaction.component";
-import {BlockComponent} from "./components/search-results/block/block.component";
-import {KeyComponent} from "./components/search-results/key/key.component";
 import {RenderMode, ServerRoute} from "@angular/ssr";
-import {MainSearchComponent} from "./pages/main-search/main-search.component";
-import {ContractComponent} from "./pages/contract/contract.component";
-import {ErrorComponent} from "./pages/error/error.component";
 import {accountNameGuard} from "./guards/account-name.guard";
+
+async function loadMainSearchComponent() {
+  let m = await import('./pages/main-search/main-search.component');
+  return m.MainSearchComponent;
+}
+
+async function loadContractComponent() {
+  let m = await import('./pages/contract/contract.component');
+  return m.ContractComponent;
+}
 
 export const routes: Routes = [
   {
     path: '',
-    component: MainSearchComponent,
+    loadComponent: loadMainSearchComponent,
     children: [
       {
         path: 'account',
         children: [
           {path: '', redirectTo: '/', pathMatch: 'full'},
-          {path: ':account_name', component: AccountComponent, canActivate: [accountNameGuard]},
+          {
+            path: ':account_name',
+            canActivate: [accountNameGuard],
+            loadComponent: async () => {
+              let m = await import('./components/search-results/account/account.component');
+              return m.AccountComponent;
+            }
+          },
         ]
       },
       {
         path: 'block',
         children: [
           {path: '', redirectTo: '/', pathMatch: 'full'},
-          {path: ':block_num_or_id', component: BlockComponent}
+          {
+            path: ':block_num_or_id',
+            loadComponent: async () => {
+              let m = await import('./components/search-results/block/block.component');
+              return m.BlockComponent;
+            }
+          }
         ]
       },
       {
-        path: 'key/:pub_key',
-        component: KeyComponent
+        path: 'key',
+        children: [
+          {path: '', redirectTo: '/', pathMatch: 'full'},
+          {
+            path: ':pub_key',
+            loadComponent: async () => {
+              let m = await import('./components/search-results/key/key.component');
+              return m.KeyComponent;
+            }
+          }
+        ],
+
       },
       {
-        path: 'transaction/:transaction_id',
-        component: TransactionComponent
+        path: 'transaction',
+        children: [
+          {path: '', redirectTo: '/', pathMatch: 'full'},
+          {
+            path: ':transaction_id',
+            loadComponent: async () => {
+              let m = await import('./components/search-results/transaction/transaction.component');
+              return m.TransactionComponent;
+            }
+          }
+        ]
       },
     ]
   },
   {
-    path: 'contract/:code/:table/:scope',
-    component: ContractComponent,
-  },
-  {
-    path: 'contract/:code/:table',
-    component: ContractComponent
-  },
-  {
-    path: 'contract/:code',
-    component: ContractComponent,
+    path: 'contract',
+    children: [
+      {path: ':code/:table/:scope', loadComponent: loadContractComponent},
+      {path: ':code/:table', loadComponent: loadContractComponent},
+      {path: ':code', loadComponent: loadContractComponent},
+    ],
   },
   {
     path: 'error',
-    component: ErrorComponent
+    loadComponent: async () => {
+      let m = await import('./pages/error/error.component');
+      return m.ErrorComponent;
+    }
   },
   {
     path: '**',
-    component: MainSearchComponent
+    loadComponent: loadMainSearchComponent
   }
 ];
 
 export const serverRoutes: ServerRoute[] = [
-  {
-    path: '',
-    renderMode: RenderMode.Server
-  },
-  {
-    path: 'account/:account_name',
-    renderMode: RenderMode.Server
-  },
-  {
-    path: 'contract/:code/:table/:scope',
-    renderMode: RenderMode.Server
-  },
-  {
-    path: 'contract/:code/:table',
-    renderMode: RenderMode.Server
-  },
-  {
-    path: 'contract/:code',
-    renderMode: RenderMode.Server
-  },
-  {
-    path: 'error',
-    renderMode: RenderMode.Prerender,
-  },
   {
     path: '**',
     renderMode: RenderMode.Server
