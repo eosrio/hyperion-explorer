@@ -168,11 +168,12 @@ export class MainSearchComponent implements OnInit {
     }
     const searchText = this.searchForm.get('search_field')?.value;
     if (searchText) {
+      const trimmedText = searchText.trim();
       this.searchForm.reset();
       this.closeAutoComplete();
-      const status = this.searchService.submitSearch(searchText, this.filteredAccounts());
+      const status = this.searchService.submitSearch(trimmedText, this.filteredAccounts());
       if (!status) {
-        this.err.set('no results for ' + searchText);
+        this.err.set('no results for ' + trimmedText);
       } else {
         this.err.set("");
         await this.router.navigateByUrl(`/${this.searchService.searchType()}/${this.searchService.searchQuery()}`);
