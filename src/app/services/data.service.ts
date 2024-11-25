@@ -20,12 +20,19 @@ export abstract class DataService {
   abstract explorerMetadata: ExplorerMetadata | null;
   abstract initError: string | null;
   customTheme?: Record<string, any>;
+  routeError?: string = '';
 
   abstract load(): Promise<void>;
 
   abstract activateTheme(): Promise<void>
 
   ready = signal(false);
+
+  setOrigin(hyperionServer: string, platform?: string): void {
+    const url = new URL(hyperionServer);
+    this.env.hyperionApiUrl = url.origin;
+    console.log(`(${platform}) Setting origin to:`, this.env.hyperionApiUrl);
+  }
 }
 
 @Injectable({providedIn: 'root'})
@@ -103,13 +110,13 @@ export class DataServiceBrowser extends DataService {
           }
           this.explorerMetadata = data;
         } else {
-          this.initError = `Error fetching ${this.url}: Invalid response`;
+          this.initError = `Error fetching ${this.url()}: Invalid response`;
         }
       } else {
-        this.initError = `Error fetching ${this.url}: ${response.statusText}`;
+        this.initError = `Error fetching ${this.url()}: ${response.statusText}`;
       }
     } catch (error: any) {
-      this.initError = `Error fetching ${this.url}: ${error.message}`;
+      this.initError = `Error fetching ${this.url()}: ${error.message}`;
     }
   }
 

@@ -1,6 +1,16 @@
-import {inject, Injectable, PLATFORM_ID, signal} from '@angular/core';
+import {
+  computed,
+  effect,
+  inject,
+  Injectable,
+  PLATFORM_ID,
+  resource,
+  ResourceLoaderParams,
+  ResourceRef,
+  signal
+} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {AccountCreationData, GetAccountResponse} from '../interfaces';
+import {AccountCreationData, AccountData, GetAccountResponse, TokenData} from '../interfaces';
 // import {HyperionStreamClient} from '@eosrio/hyperion-stream-client';
 import {MatTableDataSource} from '@angular/material/table';
 import {PaginationService} from "./pagination.service";
@@ -18,6 +28,55 @@ interface HealthResponse {
   };
 }
 
+function getPrecision(asset: string): number {
+  if (asset) {
+    try {
+      return asset.split(' ')[0].split('.')[1].length;
+    } catch (e) {
+      return 4;
+    }
+  } else {
+    return 4;
+  }
+}
+
+function getSymbol(asset: string): string | null {
+  if (asset) {
+    try {
+      return asset.split(' ')[1];
+    } catch (e) {
+      return null;
+    }
+  } else {
+    return null;
+  }
+}
+
+function convertMicroS(micros: number): string {
+  let int = 0;
+  let remainder = 0;
+  const calcSec = 1000 ** 2;
+  const calcMin = calcSec * 60;
+  const calcHour = calcMin * 60;
+  if (micros > calcHour) {
+    int = Math.floor(micros / calcHour);
+    remainder = micros % calcHour;
+    return int + 'h ' + Math.round(remainder / calcMin) + 'min';
+  }
+  if (micros > calcMin) {
+    int = Math.floor(micros / calcMin);
+    remainder = micros % calcMin;
+    return int + 'min ' + Math.round(remainder / calcSec) + 's';
+  }
+  if (micros > calcSec) {
+    return (micros / calcSec).toFixed(2) + 's';
+  }
+  if (micros > 1000) {
+    return (micros / (1000)).toFixed(2) + 'ms';
+  }
+  return micros + 'µs';
+}
+
 @Injectable({providedIn: 'root'})
 export class AccountService {
 
@@ -27,6 +86,7 @@ export class AccountService {
   platformId = inject(PLATFORM_ID);
 
   jsonData: any;
+
   account: any = {
     cpu_limit: {
       used: 1,
@@ -37,8 +97,19 @@ export class AccountService {
       max: 1
     }
   };
+
+  emptyAccount: AccountData & any = {
+    cpu_limit: {
+      used: 1,
+      max: 1
+    },
+    net_limit: {
+      used: 1,
+      max: 1
+    }
+  };
+
   actions: any[] = [];
-  tokens: any[] = [];
   public tableDataSource: MatTableDataSource<any[]>;
   // streamClient?: HyperionStreamClient;
   public streamClientStatus = false;
@@ -51,8 +122,123 @@ export class AccountService {
 
   // signals
   public loaded = signal(false);
+  public accountName = signal("");
+
+  // accountData Resource
+  public accountDataRes: ResourceRef<GetAccountResponse | null> = resource<GetAccountResponse | null, string>({
+    request: () => this.accountName(),
+    loader: async (param: ResourceLoaderParams<string>): Promise<GetAccountResponse | null> => {
+      console.log(param);
+      if (param.request) {
+        const url = this.data.env.hyperionApiUrl + '/v2/state/get_account?account=' + param.request;
+        console.log('Account resource loader:', param.request);
+        return await lastValueFrom(this.httpClient.get(url)) as GetAccountResponse;
+      } else {
+        return null;
+      }
+    }
+  });
+
+  // computed signals
+  public tokensComputed = computed<TokenData[]>(() => {
+    return this.accountDataRes.value()?.tokens ?? [];
+  });
+
+  public accountComputed = computed<AccountData>(() => {
+    return this.accountDataRes.value()?.account ?? this.emptyAccount;
+  });
+
+  public userResPct = computed(() => {
+    const account = this.accountComputed();
+    return {
+      cpu: (account.cpu_limit.used / account.cpu_limit.max) * 100,
+      net: (account.net_limit.used / account.net_limit.max) * 100,
+      cpuStr: convertMicroS(account.cpu_limit.used) + ' / ' + convertMicroS(account.cpu_limit.max),
+      netStr: convertMicroS(account.net_limit.used) + ' / ' + convertMicroS(account.net_limit.max)
+    };
+  });
+
+  public myCpuBalance = computed(() => {
+    const account = this.accountComputed();
+    if (account.self_delegated_bandwidth) {
+      return parseFloat(account.self_delegated_bandwidth.cpu_weight.split(' ')[0]);
+    }
+    return 0;
+  });
+
+  public myNetBalance = computed(() => {
+    const account = this.accountComputed();
+    if (account.self_delegated_bandwidth) {
+      return parseFloat(account.self_delegated_bandwidth.net_weight.split(' ')[0]);
+    }
+    return 0;
+  });
+
+  public liquidBalance = computed(() => {
+    const account = this.accountComputed();
+    if (account.core_liquid_balance) {
+      return parseFloat(account.core_liquid_balance.split(' ')[0]);
+    }
+    return 0;
+  });
+
+  public cpuBalance = computed(() => {
+    const account = this.accountComputed();
+    if (account.total_resources) {
+      return parseFloat(account.total_resources.cpu_weight.split(' ')[0]);
+    }
+    return 0;
+  });
+
+  public netBalance = computed(() => {
+    const account = this.accountComputed();
+    if (account.total_resources) {
+      return parseFloat(account.total_resources.net_weight.split(' ')[0]);
+    }
+    return 0;
+  });
+
+  public totalBalance = computed(() => {
+    return this.liquidBalance() + this.myCpuBalance() + this.myNetBalance();
+  });
+
+  public myStakedBalance = computed(() => {
+    return this.myCpuBalance() + this.myNetBalance();
+  });
+
+  public cpuByOthers = computed(() => {
+    return this.cpuBalance() - this.myCpuBalance();
+  });
+
+  public netByOthers = computed(() => {
+    return this.netBalance() - this.myNetBalance();
+  });
+
+  public stakedByOthers = computed(() => {
+    return (this.cpuBalance() + this.netBalance()) - (this.myCpuBalance() + this.myNetBalance());
+  });
+
+  systemSymbol = computed(() => {
+    return getSymbol(this.accountComputed().core_liquid_balance) ?? "?";
+  });
+
+  systemPrecision = computed(() => {
+    return getPrecision(this.accountComputed().core_liquid_balance);
+  });
 
   constructor() {
+
+    console.log('AccountService created');
+
+    effect(() => {
+      console.log('Account data:', this.accountDataRes.value());
+    });
+
+    effect(() => {
+      console.log('tokensComputed:', this.tokensComputed());
+    });
+
+
     const baseUrl = this.data.env.hyperionApiUrl;
     this.tableDataSource = new MatTableDataSource([] as any[]);
     // this.initStreamClient().catch(console.log);
@@ -189,20 +375,19 @@ export class AccountService {
   // }
 
   async loadAccountData(accountName: string): Promise<boolean> {
-
-    console.log('Loading account data for: ' + accountName);
-
     this.loaded.set(false);
+    if (accountName.length > 13) {
+      console.error(`Account name (${accountName}) is invalid`);
+      return false;
+    }
+    console.log('Loading account data for: ' + accountName);
     try {
       const url = this.data.env.hyperionApiUrl + '/v2/state/get_account?account=' + accountName;
       console.log(url);
       this.jsonData = await lastValueFrom(this.httpClient.get(url)) as GetAccountResponse;
+
       if (this.jsonData.account) {
         this.account = this.jsonData.account;
-      }
-
-      if (this.jsonData.tokens) {
-        this.tokens = this.jsonData.tokens;
       }
 
       if (this.jsonData.actions) {

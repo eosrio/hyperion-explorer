@@ -2,7 +2,6 @@ import {Component, ElementRef, HostListener, inject, OnInit, PLATFORM_ID, signal
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
 import {isPlatformBrowser, NgOptimizedImage} from "@angular/common";
 import {SearchService} from "../../services/search.service";
-import {AccountService} from "../../services/account.service";
 import {DataService} from "../../services/data.service";
 import {faHeart, faSearch} from "@fortawesome/free-solid-svg-icons";
 import {toObservable} from "@angular/core/rxjs-interop";
@@ -96,6 +95,10 @@ export class MainSearchComponent implements OnInit {
     if (isPlatformBrowser(this.platformId)) {
       // this.createScrollAnimation();
       this.createMotionAnimation();
+    }
+    if (this.dataService.routeError) {
+      this.err.set(this.dataService.routeError);
+      this.dataService.routeError = '';
     }
   }
 

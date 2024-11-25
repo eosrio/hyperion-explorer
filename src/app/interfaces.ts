@@ -11,8 +11,36 @@ export interface ExplorerMetadata {
   theme: Record<string, any>;
 }
 
+export interface TokenData {
+  amount: number;
+  contract: string;
+  precision: number;
+  symbol: string;
+}
+
+export interface AccountData {
+  account_name: string;
+  core_liquid_balance: string;
+  cpu_limit: {
+    used: number;
+    max: number;
+  },
+  net_limit: {
+    used: number;
+    max: number;
+  },
+  self_delegated_bandwidth: {
+    cpu_weight: string;
+    net_weight: string;
+  },
+  total_resources: {
+    cpu_weight: string;
+    net_weight: string;
+  }
+}
+
 export interface GetAccountResponse {
-  account: string;
+  account: AccountData;
   actions: any[];
   tokens: any[];
   links: any[];

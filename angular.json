@@ -36,6 +36,10 @@
           },
           "configurations": {
             "production": {
+              "define": {
+                "DEV_MODE": "false",
+                "HYP_API_URL": "''"
+              },
               "budgets": [
                 {
                   "type": "initial",
@@ -51,6 +55,10 @@
               "outputHashing": "all"
             },
             "development": {
+              "define": {
+                "DEV_MODE": "true",
+                "HYP_API_URL": "'devEnv'"
+              },
               "optimization": false,
               "extractLicenses": false,
               "sourceMap": true,

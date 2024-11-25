@@ -1,4 +1,11 @@
-import {ApplicationConfig, inject, mergeApplicationConfig, provideAppInitializer, REQUEST} from '@angular/core';
+import {
+  ApplicationConfig,
+  inject,
+  mergeApplicationConfig,
+  PLATFORM_ID,
+  provideAppInitializer,
+  REQUEST
+} from '@angular/core';
 import {provideServerRendering} from '@angular/platform-server';
 import {appConfig} from './app.config';
 import {DataService, DataServiceServer} from "./services/data.service";
@@ -8,6 +15,7 @@ import {provideClientHydration} from "@angular/platform-browser";
 import {readFileSync} from "node:fs";
 import {createContext, runInContext} from "node:vm";
 import {devEnv} from "./dev.env";
+import {defineOrigin} from "./origin-config";
 
 async function injectCustomTheme(file: string, ds: DataService) {
   // const fsModule = await import('node:fs');
@@ -26,29 +34,11 @@ const serverConfig: ApplicationConfig = {
     provideAppInitializer(async () => {
       const request = inject(REQUEST);
       const ds = inject(DataService);
+      const platformId = inject(PLATFORM_ID);
 
-      let href = '';
-      if (request) {
-        const hyperionServer = request.headers.get('x-hyperion-server');
-        if (hyperionServer) {
-          href = hyperionServer;
-        } else {
-          href = request.headers.get('referer') ?? request.url;
-        }
-      }
+      // await defineOrigin(ds, request, platformId);
+      // console.log('app.config.server.ts initApp()');
 
-      if (href) {
-        const url = new URL(href);
-        if (url.host === 'localhost:4200') {
-          ds.env.hyperionApiUrl = devEnv.hyperionApiUrl;
-        } else {
-          ds.env.hyperionApiUrl = url.origin;
-        }
-      } else {
-        ds.env.hyperionApiUrl = devEnv.hyperionApiUrl;
-      }
-
-      // handle custom theme override
       if (request) {
         const url = new URL(request.url);
         const themeName = url.searchParams.get('theme');
@@ -57,6 +47,7 @@ const serverConfig: ApplicationConfig = {
           await injectCustomTheme(`./themes/${themeName}.theme.mjs`, ds);
         }
       }
+
     }),
     provideClientHydration(),
     provideServerRendering(),

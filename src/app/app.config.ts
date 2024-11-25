@@ -14,7 +14,7 @@ import {provideAnimationsAsync} from '@angular/platform-browser/animations/async
 import {provideHttpClient, withFetch} from "@angular/common/http";
 import {DataService, DataServiceBrowser} from "./services/data.service";
 import {isPlatformBrowser} from "@angular/common";
-import {devEnv} from "./dev.env";
+import {defineOrigin} from "./origin-config";
 
 async function initApp(): Promise<void> {
   const ds = inject(DataService);
@@ -22,31 +22,7 @@ async function initApp(): Promise<void> {
   const platformId = inject(PLATFORM_ID);
   const request = inject(REQUEST);
 
-  let href = '';
-  if (isPlatformBrowser(platformId)) {
-    href = location.href;
-  } else if (request) {
-    const hyperionServer = request.headers.get('x-hyperion-server');
-    if (hyperionServer) {
-      href = hyperionServer;
-    } else {
-      href = request.headers.get('referer') ?? request.url;
-    }
-  }
-
-  // console.log(`[${platformId}] HREF:`, href);
-
-  if (href) {
-    const url = new URL(href);
-    if (url.host === 'localhost:4200') {
-      ds.env.hyperionApiUrl = devEnv.hyperionApiUrl;
-    } else {
-      ds.env.hyperionApiUrl = url.origin;
-    }
-  } else {
-    ds.env.hyperionApiUrl = devEnv.hyperionApiUrl;
-  }
-
+  await defineOrigin(ds, request, platformId);
   await ds.load();
 
   if (!ds.explorerMetadata) {
@@ -54,7 +30,6 @@ async function initApp(): Promise<void> {
     ds.ready.set(true);
     await router.navigate(['/error']);
   } else {
-    // console.log(`[${platformId}] Explorer metadata loaded for ${ds.explorerMetadata.chain_name}:`, ds.explorerMetadata.chain_id);
     if (isPlatformBrowser(platformId)) {
       await ds.activateTheme();
     } else {

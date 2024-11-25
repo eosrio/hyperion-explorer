@@ -7,6 +7,7 @@ import {RenderMode, ServerRoute} from "@angular/ssr";
 import {MainSearchComponent} from "./pages/main-search/main-search.component";
 import {ContractComponent} from "./pages/contract/contract.component";
 import {ErrorComponent} from "./pages/error/error.component";
+import {accountNameGuard} from "./guards/account-name.guard";
 
 export const routes: Routes = [
   {
@@ -14,12 +15,18 @@ export const routes: Routes = [
     component: MainSearchComponent,
     children: [
       {
-        path: 'account/:account_name',
-        component: AccountComponent,
+        path: 'account',
+        children: [
+          {path: '', redirectTo: '/', pathMatch: 'full'},
+          {path: ':account_name', component: AccountComponent, canActivate: [accountNameGuard]},
+        ]
       },
       {
-        path: 'block/:block_num_or_id',
-        component: BlockComponent
+        path: 'block',
+        children: [
+          {path: '', redirectTo: '/', pathMatch: 'full'},
+          {path: ':block_num_or_id', component: BlockComponent}
+        ]
       },
       {
         path: 'key/:pub_key',

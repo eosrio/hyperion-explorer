@@ -1,10 +1,11 @@
 {
   "name": "hyperion-explorer",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Official Lightweight Explorer for Hyperion History APIs",
   "scripts": {
     "ng": "ng",
-    "start": "ng serve --hmr --host 0.0.0.0",
+    "start": "cross-env NG_HMR_TEMPLATES=0 ng serve --hmr --host 0.0.0.0",
+    "start:ssl": "cross-env NG_HMR_TEMPLATES=0 ng serve --hmr --host 0.0.0.0 --ssl",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "watch:prod": "ng build --watch --configuration production",
@@ -49,6 +50,7 @@
     "@types/node": "^22.9.0",
     "autoprefixer": "^10.4.19",
     "jasmine-core": "~5.1.0",
+    "cross-env": "^7.0.3",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.2.0",
     "karma-coverage": "~2.2.0",

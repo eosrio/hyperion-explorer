@@ -130,7 +130,7 @@ interface FlatNode {
 export class AccountComponent {
 
   dataService = inject(DataService);
-  accountService = inject(AccountService);
+  acServ = inject(AccountService);
   readonly dialog = inject(MatDialog);
   platformId = inject(PLATFORM_ID);
   route = inject(ActivatedRoute);
@@ -285,7 +285,12 @@ export class AccountComponent {
       const chainData = this.dataService.explorerMetadata;
 
       this.accountName = routeParams.account_name;
-      if (await this.accountService.loadAccountData(routeParams.account_name)) {
+
+      this.acServ.accountName.set(routeParams.account_name);
+
+      const accountLoaded = await this.acServ.loadAccountData(routeParams.account_name);
+
+      if (accountLoaded) {
 
         if (!chainData.chain_name) {
           this.title.setTitle(`${this.accountName} • Hyperion Explorer`);
@@ -298,20 +303,20 @@ export class AccountComponent {
           const parts = chainData.custom_core_token.split('::');
           this.systemSymbol = parts[1];
           this.systemTokenContract = parts[0];
-          const coreBalance = this.accountService.jsonData.tokens.find((v: any) => {
+          const coreBalance = this.acServ.jsonData.tokens.find((v: any) => {
             return v.symbol === this.systemSymbol && v.contract === this.systemTokenContract;
           });
           if (coreBalance) {
-            this.accountService.account.core_liquid_balance = coreBalance.amount + ' ' + this.systemSymbol;
+            this.acServ.account.core_liquid_balance = coreBalance.amount + ' ' + this.systemSymbol;
           }
         } else {
-          this.systemSymbol = this.getSymbol(this.accountService.account.core_liquid_balance) ?? "?";
+          this.systemSymbol = this.getSymbol(this.acServ.account.core_liquid_balance) ?? "?";
         }
 
-        this.systemPrecision = this.getPrecision(this.accountService.account.core_liquid_balance);
+        this.systemPrecision = this.getPrecision(this.acServ.account.core_liquid_balance);
         if (this.systemSymbol === null) {
           try {
-            this.systemSymbol = this.getSymbol(this.accountService.account.total_resources.cpu_weight) ?? "?";
+            this.systemSymbol = this.getSymbol(this.acServ.account.total_resources.cpu_weight) ?? "?";
             if (this.systemSymbol === null) {
               this.systemSymbol = 'SYS';
             }
@@ -321,14 +326,15 @@ export class AccountComponent {
         }
         this.processPermissions();
         setTimeout(() => {
-          this.accountService.tableDataSource.sort = this.sort() || null;
-          this.accountService.tableDataSource.paginator = this.paginator() || null;
+          this.acServ.tableDataSource.sort = this.sort() || null;
+          this.acServ.tableDataSource.paginator = this.paginator() || null;
         }, 500);
-        const creationData = await this.accountService.getCreator(routeParams.account_name);
+        const creationData = await this.acServ.getCreator(routeParams.account_name);
         if (creationData) {
           this.creationData.set({creator: creationData.creator, timestamp: creationData.timestamp});
         }
       }
+
     });
   }
 
@@ -357,79 +363,32 @@ export class AccountComponent {
   }
 
   liquidBalance(): number {
-    if (this.accountService.account.core_liquid_balance) {
-      return parseFloat(this.accountService.account.core_liquid_balance.split(' ')[0]);
-    }
-    return 0;
-  }
-
-  myCpuBalance(): number {
-    if (this.accountService.account.self_delegated_bandwidth) {
-      return parseFloat(this.accountService.account.self_delegated_bandwidth.cpu_weight.split(' ')[0]);
-    }
-    return 0;
-  }
-
-  myNetBalance(): number {
-    if (this.accountService.account.self_delegated_bandwidth) {
-      return parseFloat(this.accountService.account.self_delegated_bandwidth.net_weight.split(' ')[0]);
+    if (this.acServ.account.core_liquid_balance) {
+      return parseFloat(this.acServ.account.core_liquid_balance.split(' ')[0]);
     }
     return 0;
   }
 
   cpuBalance(): number {
-    if (this.accountService.account.total_resources) {
-      return parseFloat(this.accountService.account.total_resources.cpu_weight.split(' ')[0]);
+    if (this.acServ.account.total_resources) {
+      return parseFloat(this.acServ.account.total_resources.cpu_weight.split(' ')[0]);
     }
     return 0;
   }
 
   netBalance(): number {
-    if (this.accountService.account.total_resources) {
-      return parseFloat(this.accountService.account.total_resources.net_weight.split(' ')[0]);
+    if (this.acServ.account.total_resources) {
+      return parseFloat(this.acServ.account.total_resources.net_weight.split(' ')[0]);
     }
     return 0;
-  }
-
-  totalBalance(): number {
-    const liquid = this.liquidBalance();
-    const cpu = this.myCpuBalance();
-    const net = this.myNetBalance();
-    return liquid + cpu + net;
-  }
-
-  stakedBalance(): number {
-    const cpu = this.myCpuBalance();
-    const net = this.myNetBalance();
-    return cpu + net;
-  }
-
-  cpuByOthers(): number {
-    const cpu = this.cpuBalance();
-    const mycpu = this.myCpuBalance();
-    return cpu - mycpu;
-  }
-
-  netByOthers(): number {
-    const net = this.netBalance();
-    const mynet = this.myNetBalance();
-    return net - mynet;
-  }
-
-  stakedbyOthers(): number {
-    const cpu = this.cpuBalance();
-    const net = this.netBalance();
-    const mycpu = this.myCpuBalance();
-    const mynet = this.myNetBalance();
-    return (cpu + net) - (mycpu + mynet);
   }
 
   refundBalance(): number {
     let cpuRefund = 0;
     let netRefund = 0;
-    if (this.accountService.account.refund_request) {
-      cpuRefund = parseFloat(this.accountService.account.refund_request.cpu_amount.split(' ')[0]);
-      netRefund = parseFloat(this.accountService.account.refund_request.net_amount.split(' ')[0]);
+    if (this.acServ.account.refund_request) {
+      cpuRefund = parseFloat(this.acServ.account.refund_request.cpu_amount.split(' ')[0]);
+      netRefund = parseFloat(this.acServ.account.refund_request.net_amount.split(' ')[0]);
     }
     return cpuRefund + netRefund;
   }
@@ -449,8 +408,8 @@ export class AccountComponent {
   }
 
   private processPermissions(): void {
-    if (this.accountService.account) {
-      const permissions: Permission[] = this.accountService.account.permissions;
+    if (this.acServ.account) {
+      const permissions: Permission[] = this.acServ.account.permissions;
       if (permissions) {
         try {
           this.dataSource.data = this.getChildren(permissions, '');
@@ -522,7 +481,7 @@ export class AccountComponent {
     console.log(`${event.pageIndex} / ${maxPages}`);
     try {
       if (event.pageIndex === maxPages - 1 && this.accountName) {
-        this.accountService.loadMoreActions(this.accountName).catch(console.log);
+        this.acServ.loadMoreActions(this.accountName).catch(console.log);
       }
     } catch (e) {
       console.log(e);

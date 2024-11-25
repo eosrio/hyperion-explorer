@@ -1,5 +1,5 @@
 <!--LOADER-->
-@if (!accountService.loaded()) {
+@if (!acServ.loaded()) {
   <div class="hr-container flex flex-row justify-center items-center">
     <mat-progress-spinner [diameter]="45" mode="indeterminate" color="primary"></mat-progress-spinner>
   </div>
@@ -8,9 +8,12 @@
 <!--MAIN CONTENT-->
 <div class="hr-container">
 
-  @if (accountService.loaded()) {
+  @if (acServ.loaded()) {
 
-    @if (accountService.jsonData) {
+    @if (acServ.accountDataRes.value()) {
+
+      @let systemSymbol = acServ.systemSymbol();
+      @let systemPrecision = acServ.systemPrecision();
 
       <div id="account-content" class="grid grid-cols-1 md:grid-cols-3 auto-cols-max gap-5 text-black appear">
         <!-- ACCOUNT NAME-->
@@ -21,10 +24,10 @@
               <div class="flex flex-row items-center gap-3">
                 <div class="text-2xl acc-title flex flex-row items-center gap-3">
                   <fa-icon [icon]="icons.solid.faUserCircle"></fa-icon>
-                  <div>{{ accountService.account["account_name"] }}</div>
+                  <div>{{ acServ.accountComputed().account_name }}</div>
                 </div>
                 <div id="totalBalance" class="font-medium faded text-[0.938rem] mt-1 opacity-0">
-                  {{ totalBalance() | number: "1.0-" + systemPrecision }}
+                  {{ acServ.totalBalance() | number: "1.0-" + systemPrecision }}
                   {{ systemSymbol }}
                 </div>
               </div>
@@ -43,9 +46,9 @@
             <div class="total-balance w-full">
               <strong class="uppercase font-bold text-[0.938rem]">Total Balance: </strong>
               <span class="float-r font-semibold text-[0.938rem]">
-                    {{ totalBalance() | number: "1.0-" + systemPrecision }}
+                {{ acServ.totalBalance() | number: "1.0-" + systemPrecision }}
                 {{ systemSymbol }}
-                  </span>
+              </span>
             </div>
 
             <!-- liquid balance-->
@@ -61,7 +64,7 @@
             <div class="mb-5 w-full">
               <strong class="font-semibold">Staked Balance: </strong>
               <span class="float-r">
-                    {{ stakedBalance() | number: "1.0-" + systemPrecision }}
+                    {{ acServ.myStakedBalance() | number: "1.0-" + systemPrecision }}
                 {{ systemSymbol }}
                   </span>
             </div>
@@ -111,54 +114,40 @@
 
               <!--CPU-->
               <div class="w-full lg:w-[50%]">
+
                 <div>
                   <span class="title">CPU</span>
-                  <span class="faded used">
-                      {{
-                      (accountService.account["cpu_limit"]["used"] /
-                        accountService.account["cpu_limit"]["max"]) *
-                      100 | number: "1.0-2"
-                    }}% used</span>
-                  <span class="values float-r">
-                      {{
-                      convertMicroS(accountService.account["cpu_limit"]["used"])
-                    }}
-                    /
-                    {{
-                      convertMicroS(accountService.account["cpu_limit"]["max"])
-                    }}
-                    </span>
+                  <span class="faded used">{{ acServ.userResPct().cpu | number: "1.0-2" }}% used</span>
+                  <span class="values float-r">{{ acServ.userResPct().cpuStr }}</span>
                 </div>
-                <mat-progress-bar
-                  class="progress-bar"
-                  mode="determinate"
-                  [value]="
-                    (accountService.account['cpu_limit']['used'] /
-                      accountService.account['cpu_limit']['max']) *
-                    100
-                  "
-                ></mat-progress-bar>
+
+                <mat-progress-bar class="progress-bar" mode="determinate" [value]="acServ.userResPct().cpu">
+                </mat-progress-bar>
+
                 <div class="small-info">
+
                   <div class="m-bottom">
-                      <span>Self-staked:</span
-                      ><span class="float-r"
-                  >{{ myCpuBalance() | number: "1.0-" + systemPrecision }}
-                    {{ systemSymbol }}</span
-                  >
+                    <span>Self-staked:</span>
+                    <span class="float-r">
+                      {{ acServ.myCpuBalance() | number: "1.0-" + systemPrecision }}
+                      {{ systemSymbol }}
+                    </span>
                   </div>
+
                   <div class="m-bottom">
-                        <span>Staked by others:</span
-                        ><span class="float-r"
-                  >{{ cpuByOthers() | number: "1.0-" + systemPrecision }}
-                    {{ systemSymbol }}</span
-                  >
+                    <span>Staked by others:</span>
+                    <span class="float-r">
+                      {{ acServ.cpuByOthers() | number: "1.0-" + systemPrecision }}
+                      {{ systemSymbol }}
+                    </span>
                   </div>
+
                   <div>
-                          <span>Total in CPU:</span
-                          ><span class="float-r"
-                  >{{ cpuBalance() | number: "1.0-" + systemPrecision }}
-                    {{ systemSymbol }}</span
-                  >
+                    <span>Total in CPU:</span>
+                    <span class="float-r">
+                      {{ acServ.cpuBalance() | number: "1.0-" + systemPrecision }}
+                      {{ systemSymbol }}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -168,49 +157,45 @@
                 <div>
                   <span class="title">NET</span>
                   <span class="faded used">{{
-                      (accountService.account["net_limit"]["used"] /
-                        accountService.account["net_limit"]["max"]) *
+                      (acServ.account["net_limit"]["used"] /
+                        acServ.account["net_limit"]["max"]) *
                       100 | number: "1.0-2"
                     }}% used</span>
                   <span class="values float-r">{{
-                      convertBytes(accountService.account["net_limit"]["used"])
+                      convertBytes(acServ.account["net_limit"]["used"])
                     }}
                     /
                     {{
-                      convertBytes(accountService.account["net_limit"]["max"])
+                      convertBytes(acServ.account["net_limit"]["max"])
                     }}
                           </span>
                 </div>
-                <mat-progress-bar
-                  class="progress-bar"
-                  mode="determinate"
-                  [value]="
-                    (accountService.account['net_limit']['used'] /
-                      accountService.account['net_limit']['max']) *
-                    100
-                  "
-                ></mat-progress-bar>
+
+                <mat-progress-bar class="progress-bar" mode="determinate" [value]="acServ.userResPct().net">
+                </mat-progress-bar>
+
                 <div class="small-info">
                   <div class="m-bottom">
-                            <span>Self-staked:</span
-                            ><span class="float-r"
-                  >{{ myNetBalance() | number: "1.0-" + systemPrecision }}
-                    {{ systemSymbol }}</span
-                  >
+                    <span>Self-staked:</span>
+                    <span class="float-r">
+                      {{ acServ.myNetBalance() | number: "1.0-" + systemPrecision }}
+                      {{ systemSymbol }}
+                    </span>
                   </div>
+
                   <div class="m-bottom">
-                              <span>Staked by others:</span
-                              ><span class="float-r"
-                  >{{ netByOthers() | number: "1.0-" + systemPrecision }}
-                    {{ systemSymbol }}</span
-                  >
+                    <span>Staked by others:</span>
+                    <span class="float-r">
+                      {{ acServ.netByOthers() | number: "1.0-" + systemPrecision }}
+                      {{ systemSymbol }}
+                    </span>
                   </div>
+
                   <div>
-                                <span>Total in NET:</span
-                                ><span class="float-r"
-                  >{{ netBalance() | number: "1.0-" + systemPrecision }}
-                    {{ systemSymbol }}</span
-                  >
+                    <span>Total in NET:</span>
+                    <span class="float-r">
+                      {{ acServ.netBalance() | number: "1.0-" + systemPrecision }}
+                      {{ systemSymbol }}</span>
                   </div>
                 </div>
               </div>
@@ -221,14 +206,14 @@
                   <span class="title mt-6">RAM</span>
                   <span class="faded used">
                     {{
-                      (accountService.account["ram_usage"] /
-                        accountService.account["ram_quota"]) *
+                      (acServ.account["ram_usage"] /
+                        acServ.account["ram_quota"]) *
                       100 | number
                     }}% used
                   </span>
                   <span class="values float-r">
-                    {{ convertBytes(accountService.account["ram_usage"]) }} /
-                    {{ convertBytes(accountService.account["ram_quota"]) }}
+                    {{ convertBytes(acServ.account["ram_usage"]) }} /
+                    {{ convertBytes(acServ.account["ram_quota"]) }}
                   </span>
                 </div>
 
@@ -236,8 +221,8 @@
                   class="progress-bar"
                   mode="determinate"
                   [value]="
-                    (accountService.account['ram_usage'] /
-                      accountService.account['ram_quota']) *
+                    (acServ.account['ram_usage'] /
+                      acServ.account['ram_quota']) *
                     100
                   "
                 ></mat-progress-bar>
@@ -270,12 +255,10 @@
             ></fa-icon>
           </h3>
 
-          @if (accountService.tokens.length > 0) {
 
-            <div class="flex flex-col gap-[10px] sm:flex-row sm:flex-wrap sm:gap-[43px]
-              md:flex-col md:gap-[10px]">
-
-              @for (token of accountService.tokens; track token) {
+          @if (acServ.tokensComputed().length > 0) {
+            <div class="flex flex-col gap-[10px] sm:flex-row sm:flex-wrap sm:gap-[43px] md:flex-col md:gap-[10px]">
+              @for (token of acServ.tokensComputed(); track (token.contract + token.symbol)) {
                 <div class="sm:flex-[0_0_calc((100%]">
                   <div class="token-cell">
                     <div class="faded monospace div-link" [routerLink]="['/account', token.contract]">
@@ -289,8 +272,7 @@
                 </div>
               }
             </div>
-          }
-          @if (!accountService.tokens || !accountService.tokens.length) {
+          } @else {
             <div>
               No tokens to display
             </div>
@@ -469,13 +451,13 @@
         </div>
 
         <!--VOTE CARD-->
-        @if (accountService.account['voter_info'] &&
-        (accountService.account['voter_info'].proxy ||
-          accountService.account['voter_info'].producers.length > 0)) {
+        @if (acServ.account['voter_info'] &&
+        (acServ.account['voter_info'].proxy ||
+          acServ.account['voter_info'].producers.length > 0)) {
           <mat-accordion class="custom-card w-full vote-card md:col-span-3 text-black">
             <mat-expansion-panel
-              [disabled]="accountService.account['voter_info'].producers.length <= 0"
-              [hideToggle]="accountService.account['voter_info'].producers.length <= 0">
+              [disabled]="acServ.account['voter_info'].producers.length <= 0"
+              [hideToggle]="acServ.account['voter_info'].producers.length <= 0">
               <mat-expansion-panel-header>
                 <div class="flex flex-row justify-center w-full">
                   <mat-panel-title>
@@ -488,21 +470,21 @@
                     </h3>
                   </mat-panel-title>
                   <mat-panel-description>
-                    @if (accountService.account['voter_info']) {
+                    @if (acServ.account['voter_info']) {
                       <div>
-                        {{ accountService.account["account_name"] }} is voting in
-                        @if (accountService.account['voter_info'].proxy) {
+                        {{ acServ.account["account_name"] }} is voting in
+                        @if (acServ.account['voter_info'].proxy) {
                           <span>proxy
-                            <a [routerLink]="['/account', accountService.account['voter_info'].proxy]"
-                               class="link-primary">{{ accountService.account["voter_info"].proxy }}</a>
+                            <a [routerLink]="['/account', acServ.account['voter_info'].proxy]"
+                               class="link-primary">{{ acServ.account["voter_info"].proxy }}</a>
                           </span>
                         }
-                        @if (accountService.account['voter_info'].producers.length > 0) {
+                        @if (acServ.account['voter_info'].producers.length > 0) {
                           <span>
                             <strong>{{
-                                accountService.account["voter_info"].producers.length
+                                acServ.account["voter_info"].producers.length
                               }}</strong>
-                              producer@if (accountService.account['voter_info'].producers.length > 1) {
+                              producer@if (acServ.account['voter_info'].producers.length > 1) {
                             <span>s</span>
                           } </span>
                         }
@@ -511,9 +493,9 @@
                   </mat-panel-description>
                 </div>
               </mat-expansion-panel-header>
-              @if (accountService.account['voter_info'].producers.length > 0) {
+              @if (acServ.account['voter_info'].producers.length > 0) {
                 <div>
-                  @for (producer of accountService.account['voter_info'].producers; track producer; let last = $last) {
+                  @for (producer of acServ.account['voter_info'].producers; track producer; let last = $last) {
                     <span>
                       <a [routerLink]="['/account', producer]" class="link-primary">{{
                           producer
@@ -547,24 +529,24 @@
             </h3>
 
             <span class="lib">Last Irreversible Block:
-              <a [routerLink]="['/block', accountService.libNum()]"><strong
-                class="monospace">{{ accountService.libNum() }}</strong></a>
+              <a [routerLink]="['/block', acServ.libNum()]"><strong
+                class="monospace">{{ acServ.libNum() }}</strong></a>
             </span>
 
-            @if (accountService.streamClientLoaded) {
-              <div (click)="accountService.toggleStreaming()"
+            @if (acServ.streamClientLoaded) {
+              <div (click)="acServ.toggleStreaming()"
                    class="livestream" matTooltip="click to turn on/off" matTooltipClass="tooltip-bigger">
                 action live streaming
                 <span class="font-medium">
-                  {{ accountService.streamClientStatus ? "enabled" : "disabled" }}</span>
+                  {{ acServ.streamClientStatus ? "enabled" : "disabled" }}</span>
                 <span class="dot"
-                      [ngClass]="{pulse: accountService.streamClientStatus,'red-dot': !accountService.streamClientStatus}">
+                      [ngClass]="{pulse: acServ.streamClientStatus,'red-dot': !acServ.streamClientStatus}">
                 </span>
               </div>
             }
           </div>
           <table mat-table matSort matSortActive="block_num" matSortStart="desc" matSortDirection="desc"
-                 class="actions-table" [dataSource]="accountService.tableDataSource">
+                 class="actions-table" [dataSource]="acServ.tableDataSource">
 
             <!-- TX Column -->
             <ng-container matColumnDef="trx_id">
@@ -573,10 +555,10 @@
                 <!--                justify-between items-start h-full-->
                 <div class="flex flex-col items-start gap-1">
                   <div class="flex flex-row items-center">
-                    @if (accountService.libNum() > 0 && accountService.libNum() < action['block_num']) {
+                    @if (acServ.libNum() > 0 && acServ.libNum() < action['block_num']) {
                       <span matTooltip="time until irreversible" matTooltipClass="tooltip-bigger">
                       <fa-icon [icon]="icons.solid.faClock" class="accent"></fa-icon>
-                        {{ (action["block_num"] - accountService.libNum()) / 2 }}s
+                        {{ (action["block_num"] - acServ.libNum()) / 2 }}s
                     </span>
                     }
                     <a matRipple [routerLink]="['/transaction', action['trx_id']]" class="link-primary p-2">
@@ -732,13 +714,13 @@
 
           <mat-paginator class="actions-table-paginator"
                          [pageSizeOptions]="[10, 20, 50, 100]"
-                         [length]="accountService.tableDataSource.filteredData.length"
+                         [length]="acServ.tableDataSource.filteredData.length"
                          (page)="changePage($event)"
                          showFirstLastButtons>
           </mat-paginator>
 
           <button mat-raised-button class="float-r" style="margin-right: 16px"
-                  (click)="accountService.loadMoreActions(accountName)">
+                  (click)="acServ.loadMoreActions(accountName)">
             load more actions
           </button>
         </div>

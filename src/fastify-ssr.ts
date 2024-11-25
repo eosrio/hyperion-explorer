@@ -8,6 +8,7 @@ import fastifyCompress from "@fastify/compress";
 interface FastifyAngularSSROptions {
   port?: number;
   host?: string;
+  baseHref?: string;
 }
 
 export class FastifyAngularSSR {
@@ -17,6 +18,10 @@ export class FastifyAngularSSR {
   angularApp = new AngularNodeAppEngine();
 
   constructor(private options: FastifyAngularSSROptions) {
+    if (this.options.baseHref) {
+      this.baseHref = this.options.baseHref;
+    }
+    console.log('Base href:', this.baseHref);
     this.setup();
   }
 
@@ -35,6 +40,13 @@ export class FastifyAngularSSR {
       wildcard: false,
       list: true,
       preCompressed: false
+    });
+
+    // Prevent SSR server handling hyperion API requests, this being called here is an error elsewhere
+    this.fastify.get('/v2/*', async (req: FastifyRequest, reply: FastifyReply) => {
+      console.log('Incoming request on:', req.url);
+      console.log('API request detected, skipping SSR');
+      reply.status(404).send('Not found');
     });
 
     this.fastify.get('/*', async (req: FastifyRequest, reply: FastifyReply) => {
