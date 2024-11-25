@@ -34,7 +34,8 @@
 }
 
 ::ng-deep .custom-autocomplete {
-  background: linear-gradient(135deg, #e7eefb 0%, #F3F7FD 70%, #e2e8f1 100%) !important;
+  background: var(--table-top-bg-gradient) !important;
+  /*background: linear-gradient(135deg, #e7eefb 0%, #F3F7FD 70%, #e2e8f1 100%) !important;*/
   box-shadow: 5px 5px 7px 1px rgb(107 107 107 / 56%), inset 1px 1px 2px 0px rgb(254 254 254) !important;
   border-radius: 1rem !important;
   margin-top: 11px;
@@ -65,8 +66,11 @@
 }
 
 .search-btn.primary-btn {
-  width: 186px;
+  min-width: 10.813rem; /*173px*/
+  width: auto;
   text-wrap: nowrap;
+  padding-left: 0.438rem !important;
+  padding-right: 0.438rem !important;
 }
 
 /*PRE HEADER STYLES START*/

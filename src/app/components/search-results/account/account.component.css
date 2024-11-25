@@ -95,10 +95,6 @@
   fill: black !important;
 }
 
-.data-item {
-  padding-bottom: 0.188rem;
-}
-
 .dot {
   width: 0.75rem;
   height: 0.75rem;
