@@ -147,17 +147,6 @@
   fill: black !important;
 }
 
-.action-cell {
-  /*padding: 5px 10px;*/
-  font-size: 0.813rem; /*13px*/
-  letter-spacing: 0.5px;
-  text-align: center;
-  width: max-content;
-  border: 1px solid #e1e1e1;
-  border-radius: 0.188rem;
-  padding: 0.188rem 0.313rem;
-}
-
 .data-item {
   padding-bottom: 0.188rem;
 }
@@ -229,138 +218,6 @@
   font-size: 13px;
 }
 
-
-@media (max-width: 960px) {
-  .actions-table .mat-mdc-header-row {
-    top: 16.25rem;
-  }
-}
-
-@media (min-width: 961px) {
-  .actions-table .mat-mdc-header-row {
-    top: 14.063rem;
-  }
-}
-
-/*table responsive*/
-@media (min-width: 600px) {
-  .actions-table .mat-mdc-header-row {
-    background: transparent;
-    position: sticky;
-    z-index: 100;
-    color: var(--main-text);
-  }
-
-  [mat-header-cell].mat-mdc-table-sticky {
-    border-bottom: 1px solid var(--line-divider);
-  }
-
-  [mat-header-row] {
-    /*background: transparent !important;*/
-    border-radius: var(--card-border-radius) !important;
-  }
-
-  [mat-header-cell] {
-    background: transparent !important;
-  }
-
-  [mat-header-cell].mat-column-trx_id {
-    border-radius:  var(--card-border-radius) 0 0  var(--card-border-radius);
-  }
-
-  [mat-header-cell].mat-column-block_num {
-    border-radius: 0  var(--card-border-radius)  var(--card-border-radius) 0;
-  }
-}
-
-@media (max-width: 599px) {
-  [mat-table] [mat-header-row] {
-    display: flex;
-    flex-wrap: wrap;
-    height: auto;
-    position: sticky;
-    top: 0;
-    color: var(--main-text);
-  }
-
-  [mat-table] [mat-header-row] th[mat-header-cell] {
-    display: flex;
-    flex: 1;
-    align-items: center;
-    padding: 1rem 0.5rem;
-    justify-content: end;
-    /*display: none;*/
-  }
-
-
-  [mat-table] [mat-header-row] th[mat-header-cel] l > .mat-sort-header-container {
-    padding-left: 0.938rem;
-  }
-
-  [mat-table] [mat-header-row] th[mat-header-cell]:not([mat-sort-header]),
-  [mat-table] [mat-header-row] th[mat-header-cell] > .mat-sort-header-container.mat-sort-header-disabled,
-  [mat-table] [mat-header-row] th[mat-header-cell] > .mat-sort-header-container.mat-column-action {
-    display: none;
-  }
-
-
-  [mat-table] [mat-row] {
-    height: auto;
-  }
-
-  /*:not(.mat-column-action)*/
-  [mat-table] [mat-row] td[mat-cell] {
-    display: grid;
-    grid-template-columns: 35% 65%;
-    padding: 0.5rem;
-    text-align: left;
-    /*text-align: right;*/
-    word-break: break-word;
-  }
-
-  /*:not(.mat-column-action)*/
-  [mat-table] [mat-row] td[mat-cell] > * {
-    grid-column: 2;
-  }
-
-  /*:not(.mat-column-action)*/
-  [mat-table] [mat-row] td[mat-cell]:before {
-    content: attr(data-label);
-    text-align: left;
-    font-size: 0.75rem; /*12px*/
-    font-weight: 500;
-    color: var(--main-text);
-  }
-
-  /*[mat-table] [mat-row] td.mat-column-action {*/
-  /*  display: flex;*/
-  /*  justify-content: center;*/
-  /*  padding: 0 0.5rem;*/
-  /*}*/
-  /*[mat-table] [mat-row] td.mat-column-action>button {*/
-  /*  margin: 0.5rem 0;*/
-  /*}*/
-  .action-cell {
-    padding: 0;
-    text-align: left;
-    border: none;
-  }
-
-  [mat-table] [mat-row]:last-of-type td:last-of-type {
-    border: none;
-  }
-
-  [mat-table] [mat-row]:not(:last-of-type) td:last-of-type {
-    border-bottom: 0.5rem solid #e5e5e5;
-    padding-bottom: 1.25rem !important;
-    margin-bottom: 1.25rem;
-  }
-
-  [mat-card] [mat-expansion-panel][mat-table] {
-    border: 0.5rem solid #fafafa;
-  }
-}
-
 .mat-expansion-panel-header[aria-disabled=true] {
   color: rgba(0, 0, 0, .87);
 }
@@ -389,36 +246,6 @@
 #totalBalance {
   width: auto !important;
 }
-
-/*chevron animation start*/
-::ng-deep .arrowRight .svg-inline--fa {
-  transform: rotate(0deg);
-  animation: arrowRightAnimation 225ms cubic-bezier(0.4,0.0,0.2,1);
-}
-
-::ng-deep  .arrowDown .svg-inline--fa {
-  transform: rotate(90deg);
-  animation: arrowDownAnimation 225ms cubic-bezier(0.4,0.0,0.2,1);
-}
-
-@keyframes arrowRightAnimation {
-  from {
-    transform: rotate(90deg);
-  }
-  to {
-    transform: rotate(0deg);
-  }
-}
-
-@keyframes arrowDownAnimation {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(90deg);
-  }
-}
-/*chevron animation end*/
 
 .link-btn {
   display: block;

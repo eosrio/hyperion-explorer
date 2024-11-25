@@ -1,10 +1,10 @@
-import {Component, ElementRef, inject, PLATFORM_ID, signal, viewChild} from '@angular/core';
+import {Component, ElementRef, inject, OnInit, PLATFORM_ID, signal, viewChild} from '@angular/core';
 import {SearchService} from "../../../services/search.service";
 import {MatButton, MatIconButton} from "@angular/material/button";
 import {ActivatedRoute, Router, RouterLink} from "@angular/router";
 import {MatProgressSpinner} from "@angular/material/progress-spinner";
 import {MatCardContent, MatCardHeader} from "@angular/material/card";
-import {FaIconComponent, FaLayersComponent, FaStackItemSizeDirective} from "@fortawesome/angular-fontawesome";
+import {FaIconComponent, FaLayersComponent} from "@fortawesome/angular-fontawesome";
 import {MatProgressBar} from "@angular/material/progress-bar";
 import {MatTooltip} from "@angular/material/tooltip";
 import {
@@ -43,7 +43,7 @@ import {MatSort, MatSortModule} from "@angular/material/sort";
 import {FlatTreeControl} from "@angular/cdk/tree";
 import {AccountCreationData} from "../../../interfaces";
 import {DataService} from "../../../services/data.service";
-import {Title} from "@angular/platform-browser";
+import {Title, withIncrementalHydration} from "@angular/platform-browser";
 import {MatAccordion, MatExpansionModule} from "@angular/material/expansion";
 import {MatDialog, MatDialogRef} from "@angular/material/dialog";
 import {ActionDetailsComponent} from "../../action-details/action-details.component";
@@ -129,9 +129,13 @@ interface FlatNode {
     MatRipple
   ],
   templateUrl: './account.component.html',
-  styleUrl: './account.component.css'
+  styleUrls: [
+    './account.component.css',
+    './action-table.css',
+    './permissions-card.css'
+  ]
 })
-export class AccountComponent {
+export class AccountComponent implements OnInit {
 
   dataService = inject(DataService);
   acServ = inject(AccountService);
@@ -171,18 +175,12 @@ export class AccountComponent {
     }
   }
 
-  accountName: string = '';
-
   displayedColumns: string[] = ['trx_id', 'action', 'data', 'block_num'];
 
   treeControl: FlatTreeControl<FlatNode>;
-
   treeFlattener: MatTreeFlattener<any, any>;
-
   dataSource: MatTreeFlatDataSource<any, any>;
-  detailedView = true;
 
-  systemPrecision = 4;
   systemSymbol = '';
 
   creationData = signal<AccountCreationData>({
@@ -216,7 +214,6 @@ export class AccountComponent {
     this.treeFlattener = new MatTreeFlattener(
       this.transformer, node => node.level, node => node.expandable, node => node.children
     );
-
     this.dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
 
     toObservable(this.balanceCard).subscribe((value) => {
@@ -226,26 +223,35 @@ export class AccountComponent {
         }, 1000);
       }
     });
+
     toObservable(this.actionsTable).subscribe((value) => {
       if (value && isPlatformBrowser(this.platformId)) {
         this.tableStickyMotion(this.actionsTable());
       }
     });
 
+    toObservable(this.acServ.accountDataRes.value).subscribe((value) => {
+
+      if (!this.dataService.explorerMetadata) {
+        return;
+      }
+
+      const accountName = this.acServ.accountName();
+      const chainData = this.dataService.explorerMetadata;
+
+      if (!chainData.chain_name) {
+        this.title.setTitle(`${accountName} • Hyperion Explorer`);
+      } else {
+        this.title.setTitle(`${accountName} • ${chainData.chain_name} Hyperion Explorer`);
+      }
+    });
   }
 
   private accountStickyMotion(accountNameSticky?: ElementRef<HTMLDivElement>) {
-    const offset: any = ['start 200px', 'start 100px'];
-
-    scroll(animate('#totalBalance', {x: [-100, 0], opacity: [0, 1]}, {duration: 1}),
-      {target: accountNameSticky?.nativeElement, offset}
+    scroll(
+      animate('#totalBalance', {x: [-100, 0], opacity: [0, 1]}, {duration: 1}),
+      {target: accountNameSticky?.nativeElement, offset: ['start 200px', 'start 100px']}
     );
-    // scroll(
-    //   (progress: any) => {
-    //     console.log(progress);
-    //   },
-    //   {target: accountNameSticky?.nativeElement, offset}
-    // );
   }
 
   private tableStickyMotion(tableSticky?: ElementRef<HTMLDivElement>) {
@@ -257,7 +263,6 @@ export class AccountComponent {
     );
   }
 
-
   transformer(node: Permission, level: number): any {
     return {
       expandable: !!node.children && node.children.length > 0,
@@ -266,18 +271,11 @@ export class AccountComponent {
     };
   }
 
-  objectKeyCount(obj: any): number {
-    try {
-      return Object.keys(obj).length;
-    } catch (e) {
-      return 0;
-    }
-  }
-
   hasChild = (_: number, node: FlatNode) => node.expandable;
 
-
   ngOnInit(): void {
+
+    console.log('Account component initialized');
     this.route.params.subscribe(async (routeParams: any) => {
 
       // if (this.accountService.streamClientStatus) {
@@ -290,19 +288,11 @@ export class AccountComponent {
 
       const chainData = this.dataService.explorerMetadata;
 
-      this.accountName = routeParams.account_name;
-
       this.acServ.accountName.set(routeParams.account_name);
 
       const accountLoaded = await this.acServ.loadAccountData(routeParams.account_name);
 
       if (accountLoaded) {
-
-        if (!chainData.chain_name) {
-          this.title.setTitle(`${this.accountName} • Hyperion Explorer`);
-        } else {
-          this.title.setTitle(`${this.accountName} • ${chainData.chain_name} Hyperion Explorer`);
-        }
 
         const customCoreToken = chainData.custom_core_token;
         if (customCoreToken && customCoreToken !== '') {
@@ -319,41 +309,21 @@ export class AccountComponent {
           this.systemSymbol = this.getSymbol(this.acServ.account.core_liquid_balance) ?? "?";
         }
 
-        this.systemPrecision = this.getPrecision(this.acServ.account.core_liquid_balance);
-        if (this.systemSymbol === null) {
-          try {
-            this.systemSymbol = this.getSymbol(this.acServ.account.total_resources.cpu_weight) ?? "?";
-            if (this.systemSymbol === null) {
-              this.systemSymbol = 'SYS';
-            }
-          } catch (e) {
-            this.systemSymbol = 'SYS';
-          }
-        }
         this.processPermissions();
-        setTimeout(() => {
-          this.acServ.tableDataSource.sort = this.sort() || null;
-          this.acServ.tableDataSource.paginator = this.paginator() || null;
-        }, 500);
-        const creationData = await this.acServ.getCreator(routeParams.account_name);
-        if (creationData) {
-          this.creationData.set({creator: creationData.creator, timestamp: creationData.timestamp});
-        }
+
+        // setTimeout(() => {
+        //   // this.acServ.tableDataSource.sort = this.sort() || null;
+        //   // this.acServ.tableDataSource.paginator = this.paginator() || null;
+        // }, 500);
+
+        // const creationData = await this.acServ.getCreator(routeParams.account_name);
+        // if (creationData) {
+        //   this.creationData.set({creator: creationData.creator, timestamp: creationData.timestamp});
+        // }
+
       }
 
     });
-  }
-
-  getPrecision(asset: string): number {
-    if (asset) {
-      try {
-        return asset.split(' ')[0].split('.')[1].length;
-      } catch (e) {
-        return 4;
-      }
-    } else {
-      return 4;
-    }
   }
 
   getSymbol(asset: string): string | null {
@@ -398,14 +368,6 @@ export class AccountComponent {
     }
   }
 
-  isArray(value: any): boolean {
-    return value !== null && typeof value === 'object' && value.length > 0;
-  }
-
-  getType(subitem: any): string {
-    return typeof subitem;
-  }
-
   convertBytes(bytes: number): string {
     if (bytes > (1024 ** 3)) {
       return (bytes / (1024 ** 3)).toFixed(2) + ' GB';
@@ -419,31 +381,6 @@ export class AccountComponent {
     return bytes + ' bytes';
   }
 
-  convertMicroS(micros: number): string {
-    let int = 0;
-    let remainder = 0;
-    const calcSec = 1000 ** 2;
-    const calcMin = calcSec * 60;
-    const calcHour = calcMin * 60;
-    if (micros > calcHour) {
-      int = Math.floor(micros / calcHour);
-      remainder = micros % calcHour;
-      return int + 'h ' + Math.round(remainder / calcMin) + 'min';
-    }
-    if (micros > calcMin) {
-      int = Math.floor(micros / calcMin);
-      remainder = micros % calcMin;
-      return int + 'min ' + Math.round(remainder / calcSec) + 's';
-    }
-    if (micros > calcSec) {
-      return (micros / calcSec).toFixed(2) + 's';
-    }
-    if (micros > 1000) {
-      return (micros / (1000)).toFixed(2) + 'ms';
-    }
-    return micros + 'µs';
-  }
-
   changePage(event: PageEvent): void {
 
     // disable streaming if enabled
@@ -455,8 +392,8 @@ export class AccountComponent {
     console.log(event);
     console.log(`${event.pageIndex} / ${maxPages}`);
     try {
-      if (event.pageIndex === maxPages - 1 && this.accountName) {
-        this.acServ.loadMoreActions(this.accountName).catch(console.log);
+      if (event.pageIndex === maxPages - 1 && this.acServ.accountName()) {
+        this.acServ.loadMoreActions().catch(console.log);
       }
     } catch (e) {
       console.log(e);
@@ -523,4 +460,6 @@ export class AccountComponent {
   toRecord(value: any): Record<string, any> {
     return value;
   }
+
+  protected readonly withIncrementalHydration = withIncrementalHydration;
 }

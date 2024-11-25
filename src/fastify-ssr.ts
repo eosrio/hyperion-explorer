@@ -1,14 +1,27 @@
 import fastify, {FastifyInstance, FastifyReply, FastifyRequest} from "fastify";
 import {AngularNodeAppEngine, writeResponseToNodeResponse} from "@angular/ssr/node";
 import fastifyStatic from "@fastify/static";
-import {dirname, resolve} from "node:path";
+import {dirname, resolve, join} from "node:path";
 import {fileURLToPath} from "node:url";
 import fastifyCompress from "@fastify/compress";
+import {readFileSync} from "node:fs";
+import {createContext, runInContext} from "node:vm";
+import {readdirSync} from "fs";
 
 interface FastifyAngularSSROptions {
   port?: number;
   host?: string;
   baseHref?: string;
+}
+
+async function readCustomTheme(file: string) {
+  const themeSourceData = readFileSync(file).toString();
+  // create VM context to run theme data
+  const context = {themeData: {}};
+  createContext(context);
+  // run theme data in context
+  runInContext(themeSourceData, context);
+  return context.themeData;
 }
 
 export class FastifyAngularSSR {
@@ -39,6 +52,21 @@ export class FastifyAngularSSR {
       wildcard: false,
       list: true,
       preCompressed: false
+    });
+
+    this.fastify.get('/.internal/read_theme/:theme', async (req: FastifyRequest, reply: FastifyReply) => {
+      const themeName = (req.params as any).theme as string;
+      if (themeName) {
+        const themeFile = resolve(serverDistFolder, `../../../themes/${themeName}.theme.mjs`);
+        try {
+          const themeData = await readCustomTheme(themeFile);
+          reply.send(themeData);
+        } catch (e) {
+          reply.status(404).send(`Theme not found: ${themeName}`);
+        }
+      } else {
+        reply.status(400).send('Theme name required');
+      }
     });
 
     // Prevent SSR server handling hyperion API requests, this being called here is an error elsewhere

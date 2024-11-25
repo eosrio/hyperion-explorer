@@ -5,6 +5,7 @@
   </div>
 }
 
+
 <!--MAIN CONTENT-->
 <div class="hr-container">
 
@@ -230,23 +231,13 @@
         <div class="custom-card">
           <h3>
             <fa-layers [fixedWidth]="true" style="margin-right: 5px">
-              <fa-icon
-                [icon]="icons.solid.faCircle"
-                transform="grow-3"
-              ></fa-icon>
-              <fa-icon
-                [icon]="icons.solid.faStar"
-                [inverse]="true"
-                transform="shrink-5"
-              ></fa-icon>
+              <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
+              <fa-icon [icon]="icons.solid.faStar" [inverse]="true" transform="shrink-5"></fa-icon>
             </fa-layers>
             Tokens
-            <fa-icon
-              [icon]="icons.regular.faQuestionCircle"
-              class="faded float-r pointer"
-              matTooltip="Only liquid balances are displayed"
-              matTooltipClass="tooltip-bigger"
-            ></fa-icon>
+            <fa-icon [icon]="icons.regular.faQuestionCircle" class="faded float-r pointer"
+                     matTooltip="Only liquid balances are displayed" matTooltipClass="tooltip-bigger">
+            </fa-icon>
           </h3>
 
 
@@ -277,19 +268,11 @@
         <div class="custom-card md:col-span-2">
           <h3>
             <fa-layers [fixedWidth]="true" style="margin-right: 5px">
-              <fa-icon
-                [icon]="icons.solid.faCircle"
-                transform="grow-3"
-              ></fa-icon>
-              <fa-icon
-                [icon]="icons.solid.faLink"
-                [inverse]="true"
-                transform="shrink-5"
-              ></fa-icon>
+              <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
+              <fa-icon [icon]="icons.solid.faLink" [inverse]="true" transform="shrink-5"></fa-icon>
             </fa-layers>
             Permissions & Keys
           </h3>
-
           <mat-tree [dataSource]="dataSource" [treeControl]="treeControl" class="keys-tree">
             <!-- This is the tree node template for leaf nodes -->
 
@@ -415,13 +398,12 @@
         </div>
 
         <!--VOTE CARD-->
-        @if (acServ.account['voter_info'] &&
-        (acServ.account['voter_info'].proxy ||
-          acServ.account['voter_info'].producers.length > 0)) {
+        @let voterInfo = acServ.accountComputed().voter_info;
+        @if (voterInfo && (voterInfo.proxy || voterInfo.producers.length > 0)) {
           <mat-accordion class="custom-card w-full vote-card md:col-span-3 text-black">
             <mat-expansion-panel
-              [disabled]="acServ.account['voter_info'].producers.length <= 0"
-              [hideToggle]="acServ.account['voter_info'].producers.length <= 0">
+              [disabled]="voterInfo.producers.length <= 0"
+              [hideToggle]="voterInfo.producers.length <= 0">
               <mat-expansion-panel-header>
                 <div class="flex flex-row justify-center w-full">
                   <mat-panel-title>
@@ -434,38 +416,36 @@
                     </h3>
                   </mat-panel-title>
                   <mat-panel-description>
-                    @if (acServ.account['voter_info']) {
+                    @if (voterInfo) {
                       <div>
                         {{ acServ.account["account_name"] }} is voting in
-                        @if (acServ.account['voter_info'].proxy) {
+                        @if (voterInfo.proxy) {
                           <span>proxy
-                            <a [routerLink]="['/account', acServ.account['voter_info'].proxy]"
-                               class="link-primary">{{ acServ.account["voter_info"].proxy }}</a>
+                            <a [routerLink]="['/account', voterInfo.proxy]"
+                               class="link-primary">{{ voterInfo.proxy }}</a>
                           </span>
-                        }
-                        @if (acServ.account['voter_info'].producers.length > 0) {
-                          <span>
-                            <strong>{{
-                                acServ.account["voter_info"].producers.length
-                              }}</strong>
-                              producer@if (acServ.account['voter_info'].producers.length > 1) {
-                            <span>s</span>
-                          } </span>
+                        } @else {
+                          @if (voterInfo.producers.length > 0) {
+                            <span>
+                            <strong>{{ voterInfo.producers.length }}</strong>producer@if (voterInfo.producers.length > 1) {
+                              <span>s</span>
+                            }
+                          </span>
+                          }
                         }
                       </div>
                     }
                   </mat-panel-description>
                 </div>
               </mat-expansion-panel-header>
-              @if (acServ.account['voter_info'].producers.length > 0) {
+              @if (voterInfo.producers.length > 0) {
                 <div>
-                  @for (producer of acServ.account['voter_info'].producers; track producer; let last = $last) {
+                  @for (producer of voterInfo.producers; track producer; let last = $last) {
                     <span>
-                      <a [routerLink]="['/account', producer]" class="link-primary">{{
-                          producer
-                        }}</a>@if (!last) {
-                      <span>, </span>
-                    }
+                      <a [routerLink]="['/account', producer]" class="link-primary">{{ producer }}</a>
+                      @if (!last) {
+                        <span>, </span>
+                      }
                     </span>
                   }
                 </div>
@@ -479,15 +459,8 @@
           <div #actionsTable class="flex flex-row justify-between items-start">
             <h3 style="margin-top: 0">
               <fa-layers [fixedWidth]="true" style="margin-right: 5px">
-                <fa-icon
-                  [icon]="icons.solid.faCircle"
-                  transform="grow-3"
-                ></fa-icon>
-                <fa-icon
-                  [icon]="icons.solid.faHistory"
-                  [inverse]="true"
-                  transform="shrink-5"
-                ></fa-icon>
+                <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
+                <fa-icon [icon]="icons.solid.faHistory" [inverse]="true" transform="shrink-5"></fa-icon>
               </fa-layers>
               Actions
             </h3>
@@ -509,6 +482,8 @@
               </div>
             }
           </div>
+
+
           <table mat-table matSort matSortActive="block_num" matSortStart="desc" matSortDirection="desc"
                  class="actions-table" [dataSource]="acServ.tableDataSource">
 
@@ -547,8 +522,7 @@
                 <div class="action-cell">
                   <span class="accent font-medium pointer">{{ action["act"]["name"] }}</span>
                   <span class="main-color"> on </span>
-                  <span [routerLink]="['/account', action['act']['account']]"
-                        class="font-medium div-link main-color">
+                  <span [routerLink]="['/account', action['act']['account']]" class="font-medium div-link main-color">
                     {{ action["act"]["account"] }}
                   </span>
                 </div>
@@ -583,18 +557,18 @@
 
           <mat-paginator class="actions-table-paginator"
                          [pageSizeOptions]="[10, 20, 50, 100]"
-                         [length]="acServ.tableDataSource.filteredData.length"
+                         [length]="acServ.actionsComputed().length"
                          (page)="changePage($event)"
                          showFirstLastButtons>
           </mat-paginator>
 
           <button mat-raised-button class="float-r" style="margin-right: 16px"
-                  (click)="acServ.loadMoreActions(accountName)">
+                  (click)="acServ.loadMoreActions()">
             load more actions
           </button>
+
         </div>
       </div>
-
 
     } @else {
 
@@ -606,7 +580,7 @@
             Account not found
           </h1>
           <div>
-            We couldn't find the account <strong>{{ accountName }}</strong>
+            We couldn't find the account <strong>{{ acServ.accountName() }}</strong>
           </div>
         </div>
       </div>

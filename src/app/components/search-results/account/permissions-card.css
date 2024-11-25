@@ -1,0 +1,29 @@
+/*chevron animation start*/
+::ng-deep .arrowRight .svg-inline--fa {
+  transform: rotate(0deg);
+  animation: arrowRightAnimation 225ms cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+::ng-deep .arrowDown .svg-inline--fa {
+  transform: rotate(90deg);
+  animation: arrowDownAnimation 225ms cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+@keyframes arrowRightAnimation {
+  from {
+    transform: rotate(90deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes arrowDownAnimation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(90deg);
+  }
+}
+/*chevron animation end*/
