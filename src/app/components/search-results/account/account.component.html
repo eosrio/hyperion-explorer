@@ -23,7 +23,15 @@
             <div class="flex flex-row flex-wrap justify-between items-center w-full">
               <div class="flex flex-row items-center gap-3">
                 <div class="text-2xl acc-title flex flex-row items-center gap-3">
-                  <fa-icon [icon]="icons.solid.faUserCircle"></fa-icon>
+
+                  @if (acServ.accountComputed().privileged) {
+                    <fa-stack matTooltip="System Account (privileged)" size="2xs">
+                      <fa-icon stackItemSize="2x" [icon]="icons.solid.faShield"></fa-icon>
+                      <fa-icon stackItemSize="1x" [inverse]="true" [icon]="icons.solid.faCheck" transform="shrink-1"></fa-icon>
+                    </fa-stack>
+                  } @else {
+                    <fa-icon [icon]="icons.solid.faUserCircle"></fa-icon>
+                  }
                   <div>{{ acServ.accountComputed().account_name }}</div>
                 </div>
                 <div id="totalBalance" class="font-medium faded text-[0.938rem] mt-1 opacity-0">
@@ -55,27 +63,27 @@
             <div class="mb-5 w-full">
               <strong class="font-semibold">Liquid Balance: </strong>
               <span class="float-r">
-                    {{ liquidBalance() | number: "1.0-" + systemPrecision }}
+                {{ acServ.liquidBalance() | number: "1.0-" + systemPrecision }}
                 {{ systemSymbol }}
-                  </span>
+              </span>
             </div>
 
             <!-- staked balance-->
             <div class="mb-5 w-full">
               <strong class="font-semibold">Staked Balance: </strong>
               <span class="float-r">
-                    {{ acServ.myStakedBalance() | number: "1.0-" + systemPrecision }}
+                {{ acServ.myStakedBalance() | number: "1.0-" + systemPrecision }}
                 {{ systemSymbol }}
-                  </span>
+              </span>
             </div>
 
             <!-- refunding balance-->
             <div class="w-full">
               <strong class="font-semibold">Refunding: </strong>
               <span class="float-r">
-                    {{ refundBalance() | number: "1.0-" + systemPrecision }}
+                {{ acServ.refundBalance() | number: "1.0-" + systemPrecision }}
                 {{ systemSymbol }}
-                  </span>
+              </span>
             </div>
 
             <!-- creation data -->
@@ -117,7 +125,11 @@
 
                 <div>
                   <span class="title">CPU</span>
-                  <span class="faded used">{{ acServ.userResPct().cpu | number: "1.0-2" }}% used</span>
+                  @if (acServ.accountComputed().cpu_limit.max === -1) {
+                    <span class="faded used">unlimited</span>
+                  } @else {
+                    <span class="faded used">{{ acServ.userResPct().cpu | number: "1.0-2" }}% used</span>
+                  }
                   <span class="values float-r">{{ acServ.userResPct().cpuStr }}</span>
                 </div>
 
@@ -156,23 +168,14 @@
               <div class="grow">
                 <div>
                   <span class="title">NET</span>
-                  <span class="faded used">{{
-                      (acServ.account["net_limit"]["used"] /
-                        acServ.account["net_limit"]["max"]) *
-                      100 | number: "1.0-2"
-                    }}% used</span>
-                  <span class="values float-r">{{
-                      convertBytes(acServ.account["net_limit"]["used"])
-                    }}
-                    /
-                    {{
-                      convertBytes(acServ.account["net_limit"]["max"])
-                    }}
-                          </span>
+                  @if (acServ.accountComputed().net_limit.max === -1) {
+                    <span class="faded used">unlimited</span>
+                  } @else {
+                    <span class="faded used">{{ acServ.userResPct().net | number: "1.0-2" }}% used</span>
+                  }
+                  <span class="values float-r">{{ acServ.userResPct().netStr }}</span>
                 </div>
-
-                <mat-progress-bar class="progress-bar" mode="determinate" [value]="acServ.userResPct().net">
-                </mat-progress-bar>
+                <mat-progress-bar class="progress-bar" mode="determinate" [value]="acServ.userResPct().net"></mat-progress-bar>
 
                 <div class="small-info">
                   <div class="m-bottom main-color">
@@ -204,17 +207,12 @@
               <div class="mt-30 flex-grow">
                 <div>
                   <span class="title mt-6">RAM</span>
-                  <span class="faded used">
-                    {{
-                      (acServ.account["ram_usage"] /
-                        acServ.account["ram_quota"]) *
-                      100 | number
-                    }}% used
-                  </span>
-                  <span class="values float-r">
-                    {{ convertBytes(acServ.account["ram_usage"]) }} /
-                    {{ convertBytes(acServ.account["ram_quota"]) }}
-                  </span>
+                  @if (acServ.accountComputed().ram_quota === -1) {
+                    <span class="faded used">unlimited</span>
+                  } @else {
+                    <span class="faded used">{{ acServ.userResPct().ram | number: "1.0-2" }}% used</span>
+                  }
+                  <span class="values float-r">{{ acServ.userResPct().ramStr }}</span>
                 </div>
 
                 <mat-progress-bar
@@ -313,13 +311,13 @@
                     <div>
                       <div>
                         <strong class="space-right main-color"
-                          matTooltip="weight / threshold"
-                          matTooltipClass="tooltip-bigger">
+                                matTooltip="weight / threshold"
+                                matTooltipClass="tooltip-bigger">
                           {{ key.weight }}/{{ node.required_auth.threshold }}
                         </strong>
                         <fa-icon [icon]="icons.solid.faKey" class="main-color"></fa-icon>
                         <a [routerLink]="['/key', key.key]"
-                          class="monospace m-left break-word link-gray">
+                           class="monospace m-left break-word link-gray">
                           {{ key.key }}
                         </a>
                       </div>
@@ -330,13 +328,13 @@
                   @for (acc of node['required_auth']['accounts']; track acc) {
                     <div>
                       <strong class="space-right"
-                        matTooltip="weight / threshold"
-                        matTooltipClass="tooltip-bigger">
+                              matTooltip="weight / threshold"
+                              matTooltipClass="tooltip-bigger">
                         {{ acc.weight }}/{{ node.required_auth.threshold }}
                       </strong>
                       <fa-icon [icon]="icons.solid.faUser"></fa-icon>
                       <a [routerLink]="['/account', acc.permission.actor]"
-                        class="m-left link-primary">
+                         class="m-left link-primary">
                         {{ acc.permission.actor }}
                       </a>&#64;{{ acc["permission"].permission }}
                     </div>
@@ -346,8 +344,8 @@
                   @for (waits of node['required_auth']['waits']; track waits) {
                     <div>
                       <strong class="space-right"
-                        matTooltip="weight / threshold"
-                        matTooltipClass="tooltip-bigger">
+                              matTooltip="weight / threshold"
+                              matTooltipClass="tooltip-bigger">
                         {{ waits.weight }}/{{ node.required_auth.threshold }}
                       </strong>
                       <fa-icon [icon]="icons.solid.faClock"></fa-icon>
@@ -375,12 +373,13 @@
                   @for (key of node['required_auth']['keys']; track key) {
                     <div>
                       <div>
-                        <strong class="space-right main-color" matTooltip="weight / threshold" matTooltipClass="tooltip-bigger">
+                        <strong class="space-right main-color" matTooltip="weight / threshold"
+                                matTooltipClass="tooltip-bigger">
                           {{ key.weight }}/{{ node.required_auth.threshold }}
                         </strong>
                         <fa-icon [icon]="icons.solid.faKey" class="main-color"></fa-icon>
                         <a [routerLink]="['/key', key.key]"
-                          class="monospace m-left break-word link-gray">
+                           class="monospace m-left break-word link-gray">
                           {{ key.key }}
                         </a>
                       </div>
@@ -391,7 +390,7 @@
                   @for (acc of node['required_auth']['accounts']; track acc) {
                     <div>
                       <strong class="space-right main-color"
-                        matTooltip="weight / threshold" matTooltipClass="tooltip-bigger">
+                              matTooltip="weight / threshold" matTooltipClass="tooltip-bigger">
                         {{ acc.weight }} / {{ node.required_auth.threshold }}
                       </strong>
                       <fa-icon [icon]="icons.solid.faUser" class="main-color"></fa-icon>
@@ -406,7 +405,7 @@
                   @for (waits of node['required_auth']['waits']; track waits) {
                     <div>
                       <strong class="space-right main-color"
-                        matTooltip="weight / threshold" matTooltipClass="tooltip-bigger">
+                              matTooltip="weight / threshold" matTooltipClass="tooltip-bigger">
                         {{ waits.weight }}/{{ node.required_auth.threshold }}
                       </strong>
                       <fa-icon [icon]="icons.solid.faClock" class="main-color"></fa-icon>

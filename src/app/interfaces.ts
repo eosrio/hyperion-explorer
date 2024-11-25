@@ -29,6 +29,7 @@ export interface AccountData {
     used: number;
     max: number;
   },
+  privileged: boolean;
   self_delegated_bandwidth: {
     cpu_weight: string;
     net_weight: string;
@@ -36,7 +37,13 @@ export interface AccountData {
   total_resources: {
     cpu_weight: string;
     net_weight: string;
-  }
+  },
+  refund_request: {
+    cpu_amount: string;
+    net_amount: string;
+  },
+  ram_quota: number;
+  ram_usage: number;
 }
 
 export interface GetAccountResponse {

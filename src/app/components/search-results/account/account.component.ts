@@ -4,7 +4,12 @@ import {MatButton, MatIconButton} from "@angular/material/button";
 import {ActivatedRoute, Router, RouterLink} from "@angular/router";
 import {MatProgressSpinner} from "@angular/material/progress-spinner";
 import {MatCardContent, MatCardHeader} from "@angular/material/card";
-import {FaIconComponent, FaLayersComponent} from "@fortawesome/angular-fontawesome";
+import {
+  FaIconComponent,
+  FaLayersComponent,
+  FaStackComponent,
+  FaStackItemSizeDirective
+} from "@fortawesome/angular-fontawesome";
 import {MatProgressBar} from "@angular/material/progress-bar";
 import {MatTooltip} from "@angular/material/tooltip";
 import {
@@ -22,6 +27,7 @@ import {MatCell, MatColumnDef, MatHeaderCell, MatHeaderRow, MatRow, MatTableModu
 import {AccountService} from "../../../services/account.service";
 import {faQuestionCircle} from "@fortawesome/free-regular-svg-icons";
 import {
+  faCheck,
   faChevronDown,
   faChevronRight,
   faCircle,
@@ -29,7 +35,7 @@ import {
   faHistory,
   faKey,
   faLink, faMagnifyingGlassPlus,
-  faSadTear,
+  faSadTear, faShield,
   faStar,
   faUser,
   faUserCircle,
@@ -122,7 +128,9 @@ interface FlatNode {
     MatTreeModule,
     DatePipe,
     ActDataViewComponent,
-    MatRipple
+    MatRipple,
+    FaStackComponent,
+    FaStackItemSizeDirective
   ],
   templateUrl: './account.component.html',
   styleUrl: './account.component.css'
@@ -147,7 +155,9 @@ export class AccountComponent {
     solid: {
       faClock: faClock,
       faUserCircle: faUserCircle,
+      faShield: faShield,
       faCircle: faCircle,
+      faCheck: faCheck,
       faStar: faStar,
       faLink: faLink,
       faHistory: faHistory,
@@ -360,37 +370,6 @@ export class AccountComponent {
     } else {
       return null;
     }
-  }
-
-  liquidBalance(): number {
-    if (this.acServ.account.core_liquid_balance) {
-      return parseFloat(this.acServ.account.core_liquid_balance.split(' ')[0]);
-    }
-    return 0;
-  }
-
-  cpuBalance(): number {
-    if (this.acServ.account.total_resources) {
-      return parseFloat(this.acServ.account.total_resources.cpu_weight.split(' ')[0]);
-    }
-    return 0;
-  }
-
-  netBalance(): number {
-    if (this.acServ.account.total_resources) {
-      return parseFloat(this.acServ.account.total_resources.net_weight.split(' ')[0]);
-    }
-    return 0;
-  }
-
-  refundBalance(): number {
-    let cpuRefund = 0;
-    let netRefund = 0;
-    if (this.acServ.account.refund_request) {
-      cpuRefund = parseFloat(this.acServ.account.refund_request.cpu_amount.split(' ')[0]);
-      netRefund = parseFloat(this.acServ.account.refund_request.net_amount.split(' ')[0]);
-    }
-    return cpuRefund + netRefund;
   }
 
   formatDate(date: string): string {

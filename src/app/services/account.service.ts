@@ -150,11 +150,17 @@ export class AccountService {
 
   public userResPct = computed(() => {
     const account = this.accountComputed();
+    const cpu = account.cpu_limit;
+    const net = account.net_limit;
+    const ramQuota = account.ram_quota;
+    const ramUsage = account.ram_usage;
     return {
-      cpu: (account.cpu_limit.used / account.cpu_limit.max) * 100,
-      net: (account.net_limit.used / account.net_limit.max) * 100,
-      cpuStr: convertMicroS(account.cpu_limit.used) + ' / ' + convertMicroS(account.cpu_limit.max),
-      netStr: convertMicroS(account.net_limit.used) + ' / ' + convertMicroS(account.net_limit.max)
+      cpu: cpu.max === -1 ? 0 : (cpu.used / cpu.max) * 100,
+      net: net.max === -1 ? 0 : (net.used / net.max) * 100,
+      ram: ramQuota === -1 ? 0 : (ramUsage / ramQuota) * 100,
+      cpuStr: cpu.max === -1 ? "♾️" : `${convertMicroS(cpu.used)} / ${convertMicroS(cpu.max)}`,
+      netStr: net.max === -1 ? "♾️" : `${convertMicroS(net.used)} / ${convertMicroS(net.max)}`,
+      ramStr: ramQuota === -1 ? "♾️" : `${ramUsage} / ${ramQuota}`
     };
   });
 
@@ -219,11 +225,29 @@ export class AccountService {
   });
 
   systemSymbol = computed(() => {
-    return getSymbol(this.accountComputed().core_liquid_balance) ?? "?";
+    const account = this.accountComputed();
+    if (account.core_liquid_balance) {
+      return getSymbol(this.accountComputed().core_liquid_balance) ?? "SYS";
+    } else if (account.total_resources.cpu_weight) {
+      return getSymbol(account.total_resources.cpu_weight) ?? "SYS";
+    } else {
+      return "SYS";
+    }
   });
 
   systemPrecision = computed(() => {
     return getPrecision(this.accountComputed().core_liquid_balance);
+  });
+
+  refundBalance = computed(() => {
+    let cpuRefund = 0;
+    let netRefund = 0;
+    const account = this.accountComputed();
+    if (account.refund_request) {
+      cpuRefund = parseFloat(account.refund_request.cpu_amount.split(' ')[0]);
+      netRefund = parseFloat(account.refund_request.net_amount.split(' ')[0]);
+    }
+    return cpuRefund + netRefund;
   });
 
   constructor() {
