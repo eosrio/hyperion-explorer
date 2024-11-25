@@ -76,7 +76,7 @@ export class SearchService {
 
   submitSearch(searchText: any, filteredAccounts: string[]): boolean {
 
-    const sValue = searchText.toLowerCase();
+    const sValue = searchText.trim().toLowerCase();
     this.searchQuery.set(sValue);
 
     // account direct
