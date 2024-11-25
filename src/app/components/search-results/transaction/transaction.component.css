@@ -4,10 +4,6 @@
   font-weight: 500;
 }
 
-.used {
-  margin-left: 7px;
-}
-
 .actions-table {
   width: 100%;
   background-color: transparent;
@@ -71,9 +67,10 @@
     display: flex;
     flex-wrap: wrap;
     height: auto;
-    position: sticky;
     top: 0;
     z-index: 2;
+    border-bottom: 1px solid var(--line-divider);
+    margin-top: 1rem;
   }
 
   [mat-table] [mat-header-row] th[mat-header-cell] {
@@ -88,10 +85,11 @@
     padding-left: 15px;
   }
 
-  [mat-table] [mat-header-row] th[mat-header-cell]>.mat-sort-header-container:not([mat-sort-header]),
-  [mat-table] [mat-header-row] th[mat-header-cell]>.mat-sort-header-container.mat-sort-header-disabled,
-  [mat-table] [mat-header-row] th[mat-header-cell]>.mat-sort-header-container.mat-column-action {
+  [mat-table] [mat-header-row] th[mat-header-cell]:not([mat-sort-header]),
+  [mat-table] [mat-header-row] th[mat-header-cell] > .mat-sort-header-container.mat-sort-header-disabled,
+  [mat-table] [mat-header-row] th[mat-header-cell] > .mat-sort-header-container.mat-column-action {
     display: none;
+
   }
 
 
@@ -107,11 +105,11 @@
     word-break: break-word;
   }
 
-  [mat-table] [mat-row] td[mat-cell]:not(.mat-column-action) > * {
+  [mat-table] [mat-row] td[mat-cell] > * {
     grid-column: 2;
   }
 
-  [mat-table] [mat-row] td[mat-cell]:not(.mat-column-action):before {
+  [mat-table] [mat-row] td[mat-cell]:before {
     content: attr(data-label);
     text-align: left;
     font-size: 12px;

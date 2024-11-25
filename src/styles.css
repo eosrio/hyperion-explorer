@@ -227,12 +227,16 @@ body {
   outline: none;
 }
 
+.div-link:hover {
+  color: oklch(from var(--main-text) 60% c h);
+  transition: color 0.7s;
+}
+
 .link-gray {
   color: gray;
 }
 
 .link-primary {
-  /*color: var(--primary);*/
   color: oklch(from var(--primary) 68% c h);
   border-radius: var(--btn-link-border-radius);
 }
@@ -242,6 +246,15 @@ body {
   /*font-weight: 500;*/
   transition: color 0.7s;
   /*text-decoration: underline;*/
+}
+
+.link-accent {
+  color: var(--accent);
+}
+
+.link-accent:hover {
+  color: oklch(from var(--accent) 50% c h);
+  transition: color 0.7s;
 }
 
 /*Appear animation START*/

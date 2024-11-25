@@ -10,21 +10,9 @@
 }
 
 .total-balance {
-  border-bottom: 1px solid rgba(0, 0, 0, .12);
+  border-bottom: 1px solid var(--line-divider);
   padding-bottom: 0.625rem;
   margin-bottom: 0.625rem;
-}
-
-.mb-5 {
-  margin-bottom: 5px;
-}
-
-.mt-7 {
-  margin-top: 7px;
-}
-
-.mt-30 {
-  margin-top: 30px;
 }
 
 .title {
@@ -33,29 +21,10 @@
   font-weight: 500;
 }
 
-.used {
-  margin-left: 0.438rem;
-}
-
-.values {
-  margin-top: 0.438rem;
-}
-
-.progress-bar {
-  margin-top: 0.625rem;
-}
-
 .small-info {
-  font-size: 0.938rem; /*15px*/
+  font-size: 0.875rem; /*14px*/
   margin-top: 0.625rem;
-  color: rgba(0, 0, 0, .45);
 }
-
-.display-block {
-  display: block;
-  margin-left: 0;
-}
-
 
 .keys-tree {
   background-color: transparent;
@@ -63,7 +32,6 @@
 
 .custom-card .mat-expansion-panel {
   background-color: transparent;
-
 }
 
 .actions-table {
@@ -86,7 +54,7 @@
 
 .token-cell {
   margin-bottom: 0.688rem;
-  border-bottom: 1px solid rgba(0, 0, 0, .12);
+  border-bottom: 1px solid var(--line-divider);
   padding-bottom: 0.875rem;
   border-radius: 0.188rem;
 }
@@ -98,8 +66,8 @@
 }
 
 .permission-cell {
-  border-bottom: 1px solid #e2e2e2;
-  border-left: 1px solid #e2e2e2;
+  border-bottom: 1px solid var(--line-divider);
+  border-left: 1px solid var(--line-divider);
   border-radius: 0 0 0 0.313rem;
   padding: 0.625rem 0 0.5rem 0.5rem;
   width: 100%;
@@ -108,22 +76,6 @@
 .monospace {
   font-family: 'Courier Prime', monospace;
   font-size: 1rem; /*16px*/
-}
-
-.m-left {
-  margin-left: 0.438rem;
-}
-
-.m-bottom {
-  margin-bottom: 3px;
-}
-
-.float-r {
-  float: right;
-}
-
-.space-right {
-  margin-right: 4px;
 }
 
 .vote-card .mat-expansion-panel-header {
@@ -159,10 +111,6 @@
   background: #de0000;
   border-radius: 50%;
   cursor: pointer;
-}
-
-.off {
-  background-color: gray;
 }
 
 .livestream {
