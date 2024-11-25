@@ -126,7 +126,7 @@
 
                 <div class="small-info">
 
-                  <div class="m-bottom">
+                  <div class="m-bottom main-color">
                     <span>Self-staked:</span>
                     <span class="float-r">
                       {{ acServ.myCpuBalance() | number: "1.0-" + systemPrecision }}
@@ -134,7 +134,7 @@
                     </span>
                   </div>
 
-                  <div class="m-bottom">
+                  <div class="m-bottom main-color">
                     <span>Staked by others:</span>
                     <span class="float-r">
                       {{ acServ.cpuByOthers() | number: "1.0-" + systemPrecision }}
@@ -142,7 +142,7 @@
                     </span>
                   </div>
 
-                  <div>
+                  <div class="main-color">
                     <span>Total in CPU:</span>
                     <span class="float-r">
                       {{ acServ.cpuBalance() | number: "1.0-" + systemPrecision }}
@@ -175,7 +175,7 @@
                 </mat-progress-bar>
 
                 <div class="small-info">
-                  <div class="m-bottom">
+                  <div class="m-bottom main-color">
                     <span>Self-staked:</span>
                     <span class="float-r">
                       {{ acServ.myNetBalance() | number: "1.0-" + systemPrecision }}
@@ -183,7 +183,7 @@
                     </span>
                   </div>
 
-                  <div class="m-bottom">
+                  <div class="m-bottom main-color">
                     <span>Staked by others:</span>
                     <span class="float-r">
                       {{ acServ.netByOthers() | number: "1.0-" + systemPrecision }}
@@ -191,7 +191,7 @@
                     </span>
                   </div>
 
-                  <div>
+                  <div class="main-color">
                     <span>Total in NET:</span>
                     <span class="float-r">
                       {{ acServ.netBalance() | number: "1.0-" + systemPrecision }}
@@ -304,10 +304,7 @@
               <button mat-icon-button disabled></button>
               <div class="permission-cell flex flex-col gap-[7px]">
                 <div>
-                  <h3
-                    class="primary"
-                    style="display: inline; letter-spacing: 0.7px"
-                  >
+                  <h3 class="primary" style="display: inline; letter-spacing: 0.7px">
                     {{ node.perm_name }}
                   </h3>
                 </div>
@@ -315,18 +312,15 @@
                   @for (key of node['required_auth']['keys']; track key) {
                     <div>
                       <div>
-                        <strong
-                          class="space-right"
+                        <strong class="space-right main-color"
                           matTooltip="weight / threshold"
-                          matTooltipClass="tooltip-bigger"
-                        >
+                          matTooltipClass="tooltip-bigger">
                           {{ key.weight }}/{{ node.required_auth.threshold }}
                         </strong>
-                        <fa-icon [icon]="icons.solid.faKey"></fa-icon>
-                        <a
-                          [routerLink]="['/key', key.key]"
-                          class="monospace m-left break-word link-gray"
-                        >{{ key.key }}
+                        <fa-icon [icon]="icons.solid.faKey" class="main-color"></fa-icon>
+                        <a [routerLink]="['/key', key.key]"
+                          class="monospace m-left break-word link-gray">
+                          {{ key.key }}
                         </a>
                       </div>
                     </div>
@@ -335,30 +329,25 @@
                 @if (node['required_auth']['accounts'].length > 0) {
                   @for (acc of node['required_auth']['accounts']; track acc) {
                     <div>
-                      <strong
-                        class="space-right"
+                      <strong class="space-right"
                         matTooltip="weight / threshold"
-                        matTooltipClass="tooltip-bigger"
-                      >
+                        matTooltipClass="tooltip-bigger">
                         {{ acc.weight }}/{{ node.required_auth.threshold }}
                       </strong>
                       <fa-icon [icon]="icons.solid.faUser"></fa-icon>
-                      <a
-                        [routerLink]="['/account', acc.permission.actor]"
-                        class="m-left link-primary"
-                      >{{ acc.permission.actor }}</a
-                      >&#64;{{ acc["permission"].permission }}
+                      <a [routerLink]="['/account', acc.permission.actor]"
+                        class="m-left link-primary">
+                        {{ acc.permission.actor }}
+                      </a>&#64;{{ acc["permission"].permission }}
                     </div>
                   }
                 }
                 @if (node['required_auth']['waits'].length > 0) {
                   @for (waits of node['required_auth']['waits']; track waits) {
                     <div>
-                      <strong
-                        class="space-right"
+                      <strong class="space-right"
                         matTooltip="weight / threshold"
-                        matTooltipClass="tooltip-bigger"
-                      >
+                        matTooltipClass="tooltip-bigger">
                         {{ waits.weight }}/{{ node.required_auth.threshold }}
                       </strong>
                       <fa-icon [icon]="icons.solid.faClock"></fa-icon>
@@ -371,20 +360,14 @@
 
             <!-- This is the tree node template for expandable nodes -->
             <!--suppress AngularUndefinedBinding -->
-            <mat-tree-node
-              *matTreeNodeDef="let node; when: hasChild"
-              matTreeNodePadding
-            >
+            <mat-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding>
               <button mat-icon-button matTreeNodeToggle>
                 <fa-icon [ngClass]=" treeControl.isExpanded(node) ? 'arrowDown' : 'arrowRight'"
-                         [icon]="icons.solid.faChevronRight" class="arrowSize"></fa-icon>
+                         [icon]="icons.solid.faChevronRight" class="arrowSize main-color"></fa-icon>
               </button>
               <div class="permission-cell flex flex-col gap-[7px]">
                 <div>
-                  <h3
-                    class="primary"
-                    style="display: inline; letter-spacing: 0.7px"
-                  >
+                  <h3 class="primary" style="display: inline; letter-spacing: 0.7px">
                     {{ node.perm_name }}
                   </h3>
                 </div>
@@ -392,18 +375,13 @@
                   @for (key of node['required_auth']['keys']; track key) {
                     <div>
                       <div>
-                        <strong
-                          class="space-right"
-                          matTooltip="weight / threshold"
-                          matTooltipClass="tooltip-bigger"
-                        >
+                        <strong class="space-right main-color" matTooltip="weight / threshold" matTooltipClass="tooltip-bigger">
                           {{ key.weight }}/{{ node.required_auth.threshold }}
                         </strong>
-                        <fa-icon [icon]="icons.solid.faKey"></fa-icon>
-                        <a
-                          [routerLink]="['/key', key.key]"
-                          class="monospace m-left break-word link-gray"
-                        >{{ key.key }}
+                        <fa-icon [icon]="icons.solid.faKey" class="main-color"></fa-icon>
+                        <a [routerLink]="['/key', key.key]"
+                          class="monospace m-left break-word link-gray">
+                          {{ key.key }}
                         </a>
                       </div>
                     </div>
@@ -412,18 +390,12 @@
                 @if (node['required_auth']['accounts'].length > 0) {
                   @for (acc of node['required_auth']['accounts']; track acc) {
                     <div>
-                      <strong
-                        class="space-right"
-                        matTooltip="weight / threshold"
-                        matTooltipClass="tooltip-bigger"
-                      >
+                      <strong class="space-right main-color"
+                        matTooltip="weight / threshold" matTooltipClass="tooltip-bigger">
                         {{ acc.weight }} / {{ node.required_auth.threshold }}
                       </strong>
-                      <fa-icon [icon]="icons.solid.faUser"></fa-icon>
-                      <a
-                        [routerLink]="['/account', acc.permission.actor]"
-                        class="m-left link-primary"
-                      >
+                      <fa-icon [icon]="icons.solid.faUser" class="main-color"></fa-icon>
+                      <a [routerLink]="['/account', acc.permission.actor]" class="m-left link-primary">
                         {{ acc.permission.actor }}
                       </a>
                       &#64; {{ acc.permission.permission }}
@@ -433,14 +405,11 @@
                 @if (node['required_auth']['waits'].length > 0) {
                   @for (waits of node['required_auth']['waits']; track waits) {
                     <div>
-                      <strong
-                        class="space-right"
-                        matTooltip="weight / threshold"
-                        matTooltipClass="tooltip-bigger"
-                      >
+                      <strong class="space-right main-color"
+                        matTooltip="weight / threshold" matTooltipClass="tooltip-bigger">
                         {{ waits.weight }}/{{ node.required_auth.threshold }}
                       </strong>
-                      <fa-icon [icon]="icons.solid.faClock"></fa-icon>
+                      <fa-icon [icon]="icons.solid.faClock" class="main-color"></fa-icon>
                       <span class="m-left">{{ waits.wait_sec }}s</span>
                     </div>
                   }
@@ -582,9 +551,9 @@
               <td mat-cell *matCellDef="let action" data-label="Action">
                 <div class="action-cell">
                   <span class="accent font-medium pointer">{{ action["act"]["name"] }}</span>
-                  on
+                  <span class="main-color"> on </span>
                   <span [routerLink]="['/account', action['act']['account']]"
-                        class="font-medium div-link">
+                        class="font-medium div-link main-color">
                     {{ action["act"]["account"] }}
                   </span>
                 </div>

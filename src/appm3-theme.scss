@@ -167,7 +167,7 @@ html {
 
 .primary-btn.mat-mdc-raised-button:not(:disabled) {
   box-shadow:
-    -3px -1px 1px 0px inset #008dbd,
+    -3px -1px 1px 0px inset oklch(from var(--primary) calc(l - 0.09) calc(c - 0.0178) h),
   1px 1px 1px 0 inset var(--colour-bg-highlight),
   2px 3px 5px 2px var(--colour-bg-shadow);
 }
@@ -195,6 +195,9 @@ $overlay-backdrop-color: rgba(0, 0, 0, 0.8) !important;
   background-color: oklch(from var(--primary) 96% 0.021 h) !important;
 }
 
+.mdc-linear-progress__bar-inner {
+  border-color: var(--primary) !important;
+}
 
 
 
