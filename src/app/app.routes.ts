@@ -96,14 +96,6 @@ export const routes: Routes = [
 
 export const serverRoutes: ServerRoute[] = [
   {
-    path: '',
-    renderMode: RenderMode.Server
-  },
-  {
-    path: 'error',
-    renderMode: RenderMode.Prerender,
-  },
-  {
     path: '**',
     renderMode: RenderMode.Server
   }

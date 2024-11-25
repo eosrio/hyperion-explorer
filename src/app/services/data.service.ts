@@ -29,9 +29,14 @@ export abstract class DataService {
   ready = signal(false);
 
   setOrigin(hyperionServer: string, platform?: string): void {
-    const url = new URL(hyperionServer);
-    this.env.hyperionApiUrl = url.origin;
-    console.log(`(${platform}) Setting origin to:`, this.env.hyperionApiUrl);
+    try {
+      const url = new URL(hyperionServer);
+      this.env.hyperionApiUrl = url.origin;
+      console.log(`(${platform}) Setting origin to:`, this.env.hyperionApiUrl);
+    } catch (e) {
+      console.log(hyperionServer);
+      console.log('Error setting origin:', e);
+    }
   }
 }
 
@@ -48,7 +53,9 @@ export class DataServiceServer extends DataService {
 
   async load() {
     // fetch explorer metadata on server
-    await this.loadChainData();
+    if (this.env.hyperionApiUrl) {
+      await this.loadChainData();
+    }
   }
 
   async loadChainData(): Promise<void> {

@@ -21,7 +21,6 @@ export class FastifyAngularSSR {
     if (this.options.baseHref) {
       this.baseHref = this.options.baseHref;
     }
-    console.log('Base href:', this.baseHref);
     this.setup();
   }
 
@@ -45,12 +44,11 @@ export class FastifyAngularSSR {
     // Prevent SSR server handling hyperion API requests, this being called here is an error elsewhere
     this.fastify.get('/v2/*', async (req: FastifyRequest, reply: FastifyReply) => {
       console.log('Incoming request on:', req.url);
-      console.log('API request detected, skipping SSR');
+      console.error('API request detected, skipping SSR');
       reply.status(404).send('Not found');
     });
 
     this.fastify.get('/*', async (req: FastifyRequest, reply: FastifyReply) => {
-      console.log('Incoming request on:', req.url);
       const data = await this.angularApp.handle(req.raw);
       if (data) {
         // stream the response to fastify
