@@ -136,9 +136,9 @@
     border: none;
   }
 
-  /*.mat-table .mat-row:not(:last-of-type) td:last-of-type {*/
-  /*border-bottom: 0.5rem solid #e5e5e5;*/
-  /*padding-bottom: 20px !important;*/
-  /*margin-bottom: 20px;*/
-  /*}*/
+  [mat-table] [mat-row]:not(:last-of-type) td:last-of-type {
+    border-bottom: 0.5rem solid #e5e5e5;
+    padding-bottom: 1.25rem !important;
+    margin-bottom: 1.25rem;
+  }
 }

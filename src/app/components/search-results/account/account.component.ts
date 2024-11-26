@@ -1,6 +1,6 @@
 import {Component, ElementRef, inject, OnInit, PLATFORM_ID, signal, viewChild, WritableSignal} from '@angular/core';
 import {SearchService} from "../../../services/search.service";
-import {MatButton} from "@angular/material/button";
+import {MatButton, MatIconButton} from "@angular/material/button";
 import {ActivatedRoute, Router, RouterLink} from "@angular/router";
 import {MatProgressSpinner} from "@angular/material/progress-spinner";
 import {MatCardContent, MatCardHeader} from "@angular/material/card";
@@ -112,7 +112,8 @@ interface FlatNode {
     DatePipe,
     ActDataViewComponent,
     MatRipple,
-    PermissionTreeComponent
+    PermissionTreeComponent,
+    MatIconButton
   ],
   templateUrl: './account.component.html',
   styleUrls: [

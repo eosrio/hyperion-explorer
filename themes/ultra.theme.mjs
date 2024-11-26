@@ -7,4 +7,5 @@ globalThis.themeData = {
   "--main-background": "#e8e1ff",
   "--card-bg-gradient": "linear-gradient(115deg, rgb(255 255 255 / 50%) 0%, rgb(255 255 255 / 70%) 50%, rgb(255 255 255 / 50%) 100%)",
   "--main-text": "#141519",
+  "--footer-text": "#978cb0"
 }

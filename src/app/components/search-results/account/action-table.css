@@ -16,7 +16,7 @@
   letter-spacing: 0.5px;
   text-align: center;
   width: max-content;
-  border: 1px solid #e1e1e1;
+  border: 1px solid var(--line-divider);
   border-radius: 0.188rem;
   padding: 0.188rem 0.313rem;
 }

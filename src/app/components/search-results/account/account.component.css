@@ -28,6 +28,13 @@
 
 .custom-card .mat-expansion-panel {
   background-color: transparent;
+  /*border: 1px solid var(--line-divider);*/
+  box-shadow: none;
+  border-radius: 0.5rem;
+}
+
+.custom-card .mat-expansion-panel.mat-expanded {
+  border: 1px solid var(--line-divider);
 }
 
 .actions-table {
@@ -68,6 +75,8 @@
 
 .vote-card .mat-expansion-panel-header {
   padding-left: 0.938rem;
+  height: auto;
+  min-height: var(--mat-expansion-header-collapsed-state-height);
 }
 
 .vote-card-title {
@@ -181,4 +190,11 @@
 .link-btn:hover {
   color: oklch(from var(--faded) 52% c h);
   transition: color 0.7s;
+}
+
+.small-arrow-btn {
+  height: 36px;
+  width: 36px;
+  min-height: unset;
+  padding: 0;
 }

@@ -16,6 +16,7 @@ import {LayoutTransitionComponent} from "../../components/layout-transition/layo
 import {animate, scroll} from "motion";
 import {BreakpointObserver, Breakpoints} from "@angular/cdk/layout";
 import {ThemeSelectorComponent} from "../../components/theme-selector/theme-selector.component";
+import {faGithub, faTelegram} from "@fortawesome/free-brands-svg-icons";
 
 
 @Component({
@@ -54,6 +55,10 @@ export class MainSearchComponent implements OnInit {
     solid: {
       search: faSearch,
       heart: faHeart
+    },
+    brand: {
+      github: faGithub,
+      telegram: faTelegram
     }
   }
 

@@ -43,7 +43,7 @@
       </div>
 
       <!-- ACCOUNT BALANCE -->
-      <div class="custom-card" id="balance-card">
+      <div #balanceCard class="custom-card" id="balance-card">
         <div class="flex-auto mt-2 flex flex-col justify-start items-start min-h-full">
 
           <!-- total balance-->
@@ -280,23 +280,33 @@
       @let voterInfo = acServ.accountComputed().voter_info;
       @if (voterInfo && (voterInfo.proxy || voterInfo.producers.length > 0)) {
         <mat-accordion class="custom-card w-full vote-card md:col-span-3 text-black">
-          <mat-expansion-panel
-            [disabled]="voterInfo.producers.length <= 0"
-            [hideToggle]="voterInfo.producers.length <= 0">
+          <mat-expansion-panel #voteExpansionPanel [disabled]="voterInfo.producers.length <= 0"
+                               [hideToggle]="voterInfo.producers.length <= 1">
+            <!--            -->
+            <!--            -->
             <mat-expansion-panel-header>
-              <div class="flex flex-row justify-center w-full">
-                <mat-panel-title>
-                  <h3 class="vote-card-title mb-0">
-                    <fa-layers [fixedWidth]="true" style="margin-right: 5px">
+              <div class="flex flex-row flex-wrap w-full gap-5">
+                <mat-panel-title class="w-auto" style="flex-grow: 0 !important;">
+                  <div class="flex flex-row items-center gap-2 text-xl">
+                    @if (voterInfo.producers.length > 1) {
+                      <button mat-icon-button class="small-arrow-btn" >
+                        <div class="flex flex-col justify-center items-center">
+                          <fa-icon [ngClass]="voteExpansionPanel.expanded ? 'arrowDown' : 'arrowRight'"
+                                   [icon]="icons.solid.faChevronRight"
+                                   class="arrowSize main-color"></fa-icon>
+                        </div>
+                      </button>
+                    }
+                    <fa-layers [fixedWidth]="true">
                       <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
                       <fa-icon [icon]="icons.solid.faVote" [inverse]="true" transform="shrink-4"></fa-icon>
                     </fa-layers>
-                    Votes
-                  </h3>
+                    <div class="vote-card-title mb-0">Votes</div>
+                  </div>
                 </mat-panel-title>
-                <mat-panel-description>
+                <mat-panel-description class="grow">
                   @if (voterInfo) {
-                    <div>
+                    <div class="w-full">
                       {{ acServ.accountComputed().account_name }} is voting in
                       @if (voterInfo.proxy) {
                         <span>proxy
@@ -306,7 +316,7 @@
                       } @else {
                         @if (voterInfo.producers.length > 0) {
                           <span>
-                            <strong>{{ voterInfo.producers.length }}</strong>producer@if (voterInfo.producers.length > 1) {
+                            <strong>{{ voterInfo.producers.length }}</strong> producer@if (voterInfo.producers.length > 1) {
                             <span>s</span>
                           }
                           </span>

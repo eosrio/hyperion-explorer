@@ -27,6 +27,7 @@
   --main-background: #d2e1f8;
   --main-text: #141519;
   --container-width: 1302px;
+  --footer-text: #64748b;
 
   /*Neomorphism*/
   --colour-bg-shadow: rgb(200, 200, 220);
@@ -148,7 +149,8 @@ body {
 /*container responsive start*/
 .hr-container {
   margin: 0 auto;
-  padding: 0 2rem 0;
+  padding-left: 2rem;
+  padding-right: 2rem;
 }
 
 .container {
@@ -229,7 +231,7 @@ body {
 
 .div-link:hover {
   color: oklch(from var(--main-text) 60% c h);
-  transition: color 0.7s;
+  transition: color 0.7s ease;
 }
 
 .link-gray {
@@ -244,7 +246,7 @@ body {
 .link-primary:hover {
   color: oklch(from var(--primary) 50% c h);
   /*font-weight: 500;*/
-  transition: color 0.7s;
+  transition: color 0.7s ease;
   /*text-decoration: underline;*/
 }
 
@@ -254,7 +256,7 @@ body {
 
 .link-accent:hover {
   color: oklch(from var(--accent) 50% c h);
-  transition: color 0.7s;
+  transition: color 0.7s ease;
 }
 
 /*Appear animation START*/

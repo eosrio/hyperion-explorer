@@ -6,4 +6,5 @@ globalThis.themeData = {
   "--faded": "#969d98",
   "--main-background": "radial-gradient(ellipse 80% 500%, #e5f7f1, #83c1b2)",
   "--main-text": "#141519",
+  "--footer-text": "#7c9b89"
 }

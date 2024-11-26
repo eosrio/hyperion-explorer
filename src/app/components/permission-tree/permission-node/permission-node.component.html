@@ -6,9 +6,11 @@
                [icon]="icons.solid.faChevronRight"
                class="arrowSize main-color"></fa-icon>
     </button>
+  } @else {
+    <div class="w-[3rem] min-w-[3rem]" style="width: 3rem"></div>
   }
 
-  <div @reveal class="permission-cell flex flex-col gap-[7px]">
+  <div @reveal class="permission-cell flex flex-col gap-1.5">
 
     <div>
       <h3 class="primary" style="display: inline; letter-spacing: 0.7px">
@@ -63,7 +65,7 @@
 
 @if (expanded()) {
   @for (childNode of children(); track childNode.perm_name) {
-    <div>
+    <div [ngClass]="{'ml-7': level() > 0}">
       <app-permission-node [expanded]="false" [level]="level() + 1" [node]="childNode"></app-permission-node>
     </div>
   }

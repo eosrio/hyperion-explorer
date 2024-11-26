@@ -47,7 +47,7 @@
   </div>
 </app-layout-transition>
 
-
+<!--<div class="flex flex-row h-full">-->
 <div id="layout-container" class="w-full h-full flex flex-col justify-between">
 
   <!--  <div class="">-->
@@ -102,14 +102,27 @@
   </div>
   <!--  </div>-->
 
-  <div id="content-container" class="flex flex-col justify-center pb-10 w-full">
+  <div id="content-container" class="flex flex-col justify-between pb-10 w-full grow">
     <router-outlet></router-outlet>
-    <div class="text-slate-500 my-4 place-self-center">v{{ version }} | Made with
-      <fa-icon (click)="showThemeSelector.set(!showThemeSelector())" [icon]="icons.solid.heart"></fa-icon>
-      by EOS Rio | RioBlocks
+    <div class="flex md:flex-row flex-col justify-between items-center hr-container w-full pt-4 gap-4">
+      <div class="w-[4.383rem]"></div>
+      <div class="footer-color justify-self-center">v{{ version }} | Made with
+        <fa-icon (click)="showThemeSelector.set(!showThemeSelector())" [icon]="icons.solid.heart"></fa-icon>
+        by EOS Rio | RioBlocks
+      </div>
+      <div class="flex flex-row items-center gap-3">
+        <a class="icon-link" href="https://github.com/eosrio/hyperion-explorer" target="_blank">
+          <fa-icon [icon]="icons.brand.github" class="text-xl " size="xl"></fa-icon>
+        </a>
+        <a class="icon-link" href="https://t.me/EOSHyperion" target="_blank">
+          <fa-icon [icon]="icons.brand.telegram" class="text-xl" size="xl"></fa-icon>
+        </a>
+      </div>
     </div>
+
     @if (showThemeSelector()) {
       <app-theme-selector></app-theme-selector>
     }
   </div>
 </div>
+<!--</div>-->

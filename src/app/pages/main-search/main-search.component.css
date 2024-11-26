@@ -139,3 +139,16 @@
   max-height:100%;
   max-width:100%;
 }
+
+.footer-color {
+  color: var(--footer-text);
+}
+
+.icon-link {
+  color: oklch(from var(--footer-text) calc(l + 0.05) c h);;
+}
+
+.icon-link:hover {
+  color: var(--footer-text);
+  transition: color .3s ease;
+}
