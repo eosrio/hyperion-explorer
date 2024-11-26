@@ -10,19 +10,13 @@
 }
 
 .action-cell {
-  /*padding: 5px 10px;*/
   font-size: 0.813rem; /*13px*/
   letter-spacing: 0.5px;
   text-align: center;
   width: max-content;
-  border: 1px solid #e1e1e1;
+  border: 1px solid var(--line-divider);
   border-radius: 0.188rem;
   padding: 0.188rem 0.313rem;
-}
-
-
-.data-item {
-  padding-bottom: 4px;
 }
 
 @media (max-width: 960px) {
@@ -114,18 +108,8 @@
     text-align: left;
     font-size: 12px;
     font-weight: 500;
-    color: rgba(0, 0, 0, 0.54);
+    color: var(--main-text);
   }
-
-  /*[mat-table] [mat-row] td.mat-column-actions {*/
-  /*  display: flex;*/
-  /*  justify-content: center;*/
-  /*  padding: 0 0.5rem;*/
-  /*}*/
-
-  /*[mat-table] [mat-row] td.mat-column-actions>button {*/
-  /*  margin: 0.5rem 0;*/
-  /*}*/
 
   [mat-table] [mat-row]:last-of-type td:last-of-type {
     border: none;
