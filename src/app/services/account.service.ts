@@ -1,21 +1,21 @@
 import {
   computed,
+  effect,
   inject,
-  Injectable,
-  PLATFORM_ID,
+  Injectable, linkedSignal,
   resource,
   ResourceLoaderParams,
   ResourceRef,
-  signal
+  signal,
+  WritableSignal
 } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
-import {AccountCreationData, AccountData, GetAccountResponse, TokenData} from '../interfaces';
+import {AccountCreationData, AccountData, GetAccountResponse, GetActionsResponse, TokenData} from '../interfaces';
 // import {HyperionStreamClient} from '@eosrio/hyperion-stream-client';
 import {PaginationService} from "./pagination.service";
-import {lastValueFrom, Observable} from "rxjs";
-import {isPlatformBrowser} from "@angular/common";
+import {lastValueFrom, Observable, of} from "rxjs";
 import {DataService} from "./data.service";
-import {toObservable} from "@angular/core/rxjs-interop";
+import {rxResource, toObservable} from "@angular/core/rxjs-interop";
 import {convertMicroS, getPrecision, getSymbol} from "../utils";
 
 interface HealthResponse {
@@ -28,36 +28,21 @@ interface HealthResponse {
   };
 }
 
+export interface ActionFilterSpec {
+  name: string;
+  exec: (params: WritableSignal<Record<string, string> | undefined>) => void;
+}
+
 @Injectable({providedIn: 'root'})
 export class AccountService {
 
   private data = inject(DataService);
   private httpClient = inject(HttpClient);
   private pagService = inject(PaginationService);
-  platformId = inject(PLATFORM_ID);
-
-  jsonData: any;
-
-  account: any = {
-    cpu_limit: {
-      used: 1,
-      max: 1
-    },
-    net_limit: {
-      used: 1,
-      max: 1
-    }
-  };
 
   emptyAccount: AccountData & any = {
-    cpu_limit: {
-      used: 1,
-      max: 1
-    },
-    net_limit: {
-      used: 1,
-      max: 1
-    }
+    cpu_limit: {used: 1, max: 1},
+    net_limit: {used: 1, max: 1}
   };
 
   actions: any[] = [];
@@ -73,13 +58,75 @@ export class AccountService {
   // signals
   public loaded = signal(false);
   public accountName = signal("");
+  public customParams = signal<Record<string, string> | undefined>(undefined);
+
+  filter = signal<ActionFilterSpec | null>(null);
+
+  commonFilters: ActionFilterSpec[] = [
+    // received transfers
+    {
+      name: 'Incoming Transfers',
+      exec: (params) => {
+        params.set({
+          '@transfer.to': this.accountName()
+        });
+      }
+    },
+    // sent transfers
+    {
+      name: 'Outgoing Transfers',
+      exec: (params) => {
+        params.set({
+          '@transfer.from': this.accountName()
+        });
+      }
+    }
+  ];
+
+  accountActions: any[] = [];
+
+  // actions Resource
+  public actionRes = rxResource<GetActionsResponse, {
+    accountName: string,
+    customParams?: Record<string, string>
+  }>({
+    request: () => {
+      return {
+        accountName: this.accountName(),
+        customParams: this.customParams()
+      };
+    },
+    loader: (param) => {
+      const cp = param.request.customParams;
+      if (cp) {
+        const query = new URLSearchParams();
+        for (const key in cp) {
+          if (cp.hasOwnProperty(key)) {
+            console.log(`Setting ${key} to ${cp[key]}`);
+            query.set(key, cp[key]);
+          }
+        }
+        const url = this.data.env.hyperionApiUrl + '/v2/history/get_actions?' + query.toString();
+        return this.httpClient.get(url) as Observable<GetActionsResponse>;
+      } else {
+        return of({actions: []} as unknown as GetActionsResponse);
+      }
+    }
+  });
 
   // accountData Resource
-  public accountDataRes: ResourceRef<GetAccountResponse | null> = resource<GetAccountResponse | null, string>({
-    request: () => this.accountName(),
-    loader: async (param: ResourceLoaderParams<string>): Promise<GetAccountResponse | null> => {
+  public accountDataRes: ResourceRef<GetAccountResponse | null> = resource<GetAccountResponse | null, {
+    accountName: string,
+  }>({
+    request: () => {
+      return {
+        accountName: this.accountName(),
+      }
+    },
+    loader: async (param: ResourceLoaderParams<{ accountName: string }>): Promise<GetAccountResponse | null> => {
       if (param.request) {
-        const url = this.data.env.hyperionApiUrl + '/v2/state/get_account?account=' + param.request;
+        const account = param.request.accountName;
+        const url = this.data.env.hyperionApiUrl + '/v2/state/get_account?account=' + account;
         return await lastValueFrom(this.httpClient.get(url)) as GetAccountResponse;
       } else {
         return null;
@@ -96,8 +143,29 @@ export class AccountService {
     return this.accountDataRes.value()?.account ?? this.emptyAccount;
   });
 
-  public actionsComputed = computed(() => {
-    return this.accountDataRes.value()?.actions ?? [];
+  public actionsComputed = linkedSignal<any, any[]>({
+    source: () => {
+      return {
+        accountActions: this.accountDataRes.value()?.actions ?? [],
+        filteredActions: this.actionRes.value()?.actions ?? [],
+        activeFilter: this.filter()
+      };
+    },
+    computation: (source, previous) => {
+      if (source.filteredActions && source.activeFilter) {
+        if (source.filteredActions.length > 0) {
+          return source.filteredActions;
+        } else {
+          return previous?.value ?? [];
+        }
+      } else {
+        if (source.accountActions.length > 0) {
+          return source.accountActions;
+        } else {
+          return previous?.value ?? [];
+        }
+      }
+    }
   });
 
   public userResPct = computed(() => {
@@ -218,8 +286,9 @@ export class AccountService {
     //   console.log('accountComputed:', this.accountComputed());
     // });
     //
+    
     // effect(() => {
-    //   console.log('actionsComputed:', this.actionsComputed());
+    //   console.log('actions:', this.actionsComputed());
     // });
 
     const baseUrl = this.data.env.hyperionApiUrl;
@@ -357,42 +426,42 @@ export class AccountService {
   //   };
   // }
 
-  async loadAccountData(accountName: string): Promise<boolean> {
-    this.loaded.set(false);
-    if (accountName.length > 13) {
-      console.error(`Account name (${accountName}) is invalid`);
-      return false;
-    }
-    console.log('Loading account data for: ' + accountName);
-    try {
-      const url = this.data.env.hyperionApiUrl + '/v2/state/get_account?account=' + accountName;
-      console.log(url);
-      this.jsonData = await lastValueFrom(this.httpClient.get(url)) as GetAccountResponse;
-
-      if (this.jsonData.account) {
-        this.account = this.jsonData.account;
-      }
-
-      if (this.jsonData.actions) {
-        this.actions = this.jsonData.actions;
-        if (isPlatformBrowser(this.platformId)) {
-          this.checkIrreversibility().catch(console.log);
-        }
-      }
-
-      if (this.jsonData.total_actions) {
-        this.pagService.totalItems = this.jsonData.total_actions;
-      }
-
-      this.loaded.set(true);
-      return true;
-    } catch (error: any) {
-      console.log(error.message);
-      this.jsonData = null;
-      this.loaded.set(true);
-      return false;
-    }
-  }
+  // async loadAccountData(accountName: string): Promise<boolean> {
+  //   this.loaded.set(false);
+  //   if (accountName.length > 13) {
+  //     console.error(`Account name (${accountName}) is invalid`);
+  //     return false;
+  //   }
+  //   console.log('Loading account data for: ' + accountName);
+  //   try {
+  //     const url = this.data.env.hyperionApiUrl + '/v2/state/get_account?account=' + accountName;
+  //     console.log(url);
+  //     this.jsonData = await lastValueFrom(this.httpClient.get(url)) as GetAccountResponse;
+  //
+  //     if (this.jsonData.account) {
+  //       this.account = this.jsonData.account;
+  //     }
+  //
+  //     if (this.jsonData.actions) {
+  //       this.actions = this.jsonData.actions;
+  //       if (isPlatformBrowser(this.platformId)) {
+  //         this.checkIrreversibility().catch(console.log);
+  //       }
+  //     }
+  //
+  //     if (this.jsonData.total_actions) {
+  //       this.pagService.totalItems = this.jsonData.total_actions;
+  //     }
+  //
+  //     this.loaded.set(true);
+  //     return true;
+  //   } catch (error: any) {
+  //     console.log(error.message);
+  //     this.jsonData = null;
+  //     this.loaded.set(true);
+  //     return false;
+  //   }
+  // }
 
   async loadMoreActions(): Promise<void> {
     const accountName = this.accountName();
@@ -496,4 +565,9 @@ export class AccountService {
   //         this.streamClientStatus = false;
   //     }
   // }
+
+  setFilter(filter: ActionFilterSpec): void {
+    this.filter.set(filter);
+    filter?.exec(this.customParams);
+  }
 }

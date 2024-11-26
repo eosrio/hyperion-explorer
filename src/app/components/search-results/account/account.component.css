@@ -26,10 +26,6 @@
   margin-top: 0.625rem;
 }
 
-.keys-tree {
-  background-color: transparent;
-}
-
 .custom-card .mat-expansion-panel {
   background-color: transparent;
 }
@@ -63,14 +59,6 @@
   font-size: 1.25rem; /*20px*/
   color: var(--primary);
   font-weight: 500;
-}
-
-.permission-cell {
-  border-bottom: 1px solid var(--line-divider);
-  border-left: 1px solid var(--line-divider);
-  border-radius: 0 0 0 0.313rem;
-  padding: 0.625rem 0 0.5rem 0.5rem;
-  width: 100%;
 }
 
 .monospace {
@@ -156,10 +144,6 @@
     -moz-box-shadow: 0 0 0 0 rgba(204, 169, 44, 0);
     box-shadow: 0 0 0 0 rgba(204, 169, 44, 0);
   }
-}
-
-::ng-deep .tooltip-bigger {
-  font-size: 13px;
 }
 
 .mat-expansion-panel-header[aria-disabled=true] {

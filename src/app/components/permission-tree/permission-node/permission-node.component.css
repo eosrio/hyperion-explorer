@@ -1,0 +1,16 @@
+.permission-cell {
+  border-bottom: 1px solid var(--line-divider);
+  border-left: 1px solid var(--line-divider);
+  border-radius: 0 0 0 0.313rem;
+  padding: 0.625rem 0 0.5rem 0.5rem;
+  width: 100%;
+}
+
+.monospace {
+  font-family: 'Courier Prime', monospace;
+  font-size: 1rem; /*16px*/
+}
+
+:host .tooltip-bigger {
+  font-size: 13px;
+}

@@ -1,0 +1,70 @@
+<div class="flex flex-row">
+
+  @if (children().length > 0) {
+    <button mat-icon-button (click)="toggleExpansion()">
+      <fa-icon [ngClass]="expanded() ? 'arrowDown' : 'arrowRight'"
+               [icon]="icons.solid.faChevronRight"
+               class="arrowSize main-color"></fa-icon>
+    </button>
+  }
+
+  <div @reveal class="permission-cell flex flex-col gap-[7px]">
+
+    <div>
+      <h3 class="primary" style="display: inline; letter-spacing: 0.7px">
+        {{ node().perm_name }}
+      </h3>
+    </div>
+
+    @let reqAuth = node().required_auth;
+
+    @if (reqAuth.keys.length > 0) {
+      @for (key of reqAuth.keys; track key.key) {
+        <div>
+          <div>
+            <strong class="main-color" matTooltip="weight / threshold" matTooltipClass="tooltip-bigger">
+              {{ key.weight }} / {{ reqAuth.threshold }}
+            </strong>
+            <fa-icon [icon]="icons.solid.faKey" class="main-color"></fa-icon>
+            <a [routerLink]="['/key', key.key]" class="monospace break-word link-gray">
+              {{ key.key }}
+            </a>
+          </div>
+        </div>
+      }
+    }
+    @if (reqAuth.accounts && reqAuth.accounts.length > 0) {
+      @for (acc of reqAuth.accounts; track acc.permission.permission + acc.permission.actor) {
+        <div>
+          <strong class="main-color" matTooltip="weight / threshold" matTooltipClass="tooltip-bigger">
+            {{ acc.weight }} / {{ reqAuth.threshold }}
+          </strong>
+          <fa-icon [icon]="icons.solid.faUser" class="main-color"></fa-icon>
+          <a [routerLink]="['/account', acc.permission.actor]" class="link-primary">
+            {{ acc.permission.actor }}
+          </a>
+          &#64; {{ acc.permission.permission }}
+        </div>
+      }
+    }
+    @if (reqAuth.waits && reqAuth.waits.length > 0) {
+      @for (waits of reqAuth.waits; track waits.wait_sec) {
+        <div>
+          <strong class="main-color" matTooltip="weight / threshold" matTooltipClass="tooltip-bigger">
+            {{ waits.weight }} / {{ reqAuth.threshold }}
+          </strong>
+          <fa-icon [icon]="icons.solid.faClock" class="main-color"></fa-icon>
+          <span>{{ waits.wait_sec }}s</span>
+        </div>
+      }
+    }
+  </div>
+</div>
+
+@if (expanded()) {
+  @for (childNode of children(); track childNode.perm_name) {
+    <div>
+      <app-permission-node [expanded]="false" [level]="level() + 1" [node]="childNode"></app-permission-node>
+    </div>
+  }
+}

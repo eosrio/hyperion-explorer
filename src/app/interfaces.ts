@@ -21,6 +21,7 @@ export interface TokenData {
 export interface AccountData {
   account_name: string;
   core_liquid_balance: string;
+  permissions: Permission[],
   cpu_limit: {
     used: number;
     max: number;
@@ -55,6 +56,19 @@ export interface GetAccountResponse {
   actions: any[];
   tokens: any[];
   links: any[];
+}
+
+export interface GetActionsResponse {
+  actions: any[];
+  lib: number;
+  cached: boolean;
+  last_indexed_block: number;
+  last_indexed_block_time: string;
+  query_time_ms: number;
+  total: {
+    value: number;
+    relation: string;
+  }
 }
 
 export interface TableData {
@@ -109,3 +123,39 @@ export interface ContractExplorerData {
   table: string;
   scope: string;
 }
+
+export interface Permission {
+  expanded: boolean;
+  perm_name: string;
+  parent: string;
+  required_auth: RequiredAuth;
+  children?: Permission[];
+}
+
+export interface RequiredAuth {
+  threshold: number;
+  keys: Keys[];
+  accounts?: Account[];
+  waits?: Waits[];
+}
+
+export interface Keys {
+  key: string;
+  weight: number;
+}
+
+export interface Account {
+  permission: Perm;
+  weight: number;
+}
+
+export interface Perm {
+  actor: string;
+  permission: string;
+}
+
+export interface Waits {
+  wait_sec: number;
+  weight: number;
+}
+

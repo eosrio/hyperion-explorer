@@ -18,7 +18,6 @@ export class AppComponent {
   constructor() {
     toObservable(this.ds.ready).subscribe(ready => {
       if (ready && isPlatformBrowser(this.platformId)) {
-        console.log('Data service is ready');
         const loader = document.getElementById('global-loader');
         if (loader) {
           // fade out the loader then remove

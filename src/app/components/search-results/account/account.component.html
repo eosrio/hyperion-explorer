@@ -1,590 +1,480 @@
 <!--LOADER-->
-@if (!acServ.loaded()) {
+@if (acServ.accountDataRes.isLoading()) {
   <div class="hr-container flex flex-row justify-center items-center">
     <mat-progress-spinner [diameter]="45" mode="indeterminate" color="primary"></mat-progress-spinner>
   </div>
 }
 
-
 <!--MAIN CONTENT-->
 <div class="hr-container">
+  @if (acServ.accountDataRes.value()) {
+    @let systemSymbol = acServ.systemSymbol();
+    @let systemPrecision = acServ.systemPrecision();
 
-  @if (acServ.loaded()) {
+    <div id="account-content" class="grid grid-cols-1 md:grid-cols-3 auto-cols-max gap-5 text-black appear">
+      <!-- ACCOUNT NAME-->
+      <div id="account-name-sticky"
+           class="custom-card card-top-sticky bg-no-transparency w-full md:col-span-3 sticky z-40">
+        <mat-card-header>
+          <div class="flex flex-row flex-wrap justify-between items-center w-full">
+            <div class="flex flex-row items-center gap-3">
+              <div class="text-2xl acc-title flex flex-row items-center gap-3">
 
-    @if (acServ.accountDataRes.value()) {
-
-      @let systemSymbol = acServ.systemSymbol();
-      @let systemPrecision = acServ.systemPrecision();
-
-      <div id="account-content" class="grid grid-cols-1 md:grid-cols-3 auto-cols-max gap-5 text-black appear">
-        <!-- ACCOUNT NAME-->
-        <div #AccNameSticky id="account-name-sticky"
-             class="custom-card card-top-sticky bg-no-transparency w-full md:col-span-3 sticky z-40">
-          <mat-card-header>
-            <div class="flex flex-row flex-wrap justify-between items-center w-full">
-              <div class="flex flex-row items-center gap-3">
-                <div class="text-2xl acc-title flex flex-row items-center gap-3">
-
-                  @if (acServ.accountComputed().privileged) {
-                    <fa-layers matTooltip="System Account (privileged)" [fixedWidth]="true">
-                      <fa-icon [icon]="icons.solid.faShield" transform="grow-3"></fa-icon>
-                      <fa-icon [icon]="icons.solid.faCheck" [inverse]="true" transform="shrink-5"></fa-icon>
-                    </fa-layers>
-                  } @else {
-                    <fa-icon [icon]="icons.solid.faUserCircle"></fa-icon>
-                  }
-                  <div>{{ acServ.accountComputed().account_name }}</div>
-                </div>
-                <div id="totalBalance" class="font-medium faded text-[0.938rem] mt-1 opacity-0">
-                  {{ acServ.totalBalance() | number: "1.0-" + systemPrecision }}
-                  {{ systemSymbol }}
-                </div>
+                @if (acServ.accountComputed().privileged) {
+                  <fa-layers matTooltip="System Account (privileged)" [fixedWidth]="true">
+                    <fa-icon [icon]="icons.solid.faShield" transform="grow-3"></fa-icon>
+                    <fa-icon [icon]="icons.solid.faCheck" [inverse]="true" transform="shrink-5"></fa-icon>
+                  </fa-layers>
+                } @else {
+                  <fa-icon [icon]="icons.solid.faUserCircle"></fa-icon>
+                }
+                <div>{{ acServ.accountComputed().account_name }}</div>
               </div>
-              <button (click)="openContractsDialog(null,null)" mat-raised-button>
-                Explore Smart Contract
-              </button>
-            </div>
-          </mat-card-header>
-        </div>
-
-        <!-- ACCOUNT BALANCE -->
-        <div #balanceCard class="custom-card" id="balance-card">
-          <div class="flex-auto mt-2 flex flex-col justify-start items-start min-h-full">
-
-            <!-- total balance-->
-            <div class="total-balance w-full">
-              <strong class="uppercase font-bold text-[0.938rem]">Total Balance: </strong>
-              <span class="float-right font-semibold text-[0.938rem]">
+              <div id="totalBalance" class="font-medium faded text-[0.938rem] mt-1 opacity-0">
                 {{ acServ.totalBalance() | number: "1.0-" + systemPrecision }}
                 {{ systemSymbol }}
-              </span>
+              </div>
             </div>
+            <button (click)="openContractsDialog(null,null)" mat-raised-button>
+              Explore Smart Contract
+            </button>
+          </div>
+        </mat-card-header>
+      </div>
 
-            <!-- liquid balance-->
-            <div class="mb-1.5 w-full">
-              <strong class="font-semibold">Liquid Balance: </strong>
-              <span class="float-right">
+      <!-- ACCOUNT BALANCE -->
+      <div class="custom-card" id="balance-card">
+        <div class="flex-auto mt-2 flex flex-col justify-start items-start min-h-full">
+
+          <!-- total balance-->
+          <div class="total-balance w-full">
+            <strong class="uppercase font-bold text-[0.938rem]">Total Balance: </strong>
+            <span class="float-right font-semibold text-[0.938rem]">
+                {{ acServ.totalBalance() | number: "1.0-" + systemPrecision }}
+              {{ systemSymbol }}
+              </span>
+          </div>
+
+          <!-- liquid balance-->
+          <div class="mb-1.5 w-full">
+            <strong class="font-semibold">Liquid Balance: </strong>
+            <span class="float-right">
                 {{ acServ.liquidBalance() | number: "1.0-" + systemPrecision }}
-                {{ systemSymbol }}
+              {{ systemSymbol }}
               </span>
-            </div>
+          </div>
 
-            <!-- staked balance-->
-            <div class="mb-1.5 w-full">
-              <strong class="font-semibold">Staked Balance: </strong>
-              <span class="float-right">
+          <!-- staked balance-->
+          <div class="mb-1.5 w-full">
+            <strong class="font-semibold">Staked Balance: </strong>
+            <span class="float-right">
                 {{ acServ.myStakedBalance() | number: "1.0-" + systemPrecision }}
-                {{ systemSymbol }}
+              {{ systemSymbol }}
               </span>
-            </div>
+          </div>
 
-            <!-- refunding balance-->
-            <div class="w-full">
-              <strong class="font-semibold">Refunding: </strong>
-              <span class="float-right">
+          <!-- refunding balance-->
+          <div class="w-full">
+            <strong class="font-semibold">Refunding: </strong>
+            <span class="float-right">
                 {{ acServ.refundBalance() | number: "1.0-" + systemPrecision }}
-                {{ systemSymbol }}
+              {{ systemSymbol }}
               </span>
-            </div>
+          </div>
 
-            <!-- creation data -->
-            <div class="w-full" style="margin-top: 12px">
+          <!-- creation data -->
+          <div class="w-full" style="margin-top: 12px">
 
-              @if (creationData()) {
+            @if (creationData()) {
 
-                @if (creationData().creator) {
-                  <div class="mt-2 w-full">
-                    <strong class="font-medium">Created by: </strong>
-                    <a [routerLink]="['/account', creationData().creator]" class="float-right link-gray">
-                      {{ creationData().creator }}
-                    </a>
-                  </div>
-                }
+              @if (creationData().creator) {
+                <div class="mt-2 w-full">
+                  <strong class="font-medium">Created by: </strong>
+                  <a [routerLink]="['/account', creationData().creator]" class="float-right link-gray">
+                    {{ creationData().creator }}
+                  </a>
+                </div>
+              }
 
-                @if (creationData().timestamp) {
-                  <div class="mt-2 w-full">
-                    <span class="font-medium">Created on: </span>
-                    <span class="float-right">
+              @if (creationData().timestamp) {
+                <div class="mt-2 w-full">
+                  <span class="font-medium">Created on: </span>
+                  <span class="float-right">
                         {{ creationData().timestamp | date: "medium" }}
                       </span>
-                  </div>
-                }
+                </div>
               }
-
-            </div>
+            }
 
           </div>
+
         </div>
+      </div>
 
-        <!-- ACCOUNT RESOURCES, CPU, NET AND RAM -->
-        <div class="custom-card md:col-span-2">
-          <mat-card-content>
-            <div class="flex flex-row flex-wrap justify-start items-start flex-grow gap-10">
+      <!-- ACCOUNT RESOURCES, CPU, NET AND RAM -->
+      <div class="custom-card md:col-span-2">
+        <mat-card-content>
+          <div class="flex flex-row flex-wrap justify-start items-start flex-grow gap-10">
 
-              <!--CPU-->
-              <div class="w-full lg:w-[50%]">
+            <!--CPU-->
+            <div class="w-full lg:w-[50%]">
 
-                <div>
-                  <span class="title">CPU</span>
-                  @if (acServ.accountComputed().cpu_limit.max === -1) {
-                    <span class="faded ml-2">unlimited</span>
-                  } @else {
-                    <span class="faded ml-2">{{ acServ.userResPct().cpu | number: "1.0-2" }}% used</span>
-                  }
-                  <span class="mt-2 float-right">{{ acServ.userResPct().cpuStr }}</span>
-                </div>
+              <div>
+                <span class="title">CPU</span>
+                @if (acServ.accountComputed().cpu_limit.max === -1) {
+                  <span class="faded ml-2">unlimited</span>
+                } @else {
+                  <span class="faded ml-2">{{ acServ.userResPct().cpu | number: "1.0-2" }}% used</span>
+                }
+                <span class="mt-2 float-right">{{ acServ.userResPct().cpuStr }}</span>
+              </div>
 
-                <mat-progress-bar class="mt-2.5" mode="determinate" [value]="acServ.userResPct().cpu">
-                </mat-progress-bar>
+              <mat-progress-bar class="mt-2.5" mode="determinate" [value]="acServ.userResPct().cpu">
+              </mat-progress-bar>
 
-                <div class="small-info">
+              <div class="small-info">
 
-                  <div class="mb-1 faded">
-                    <span>Self-staked:</span>
-                    <span class="float-right">
+                <div class="mb-1 faded">
+                  <span>Self-staked:</span>
+                  <span class="float-right">
                       {{ acServ.myCpuBalance() | number: "1.0-" + systemPrecision }}
-                      {{ systemSymbol }}
+                    {{ systemSymbol }}
                     </span>
-                  </div>
+                </div>
 
-                  <div class="mb-1 faded">
-                    <span>Staked by others:</span>
-                    <span class="float-right">
+                <div class="mb-1 faded">
+                  <span>Staked by others:</span>
+                  <span class="float-right">
                       {{ acServ.cpuByOthers() | number: "1.0-" + systemPrecision }}
-                      {{ systemSymbol }}
+                    {{ systemSymbol }}
                     </span>
-                  </div>
+                </div>
 
-                  <div class="faded">
-                    <span>Total in CPU:</span>
-                    <span class="float-right">
+                <div class="faded">
+                  <span>Total in CPU:</span>
+                  <span class="float-right">
                       {{ acServ.cpuBalance() | number: "1.0-" + systemPrecision }}
-                      {{ systemSymbol }}
+                    {{ systemSymbol }}
                     </span>
-                  </div>
                 </div>
               </div>
+            </div>
 
-              <!--NET-->
-              <div class="grow">
-                <div>
-                  <span class="title">NET</span>
-                  @if (acServ.accountComputed().net_limit.max === -1) {
-                    <span class="faded ml-2">unlimited</span>
-                  } @else {
-                    <span class="faded ml-2">{{ acServ.userResPct().net | number: "1.0-2" }}% used</span>
-                  }
-                  <span class="mt-2 float-right">{{ acServ.userResPct().netStr }}</span>
-                </div>
+            <!--NET-->
+            <div class="grow">
+              <div>
+                <span class="title">NET</span>
+                @if (acServ.accountComputed().net_limit.max === -1) {
+                  <span class="faded ml-2">unlimited</span>
+                } @else {
+                  <span class="faded ml-2">{{ acServ.userResPct().net | number: "1.0-2" }}% used</span>
+                }
+                <span class="mt-2 float-right">{{ acServ.userResPct().netStr }}</span>
+              </div>
 
-                <mat-progress-bar class="mt-2.5" mode="determinate" [value]="acServ.userResPct().net">
-                </mat-progress-bar>
+              <mat-progress-bar class="mt-2.5" mode="determinate" [value]="acServ.userResPct().net">
+              </mat-progress-bar>
 
-                <div class="small-info">
-                  <div class="mb-1 faded">
-                    <span>Self-staked:</span>
-                    <span class="float-right">
+              <div class="small-info">
+                <div class="mb-1 faded">
+                  <span>Self-staked:</span>
+                  <span class="float-right">
                       {{ acServ.myNetBalance() | number: "1.0-" + systemPrecision }}
-                      {{ systemSymbol }}
+                    {{ systemSymbol }}
                     </span>
-                  </div>
+                </div>
 
-                  <div class="mb-1 faded">
-                    <span>Staked by others:</span>
-                    <span class="float-right">
+                <div class="mb-1 faded">
+                  <span>Staked by others:</span>
+                  <span class="float-right">
                       {{ acServ.netByOthers() | number: "1.0-" + systemPrecision }}
-                      {{ systemSymbol }}
+                    {{ systemSymbol }}
                     </span>
-                  </div>
+                </div>
 
-                  <div class="faded">
-                    <span>Total in NET:</span>
-                    <span class="float-right">
+                <div class="faded">
+                  <span>Total in NET:</span>
+                  <span class="float-right">
                       {{ acServ.netBalance() | number: "1.0-" + systemPrecision }}
-                      {{ systemSymbol }}</span>
+                    {{ systemSymbol }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!--RAM-->
+            <div class="mt-8 flex-grow">
+              <div>
+                <span class="title mt-6">RAM</span>
+                @if (acServ.accountComputed().ram_quota === -1) {
+                  <span class="faded ml-2">unlimited</span>
+                } @else {
+                  <span class="faded ml-2">{{ acServ.userResPct().ram | number: "1.0-2" }}% used</span>
+                }
+                <span class="mt-2 float-right">{{ acServ.userResPct().ramStr }}</span>
+              </div>
+
+              <mat-progress-bar class="mt-2.5" mode="determinate" [value]="acServ.userResPct().ram">
+              </mat-progress-bar>
+
+            </div>
+          </div>
+
+        </mat-card-content>
+      </div>
+
+      <!--TOKENS-->
+      <div class="custom-card">
+        <h3>
+          <fa-layers [fixedWidth]="true" style="margin-right: 5px">
+            <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
+            <fa-icon [icon]="icons.solid.faStar" [inverse]="true" transform="shrink-5"></fa-icon>
+          </fa-layers>
+          Tokens
+          <fa-icon [icon]="icons.regular.faQuestionCircle" class="faded float-right pointer"
+                   matTooltip="Only liquid balances are displayed" matTooltipClass="tooltip-bigger">
+          </fa-icon>
+        </h3>
+
+
+        @if (acServ.tokensComputed().length > 0) {
+          <div class="flex flex-col gap-[10px] sm:flex-row sm:flex-wrap sm:gap-[43px] md:flex-col md:gap-[10px]">
+            @for (token of acServ.tokensComputed(); track (token.contract + token.symbol)) {
+              <div class="sm:flex-[0_0_calc((100%]">
+                <div class="token-cell">
+                  <div class="faded monospace div-link" [routerLink]="['/account', token.contract]">
+                    {{ token.contract }}
+                  </div>
+                  <div class="token-amount">
+                    {{ token.amount | number: "1.0-" + (token.precision || 4) }}
+                    <span class="token">{{ token.symbol }}</span>
                   </div>
                 </div>
               </div>
+            }
+          </div>
+        } @else {
+          <div>
+            No tokens to display
+          </div>
+        }
+      </div>
 
-              <!--RAM-->
-              <div class="mt-8 flex-grow">
-                <div>
-                  <span class="title mt-6">RAM</span>
-                  @if (acServ.accountComputed().ram_quota === -1) {
-                    <span class="faded ml-2">unlimited</span>
-                  } @else {
-                    <span class="faded ml-2">{{ acServ.userResPct().ram | number: "1.0-2" }}% used</span>
-                  }
-                  <span class="mt-2 float-right">{{ acServ.userResPct().ramStr }}</span>
-                </div>
+      <!--KEYS-->
+      <div class="custom-card md:col-span-2">
 
-                <mat-progress-bar class="mt-2.5" mode="determinate" [value]="acServ.userResPct().ram">
-                </mat-progress-bar>
+        <h3>
+          <fa-layers [fixedWidth]="true" style="margin-right: 5px">
+            <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
+            <fa-icon [icon]="icons.solid.faLink" [inverse]="true" transform="shrink-5"></fa-icon>
+          </fa-layers>
+          Permissions & Keys
+        </h3>
 
-              </div>
-            </div>
+        @defer (on immediate) {
+          <app-permission-tree [permissions]="acServ.accountComputed().permissions"></app-permission-tree>
+        }
 
-          </mat-card-content>
-        </div>
+      </div>
 
-        <!--TOKENS-->
-        <div class="custom-card">
-          <h3>
-            <fa-layers [fixedWidth]="true" style="margin-right: 5px">
-              <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
-              <fa-icon [icon]="icons.solid.faStar" [inverse]="true" transform="shrink-5"></fa-icon>
-            </fa-layers>
-            Tokens
-            <fa-icon [icon]="icons.regular.faQuestionCircle" class="faded float-right pointer"
-                     matTooltip="Only liquid balances are displayed" matTooltipClass="tooltip-bigger">
-            </fa-icon>
-          </h3>
-
-
-          @if (acServ.tokensComputed().length > 0) {
-            <div class="flex flex-col gap-[10px] sm:flex-row sm:flex-wrap sm:gap-[43px] md:flex-col md:gap-[10px]">
-              @for (token of acServ.tokensComputed(); track (token.contract + token.symbol)) {
-                <div class="sm:flex-[0_0_calc((100%]">
-                  <div class="token-cell">
-                    <div class="faded monospace div-link" [routerLink]="['/account', token.contract]">
-                      {{ token.contract }}
-                    </div>
-                    <div class="token-amount">
-                      {{ token.amount | number: "1.0-" + (token.precision || 4) }}
-                      <span class="token">{{ token.symbol }}</span>
-                    </div>
-                  </div>
-                </div>
-              }
-            </div>
-          } @else {
-            <div>
-              No tokens to display
-            </div>
-          }
-        </div>
-
-        <!--KEYS-->
-        <div class="custom-card md:col-span-2">
-          <h3>
-            <fa-layers [fixedWidth]="true" style="margin-right: 5px">
-              <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
-              <fa-icon [icon]="icons.solid.faLink" [inverse]="true" transform="shrink-5"></fa-icon>
-            </fa-layers>
-            Permissions & Keys
-          </h3>
-          <mat-tree [dataSource]="dataSource" [treeControl]="treeControl" class="keys-tree">
-            <!-- This is the tree node template for leaf nodes -->
-
-            <mat-tree-node *matTreeNodeDef="let node" matTreeNodePadding>
-              <!-- use a disabled button to provide padding for tree leaf -->
-              <button mat-icon-button disabled></button>
-              <div class="permission-cell flex flex-col gap-1.5">
-                <div>
-                  <h3 class="primary" style="display: inline; letter-spacing: 0.7px">
-                    {{ node.perm_name }}
+      <!--VOTE CARD-->
+      @let voterInfo = acServ.accountComputed().voter_info;
+      @if (voterInfo && (voterInfo.proxy || voterInfo.producers.length > 0)) {
+        <mat-accordion class="custom-card w-full vote-card md:col-span-3 text-black">
+          <mat-expansion-panel
+            [disabled]="voterInfo.producers.length <= 0"
+            [hideToggle]="voterInfo.producers.length <= 0">
+            <mat-expansion-panel-header>
+              <div class="flex flex-row justify-center w-full">
+                <mat-panel-title>
+                  <h3 class="vote-card-title mb-0">
+                    <fa-layers [fixedWidth]="true" style="margin-right: 5px">
+                      <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
+                      <fa-icon [icon]="icons.solid.faVote" [inverse]="true" transform="shrink-4"></fa-icon>
+                    </fa-layers>
+                    Votes
                   </h3>
-                </div>
-                @if (node['required_auth']['keys'].length > 0) {
-                  @for (key of node['required_auth']['keys']; track key) {
+                </mat-panel-title>
+                <mat-panel-description>
+                  @if (voterInfo) {
                     <div>
-                      <div>
-                        <strong class="mr-1 main-color"
-                                matTooltip="weight / threshold"
-                                matTooltipClass="tooltip-bigger">
-                          {{ key.weight }}/{{ node.required_auth.threshold }}
-                        </strong>
-                        <fa-icon [icon]="icons.solid.faKey" class="main-color"></fa-icon>
-                        <a [routerLink]="['/key', key.key]"
-                           class="monospace ml-1.5 break-word link-gray">
-                          {{ key.key }}
-                        </a>
-                      </div>
-                    </div>
-                  }
-                }
-                @if (node['required_auth']['accounts'].length > 0) {
-                  @for (acc of node['required_auth']['accounts']; track acc) {
-                    <div>
-                      <strong class="mr-1"
-                              matTooltip="weight / threshold"
-                              matTooltipClass="tooltip-bigger">
-                        {{ acc.weight }}/{{ node.required_auth.threshold }}
-                      </strong>
-                      <fa-icon [icon]="icons.solid.faUser"></fa-icon>
-                      <a [routerLink]="['/account', acc.permission.actor]"
-                         class="ml-1.5 link-primary">
-                        {{ acc.permission.actor }}
-                      </a>&#64;{{ acc["permission"].permission }}
-                    </div>
-                  }
-                }
-                @if (node['required_auth']['waits'].length > 0) {
-                  @for (waits of node['required_auth']['waits']; track waits) {
-                    <div>
-                      <strong class="mr-1"
-                              matTooltip="weight / threshold"
-                              matTooltipClass="tooltip-bigger">
-                        {{ waits.weight }}/{{ node.required_auth.threshold }}
-                      </strong>
-                      <fa-icon [icon]="icons.solid.faClock"></fa-icon>
-                      <span class="ml-1.5">{{ waits.wait_sec }}s</span>
-                    </div>
-                  }
-                }
-              </div>
-            </mat-tree-node>
-
-            <!-- This is the tree node template for expandable nodes -->
-            <!--suppress AngularUndefinedBinding -->
-            <mat-tree-node *matTreeNodeDef="let node; when: hasChild" matTreeNodePadding>
-              <button mat-icon-button matTreeNodeToggle>
-                <fa-icon [ngClass]=" treeControl.isExpanded(node) ? 'arrowDown' : 'arrowRight'"
-                         [icon]="icons.solid.faChevronRight" class="arrowSize main-color"></fa-icon>
-              </button>
-              <div class="permission-cell flex flex-col gap-1.5">
-                <div>
-                  <h3 class="primary" style="display: inline; letter-spacing: 0.7px">
-                    {{ node.perm_name }}
-                  </h3>
-                </div>
-                @if (node['required_auth']['keys'].length > 0) {
-                  @for (key of node['required_auth']['keys']; track key) {
-                    <div>
-                      <div>
-                        <strong class="mr-1 main-color" matTooltip="weight / threshold"
-                                matTooltipClass="tooltip-bigger">
-                          {{ key.weight }}/{{ node.required_auth.threshold }}
-                        </strong>
-                        <fa-icon [icon]="icons.solid.faKey" class="main-color"></fa-icon>
-                        <a [routerLink]="['/key', key.key]"
-                           class="monospace ml-1.5 break-word link-gray">
-                          {{ key.key }}
-                        </a>
-                      </div>
-                    </div>
-                  }
-                }
-                @if (node['required_auth']['accounts'].length > 0) {
-                  @for (acc of node['required_auth']['accounts']; track acc) {
-                    <div>
-                      <strong class="mr-1 main-color"
-                              matTooltip="weight / threshold" matTooltipClass="tooltip-bigger">
-                        {{ acc.weight }} / {{ node.required_auth.threshold }}
-                      </strong>
-                      <fa-icon [icon]="icons.solid.faUser" class="main-color"></fa-icon>
-                      <a [routerLink]="['/account', acc.permission.actor]" class="ml-1.5 link-primary">
-                        {{ acc.permission.actor }}
-                      </a>
-                      &#64; {{ acc.permission.permission }}
-                    </div>
-                  }
-                }
-                @if (node['required_auth']['waits'].length > 0) {
-                  @for (waits of node['required_auth']['waits']; track waits) {
-                    <div>
-                      <strong class="mr-1 main-color"
-                              matTooltip="weight / threshold" matTooltipClass="tooltip-bigger">
-                        {{ waits.weight }}/{{ node.required_auth.threshold }}
-                      </strong>
-                      <fa-icon [icon]="icons.solid.faClock" class="main-color"></fa-icon>
-                      <span class="ml-1.5">{{ waits.wait_sec }}s</span>
-                    </div>
-                  }
-                }
-              </div>
-            </mat-tree-node>
-          </mat-tree>
-        </div>
-
-        <!--VOTE CARD-->
-        @let voterInfo = acServ.accountComputed().voter_info;
-        @if (voterInfo && (voterInfo.proxy || voterInfo.producers.length > 0)) {
-          <mat-accordion class="custom-card w-full vote-card md:col-span-3 text-black">
-            <mat-expansion-panel
-              [disabled]="voterInfo.producers.length <= 0"
-              [hideToggle]="voterInfo.producers.length <= 0">
-              <mat-expansion-panel-header>
-                <div class="flex flex-row justify-center w-full">
-                  <mat-panel-title>
-                    <h3 class="vote-card-title mb-0">
-                      <fa-layers [fixedWidth]="true" style="margin-right: 5px">
-                        <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
-                        <fa-icon [icon]="icons.solid.faVote" [inverse]="true" transform="shrink-4"></fa-icon>
-                      </fa-layers>
-                      Votes
-                    </h3>
-                  </mat-panel-title>
-                  <mat-panel-description>
-                    @if (voterInfo) {
-                      <div>
-                        {{ acServ.account["account_name"] }} is voting in
-                        @if (voterInfo.proxy) {
-                          <span>proxy
+                      {{ acServ.accountComputed().account_name }} is voting in
+                      @if (voterInfo.proxy) {
+                        <span>proxy
                             <a [routerLink]="['/account', voterInfo.proxy]"
                                class="link-primary">{{ voterInfo.proxy }}</a>
                           </span>
-                        } @else {
-                          @if (voterInfo.producers.length > 0) {
-                            <span>
+                      } @else {
+                        @if (voterInfo.producers.length > 0) {
+                          <span>
                             <strong>{{ voterInfo.producers.length }}</strong>producer@if (voterInfo.producers.length > 1) {
-                              <span>s</span>
-                            }
-                          </span>
+                            <span>s</span>
                           }
+                          </span>
                         }
-                      </div>
-                    }
-                  </mat-panel-description>
-                </div>
-              </mat-expansion-panel-header>
-              @if (voterInfo.producers.length > 0) {
-                <div>
-                  @for (producer of voterInfo.producers; track producer; let last = $last) {
-                    <span>
-                      <a [routerLink]="['/account', producer]" class="link-primary">{{ producer }}</a>
-                      @if (!last) {
-                        <span>, </span>
                       }
-                    </span>
+                    </div>
                   }
-                </div>
-              }
-            </mat-expansion-panel>
-          </mat-accordion>
-        }
+                </mat-panel-description>
+              </div>
+            </mat-expansion-panel-header>
+            @if (voterInfo.producers.length > 0) {
+              <div>
+                @for (producer of voterInfo.producers; track producer; let last = $last) {
+                  <span>
+                      <a [routerLink]="['/account', producer]" class="link-primary">{{ producer }}</a>
+                    @if (!last) {
+                      <span>, </span>
+                    }
+                    </span>
+                }
+              </div>
+            }
+          </mat-expansion-panel>
+        </mat-accordion>
+      }
 
-        <!--ACTIONS CARD/TABLE-->
-        <div class="custom-card w-full min-w-full h-full min-h-full md:col-span-3">
-          <div #actionsTable class="flex flex-row justify-between items-start">
-            <h3 style="margin-top: 0">
-              <fa-layers [fixedWidth]="true" style="margin-right: 5px">
-                <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
-                <fa-icon [icon]="icons.solid.faHistory" [inverse]="true" transform="shrink-5"></fa-icon>
-              </fa-layers>
-              Actions
-            </h3>
+      <!--ACTIONS CARD/TABLE-->
+      <div class="custom-card w-full min-w-full h-full min-h-full md:col-span-3">
 
-            <span class="lib">Last Irreversible Block:
+        <div #actionsTable class="flex flex-row justify-between items-start">
+          <h3 style="margin-top: 0">
+            <fa-layers [fixedWidth]="true" style="margin-right: 5px">
+              <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
+              <fa-icon [icon]="icons.solid.faHistory" [inverse]="true" transform="shrink-5"></fa-icon>
+            </fa-layers>
+            Actions
+          </h3>
+
+          <span class="lib">Last Irreversible Block:
               <a [routerLink]="['/block', acServ.libNum()]"><strong
                 class="monospace">{{ acServ.libNum() }}</strong></a>
             </span>
 
-            @if (acServ.streamClientLoaded) {
-              <div (click)="acServ.toggleStreaming()"
-                   class="livestream" matTooltip="click to turn on/off" matTooltipClass="tooltip-bigger">
-                action live streaming
-                <span class="font-medium">
+          @if (acServ.streamClientLoaded) {
+            <div (click)="acServ.toggleStreaming()"
+                 class="livestream" matTooltip="click to turn on/off" matTooltipClass="tooltip-bigger">
+              action live streaming
+              <span class="font-medium">
                   {{ acServ.streamClientStatus ? "enabled" : "disabled" }}</span>
-                <span class="dot"
-                      [ngClass]="{pulse: acServ.streamClientStatus,'red-dot': !acServ.streamClientStatus}">
+              <span class="dot"
+                    [ngClass]="{pulse: acServ.streamClientStatus,'red-dot': !acServ.streamClientStatus}">
                 </span>
-              </div>
-            }
-          </div>
+            </div>
+          }
+        </div>
 
 
-          <table mat-table matSort matSortActive="block_num" matSortStart="desc" matSortDirection="desc"
-                 class="actions-table" [dataSource]="acServ.tableDataSource">
+        <!--ACTION FILTERS-->
+        <div class="flex flex-row justify-start gap-5">
+          @for (filter of acServ.commonFilters; track filter.name) {
+            <button mat-raised-button class="filter-btn" [class.primary-btn]="acServ.filter()?.name === filter.name"
+                    (click)="acServ.setFilter(filter)">
+              {{ filter.name }}
+            </button>
+          }
+        </div>
 
-            <!-- TX Column -->
-            <ng-container matColumnDef="trx_id">
-              <th mat-header-cell *matHeaderCellDef>TX</th>
-              <td mat-cell *matCellDef="let action" data-label="TX" class="h-full">
-                <!--                justify-between items-start h-full-->
-                <div class="flex flex-col items-start gap-1">
-                  <div class="flex flex-row items-center">
-                    @if (acServ.libNum() > 0 && acServ.libNum() < action['block_num']) {
-                      <span matTooltip="time until irreversible" matTooltipClass="tooltip-bigger">
+
+        <table mat-table matSort matSortActive="block_num" matSortStart="desc" matSortDirection="desc"
+               class="actions-table" [dataSource]="acServ.tableDataSource">
+
+          <!-- TX Column -->
+          <ng-container matColumnDef="trx_id">
+            <th mat-header-cell *matHeaderCellDef>TX</th>
+            <td mat-cell *matCellDef="let action" data-label="TX" class="h-full">
+              <!--                justify-between items-start h-full-->
+              <div class="flex flex-col items-start gap-1">
+                <div class="flex flex-row items-center">
+                  @if (acServ.libNum() > 0 && acServ.libNum() < action['block_num']) {
+                    <span matTooltip="time until irreversible" matTooltipClass="tooltip-bigger">
                       <fa-icon [icon]="icons.solid.faClock" class="accent"></fa-icon>
-                        {{ (action["block_num"] - acServ.libNum()) / 2 }}s
+                      {{ (action["block_num"] - acServ.libNum()) / 2 }}s
                     </span>
-                    }
-                    <a matRipple [routerLink]="['/transaction', action['trx_id']]" class="link-primary p-2">
-                      {{ action["trx_id"].slice(0, 8) }}...
-                    </a>
-                  </div>
-                  <a matRipple (click)="onRowClick(action)" class="link-btn faded">
-                    <div class="flex flex-row gap-2 items-center">
-                      <!--                      <fa-icon [icon]="icons.solid.glassMore"></fa-icon>-->
-                      <fa-icon [icon]="icons.solid.dots"></fa-icon>
-                      <div class="text-xs uppercase">Expand Details</div>
-                    </div>
+                  }
+                  <a matRipple [routerLink]="['/transaction', action['trx_id']]" class="link-primary p-2">
+                    {{ action["trx_id"].slice(0, 8) }}...
                   </a>
                 </div>
-              </td>
-            </ng-container>
+                <a matRipple (click)="onRowClick(action)" class="link-btn faded">
+                  <div class="flex flex-row gap-2 items-center">
+                    <!--                      <fa-icon [icon]="icons.solid.glassMore"></fa-icon>-->
+                    <fa-icon [icon]="icons.solid.dots"></fa-icon>
+                    <div class="text-xs uppercase">Expand Details</div>
+                  </div>
+                </a>
+              </div>
+            </td>
+          </ng-container>
 
-            <!-- Action Column -->
-            <ng-container matColumnDef="action">
-              <th mat-header-cell *matHeaderCellDef>Action</th>
-              <td mat-cell *matCellDef="let action" data-label="Action">
-                <div class="action-cell">
-                  <span class="accent font-medium">{{ action["act"]["name"] }}</span>
-                  <span class="main-color"> on </span>
-                  <span [routerLink]="['/account', action['act']['account']]" class="font-medium div-link main-color">
+          <!-- Action Column -->
+          <ng-container matColumnDef="action">
+            <th mat-header-cell *matHeaderCellDef>Action</th>
+            <td mat-cell *matCellDef="let action" data-label="Action">
+              <div class="action-cell">
+                <span class="accent font-medium">{{ action["act"]["name"] }}</span>
+                <span class="main-color"> on </span>
+                <span [routerLink]="['/account', action['act']['account']]" class="font-medium div-link main-color">
                     {{ action["act"]["account"] }}
                   </span>
-                </div>
-              </td>
-            </ng-container>
+              </div>
+            </td>
+          </ng-container>
 
-            <!-- Data Column -->
-            <ng-container matColumnDef="data">
-              <th mat-header-cell *matHeaderCellDef>Data</th>
-              <td mat-cell *matCellDef="let action" data-label="Data">
-                <div class="py-4">
-                  <app-act-data-view [data]="action.act.data"></app-act-data-view>
-                </div>
-              </td>
-            </ng-container>
+          <!-- Data Column -->
+          <ng-container matColumnDef="data">
+            <th mat-header-cell *matHeaderCellDef>Data</th>
+            <td mat-cell *matCellDef="let action" data-label="Data">
+              <div class="py-4">
+                <app-act-data-view [data]="action.act.data"></app-act-data-view>
+              </div>
+            </td>
+          </ng-container>
 
-            <!-- Block & Date Column -->
-            <ng-container matColumnDef="block_num">
-              <th mat-header-cell mat-sort-header *matHeaderCellDef>Block & Date</th>
-              <td mat-cell *matCellDef="let action" data-label="Block & Date">
-                <a [routerLink]="['/block', action['block_num']]" class="link-primary">
-                  {{ action["block_num"] }}
-                </a>
-                <br/>
-                <span> {{ formatDate(action["@timestamp"]) }}</span>
-              </td>
-            </ng-container>
+          <!-- Block & Date Column -->
+          <ng-container matColumnDef="block_num">
+            <th mat-header-cell mat-sort-header *matHeaderCellDef>Block & Date</th>
+            <td mat-cell *matCellDef="let action" data-label="Block & Date">
+              <a [routerLink]="['/block', action['block_num']]" class="link-primary">
+                {{ action["block_num"] }}
+              </a>
+              <br/>
+              <span> {{ formatDate(action["@timestamp"]) }}</span>
+            </td>
+          </ng-container>
 
-            <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-          </table>
+          <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+        </table>
 
-          <mat-paginator class="actions-table-paginator"
-                         [pageSizeOptions]="[10, 20, 50, 100]"
-                         [length]="acServ.actionsComputed().length"
-                         (page)="changePage($event)"
-                         showFirstLastButtons>
-          </mat-paginator>
+        <mat-paginator class="actions-table-paginator"
+                       [pageSizeOptions]="[10, 20, 50, 100]"
+                       [length]="acServ.actionsComputed().length"
+                       (page)="changePage($event)"
+                       showFirstLastButtons>
+        </mat-paginator>
 
-          <button mat-raised-button class="float-right" style="margin-right: 16px"
-                  (click)="acServ.loadMoreActions()">
-            load more actions
-          </button>
+        <button mat-raised-button class="float-right" style="margin-right: 16px"
+                (click)="acServ.loadMoreActions()">
+          load more actions
+        </button>
 
+      </div>
+    </div>
+
+  } @else {
+
+    <!--      NO ACCOUNT-->
+    <div style="height: 100%" class="flex flex-col justify-start items-center gap-[15px] appear">
+      <div class="custom-card w-full">
+        <h1 class="faded">
+          <fa-icon [icon]="icons.solid.faSadTear" style="margin-right: 5px"></fa-icon>
+          Account not found
+        </h1>
+        <div>
+          We couldn't find the account <strong>{{ acServ.accountName() }}</strong>
         </div>
       </div>
+    </div>
 
-    } @else {
-
-      <!--      NO ACCOUNT-->
-      <div style="height: 100%" class="flex flex-col justify-start items-center gap-[15px] appear">
-        <div class="custom-card w-full">
-          <h1 class="faded">
-            <fa-icon [icon]="icons.solid.faSadTear" style="margin-right: 5px"></fa-icon>
-            Account not found
-          </h1>
-          <div>
-            We couldn't find the account <strong>{{ acServ.accountName() }}</strong>
-          </div>
-        </div>
-      </div>
-
-    }
   }
 </div>

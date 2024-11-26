@@ -1,25 +1,16 @@
-import {Component, ElementRef, inject, OnInit, PLATFORM_ID, signal, viewChild} from '@angular/core';
+import {Component, ElementRef, inject, OnInit, PLATFORM_ID, signal, viewChild, WritableSignal} from '@angular/core';
 import {SearchService} from "../../../services/search.service";
-import {MatButton, MatIconButton} from "@angular/material/button";
+import {MatButton} from "@angular/material/button";
 import {ActivatedRoute, Router, RouterLink} from "@angular/router";
 import {MatProgressSpinner} from "@angular/material/progress-spinner";
 import {MatCardContent, MatCardHeader} from "@angular/material/card";
 import {FaIconComponent, FaLayersComponent} from "@fortawesome/angular-fontawesome";
 import {MatProgressBar} from "@angular/material/progress-bar";
 import {MatTooltip} from "@angular/material/tooltip";
-import {
-  MatTree,
-  MatTreeFlatDataSource,
-  MatTreeFlattener,
-  MatTreeModule,
-  MatTreeNode,
-  MatTreeNodePadding,
-  MatTreeNodeToggle
-} from "@angular/material/tree";
 import {DatePipe, DecimalPipe, isPlatformBrowser, NgClass} from "@angular/common";
 import {MatPaginator, PageEvent} from "@angular/material/paginator";
 import {MatCell, MatColumnDef, MatHeaderCell, MatHeaderRow, MatRow, MatTableModule} from "@angular/material/table";
-import {AccountService} from "../../../services/account.service";
+import {AccountService, ActionFilterSpec} from "../../../services/account.service";
 import {faQuestionCircle} from "@fortawesome/free-regular-svg-icons";
 import {
   faCheck,
@@ -40,7 +31,6 @@ import {
   faVoteYea
 } from '@fortawesome/free-solid-svg-icons';
 import {MatSort, MatSortModule} from "@angular/material/sort";
-import {FlatTreeControl} from "@angular/cdk/tree";
 import {AccountCreationData} from "../../../interfaces";
 import {DataService} from "../../../services/data.service";
 import {Title, withIncrementalHydration} from "@angular/platform-browser";
@@ -52,6 +42,7 @@ import {toObservable} from "@angular/core/rxjs-interop";
 import {animate, scroll} from "motion";
 import {ActDataViewComponent} from "../../act-data-view/act-data-view.component";
 import {MatRipple} from "@angular/material/core";
+import {PermissionTreeComponent} from "../../permission-tree/permission-tree.component";
 
 interface Permission {
   perm_name: string;
@@ -104,10 +95,6 @@ interface FlatNode {
     FaLayersComponent,
     MatTooltip,
     RouterLink,
-    MatTree,
-    MatTreeNode,
-    MatIconButton,
-    MatTreeNodeToggle,
     MatPaginator,
     DecimalPipe,
     MatAccordion,
@@ -118,15 +105,14 @@ interface FlatNode {
     MatHeaderCell,
     MatCell,
     NgClass,
-    MatTreeNodePadding,
     MatRow,
     MatHeaderRow,
     MatCardContent,
     MatCardHeader,
-    MatTreeModule,
     DatePipe,
     ActDataViewComponent,
-    MatRipple
+    MatRipple,
+    PermissionTreeComponent
   ],
   templateUrl: './account.component.html',
   styleUrls: [
@@ -177,10 +163,6 @@ export class AccountComponent implements OnInit {
 
   displayedColumns: string[] = ['trx_id', 'action', 'data', 'block_num'];
 
-  treeControl: FlatTreeControl<FlatNode>;
-  treeFlattener: MatTreeFlattener<any, any>;
-  dataSource: MatTreeFlatDataSource<any, any>;
-
   systemSymbol = '';
 
   creationData = signal<AccountCreationData>({
@@ -206,15 +188,6 @@ export class AccountComponent implements OnInit {
         }
       }
     });
-
-    this.treeControl = new FlatTreeControl<FlatNode>(
-      node => node.level, node => node.expandable
-    );
-
-    this.treeFlattener = new MatTreeFlattener(
-      this.transformer, node => node.level, node => node.expandable, node => node.children
-    );
-    this.dataSource = new MatTreeFlatDataSource(this.treeControl, this.treeFlattener);
 
     toObservable(this.balanceCard).subscribe((value) => {
       if (value && isPlatformBrowser(this.platformId)) {
@@ -271,11 +244,7 @@ export class AccountComponent implements OnInit {
     };
   }
 
-  hasChild = (_: number, node: FlatNode) => node.expandable;
-
   ngOnInit(): void {
-
-    console.log('Account component initialized');
     this.route.params.subscribe(async (routeParams: any) => {
 
       // if (this.accountService.streamClientStatus) {
@@ -286,42 +255,40 @@ export class AccountComponent implements OnInit {
         return;
       }
 
-      const chainData = this.dataService.explorerMetadata;
+      // const chainData = this.dataService.explorerMetadata;
 
       this.acServ.accountName.set(routeParams.account_name);
 
-      const accountLoaded = await this.acServ.loadAccountData(routeParams.account_name);
+      // const accountLoaded = await this.acServ.loadAccountData(routeParams.account_name);
 
-      if (accountLoaded) {
-
-        const customCoreToken = chainData.custom_core_token;
-        if (customCoreToken && customCoreToken !== '') {
-          const parts = chainData.custom_core_token.split('::');
-          this.systemSymbol = parts[1];
-          this.systemTokenContract = parts[0];
-          const coreBalance = this.acServ.jsonData.tokens.find((v: any) => {
-            return v.symbol === this.systemSymbol && v.contract === this.systemTokenContract;
-          });
-          if (coreBalance) {
-            this.acServ.account.core_liquid_balance = coreBalance.amount + ' ' + this.systemSymbol;
-          }
-        } else {
-          this.systemSymbol = this.getSymbol(this.acServ.account.core_liquid_balance) ?? "?";
-        }
-
-        this.processPermissions();
-
-        // setTimeout(() => {
-        //   // this.acServ.tableDataSource.sort = this.sort() || null;
-        //   // this.acServ.tableDataSource.paginator = this.paginator() || null;
-        // }, 500);
-
-        // const creationData = await this.acServ.getCreator(routeParams.account_name);
-        // if (creationData) {
-        //   this.creationData.set({creator: creationData.creator, timestamp: creationData.timestamp});
-        // }
-
-      }
+      // if (accountLoaded) {
+      //
+      //   // const customCoreToken = chainData.custom_core_token;
+      //   // if (customCoreToken && customCoreToken !== '') {
+      //   //   const parts = chainData.custom_core_token.split('::');
+      //   //   this.systemSymbol = parts[1];
+      //   //   this.systemTokenContract = parts[0];
+      //   //   const coreBalance = this.acServ.jsonData.tokens.find((v: any) => {
+      //   //     return v.symbol === this.systemSymbol && v.contract === this.systemTokenContract;
+      //   //   });
+      //   //   if (coreBalance) {
+      //   //     this.acServ.account.core_liquid_balance = coreBalance.amount + ' ' + this.systemSymbol;
+      //   //   }
+      //   // } else {
+      //   //   this.systemSymbol = this.getSymbol(this.acServ.account.core_liquid_balance) ?? "?";
+      //   // }
+      //
+      //   // setTimeout(() => {
+      //   //   // this.acServ.tableDataSource.sort = this.sort() || null;
+      //   //   // this.acServ.tableDataSource.paginator = this.paginator() || null;
+      //   // }, 500);
+      //
+      //   // const creationData = await this.acServ.getCreator(routeParams.account_name);
+      //   // if (creationData) {
+      //   //   this.creationData.set({creator: creationData.creator, timestamp: creationData.timestamp});
+      //   // }
+      //
+      // }
 
     });
   }
@@ -350,22 +317,6 @@ export class AccountComponent implements OnInit {
       }
       return value;
     });
-  }
-
-  private processPermissions(): void {
-    if (this.acServ.account) {
-      const permissions: Permission[] = this.acServ.account.permissions;
-      if (permissions) {
-        try {
-          this.dataSource.data = this.getChildren(permissions, '');
-          this.treeControl.expand(this.treeControl.dataNodes[0]);
-          this.treeControl.expand(this.treeControl.dataNodes[1]);
-        } catch (e) {
-          console.log(e);
-          this.dataSource.data = [];
-        }
-      }
-    }
   }
 
   convertBytes(bytes: number): string {
@@ -460,6 +411,4 @@ export class AccountComponent implements OnInit {
   toRecord(value: any): Record<string, any> {
     return value;
   }
-
-  protected readonly withIncrementalHydration = withIncrementalHydration;
 }
