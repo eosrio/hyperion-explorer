@@ -22,7 +22,7 @@ import {
   faHistory,
   faKey,
   faLink,
-  faMagnifyingGlassPlus,
+  faMagnifyingGlassPlus, faRightFromBracket, faRightToBracket,
   faSadTear,
   faShield,
   faStar,
@@ -155,7 +155,9 @@ export class AccountComponent implements OnInit {
       faUser: faUser,
       faVote: faVoteYea,
       dots: faEllipsisV,
-      glassMore: faMagnifyingGlassPlus
+      glassMore: faMagnifyingGlassPlus,
+      out: faRightFromBracket,
+      in: faRightToBracket
     },
     regular: {
       faQuestionCircle: faQuestionCircle

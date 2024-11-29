@@ -199,5 +199,11 @@ $overlay-backdrop-color: rgba(0, 0, 0, 0.8) !important;
   border-color: var(--primary) !important;
 }
 
+.mat-mdc-option.mdc-list-item--selected:not(.mdc-list-item--disabled) .mdc-list-item__primary-text {
+  color: var(--primary) !important;
+}
 
+.mdc-text-field--outlined:not(.mdc-text-field--disabled).mdc-text-field--focused .mat-mdc-notch-piece {
+  border-color: var(--primary) !important;
+}
 

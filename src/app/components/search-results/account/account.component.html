@@ -202,7 +202,7 @@
             </div>
 
             <!--RAM-->
-            <div class="mt-8 flex-grow">
+            <div class="flex-grow">
               <div>
                 <span class="title mt-6">RAM</span>
                 @if (acServ.accountComputed().ram_quota === -1) {
@@ -211,11 +211,11 @@
                   <span class="faded ml-2">{{ acServ.userResPct().ram | number: "1.0-2" }}% used</span>
                 }
                 <span class="mt-2 float-right">{{ acServ.userResPct().ramStr }}</span>
+
               </div>
 
               <mat-progress-bar class="mt-2.5" mode="determinate" [value]="acServ.userResPct().ram">
               </mat-progress-bar>
-
             </div>
           </div>
 
@@ -375,11 +375,19 @@
 
 
         <!--ACTION FILTERS-->
-        <div class="flex flex-row justify-start gap-5">
+        <div class="flex flex-row gap-5 mb-6 justify-end">
           @for (filter of acServ.commonFilters; track filter.name) {
             <button mat-raised-button class="filter-btn" [class.primary-btn]="acServ.filter()?.name === filter.name"
                     (click)="acServ.setFilter(filter)">
-              {{ filter.name }}
+              <div class="flex flex-row gap-2 items-center">
+                @if (filter.name === 'Outgoing Transfers') {
+                  <fa-icon [icon]="icons.solid.out" class="text-base"></fa-icon>
+                }
+                @if (filter.name === 'Incoming Transfers') {
+                  <fa-icon [icon]="icons.solid.in" class="text-base"></fa-icon>
+                }
+                <div>{{ filter.name }}</div>
+              </div>
             </button>
           }
         </div>
@@ -463,7 +471,7 @@
                        showFirstLastButtons>
         </mat-paginator>
 
-        <button mat-raised-button class="float-right" style="margin-right: 16px"
+        <button mat-raised-button class="float-right filter-btn mr-4"
                 (click)="acServ.loadMoreActions()">
           load more actions
         </button>
