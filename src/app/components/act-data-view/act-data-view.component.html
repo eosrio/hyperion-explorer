@@ -2,7 +2,12 @@
 
   <!--RAW HEX DATA-->
   @case ("string") {
-    <span class="break-word italic">{{ data() }}</span>
+    @if (isAccountName(data())) {
+      <a [routerLink]="['/account', data()]"
+         class="break-word link-primary text-pretty">{{ data() }}</a>
+    } @else {
+      <span class="break-word italic">{{ data() }}</span>
+    }
   }
   @case ("number") {
     <span class="break-word accent">{{ data() }}</span>
@@ -10,6 +15,7 @@
 
   <!--JSON OBJECT-->
   @case ("object") {
+
     @for (item of data() | keyvalue; track item.key) {
 
       @let itemType = getType(item.value);
@@ -61,25 +67,45 @@
               @if (!Array.isArray(item.value)) {
                 <app-act-data-view [fieldName]="item.key" [data]="item.value" [level]="level() + 1"></app-act-data-view>
               } @else {
-                <span class="break-word">ARRAY</span>
+                <span class="faded italic">(array, size: {{ item.value.length }})</span>
+                @for (arrayItem of item.value; let idx = $index; track idx; let last = $last) {
+                  <div
+                    class="border shadow-slate-400/10 shadow-lg rounded-lg m-2 flex flex-row justify-start items-start gap-2 px-2">
+                    @if (item.value.length > 1) {
+                      <div class="faded italic">{{ idx + 1 }}</div>
+                    }
+                    <app-act-data-view [fieldName]="item.key" [data]="arrayItem"
+                                       [level]="level() + 1"></app-act-data-view>
+                  </div>
+                }
               }
             }
+            @default {
+              <span class="break-word text-red-400">{{ item.value }} ({{ itemType }})</span>
+            }
           }
-        } @else if (item.value === null) {
-          <span class="break-word accent">NULL</span>
-        } @else if (item.value === 0) {
-          <span class="break-word accent">0</span>
         } @else {
-          <!--EMPTY STRING / UNDEFINED-->
-          @if (itemType === 'string') {
-            <span matTooltip="EMPTY STRING" class="break-word text-purple-400">""</span>
-          } @else {
-            <span class="break-word text-red-400">EMPTY ({{ itemType }})</span>
+          @switch (item.value) {
+            @case (null) {
+              <span class="break-word accent">NULL</span>
+            }
+            @case (0) {
+              <span class="break-word accent">0</span>
+            }
+            @case (false) {
+              <span class="break-word accent">false</span>
+            }
+            @case ("") {
+              <span class="break-word text-xs italic faded text-purple-400">empty</span>
+            }
+            @default {
+              <span class="break-word text-red-400">EMPTY ({{ itemType }})</span>
+            }
           }
         }
       </div>
     } @empty {
-      <span class="break-word text-red-400">EMPTY</span>
+      <span class="break-word faded text-xs">NO DATA</span>
     }
   }
 }

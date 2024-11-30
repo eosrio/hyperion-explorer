@@ -118,7 +118,7 @@ body {
   transition: all var(--transition-btn-down);
   }
 
-.mat-mdc-raised-button:not(:disabled):hover, .mat-mdc-raised-button:not(:disabled):focus {
+.mat-mdc-raised-button:not(:disabled):hover, .mat-mdc-raised-button:not(:disabled):focus-visible {
   outline: none;
   box-shadow: var(--box-shadow-bg-sharp-inset) !important;
   transition: var(--transition-btn-down);

@@ -2,7 +2,7 @@ import {
   computed,
   effect,
   inject,
-  Injectable, linkedSignal,
+  Injectable, linkedSignal, PLATFORM_ID,
   resource,
   ResourceLoaderParams,
   ResourceRef,
@@ -17,6 +17,9 @@ import {lastValueFrom, Observable, of} from "rxjs";
 import {DataService} from "./data.service";
 import {rxResource, toObservable} from "@angular/core/rxjs-interop";
 import {convertMicroS, getPrecision, getSymbol} from "../utils";
+import {faFilter, faRightFromBracket, faRightToBracket, faVoteYea} from "@fortawesome/free-solid-svg-icons";
+import {IconDefinition} from "@fortawesome/angular-fontawesome";
+import {isPlatformBrowser} from "@angular/common";
 
 interface HealthResponse {
   features: {
@@ -30,6 +33,8 @@ interface HealthResponse {
 
 export interface ActionFilterSpec {
   name: string;
+  icon?: IconDefinition,
+  userFilter?: boolean;
   exec: (params: WritableSignal<Record<string, string> | undefined>) => void;
 }
 
@@ -66,6 +71,7 @@ export class AccountService {
     // received transfers
     {
       name: 'Incoming Transfers',
+      icon: faRightToBracket,
       exec: (params) => {
         params.set({
           '@transfer.to': this.accountName()
@@ -75,13 +81,28 @@ export class AccountService {
     // sent transfers
     {
       name: 'Outgoing Transfers',
+      icon: faRightFromBracket,
       exec: (params) => {
         params.set({
           '@transfer.from': this.accountName()
         });
       }
+    },
+    // votes
+    {
+      name: 'Votes',
+      icon: faVoteYea,
+      exec: (params) => {
+        params.set({
+          'account': this.accountName(),
+          'act.account': "eosio",
+          'act.name': "voteproducer",
+        });
+      }
     }
   ];
+
+  userSavedFilters: any[] = [];
 
   accountActions: any[] = [];
 
@@ -102,7 +123,7 @@ export class AccountService {
         const query = new URLSearchParams();
         for (const key in cp) {
           if (cp.hasOwnProperty(key)) {
-            console.log(`Setting ${key} to ${cp[key]}`);
+            // console.log(`Setting ${key} to ${cp[key]}`);
             query.set(key, cp[key]);
           }
         }
@@ -126,8 +147,12 @@ export class AccountService {
     loader: async (param: ResourceLoaderParams<{ accountName: string }>): Promise<GetAccountResponse | null> => {
       if (param.request) {
         const account = param.request.accountName;
-        const url = this.data.env.hyperionApiUrl + '/v2/state/get_account?account=' + account;
-        return await lastValueFrom(this.httpClient.get(url)) as GetAccountResponse;
+        if (account) {
+          const url = this.data.env.hyperionApiUrl + '/v2/state/get_account?account=' + account;
+          return await lastValueFrom(this.httpClient.get(url)) as GetAccountResponse;
+        } else {
+          return null;
+        }
       } else {
         return null;
       }
@@ -143,6 +168,20 @@ export class AccountService {
     return this.accountDataRes.value()?.account ?? this.emptyAccount;
   });
 
+  public hasContract = computed(() => {
+    const account = this.accountDataRes.value()?.account;
+    if (account) {
+      const last_code_update = account.last_code_update;
+      if (!last_code_update) {
+        return false;
+      }
+      const time = new Date(last_code_update + "Z").getTime();
+      return time > 0;
+    } else {
+      return false;
+    }
+  });
+
   public actionsComputed = linkedSignal<any, any[]>({
     source: () => {
       return {
@@ -156,7 +195,11 @@ export class AccountService {
         if (source.filteredActions.length > 0) {
           return source.filteredActions;
         } else {
-          return previous?.value ?? [];
+          if (this.actionRes.hasValue()) {
+            return [];
+          } else {
+            return previous?.value ?? [];
+          }
         }
       } else {
         if (source.accountActions.length > 0) {
@@ -269,14 +312,17 @@ export class AccountService {
     }
     return cpuRefund + netRefund;
   });
+  private platformId = inject(PLATFORM_ID);
 
   constructor() {
 
     // console.log('AccountService created');
 
-    // effect(() => {
-    //   console.log('Account data:', this.accountDataRes.value());
-    // });
+    effect(() => {
+      console.log('Account resource loaded:', this.accountDataRes.value());
+      // console.log(this.hasContract())
+    });
+
     //
     // effect(() => {
     //   console.log('tokensComputed:', this.tokensComputed());
@@ -286,7 +332,7 @@ export class AccountService {
     //   console.log('accountComputed:', this.accountComputed());
     // });
     //
-    
+
     // effect(() => {
     //   console.log('actions:', this.actionsComputed());
     // });
@@ -294,6 +340,39 @@ export class AccountService {
     const baseUrl = this.data.env.hyperionApiUrl;
     this.tableDataSource = toObservable(this.actionsComputed);
     // this.initStreamClient().catch(console.log);
+
+    if (isPlatformBrowser(this.platformId)) {
+      const localSavedFilters = localStorage.getItem('userSavedFilters');
+      if (localSavedFilters) {
+        try {
+          this.userSavedFilters = JSON.parse(localSavedFilters);
+          if (this.userSavedFilters && this.userSavedFilters.length) {
+            this.userSavedFilters.forEach(value => {
+              const filterSpec: ActionFilterSpec = {
+                name: (value.contract || '*') + '::' + (value.action || '*'),
+                icon: faFilter,
+                userFilter: true,
+                exec: params => {
+                  const conf = {
+                    'account': this.accountName()
+                  } as Record<string, string>;
+                  if (value.contract) {
+                    conf['act.account'] = value.contract;
+                  }
+                  if (value.action) {
+                    conf['act.name'] = value.action;
+                  }
+                  params.set(conf);
+                }
+              }
+              this.commonFilters.push(filterSpec);
+            });
+          }
+        } catch (e) {
+          console.log(e);
+        }
+      }
+    }
   }
 
   async monitorLib(): Promise<void> {
@@ -569,5 +648,39 @@ export class AccountService {
   setFilter(filter: ActionFilterSpec): void {
     this.filter.set(filter);
     filter?.exec(this.customParams);
+  }
+
+  // save user created filter on local storage
+  saveFilter(contract: string, action: string) {
+    if (isPlatformBrowser(this.platformId)) {
+      const filter = {contract, action};
+
+      // check if filter already exists by name
+      if (this.userSavedFilters.find(value => {
+        return (value.contract + '::' + value.action) === (filter.contract + '::' + filter.action);
+      })) {
+        return;
+      }
+
+      this.userSavedFilters.push(filter);
+      localStorage.setItem('userSavedFilters', JSON.stringify(this.userSavedFilters));
+    }
+  }
+
+  clearFilter() {
+    this.filter.set(null);
+    this.customParams.set(undefined);
+  }
+
+  removeFilter(filter: ActionFilterSpec) {
+    if (isPlatformBrowser(this.platformId)) {
+      this.userSavedFilters = this.userSavedFilters.filter(value => {
+        return (value.contract + '::' + value.action) !== filter.name;
+      });
+      localStorage.setItem('userSavedFilters', JSON.stringify(this.userSavedFilters));
+      this.commonFilters = this.commonFilters.filter(value => {
+        return value.name !== filter.name;
+      });
+    }
   }
 }

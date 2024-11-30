@@ -18,14 +18,14 @@ import {
   faChevronRight,
   faCircle,
   faClock,
-  faEllipsisV,
+  faEllipsisV, faFilter,
   faHistory,
   faKey,
   faLink,
   faMagnifyingGlassPlus, faRightFromBracket, faRightToBracket,
   faSadTear,
   faShield,
-  faStar,
+  faStar, faTimes,
   faUser,
   faUserCircle,
   faVoteYea
@@ -43,6 +43,10 @@ import {animate, scroll} from "motion";
 import {ActDataViewComponent} from "../../act-data-view/act-data-view.component";
 import {MatRipple} from "@angular/material/core";
 import {PermissionTreeComponent} from "../../permission-tree/permission-tree.component";
+import {MatCheckbox} from "@angular/material/checkbox";
+import {FormsModule} from "@angular/forms";
+import {MatFormField} from "@angular/material/form-field";
+import {MatInput} from "@angular/material/input";
 
 interface Permission {
   perm_name: string;
@@ -113,7 +117,11 @@ interface FlatNode {
     ActDataViewComponent,
     MatRipple,
     PermissionTreeComponent,
-    MatIconButton
+    MatIconButton,
+    MatCheckbox,
+    FormsModule,
+    MatFormField,
+    MatInput
   ],
   templateUrl: './account.component.html',
   styleUrls: [
@@ -138,8 +146,15 @@ export class AccountComponent implements OnInit {
   balanceCard = viewChild<ElementRef<HTMLDivElement>>('balanceCard');
   actionsTable = viewChild<ElementRef<HTMLDivElement>>('actionsTable');
 
+  useUTC = signal(false);
+
+  contractFilterInput = signal<string>('');
+  actionFilterInput = signal<string>('');
+  saveCustomFilter = signal<boolean>(false);
+
   icons = {
     solid: {
+      faTimes: faTimes,
       faClock: faClock,
       faUserCircle: faUserCircle,
       faShield: faShield,
@@ -155,9 +170,7 @@ export class AccountComponent implements OnInit {
       faUser: faUser,
       faVote: faVoteYea,
       dots: faEllipsisV,
-      glassMore: faMagnifyingGlassPlus,
-      out: faRightFromBracket,
-      in: faRightToBracket
+      glassMore: faMagnifyingGlassPlus
     },
     regular: {
       faQuestionCircle: faQuestionCircle
@@ -261,6 +274,10 @@ export class AccountComponent implements OnInit {
       // const chainData = this.dataService.explorerMetadata;
 
       this.acServ.accountName.set(routeParams.account_name);
+
+      this.actionFilterInput.set("");
+      this.contractFilterInput.set("");
+      this.acServ.filter.set(null);
 
       // const accountLoaded = await this.acServ.loadAccountData(routeParams.account_name);
 
@@ -413,5 +430,46 @@ export class AccountComponent implements OnInit {
 
   toRecord(value: any): Record<string, any> {
     return value;
+  }
+
+  useCustomFilter() {
+    const contract = this.contractFilterInput();
+    const action = this.actionFilterInput();
+    const saveFilter = this.saveCustomFilter();
+    const filterSpec: ActionFilterSpec = {
+      name: (contract || '*') + '::' + (action || '*'),
+      icon: faFilter,
+      userFilter: this.saveCustomFilter(),
+      exec: params => {
+        const conf = {} as Record<string, string>;
+        if (contract) {
+          conf['act.account'] = contract;
+        }
+        if (action) {
+          conf['act.name'] = action;
+        }
+        params.set(conf);
+      }
+    }
+    if (saveFilter) {
+      // check if the filter is already added
+      const existing = this.acServ.commonFilters.find(f => f.name === filterSpec.name);
+      if (!existing) {
+        this.acServ.commonFilters.push(filterSpec);
+        this.acServ.saveFilter(contract, action);
+      }
+    }
+    this.acServ.setFilter(filterSpec);
+  }
+
+  removeUserFilter(filter: ActionFilterSpec) {
+    this.acServ.removeFilter(filter);
+  }
+
+  setFilter(filter: ActionFilterSpec) {
+    const [contract, action] = filter.name.split('::');
+    this.contractFilterInput.set(contract);
+    this.actionFilterInput.set(action);
+    this.acServ.setFilter(filter);
   }
 }

@@ -48,7 +48,8 @@ export interface AccountData {
   voter_info: {
     producers: string[];
     proxy: string;
-  }
+  },
+  last_code_update: string;
 }
 
 export interface GetAccountResponse {
