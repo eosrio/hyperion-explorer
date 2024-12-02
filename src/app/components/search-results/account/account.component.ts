@@ -1,4 +1,4 @@
-import {Component, ElementRef, inject, OnInit, PLATFORM_ID, signal, viewChild, WritableSignal} from '@angular/core';
+import {Component, ElementRef, inject, OnInit, PLATFORM_ID, signal, viewChild} from '@angular/core';
 import {SearchService} from "../../../services/search.service";
 import {MatButton, MatIconButton} from "@angular/material/button";
 import {ActivatedRoute, Router, RouterLink} from "@angular/router";
@@ -10,30 +10,33 @@ import {MatTooltip} from "@angular/material/tooltip";
 import {DatePipe, DecimalPipe, isPlatformBrowser, NgClass} from "@angular/common";
 import {MatPaginator, PageEvent} from "@angular/material/paginator";
 import {MatCell, MatColumnDef, MatHeaderCell, MatHeaderRow, MatRow, MatTableModule} from "@angular/material/table";
-import {AccountService, ActionFilterSpec} from "../../../services/account.service";
+import {AccountService, ActionFilterSpec, MAX_ES_SKIP} from "../../../services/account.service";
 import {faQuestionCircle} from "@fortawesome/free-regular-svg-icons";
 import {
   faCheck,
   faChevronDown,
   faChevronRight,
+  faChevronUp,
   faCircle,
   faClock,
-  faEllipsisV, faFilter,
+  faEllipsisV,
+  faFilter,
   faHistory,
   faKey,
   faLink,
-  faMagnifyingGlassPlus, faRightFromBracket, faRightToBracket,
+  faMagnifyingGlassPlus,
   faSadTear,
   faShield,
-  faStar, faTimes,
+  faStar,
+  faTimes,
   faUser,
   faUserCircle,
   faVoteYea
 } from '@fortawesome/free-solid-svg-icons';
-import {MatSort, MatSortModule} from "@angular/material/sort";
+import {MatSort, MatSortModule, Sort} from "@angular/material/sort";
 import {AccountCreationData} from "../../../interfaces";
 import {DataService} from "../../../services/data.service";
-import {Title, withIncrementalHydration} from "@angular/platform-browser";
+import {Title} from "@angular/platform-browser";
 import {MatAccordion, MatExpansionModule} from "@angular/material/expansion";
 import {MatDialog, MatDialogRef} from "@angular/material/dialog";
 import {ActionDetailsComponent} from "../../action-details/action-details.component";
@@ -47,6 +50,7 @@ import {MatCheckbox} from "@angular/material/checkbox";
 import {FormsModule} from "@angular/forms";
 import {MatFormField} from "@angular/material/form-field";
 import {MatInput} from "@angular/material/input";
+import {ChainService} from "../../../services/chain.service";
 
 interface Permission {
   perm_name: string;
@@ -134,6 +138,7 @@ export class AccountComponent implements OnInit {
 
   dataService = inject(DataService);
   acServ = inject(AccountService);
+  chain = inject(ChainService);
   readonly dialog = inject(MatDialog);
   platformId = inject(PLATFORM_ID);
   route = inject(ActivatedRoute);
@@ -142,11 +147,11 @@ export class AccountComponent implements OnInit {
   router = inject(Router);
 
   sort = viewChild<MatSort>(MatSort);
-  paginator = viewChild<MatPaginator>(MatPaginator);
   balanceCard = viewChild<ElementRef<HTMLDivElement>>('balanceCard');
   actionsTable = viewChild<ElementRef<HTMLDivElement>>('actionsTable');
 
   useUTC = signal(false);
+  compactMode = signal(false);
 
   contractFilterInput = signal<string>('');
   actionFilterInput = signal<string>('');
@@ -165,6 +170,7 @@ export class AccountComponent implements OnInit {
       faHistory: faHistory,
       faChevronRight: faChevronRight,
       faChevronDown: faChevronDown,
+      faChevronUp: faChevronUp,
       faSadTear: faSadTear,
       faKey: faKey,
       faUser: faUser,
@@ -272,12 +278,12 @@ export class AccountComponent implements OnInit {
       }
 
       // const chainData = this.dataService.explorerMetadata;
-
       this.acServ.accountName.set(routeParams.account_name);
-
       this.actionFilterInput.set("");
       this.contractFilterInput.set("");
+      this.acServ.sortDirection.set("desc");
       this.acServ.filter.set(null);
+      this.acServ.queryCache.clear();
 
       // const accountLoaded = await this.acServ.loadAccountData(routeParams.account_name);
 
@@ -354,21 +360,28 @@ export class AccountComponent implements OnInit {
 
   changePage(event: PageEvent): void {
 
+    const skip = event.pageIndex * event.pageSize;
+    if (skip < MAX_ES_SKIP) {
+      this.acServ.pageIndex.set(event.pageIndex);
+      this.acServ.pageSize.set(event.pageSize);
+    } else {
+      this.acServ.pageIndex.set(Math.floor(MAX_ES_SKIP / event.pageSize) - 1);
+      this.acServ.pageSize.set(event.pageSize);
+    }
+
     // disable streaming if enabled
     // if (this.accountService.streamClientStatus) {
     //   this.accountService.toggleStreaming();
     // }
 
-    const maxPages = Math.floor(event.length / event.pageSize);
-    console.log(event);
-    console.log(`${event.pageIndex} / ${maxPages}`);
-    try {
-      if (event.pageIndex === maxPages - 1 && this.acServ.accountName()) {
-        this.acServ.loadMoreActions().catch(console.log);
-      }
-    } catch (e) {
-      console.log(e);
-    }
+    // try {
+    //   if (event.pageIndex === maxPages - 1 && this.acServ.accountName()) {
+    //     this.acServ.loadMoreActions().catch(console.log);
+    //   }
+    // } catch (e) {
+    //   console.log(e);
+    // }
+
   }
 
   openContractsDialog(table: string | null, scope: string | null): void {
@@ -471,5 +484,10 @@ export class AccountComponent implements OnInit {
     this.contractFilterInput.set(contract);
     this.actionFilterInput.set(action);
     this.acServ.setFilter(filter);
+  }
+
+  onSort($event: Sort) {
+    this.acServ.pageIndex.set(0);
+    this.acServ.sortDirection.set($event.direction);
   }
 }

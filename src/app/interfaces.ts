@@ -56,12 +56,36 @@ export interface GetAccountResponse {
   account: AccountData;
   actions: any[];
   tokens: any[];
+  total_actions: number;
   links: any[];
 }
 
 export interface GetActionsResponse {
   actions: any[];
   lib: number;
+  cached: boolean;
+  last_indexed_block: number;
+  last_indexed_block_time: string;
+  query_time_ms: number;
+  total: {
+    value: number;
+    relation: string;
+  }
+}
+
+export interface GetDeltasResponse {
+  deltas: {
+    timestamp: string;
+    present: number;
+    code: string;
+    scope: string;
+    table: string;
+    primary_key: string;
+    payer: string;
+    block_num: number;
+    block_id: string;
+    data: any;
+  }[];
   cached: boolean;
   last_indexed_block: number;
   last_indexed_block_time: string;

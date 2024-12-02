@@ -21,6 +21,7 @@ import {isPlatformBrowser, KeyValuePipe} from "@angular/common";
 import {animate, scroll} from "motion";
 import {toObservable} from "@angular/core/rxjs-interop";
 import {ActDataViewComponent} from "../../act-data-view/act-data-view.component";
+import {ChainService} from "../../../services/chain.service";
 
 @Component({
   selector: 'app-transaction',
@@ -42,6 +43,7 @@ export class TransactionComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   searchService = inject(SearchService);
   accountService = inject(AccountService);
+  chain = inject(ChainService);
   data = inject(DataService);
   private title = inject(Title);
 
@@ -109,21 +111,21 @@ export class TransactionComponent implements OnInit, OnDestroy {
 
       const tx = this.tx();
 
-      if (tx) {
-        this.accountService.libNum.set(tx.lib);
-        if (tx.actions[0].block_num > tx.lib) {
-          await this.reloadCountdownTimer();
-          this.countdownLoop = setInterval(async () => {
-            this.countdownTimer--;
-            if (this.countdownTimer <= 0) {
-              await this.reloadCountdownTimer();
-              if (this.accountService.libNum > tx.actions[0].block_num) {
-                clearInterval(this.countdownLoop);
-              }
-            }
-          }, 1000);
-        }
-      }
+      // if (tx) {
+      //   this.accountService.libNum.set(tx.lib);
+      //   if (tx.actions[0].block_num > tx.lib) {
+      //     await this.reloadCountdownTimer();
+      //     this.countdownLoop = setInterval(async () => {
+      //       this.countdownTimer--;
+      //       if (this.countdownTimer <= 0) {
+      //         await this.reloadCountdownTimer();
+      //         if (this.accountService.libNum > tx.actions[0].block_num) {
+      //           clearInterval(this.countdownLoop);
+      //         }
+      //       }
+      //     }, 1000);
+      //   }
+      // }
 
     });
   }
@@ -139,14 +141,14 @@ export class TransactionComponent implements OnInit, OnDestroy {
     return new Date(date).toLocaleString();
   }
 
-  async reloadCountdownTimer(): Promise<void> {
-    await this.accountService.updateLib();
-    const lib = this.accountService.libNum();
-    if (!lib) {
-      return;
-    }
-    this.countdownTimer = Math.ceil((this.tx().actions[0].block_num - lib) / 2);
-  }
+  // async reloadCountdownTimer(): Promise<void> {
+  //   await this.accountService.updateLib();
+  //   const lib = this.accountService.libNum();
+  //   if (!lib) {
+  //     return;
+  //   }
+  //   this.countdownTimer = Math.ceil((this.tx().actions[0].block_num - lib) / 2);
+  // }
 
   private tableStickyMotion(tableSticky?: ElementRef<HTMLDivElement>) {
     scroll(animate('.mat-mdc-header-row', {

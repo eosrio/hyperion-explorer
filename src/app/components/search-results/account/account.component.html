@@ -361,8 +361,8 @@
 
           <span class="lib">
             Last Irreversible Block:
-              <a [routerLink]="['/block', acServ.libNum()]">
-                <strong class="monospace div-link">{{ acServ.libNum() }}</strong>
+              <a [routerLink]="['/block', chain.libNumber()]">
+                <strong class="monospace div-link">{{ chain.libNumber() }}</strong>
               </a>
           </span>
 
@@ -392,7 +392,8 @@
                 }
                 <div>{{ filter.name }}</div>
                 @if (filter.userFilter) {
-                  <fa-icon (click)="removeUserFilter(filter)" [icon]="icons.solid.faTimes" class="text-red-400"></fa-icon>
+                  <fa-icon (click)="removeUserFilter(filter)" [icon]="icons.solid.faTimes"
+                           class="text-red-400"></fa-icon>
                 }
               </div>
             </button>
@@ -401,6 +402,10 @@
 
         <mat-checkbox [(ngModel)]="useUTC">
           <span class="faded">Dates in UTC</span>
+        </mat-checkbox>
+
+        <mat-checkbox [(ngModel)]="compactMode">
+          <span class="faded">Compact Mode</span>
         </mat-checkbox>
 
         <!--CUSTOM FILTERS-->
@@ -445,9 +450,24 @@
           }
         }
 
+        <mat-paginator class="actions-table-paginator"
+                       [pageSize]="acServ.pageSize()"
+                       [pageIndex]="acServ.pageIndex()"
+                       [pageSizeOptions]="[5, 10, 20, 50, 100]"
+                       [length]="acServ.totalActionCounter()"
+                       (page)="changePage($event)"
+                       showFirstLastButtons>
+        </mat-paginator>
 
-        <table mat-table matSort matSortActive="block_num" matSortStart="desc" matSortDirection="desc"
-               class="actions-table" [dataSource]="acServ.tableDataSource">
+
+        <table mat-table
+               matSort
+               (matSortChange)="onSort($event)"
+               matSortActive="block_num"
+               matSortStart="desc"
+               [matSortDirection]="acServ.sortDirection()"
+               class="actions-table"
+               [dataSource]="acServ.tableDataSource">
 
           <!-- TX Column -->
           <ng-container matColumnDef="trx_id">
@@ -495,9 +515,20 @@
           <ng-container matColumnDef="data">
             <th mat-header-cell *matHeaderCellDef>Data</th>
             <td mat-cell *matCellDef="let action" data-label="Data">
-              <div class="py-4">
-                <app-act-data-view [data]="action.act.data"></app-act-data-view>
-              </div>
+              @if (!compactMode() || action._expanded) {
+                <div class="py-4">
+                  <app-act-data-view [data]="action.act.data"></app-act-data-view>
+                </div>
+                @if (action._expanded) {
+                  <fa-icon (click)="action._expanded = false" [icon]="icons.solid.faChevronUp"
+                           class="pointer"></fa-icon>
+                  <span class="faded">collapse</span>
+                }
+              } @else {
+                <!--                EXPAND ICON-->
+                <fa-icon (click)="action._expanded = true" [icon]="icons.solid.faChevronDown" class="pointer"></fa-icon>
+                <span class="faded">expand</span>
+              }
             </td>
           </ng-container>
 
@@ -518,8 +549,10 @@
         </table>
 
         <mat-paginator class="actions-table-paginator"
-                       [pageSizeOptions]="[10, 20, 50, 100]"
-                       [length]="acServ.actionsComputed().length"
+                       [pageSize]="acServ.pageSize()"
+                       [pageIndex]="acServ.pageIndex()"
+                       [pageSizeOptions]="[5, 10, 20, 50, 100]"
+                       [length]="acServ.totalActionCounter()"
                        (page)="changePage($event)"
                        showFirstLastButtons>
         </mat-paginator>

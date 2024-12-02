@@ -1,4 +1,9 @@
-@if (!accountService.loaded) {
+@let isLoading = blockService.blockResource.isLoading();
+@let block = blockService.blockResource.value();
+@let deltas = deltaService.deltasResource.value()?.deltas;
+@let libNumber = chain.libNumber();
+
+@if (isLoading) {
   <div class="hr-container flex flex-row justify-center items-center">
     <mat-progress-spinner
       [diameter]="45"
@@ -7,25 +12,8 @@
   </div>
 }
 
-<div class="hr-container">
-  @if (!block() && accountService.loaded()) {
-    <div class="hr-container">
-      <div class="grid grid-cols-1 auto-cols-max gap-5 text-black appear">
-        <div class="custom-card">
-          <h1 class="faded">
-            <fa-icon [icon]="icons.solid.faSadTear" style="margin-right: 5px"></fa-icon>
-            Block not found
-          </h1>
-          <div>
-            We couldn't find block <strong>{{ blockNum() }}</strong>
-          </div>
-        </div>
-      </div>
-    </div>
-  }
-
-  @if (block() && accountService.loaded()) {
-    <!--    md:grid-cols-2 auto-cols-auto-->
+@if (!isLoading && block) {
+  <div class="hr-container">
     <div class="grid grid-cols-1 md:grid-cols-[repeat(2,_minmax(auto,_auto))] gap-5 text-black w-full appear">
       <div class="custom-card w-full min-w-full h-full min-h-full">
 
@@ -38,21 +26,17 @@
                 <fa-icon [icon]="icons.solid.faCircle" transform="grow-1"></fa-icon>
                 <fa-icon [icon]="icons.solid.faBlock" [inverse]="true" transform="shrink-4"></fa-icon>
               </fa-layers>
-              <span>Block</span> {{ block().number }}
+              <span>Block</span> {{ block.number }}
             </div>
 
             <mat-chip-listbox class="mat-mdc-chip-set-stacked">
-              @if (accountService.libNum > block().number) {
+              @if (libNumber && libNumber > block.number) {
                 <mat-chip-option selected>
                   <fa-icon [icon]="icons.solid.faLock" style="margin-right: 5px"></fa-icon>
                   Irreversible
                 </mat-chip-option>
-              }
-              @if (accountService.libNum < block().number) {
-                <mat-chip-option
-                  color="accent"
-                  selected
-                >
+              } @else {
+                <mat-chip-option color="accent" selected>
                   <fa-icon [icon]="icons.solid.faHourglass" style="margin-right: 5px"></fa-icon>
                   Pending ({{ countdownTimer }}s)
                 </mat-chip-option>
@@ -62,52 +46,44 @@
         </div>
         <div class="flex flex-col justify-start items-stretch gap-[10px]">
           <div>
-            <span class="font-medium">Block ID: </span
-            ><span class="break-word">{{ block().id }}</span>
+            <span class="font-medium">Block ID: </span>
+            <span class="break-word">{{ block.id }}</span>
+          </div>
+          <div>
+            <span class="font-medium">Previous ID: </span>
+            <a [routerLink]="['/block', block.previous_id ]" class="link-accent font-medium">{{ block.previous_id }}</a>
           </div>
         </div>
       </div>
       <div class="custom-card w-full min-w-full h-full min-h-full">
         <div class="flex flex-col justify-end gap-[10px]">
           <div><span class="font-medium">Producer: </span>
-            <a [routerLink]="['/account', block().producer ]" class="link-accent font-medium">{{ block().producer }}</a></div>
+            <a [routerLink]="['/account', block.producer ]" class="link-accent font-medium">{{ block.producer }}</a>
+          </div>
           <div>
-            <span class="font-medium">Time: </span>{{ formatDate(block().timestamp) }}
+            <span class="font-medium">Time: </span>{{ formatDate(block.timestamp) }}
           </div>
         </div>
       </div>
       <div class="custom-card md:col-span-2 w-full min-w-full h-full min-h-full">
-        <div #actionsTable style="margin-top: 0" class="mb-5 text-base">
+        <div #transactionsTable style="margin-top: 0" class="mb-5 text-base">
           <fa-layers [fixedWidth]="true" style="margin-right: 5px">
             <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
-            <fa-icon
-              [icon]="icons.solid.faHistory"
-              [inverse]="true"
-              transform="shrink-5"
-            ></fa-icon>
+            <fa-icon [icon]="icons.solid.faHistory" [inverse]="true" transform="shrink-5"></fa-icon>
           </fa-layers>
-          {{ block().transactions.length }} Transaction@if (block().transactions.length > 1) {
+          {{ block.transactions.length }} Transaction@if (block.transactions.length > 1) {
           <span>s</span>
         }
         </div>
-        <table
-          mat-table
-          [dataSource]="block().transactions"
-          class="transactions-table"
-          multiTemplateDataRows
-        >
+        <table mat-table [dataSource]="block.transactions" class="transactions-table" multiTemplateDataRows>
           <!-- TX ID Column -->
           <ng-container matColumnDef="icon">
             <th mat-header-cell *matHeaderCellDef></th>
-            <td
-              mat-cell
-              *matCellDef="let transaction"
-              data-label="Tap to see all actions"
-            >
+            <td mat-cell *matCellDef="let transaction" data-label="Tap to see all actions">
               <button mat-icon-button>
-                <fa-icon [ngClass]="expandedElement === transaction ? 'arrowDown' : 'arrowRight'"
-                         [icon]="icons.solid.faChevronRight" class="arrowSize"
-                ></fa-icon>
+                <fa-icon [ngClass]="txExpandedElement === transaction ? 'arrowDown' : 'arrowRight'"
+                         [icon]="icons.solid.faChevronRight" class="arrowSize">
+                </fa-icon>
               </button>
             </td>
           </ng-container>
@@ -115,11 +91,9 @@
           <ng-container matColumnDef="id">
             <th mat-header-cell *matHeaderCellDef>TX ID</th>
             <td mat-cell *matCellDef="let transaction" data-label="TX ID">
-              <a
-                [routerLink]="['/transaction', transaction.id]"
-                class="link-primary break-word"
-              >{{ transaction.id }}</a
-              >
+              <a [routerLink]="['/transaction', transaction.id]" class="link-primary break-word">
+                {{ transaction.id }}
+              </a>
             </td>
           </ng-container>
           <!-- Root Action Column -->
@@ -128,19 +102,15 @@
               Root Action
             </th>
             <td mat-cell *matCellDef="let transaction" data-label="Root Action">
-                  <span
-                    class="action-cell"
-                  >
-                    <span class="accent font-medium">{{
-                        transaction.actions[0].action
-                      }}</span>
-                    on
-                    <span
-                      class="font-medium div-link"
-                      [routerLink]="['/account', transaction.actions[0].account]"
-                    >{{ transaction.actions[0].account }}</span
-                    >
+                  <span class="action-cell">
+                    <span class="accent font-medium">
+                      {{ transaction.actions[0].action }}
                     </span>
+                    on
+                    <span class="font-medium div-link" [routerLink]="['/account', transaction.actions[0].account]">
+                      {{ transaction.actions[0].account }}
+                    </span>
+                  </span>
             </td>
           </ng-container>
           <!-- Num Action Column -->
@@ -148,25 +118,17 @@
             <th mat-header-cell *matHeaderCellDef style="text-align: center">
               # Actions
             </th>
-            <td
-              mat-cell
-              *matCellDef="let transaction"
-              style="text-align: center"
-              data-label="# Actions"
-            >
+            <td mat-cell *matCellDef="let transaction" style="text-align: center" data-label="# Actions">
               {{ transaction["actions"].length }}
             </td>
           </ng-container>
 
           <!-- Expanded Content Column - The detail row is made up of this one column that spans across all columns -->
           <ng-container matColumnDef="expandedDetail">
-            <td
-              mat-cell
-              *matCellDef="let transaction"
-              [attr.colspan]="columnsToDisplay.length"
-            >
+            <td mat-cell *matCellDef="let transaction" [attr.colspan]="txColumnsToDisplay.length">
+
               <div class="element-detail"
-                   [@detailExpand]="transaction == expandedElement ? 'expanded' : 'collapsed'">
+                   [@detailExpand]="transaction == txExpandedElement ? 'expanded' : 'collapsed'">
                 <table mat-table [dataSource]="transaction.actions" class="actions-table">
                   <!-- Action Column -->
                   <ng-container matColumnDef="action">
@@ -203,31 +165,108 @@
                       }
                     </td>
                   </ng-container>
-                  <tr mat-header-row *matHeaderRowDef="columnsInside; sticky: true"></tr>
-                  <tr mat-row *matRowDef="let myRowData2; columns: columnsInside"></tr>
+                  <tr mat-header-row *matHeaderRowDef="txColumnsInside; sticky: true"></tr>
+                  <tr mat-row *matRowDef="let myRowData2; columns: txColumnsInside"></tr>
                 </table>
               </div>
             </td>
           </ng-container>
 
-          <tr #tableHeader id="transactions-table-header" class="transactions-table-header" mat-header-row
-              *matHeaderRowDef="columnsToDisplay; sticky: true"></tr>
+          <tr id="transactions-table-header" class="transactions-table-header" mat-header-row *matHeaderRowDef="txColumnsToDisplay; sticky: true"></tr>
 
-          <tr mat-row *matRowDef="let myRowData; columns: columnsToDisplay"
+          <tr mat-row *matRowDef="let myRowData; columns: txColumnsToDisplay"
               class="element-row"
-              [class.expanded-row]="expandedElement === myRowData"
-              (click)="
-            expandedElement = expandedElement === myRowData ? null : myRowData
-          "
-          ></tr>
+              [class.expanded-row]="txExpandedElement === myRowData"
+              (click)="txExpandedElement = txExpandedElement === myRowData ? null : myRowData">
+          </tr>
 
-          <tr
-            mat-row
-            *matRowDef="let row; columns: ['expandedDetail']"
-            class="detail-row"
-          ></tr>
+          <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="detail-row"></tr>
         </table>
       </div>
+
+      @if (deltas) {
+        <div class="custom-card md:col-span-2 w-full min-w-full h-full min-h-full">
+          <div #deltasTable style="margin-top: 0" class="mb-5 text-base">
+            <fa-layers [fixedWidth]="true" style="margin-right: 5px">
+              <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
+              <fa-icon [icon]="icons.solid.faHistory" [inverse]="true" transform="shrink-5"></fa-icon>
+            </fa-layers>
+            {{ deltas.length }} Delta@if (deltas.length > 1) {
+            <span>s</span>
+          }
+          </div>
+
+          <table mat-table [dataSource]="deltas" class="deltas-table" multiTemplateDataRows>
+
+            <ng-container matColumnDef="present">
+              <th mat-header-cell *matHeaderCellDef style="text-align: center">Present</th>
+              <td mat-cell *matCellDef="let delta" style="text-align: center" data-label="Present">
+                {{ delta.present }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="location">
+              <th mat-header-cell *matHeaderCellDef style="text-align: center">State Location</th>
+              <td mat-cell *matCellDef="let delta" data-label="State Location">
+
+                <div class="action-cell">
+                  <span matTooltip="Table" matTooltipPosition="above"
+                        class="font-medium">{{ delta.table }}</span>
+                  <span class="main-color"> on </span>
+                  <span matTooltip="Contract" matTooltipPosition="above" [routerLink]="['/account', delta.code]"
+                        class="accent font-medium div-link main-color">
+                    {{ delta.code }}
+                  </span>
+                  @if (delta.scope) {
+                    <span class="main-color"> for </span>
+                    <span matTooltip="Scope" matTooltipPosition="above"
+                          class="font-medium cursor-default">{{ delta.scope }}</span>
+                  }
+                </div>
+
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="payer">
+              <th mat-header-cell *matHeaderCellDef style="text-align: center">RAM Payer</th>
+              <td mat-cell *matCellDef="let delta" style="text-align: center" data-label="Payer">
+                {{ delta.payer }}
+              </td>
+            </ng-container>
+
+            <ng-container matColumnDef="data">
+              <th mat-header-cell *matHeaderCellDef style="text-align: center">Data</th>
+              <td mat-cell *matCellDef="let delta" data-label="Data">
+                <div class="py-4">
+                  <app-act-data-view [data]="delta.data"></app-act-data-view>
+                </div>
+              </td>
+            </ng-container>
+
+            <tr id="deltas-table-header" class="deltas-table-header"
+                mat-header-row *matHeaderRowDef="deltasColumnsToDisplay; sticky: true"></tr>
+            <tr mat-row *matRowDef="let row; columns: deltasColumnsToDisplay" class="element-row"
+                [class.removed-delta]="row.present === 0"></tr>
+          </table>
+
+        </div>
+      }
     </div>
-  }
-</div>
+  </div>
+}
+
+@if (!isLoading && !block) {
+  <div class="hr-container">
+    <div class="grid grid-cols-1 auto-cols-max gap-5 text-black appear">
+      <div class="custom-card">
+        <h1 class="faded">
+          <fa-icon [icon]="icons.solid.faSadTear" style="margin-right: 5px"></fa-icon>
+          Block not found
+        </h1>
+        <div>
+          We couldn't find block <strong>{{ blockService.blockNum() }}</strong>
+        </div>
+      </div>
+    </div>
+  </div>
+}

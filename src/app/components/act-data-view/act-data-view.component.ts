@@ -1,8 +1,7 @@
-import {Component, computed, effect, input} from '@angular/core';
+import {Component, computed, input} from '@angular/core';
 import {KeyValuePipe, NgClass, SlicePipe} from "@angular/common";
 import {RouterLink} from "@angular/router";
 import {MatTooltip} from "@angular/material/tooltip";
-import {MatDivider} from "@angular/material/divider";
 
 function charToSymbol(c: number) {
   if (c >= 'a'.charCodeAt(0) && c <= 'z'.charCodeAt(0)) {
@@ -42,8 +41,7 @@ function stringToName(s: string) {
     NgClass,
     RouterLink,
     SlicePipe,
-    MatTooltip,
-    MatDivider
+    MatTooltip
   ],
   templateUrl: './act-data-view.component.html',
   styleUrl: './act-data-view.component.css'

@@ -1,4 +1,4 @@
-import {Component, ElementRef, inject, OnDestroy, OnInit, PLATFORM_ID, signal, viewChild} from '@angular/core';
+import {Component, ElementRef, inject, OnDestroy, OnInit, PLATFORM_ID, viewChild} from '@angular/core';
 import {animate, state, style, transition, trigger} from "@angular/animations";
 import {MatProgressSpinner} from "@angular/material/progress-spinner";
 import {FontAwesomeModule} from "@fortawesome/angular-fontawesome";
@@ -18,13 +18,16 @@ import {
   faSadTear,
   faSpinner
 } from "@fortawesome/free-solid-svg-icons";
-import {AccountService} from "../../../services/account.service";
 import {Title} from "@angular/platform-browser";
 import {SearchService} from "../../../services/search.service";
 import {DataService} from "../../../services/data.service";
-import {scroll, animate as motionAnimate} from "motion";
+import {animate as motionAnimate, scroll} from "motion";
 import {toObservable} from "@angular/core/rxjs-interop";
 import {ActDataViewComponent} from "../../act-data-view/act-data-view.component";
+import {BlockService} from "../../../services/block.service";
+import {ChainService} from "../../../services/chain.service";
+import {DeltaService} from "../../../services/delta.service";
+import {MatTooltip} from "@angular/material/tooltip";
 
 @Component({
   selector: 'app-block',
@@ -37,7 +40,8 @@ import {ActDataViewComponent} from "../../act-data-view/act-data-view.component"
     MatIconButton,
     NgClass,
     KeyValuePipe,
-    ActDataViewComponent
+    ActDataViewComponent,
+    MatTooltip
   ],
   templateUrl: './block.component.html',
   styleUrl: './block.component.css',
@@ -53,12 +57,18 @@ export class BlockComponent implements OnInit, OnDestroy {
   private route = inject(ActivatedRoute);
   private dataService = inject(DataService);
   private searchService = inject(SearchService);
-  accountService = inject(AccountService);
   private title = inject(Title);
 
-  columnsToDisplay: string[] = ['icon', 'id', 'root', 'action'];
-  columnsInside: string[] = ['action', 'data', 'auth'];
-  expandedElement: any | null;
+  // block service
+  blockService = inject(BlockService);
+  deltaService = inject(DeltaService);
+  chain = inject(ChainService);
+
+  txColumnsToDisplay: string[] = ['icon', 'id', 'root', 'action'];
+  txColumnsInside: string[] = ['action', 'data', 'auth'];
+  txExpandedElement: any | null;
+
+  deltasColumnsToDisplay: string[] = ['present', 'location', 'payer', 'data'];
 
   icons = {
     solid: {
@@ -74,19 +84,10 @@ export class BlockComponent implements OnInit, OnDestroy {
     }
   }
 
-  block = signal<any>({
-    transactions: [],
-    status: '',
-    number: 0
-  });
-
-
-  blockNum = signal<number>(0);
-  blockId = signal<string>("");
-
   countdownLoop: any;
   countdownTimer = 0;
-  actionsTable = viewChild<ElementRef<HTMLDivElement>>('actionsTable');
+  transactionsTable = viewChild<ElementRef<HTMLDivElement>>('transactionsTable');
+  deltasTable = viewChild<ElementRef<HTMLDivElement>>('deltasTable');
   platformId = inject(PLATFORM_ID);
 
   objectKeyCount(obj: any): number {
@@ -99,71 +100,74 @@ export class BlockComponent implements OnInit, OnDestroy {
 
   constructor() {
 
-    toObservable(this.actionsTable).subscribe((value) => {
+    toObservable(this.transactionsTable).subscribe((value) => {
       if (value && isPlatformBrowser(this.platformId)) {
-        this.tableStickyMotion(this.actionsTable());
+        this.tableStickyMotion('.transactions-table-header', value);
+      }
+    });
+
+    toObservable(this.deltasTable).subscribe((value) => {
+      if (value && isPlatformBrowser(this.platformId)) {
+        this.tableStickyMotion('.deltas-table-header', value);
       }
     });
   }
 
   ngOnInit(): void {
-
     this.searchService.searchType.set('block');
 
     this.route.paramMap.subscribe(async value => {
+      const block_num_or_id = value.get('block_num_or_id')?.trim();
 
-      const block_num_or_id = value.get('block_num_or_id');
+      console.log('block_num_or_id', block_num_or_id);
+
       if (block_num_or_id) {
         if (block_num_or_id.length === 64) {
-          this.blockId.set(block_num_or_id);
+          this.blockService.blockId.set(block_num_or_id);
+          this.blockService.blockNum.set(0);
+
+          this.deltaService.blockId.set(block_num_or_id);
+          this.deltaService.blockNum.set(null);
         } else {
-          this.blockNum.set(parseInt(block_num_or_id));
+          const blockNum = parseInt(block_num_or_id);
+          this.blockService.blockNum.set(blockNum);
+          this.blockService.blockId.set("");
+
+          this.deltaService.blockNum.set(blockNum);
+          this.deltaService.blockId.set(null);
         }
       }
 
       this.searchService.searchQuery.set(value.get('block_num_or_id') ?? "");
-
-      const blockData = await this.accountService.loadBlockData(this.blockNum());
-
-      // // TODO: remove after testing
-      // for (let i = 0; i < 20; i++) {
-      //   blockData.transactions.push(blockData.transactions[0]);
-      // }
-      // // END TODO
-
-      if (blockData) {
-        this.block.set(blockData);
-      }
-
       if (!this.dataService.explorerMetadata?.chain_name) {
-        this.title.setTitle(`#${this.blockNum()} • Hyperion Explorer`);
+        this.title.setTitle(`Block ${this.blockService.blockNum()} • Hyperion Explorer`);
       } else {
-        this.title.setTitle(`#${this.blockNum()} • ${this.dataService.explorerMetadata.chain_name} Hyperion Explorer`);
+        this.title.setTitle(`Block ${this.blockService.blockNum()} • ${this.dataService.explorerMetadata.chain_name} Hyperion Explorer`);
       }
 
-      if (this.block && this.block().status === 'pending') {
-        await this.reloadCountdownTimer();
-        this.countdownLoop = setInterval(async () => {
-          this.countdownTimer--;
-          if (this.countdownTimer <= 0) {
-            await this.reloadCountdownTimer();
-            if (this.accountService.libNum > this.block().number) {
-              clearInterval(this.countdownLoop);
-            }
-          }
-        }, 1000);
-      }
+      // if (this.block && this.block().status === 'pending') {
+      //   await this.reloadCountdownTimer();
+      //   this.countdownLoop = setInterval(async () => {
+      //     this.countdownTimer--;
+      //     if (this.countdownTimer <= 0) {
+      //       await this.reloadCountdownTimer();
+      //       if (this.accountService.libNum > this.block().number) {
+      //         clearInterval(this.countdownLoop);
+      //       }
+      //     }
+      //   }, 1000);
+      // }
 
     });
   }
 
-  async reloadCountdownTimer(): Promise<void> {
-    await this.accountService.updateLib();
-    const lib = this.accountService.libNum();
-    if (lib) {
-      this.countdownTimer = Math.ceil((this.block().number - lib) / 2);
-    }
-  }
+  // async reloadCountdownTimer(): Promise<void> {
+  //   await this.accountService.updateLib();
+  //   const lib = this.accountService.libNum();
+  //   if (lib) {
+  //     this.countdownTimer = Math.ceil((this.block().number - lib) / 2);
+  //   }
+  // }
 
   ngOnDestroy(): void {
     if (this.countdownLoop) {
@@ -175,8 +179,8 @@ export class BlockComponent implements OnInit, OnDestroy {
     return new Date(date).toLocaleString();
   }
 
-  private tableStickyMotion(tableSticky?: ElementRef<HTMLDivElement>) {
-    scroll(motionAnimate('.transactions-table-header', {
+  private tableStickyMotion(target: string, tableSticky?: ElementRef<HTMLDivElement>) {
+    scroll(motionAnimate(target, {
         boxShadow: 'rgba(78 104 192, 0.25) 0px 4px 19px 0px, rgba(17, 12, 46, 0.15) 0px 20px 100px 0px',
         background: 'var(--table-top-bg-gradient)'
       }, {duration: 1}),

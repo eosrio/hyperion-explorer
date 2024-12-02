@@ -2,24 +2,35 @@ import {
   computed,
   effect,
   inject,
-  Injectable, linkedSignal, PLATFORM_ID,
+  Injectable,
+  linkedSignal,
+  PLATFORM_ID,
   resource,
   ResourceLoaderParams,
   ResourceRef,
   signal,
+  untracked,
   WritableSignal
 } from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {AccountCreationData, AccountData, GetAccountResponse, GetActionsResponse, TokenData} from '../interfaces';
 // import {HyperionStreamClient} from '@eosrio/hyperion-stream-client';
-import {PaginationService} from "./pagination.service";
 import {lastValueFrom, Observable, of} from "rxjs";
 import {DataService} from "./data.service";
-import {rxResource, toObservable} from "@angular/core/rxjs-interop";
+import {toObservable} from "@angular/core/rxjs-interop";
 import {convertMicroS, getPrecision, getSymbol} from "../utils";
-import {faFilter, faRightFromBracket, faRightToBracket, faVoteYea} from "@fortawesome/free-solid-svg-icons";
+import {
+  faComputer,
+  faFilter,
+  faMoneyBill,
+  faRightFromBracket,
+  faRightToBracket,
+  faVoteYea
+} from "@fortawesome/free-solid-svg-icons";
 import {IconDefinition} from "@fortawesome/angular-fontawesome";
 import {isPlatformBrowser} from "@angular/common";
+import {SortDirection} from "@angular/material/sort";
+import {ChainService} from "./chain.service";
 
 interface HealthResponse {
   features: {
@@ -38,12 +49,14 @@ export interface ActionFilterSpec {
   exec: (params: WritableSignal<Record<string, string> | undefined>) => void;
 }
 
+export const MAX_ES_SKIP = 10000;
+
 @Injectable({providedIn: 'root'})
 export class AccountService {
 
   private data = inject(DataService);
   private httpClient = inject(HttpClient);
-  private pagService = inject(PaginationService);
+  chain = inject(ChainService);
 
   emptyAccount: AccountData & any = {
     cpu_limit: {used: 1, max: 1},
@@ -65,7 +78,14 @@ export class AccountService {
   public accountName = signal("");
   public customParams = signal<Record<string, string> | undefined>(undefined);
 
+  // pagination signals
+  pageIndex = signal(0);
+  pageSize = signal(20);
+  sortDirection = signal<SortDirection>('desc');
+
   filter = signal<ActionFilterSpec | null>(null);
+
+  queryCache = new Map<string, any>();
 
   commonFilters: ActionFilterSpec[] = [
     // received transfers
@@ -88,13 +108,41 @@ export class AccountService {
         });
       }
     },
+    {
+      name: "Native Transfers",
+      icon: faMoneyBill,
+      exec: (params) => {
+        params.set({
+          'act.account': "eosio.token",
+          'act.name': "transfer"
+        });
+      }
+    },
+    {
+      name: "Other Transfers",
+      icon: faMoneyBill,
+      exec: (params) => {
+        params.set({
+          'act.account': "!eosio.token",
+          'act.name': "transfer"
+        });
+      }
+    },
+    {
+      name: "System Actions",
+      icon: faComputer,
+      exec: (params) => {
+        params.set({
+          'act.account': "eosio"
+        });
+      }
+    },
     // votes
     {
       name: 'Votes',
       icon: faVoteYea,
       exec: (params) => {
         params.set({
-          'account': this.accountName(),
           'act.account': "eosio",
           'act.name': "voteproducer",
         });
@@ -107,30 +155,55 @@ export class AccountService {
   accountActions: any[] = [];
 
   // actions Resource
-  public actionRes = rxResource<GetActionsResponse, {
+  public actionRes = resource<GetActionsResponse, {
     accountName: string,
-    customParams?: Record<string, string>
+    customParams?: Record<string, string>,
+    limit: number,
+    skip: number,
+    first: number,
+    sort: string
   }>({
     request: () => {
       return {
         accountName: this.accountName(),
-        customParams: this.customParams()
+        customParams: this.customParams(),
+        limit: this.pageSize(),
+        skip: this.pageIndex() * this.pageSize(),
+        first: this.firstGlobalSequence(),
+        sort: this.sortDirection()
       };
     },
-    loader: (param) => {
+    loader: async (param) => {
       const cp = param.request.customParams;
-      if (cp) {
+      console.log(param.request);
+      const {limit, skip, sort} = param.request;
+      if (cp || skip > 0 || sort === 'asc') {
         const query = new URLSearchParams();
+        query.set('account', param.request.accountName);
+        query.set('limit', limit.toString());
+        query.set('skip', skip.toString());
+        // global sequence marker to lock the action on the time of page load
+        query.set('global_sequence', `0-${param.request.first}`);
+        if (sort) {
+          query.set('sort', sort);
+        }
         for (const key in cp) {
           if (cp.hasOwnProperty(key)) {
-            // console.log(`Setting ${key} to ${cp[key]}`);
             query.set(key, cp[key]);
           }
         }
-        const url = this.data.env.hyperionApiUrl + '/v2/history/get_actions?' + query.toString();
-        return this.httpClient.get(url) as Observable<GetActionsResponse>;
+        const key = query.toString();
+        if (this.queryCache.has(key)) {
+          return this.queryCache.get(key);
+        } else {
+          const url = this.data.env.hyperionApiUrl + '/v2/history/get_actions?' + key;
+          const res = await lastValueFrom(this.httpClient.get(url)) as GetActionsResponse;
+          console.log('Query Time', res.query_time_ms);
+          this.queryCache.set(key, res);
+          return res;
+        }
       } else {
-        return of({actions: []} as unknown as GetActionsResponse);
+        return {actions: []} as unknown as GetActionsResponse;
       }
     }
   });
@@ -155,6 +228,23 @@ export class AccountService {
         }
       } else {
         return null;
+      }
+    }
+  });
+
+  public firstGlobalSequence = computed<number>(() => {
+    return this.accountDataRes.value()?.actions[0]?.global_sequence ?? 0;
+  })
+
+  public totalActionCounter = computed(() => {
+    if (this.filter()) {
+      return this.actionRes.value()?.total.value ?? 0;
+    } else {
+      const total = this.accountDataRes.value()?.total_actions ?? 0;
+      if (total > MAX_ES_SKIP) {
+        return MAX_ES_SKIP;
+      } else {
+        return total;
       }
     }
   });
@@ -187,11 +277,14 @@ export class AccountService {
       return {
         accountActions: this.accountDataRes.value()?.actions ?? [],
         filteredActions: this.actionRes.value()?.actions ?? [],
-        activeFilter: this.filter()
+        activeFilter: this.filter(),
+        pageIndex: this.pageIndex(),
+        sortDirection: this.sortDirection()
       };
     },
     computation: (source, previous) => {
-      if (source.filteredActions && source.activeFilter) {
+      // if we are on filtered action or on a different page, replace the filtered actions with the account actions
+      if (source.filteredActions && (source.activeFilter || source.pageIndex > 0 || source.sortDirection === 'asc')) {
         if (source.filteredActions.length > 0) {
           return source.filteredActions;
         } else {
@@ -205,7 +298,11 @@ export class AccountService {
         if (source.accountActions.length > 0) {
           return source.accountActions;
         } else {
-          return previous?.value ?? [];
+          if (source.activeFilter) {
+            return previous?.value ?? [];
+          } else {
+            return [];
+          }
         }
       }
     }
@@ -318,9 +415,23 @@ export class AccountService {
 
     // console.log('AccountService created');
 
+    // effect(() => {
+    //   console.log('Account resource loaded:', this.accountDataRes.value());
+    //   // console.log(this.hasContract())
+    // });
+
     effect(() => {
-      console.log('Account resource loaded:', this.accountDataRes.value());
-      // console.log(this.hasContract())
+      const pendingActions = this.pendingActions();
+      console.log(`Pending Actions (lib: ${this.chain.libNumber()})`, pendingActions);
+      if (pendingActions.length > 0) {
+        untracked(() => {
+          setTimeout(() => {
+            console.log(`Rechecking LIB...`);
+            const reloadStatus = this.chain.libNumberResource.reload();
+            console.log(`Reload status: ${reloadStatus}`);
+          }, 2000);
+        });
+      }
     });
 
     //
@@ -353,9 +464,7 @@ export class AccountService {
                 icon: faFilter,
                 userFilter: true,
                 exec: params => {
-                  const conf = {
-                    'account': this.accountName()
-                  } as Record<string, string>;
+                  const conf = {} as Record<string, string>;
                   if (value.contract) {
                     conf['act.account'] = value.contract;
                   }
@@ -375,74 +484,65 @@ export class AccountService {
     }
   }
 
-  async monitorLib(): Promise<void> {
-    console.log('Starting LIB monitoring...');
+  // async monitorLib(): Promise<void> {
+  //   console.log('Starting LIB monitoring...');
+  //
+  //   if (!this.verificationLoop) {
+  //     this.verificationLoop = setInterval(async () => {
+  //       await this.updateLib();
+  //     }, 21 * 12 * 500);
+  //   }
+  //
+  //   if (!this.predictionLoop) {
+  //     this.predictionLoop = setInterval(() => {
+  //
+  //       this.libNum.update(value => {
+  //         return (value ?? 0) + 12;
+  //       });
+  //
+  //       if (this.pendingSet.size > 0) {
+  //         this.pendingSet.forEach(async (value) => {
+  //           if (value < (this.libNum() ?? 0)) {
+  //             console.log(`Block cleared ${value} < ${this.libNum()}`);
+  //             this.pendingSet.delete(value);
+  //           }
+  //         });
+  //       } else {
+  //         console.log('No more pending actions, clearing loops');
+  //         this.clearLoops();
+  //       }
+  //     }, 12 * 500);
+  //   }
+  // }
 
-    if (!this.verificationLoop) {
-      this.verificationLoop = setInterval(async () => {
-        await this.updateLib();
-      }, 21 * 12 * 500);
+  pendingActions = computed(() => {
+    const lib = this.chain.libNumber();
+    if (lib) {
+      return this.actionsComputed().filter(action => action.block_num > lib);
+    } else {
+      return [];
     }
+  })
 
-    if (!this.predictionLoop) {
-      this.predictionLoop = setInterval(() => {
-
-        this.libNum.update(value => {
-          return (value ?? 0) + 12;
-        });
-
-        if (this.pendingSet.size > 0) {
-          this.pendingSet.forEach(async (value) => {
-            if (value < (this.libNum() ?? 0)) {
-              console.log(`Block cleared ${value} < ${this.libNum()}`);
-              this.pendingSet.delete(value);
-            }
-          });
-        } else {
-          console.log('No more pending actions, clearing loops');
-          this.clearLoops();
-        }
-      }, 12 * 500);
-    }
-
-  }
-
-  async checkIrreversibility(): Promise<void> {
-    this.libNum.set(await this.checkLib() ?? 0);
-    if (this.libNum()) {
-      let counter = 0;
-      for (const action of this.actions) {
-        if (action.block_num <= this.libNum()) {
-          action.irreversible = true;
-        } else {
-          counter++;
-          this.pendingSet.add(action.block_num);
-        }
-      }
-      if (counter > 0) {
-        console.log('Pending actions: ' + counter);
-        this.monitorLib().catch(console.log);
-      }
-    }
-  }
-
-  async updateLib(): Promise<void> {
-    this.libNum.set(await this.checkLib() ?? 0);
-  }
-
-  async checkLib(): Promise<number | null> {
-    try {
-      const info = await lastValueFrom(this.httpClient.get(this.data.env.hyperionApiUrl + '/v1/chain/get_info')) as any;
-      if (info) {
-        return info.last_irreversible_block_num;
-      } else {
-        return null;
-      }
-    } catch (e) {
-      console.log(e);
-      return null;
-    }
-  }
+  // async checkIrreversibility(): Promise<void> {
+  //   const lastIrreversibleBlock = await this.checkLib() ?? 0;
+  //   this.libNum.set(lastIrreversibleBlock);
+  //   if (lastIrreversibleBlock) {
+  //     let counter = 0;
+  //     for (const action of this.actions) {
+  //       if (action.block_num <= lastIrreversibleBlock) {
+  //         action.irreversible = true;
+  //       } else {
+  //         counter++;
+  //         this.pendingSet.add(action.block_num);
+  //       }
+  //     }
+  //     if (counter > 0) {
+  //       console.log('Pending actions: ' + counter);
+  //       this.monitorLib().catch(console.log);
+  //     }
+  //   }
+  // }
 
   // async initStreamClient(): Promise<void> {
   //   try {
@@ -576,9 +676,7 @@ export class AccountService {
     this.loaded.set(false);
     try {
       const url = this.data.env.hyperionApiUrl + '/v1/trace_api/get_block';
-      const data = await lastValueFrom(this.httpClient.post(url, {
-        block_num: blockNum
-      }));
+      const data = await lastValueFrom(this.httpClient.post(url, {block_num: blockNum}));
       this.loaded.set(true);
       return data;
     } catch (error) {
