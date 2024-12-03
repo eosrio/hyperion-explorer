@@ -345,5 +345,20 @@ body {
   height: 1rem !important;
 }
 
+/*CUSTOM INPUT START*/
+.custom-input-group {
+  box-shadow: var(--box-shadow-bg-sharp-inset-deep);
+}
 
+.custom-input {
+  background-color: transparent;
+}
+
+.custom-input-group:focus-within {
+  outline: none;
+  box-shadow: var(--box-shadow-bg-sharp-inset);
+  transition: var(--transition-btn-down);
+  color: var(--primary);
+}
+/*CUSTOM INPUT END*/
 

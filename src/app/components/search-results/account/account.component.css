@@ -208,3 +208,38 @@
   letter-spacing: 0.04rem;
   font-size: 0.75rem; /*12px*/
 }
+
+input[type="checkbox"] {
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  background: transparent;
+  border-radius: 50%;
+  box-shadow: -3px -1px 1px 0 inset var(--colour-bg-shadow), 1px 1px 1px 0 inset var(--colour-bg-highlight), 2px 3px 5px 2px var(--colour-bg-shadow), 0px 0px 0px 0px var(--colour-bg-highlight);
+  cursor: pointer;
+  transition: box-shadow 0.3s;
+  position: relative;
+}
+
+input[type="checkbox"]:checked, input[type="checkbox"]:hover {
+  box-shadow: var(--box-shadow-bg-sharp-inset);
+  transition: all var(--transition-btn-down);
+}
+
+input[type="checkbox"]:checked::after {
+  background: transparent;
+  transition: background var(--transition-btn-down);
+}
+
+input[type="checkbox"]:checked::after {
+  content: '';
+  width: 10px;
+  height: 10px;
+  background: var(--primary);
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  transition: background var(--transition-btn-down);
+}

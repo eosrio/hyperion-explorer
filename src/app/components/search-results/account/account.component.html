@@ -381,7 +381,8 @@
 
 
         <!--ACTION FILTERS-->
-        <div class="flex flex-row gap-5 mb-6 justify-end flex-wrap">
+        <div class="flex flex-row gap-5 mb-6 justify-end flex-wrap items-center">
+          <div class="faded">Filter by</div>
           @for (filter of acServ.commonFilters; track filter.name) {
             <button mat-raised-button class="filter-btn"
                     [class.primary-btn]="acServ.filter()?.name === filter.name"
@@ -400,64 +401,101 @@
           }
         </div>
 
-        <mat-checkbox [(ngModel)]="useUTC">
-          <span class="faded">Dates in UTC</span>
-        </mat-checkbox>
+        <mat-expansion-panel #filterExpansionPanel hideToggle expanded>
+          <mat-expansion-panel-header>
+            <div class="flex flex-row flex-wrap items-center w-full gap-2">
+              <button mat-icon-button class="small-arrow-btn">
+                <div class="flex flex-col justify-center items-center">
+                  <fa-icon [ngClass]="filterExpansionPanel.expanded ? 'arrowDown' : 'arrowRight'"
+                           [icon]="icons.solid.faChevronRight"
+                           class="arrowSize main-color"></fa-icon>
+                </div>
+              </button>
 
-        <mat-checkbox [(ngModel)]="compactMode">
-          <span class="faded">Compact Mode</span>
-        </mat-checkbox>
+              <div class="pr-6">More filters</div>
+              @if (filterExpansionPanel.expanded) {
+                <mat-panel-description class="grow">
+                  <div class="flex flex-row gap-7 items-center">
+                    <div class="flex flex-row gap-2 items-center">
+                      <input type="checkbox" [(ngModel)]="useUTC" (click)="$event.stopPropagation()"/>
+                      <div class="faded">Dates in UTC</div>
+                    </div>
 
-        <!--CUSTOM FILTERS-->
-        <div class="flex flex-row gap-2">
-          <mat-form-field appearance="outline">
-            <input [(ngModel)]="contractFilterInput" matInput placeholder="Contract">
-          </mat-form-field>
-          <mat-form-field appearance="outline">
-            <input [(ngModel)]="actionFilterInput" matInput placeholder="Action Name">
-          </mat-form-field>
-          <button [disabled]="!contractFilterInput() && !actionFilterInput()" (click)="useCustomFilter()"
-                  mat-raised-button>Filter Actions
-          </button>
-          <mat-checkbox [(ngModel)]="saveCustomFilter">
-            <span class="faded">Save this filter</span>
-          </mat-checkbox>
-        </div>
-
-        @let filteredActions = acServ.actionRes.value()?.actions;
-        @let totalFilteredActions = acServ.actionRes.value()?.total?.value;
-
-        @if (filteredActions && filteredActions.length > 0) {
-          <div class="flex flex-row justify-start items-center gap-5">
-            <div class="flex flex-row gap-2">
-              <span class="faded">Showing</span>
-              <span class="font-medium">{{ filteredActions.length }}</span>
-              <span class="faded">of</span>
-              <span class="font-medium">{{ totalFilteredActions }}</span>
-              <span class="faded">actions</span>
+                    <div class="flex flex-row gap-2 items-center">
+                      <input type="checkbox" [(ngModel)]="compactMode" (click)="$event.stopPropagation()"/>
+                      <div class="faded">Compact Mode</div>
+                    </div>
+                  </div>
+                </mat-panel-description>
+              }
             </div>
-            <div class="flex flex-row gap-2">
-              <span class="faded">Filtered by:</span>
-              <span class="font-medium">{{ acServ.filter()?.name }}</span>
+          </mat-expansion-panel-header>
+
+          <!--CUSTOM FILTERS-->
+          <div class="flex flex-row items-center gap-2">
+            <div class="custom-input-group flex flex-row items-center max-w-full sm:w-auto w-full
+                rounded-full border-transparent">
+                <input  matInput id="contract" type="text"
+                       class="custom-input outline-none ml-0 pl-5 py-4 rounded-l-full h-[2.625rem]"
+                       [(ngModel)]="contractFilterInput" placeholder="Contract"/>
+            </div>
+            <div class="custom-input-group flex flex-row items-center max-w-full sm:w-auto w-full
+                rounded-full border-transparent">
+              <input  matInput id="action" type="text"
+                      class="custom-input outline-none ml-0 pl-5 py-4 rounded-l-full h-[2.625rem]"
+                      [(ngModel)]="actionFilterInput" placeholder="Action Name"/>
+            </div>
+
+            <button [disabled]="!contractFilterInput() && !actionFilterInput()" (click)="useCustomFilter()"
+                    mat-raised-button>Filter
+            </button>
+            <div class="flex flex-row gap-2 items-center">
+              <input type="checkbox" [(ngModel)]="saveCustomFilter"/>
+              <div class="faded">Save this filter</div>
             </div>
           </div>
-        } @else {
-          @if (acServ.actionRes.hasValue() && acServ.filter()) {
-            <div class="border-red-400 border flex flex-row justify-center p-5 items-center gap-5">
-              <div class="faded">No actions to display using filter {{ acServ.filter()?.name }}</div>
-              <button mat-raised-button (click)="acServ.clearFilter()">Clear Filter</button>
-            </div>
-          }
-        }
 
-        <mat-paginator class="actions-table-paginator"
-                       [pageSize]="acServ.pageSize()"
-                       [pageIndex]="acServ.pageIndex()"
-                       [pageSizeOptions]="[5, 10, 20, 50, 100]"
-                       [length]="acServ.totalActionCounter()"
-                       (page)="changePage($event)"
-                       showFirstLastButtons>
-        </mat-paginator>
+          @let filteredActions = acServ.actionRes.value()?.actions;
+          @let totalFilteredActions = acServ.actionRes.value()?.total?.value;
+
+
+        </mat-expansion-panel>
+
+        <div class="flex flex-row justify-between items-center gap-2">
+          @if (filteredActions && filteredActions.length > 0) {
+            <div class="flex flex-row justify-start items-center gap-5 animate fast fadeInDown">
+              <div class="flex flex-row gap-2">
+                <span class="faded">Showing</span>
+                <span class="font-medium">{{ filteredActions.length }}</span>
+                <span class="faded">of</span>
+                <span class="font-medium">{{ totalFilteredActions }}</span>
+                <span class="faded">actions</span>
+              </div>
+              <div class="flex flex-row gap-2">
+                <span class="faded">Filtered by:</span>
+                <span class="font-medium">{{ acServ.filter()?.name }}</span>
+              </div>
+            </div>
+          } @else {
+            @if (acServ.actionRes.hasValue() && acServ.filter()) {
+              <div class="flex flex-row justify-center items-center gap-5">
+                <div class="warn animate fast fadeInDown">No actions to display using filter <b>{{ acServ.filter()?.name }}</b></div>
+                <button mat-raised-button (click)="acServ.clearFilter()">Clear Filter</button>
+              </div>
+            } @else {
+              <div></div>
+            }
+          }
+
+          <mat-paginator class="actions-table-paginator"
+                         [pageSize]="acServ.pageSize()"
+                         [pageIndex]="acServ.pageIndex()"
+                         [pageSizeOptions]="[5, 10, 20, 50, 100]"
+                         [length]="acServ.totalActionCounter()"
+                         (page)="changePage($event)"
+                         showFirstLastButtons>
+          </mat-paginator>
+        </div>
 
 
         <table mat-table
