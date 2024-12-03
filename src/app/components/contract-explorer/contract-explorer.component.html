@@ -28,6 +28,22 @@
 
         <div class="w-full flex flex-row justify-between items-center">
           <div class="my-5 faded main-color">Please select a scope:</div>
+          <div>
+
+            <span>Scope Search Limit</span>
+            <input matInput class="custom-input outline-none ml-0 pl-5 py-4 rounded-l-full h-[2.625rem] min-w-0"
+                   [(ngModel)]="getTableByScopeLimit" placeholder="Scope Search Limit" type="number" min="1"
+                   max="1000">
+
+            <button mat-icon-button (click)="usePreviousScope()" [disabled]="!lastScope()" class="my-5">
+              <mat-icon>arrow_left</mat-icon>
+            </button>
+
+            <button mat-icon-button (click)="useNextScope()" [disabled]="!nextScopePresent()" class="my-5">
+              <mat-icon>arrow_right</mat-icon>
+            </button>
+
+          </div>
           <button matTooltip="Reload Scopes" (click)="reloadScopes()" [disabled]="tableScopesRes.isLoading()"
                   mat-icon-button class="my-5">
             <mat-icon>sync</mat-icon>
@@ -43,7 +59,7 @@
           }
         </div>
 
-        @if (nextScope()) {
+        @if (nextScopePresent()) {
           <div class="mt-5">Next Scope: {{ nextScope() }}</div>
 
           <div class="flex flex-row flex-wrap w-full items-center gap-4 mt-4">
@@ -51,8 +67,8 @@
             <!--            <mat-form-field appearance="outline">-->
             <!--              <mat-label>Custom Scope:</mat-label>-->
             <div class="custom-input-group flex flex-row items-center max-w-full sm:w-auto w-full
-        rounded-full focus-within:outline focus-within:outline-2 focus-within:outline-amber-400 focus-within:-outline-offset-2
-          border-transparent">
+                rounded-full focus-within:outline focus-within:outline-2 focus-within:outline-amber-400 focus-within:-outline-offset-2
+                  border-transparent">
               <div class="grow min-w-0">
                 <input #customScope matInput id="customScope" type="text"
                        class="custom-input outline-none ml-0 pl-5 py-4 rounded-l-full h-[2.625rem] min-w-0"
