@@ -20,6 +20,29 @@ export class ChainService {
     }
   });
 
+  systemSymbol = resource<string, any>({
+    loader: async () => {
+      try {
+        const getTableRows = this.data.env.hyperionApiUrl + '/v1/chain/get_table_rows';
+        const ramMarket = await lastValueFrom(this.httpClient.post(getTableRows, {
+          code: "eosio",
+          scope: "eosio",
+          table: "rammarket",
+          limit: 1,
+          json: true
+        })) as any;
+        if (ramMarket && ramMarket.rows && ramMarket.rows.length > 0) {
+          return ramMarket.rows[0].quote.balance.split(' ')[1];
+        } else {
+          return "SYS";
+        }
+      } catch (e: any) {
+        console.log(e.message);
+        return "SYS";
+      }
+    }
+  });
+
   libNumber = computed<number>(() => {
     return this.libNumberResource.value() ?? 0;
   });

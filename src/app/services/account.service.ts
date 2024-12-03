@@ -386,13 +386,16 @@ export class AccountService {
 
   systemSymbol = computed(() => {
     const account = this.accountComputed();
+    const ramMarketSymbol = this.chain.systemSymbol.value();
+    let symbol: string | null;
     if (account.core_liquid_balance) {
-      return getSymbol(this.accountComputed().core_liquid_balance) ?? "SYS";
-    } else if (account.total_resources.cpu_weight) {
-      return getSymbol(account.total_resources.cpu_weight) ?? "SYS";
+      symbol = getSymbol(this.accountComputed().core_liquid_balance);
+    } else if (account.total_resources && account.total_resources.cpu_weight) {
+      symbol = getSymbol(account.total_resources.cpu_weight);
     } else {
-      return "SYS";
+      symbol = ramMarketSymbol ?? "SYS";
     }
+    return symbol;
   });
 
   systemPrecision = computed(() => {
