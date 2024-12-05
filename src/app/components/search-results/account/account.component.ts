@@ -480,10 +480,18 @@ export class AccountComponent implements OnInit {
   }
 
   setFilter(filter: ActionFilterSpec) {
-    const [contract, action] = filter.name.split('::');
-    this.contractFilterInput.set(contract);
-    this.actionFilterInput.set(action);
-    this.acServ.setFilter(filter);
+    if (this.acServ.filter()?.name !== filter.name) {
+      if (filter.userFilter) {
+        const [contract, action] = filter.name.split('::');
+        this.contractFilterInput.set(contract);
+        this.actionFilterInput.set(action);
+      }
+      this.acServ.setFilter(filter);
+    } else {
+      this.contractFilterInput.set('');
+      this.actionFilterInput.set('');
+      this.acServ.filter.set(null);
+    }
   }
 
   onSort($event: Sort) {

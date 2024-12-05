@@ -79,6 +79,17 @@
   min-height: var(--mat-expansion-header-collapsed-state-height);
 }
 
+@media (max-width: 652px) {
+  ::ng-deep .mat-expansion-panel-header.mat-expanded {
+    height: auto;
+    padding-top: 0.5rem;
+  }
+}
+
+::ng-deep .filter-panel .mat-expansion-panel-body {
+  padding-top: 1.5rem;
+}
+
 .vote-card-title {
   font-size: 1.188rem; /*19px*/
   margin-bottom: 0 !important;
@@ -209,10 +220,15 @@
   font-size: 0.75rem; /*12px*/
 }
 
+.filter-btn:not(:focus-visible):not(:hover):not(.primary-btn) {
+  color: var(--faded) !important;
+}
+
 input[type="checkbox"] {
   appearance: none;
   width: 24px;
   height: 24px;
+  aspect-ratio: 1;
   background: transparent;
   border-radius: 50%;
   box-shadow: -3px -1px 1px 0 inset var(--colour-bg-shadow), 1px 1px 1px 0 inset var(--colour-bg-highlight), 2px 3px 5px 2px var(--colour-bg-shadow), 0px 0px 0px 0px var(--colour-bg-highlight);
@@ -242,4 +258,17 @@ input[type="checkbox"]:checked::after {
   left: 50%;
   transform: translate(-50%, -50%);
   transition: background var(--transition-btn-down);
+}
+
+.remove-filter:hover::after {
+  content: '';
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: oklch(from var(--warn) l c h / 0.1);
+  background: all 0.3s ease;
 }

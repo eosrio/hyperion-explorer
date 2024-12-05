@@ -350,7 +350,7 @@
       <!--ACTIONS CARD/TABLE-->
       <div class="custom-card w-full min-w-full h-full min-h-full md:col-span-3">
 
-        <div #actionsTable class="flex flex-row justify-between items-start">
+        <div class="flex flex-row justify-between items-start">
           <h3 style="margin-top: 0">
             <fa-layers [fixedWidth]="true" style="margin-right: 5px">
               <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
@@ -381,10 +381,12 @@
 
 
         <!--ACTION FILTERS-->
-        <div class="flex flex-row gap-5 mb-6 justify-end flex-wrap items-center">
-          <div class="faded">Filter by</div>
+        <div class="flex flex-row lg:flex-wrap gap-5 mb-1 lg:mb-0 lg:justify-end items-center py-4 pr-1.5
+         relative overflow-x-auto overflow-y-hidden snap-proximity snap-x snap-always">
+            <div class="faded">Filter by</div>
           @for (filter of acServ.commonFilters; track filter.name) {
-            <button mat-raised-button class="filter-btn"
+            <div class="snap-center shrink-0 first:pl-1 last:pr-1">
+              <button mat-raised-button class="filter-btn w-max"
                     [class.primary-btn]="acServ.filter()?.name === filter.name"
                     (click)="setFilter(filter)">
               <div class="flex flex-row gap-2 items-center">
@@ -393,17 +395,20 @@
                 }
                 <div>{{ filter.name }}</div>
                 @if (filter.userFilter) {
-                  <fa-icon (click)="removeUserFilter(filter)" [icon]="icons.solid.faTimes"
-                           class="text-red-400"></fa-icon>
+                  <!--                  <button mat-icon-button>-->
+                  <fa-icon (click)="removeUserFilter(filter); $event.stopPropagation()" [icon]="icons.solid.faTimes"
+                           class="warn remove-filter relative text-base" matTooltip="remove filter"></fa-icon>
+                  <!--                  </button>-->
                 }
               </div>
             </button>
+            </div>
           }
         </div>
 
-        <mat-expansion-panel #filterExpansionPanel hideToggle expanded>
+        <mat-expansion-panel #filterExpansionPanel hideToggle expanded class="filter-panel">
           <mat-expansion-panel-header>
-            <div class="flex flex-row flex-wrap items-center w-full gap-2">
+            <div class="flex flex-row flex-wrap items-center w-full gap-2 pt-1">
               <button mat-icon-button class="small-arrow-btn">
                 <div class="flex flex-col justify-center items-center">
                   <fa-icon [ngClass]="filterExpansionPanel.expanded ? 'arrowDown' : 'arrowRight'"
@@ -415,7 +420,7 @@
               <div class="pr-6">More filters</div>
               @if (filterExpansionPanel.expanded) {
                 <mat-panel-description class="grow">
-                  <div class="flex flex-row gap-7 items-center">
+                  <div class="flex flex-row gap-7 items-center py-2">
                     <div class="flex flex-row gap-2 items-center">
                       <input type="checkbox" [(ngModel)]="useUTC" (click)="$event.stopPropagation()"/>
                       <div class="faded">Dates in UTC</div>
@@ -432,18 +437,18 @@
           </mat-expansion-panel-header>
 
           <!--CUSTOM FILTERS-->
-          <div class="flex flex-row items-center gap-2">
+          <div class="flex flex-row flex-wrap items-center gap-4">
             <div class="custom-input-group flex flex-row items-center max-w-full sm:w-auto w-full
                 rounded-full border-transparent">
-                <input  matInput id="contract" type="text"
-                       class="custom-input outline-none ml-0 pl-5 py-4 rounded-l-full h-[2.625rem]"
-                       [(ngModel)]="contractFilterInput" placeholder="Contract"/>
+              <input matInput id="contract" type="text"
+                     class="custom-input outline-none ml-0 pl-5 py-4 rounded-l-full h-[2.625rem]"
+                     [(ngModel)]="contractFilterInput" placeholder="Contract"/>
             </div>
             <div class="custom-input-group flex flex-row items-center max-w-full sm:w-auto w-full
                 rounded-full border-transparent">
-              <input  matInput id="action" type="text"
-                      class="custom-input outline-none ml-0 pl-5 py-4 rounded-l-full h-[2.625rem]"
-                      [(ngModel)]="actionFilterInput" placeholder="Action Name"/>
+              <input matInput id="action" type="text"
+                     class="custom-input outline-none ml-0 pl-5 py-4 rounded-l-full h-[2.625rem]"
+                     [(ngModel)]="actionFilterInput" placeholder="Action Name"/>
             </div>
 
             <button [disabled]="!contractFilterInput() && !actionFilterInput()" (click)="useCustomFilter()"
@@ -461,8 +466,8 @@
 
         </mat-expansion-panel>
 
-        <div class="flex flex-row justify-between items-center gap-2">
-          @if (filteredActions && filteredActions.length > 0) {
+        <div #actionsTable class="flex flex-row flex-wrap justify-between items-center gap-2 pt-5 pb-3">
+          @if (filteredActions && filteredActions.length > 0 && acServ.filter()) {
             <div class="flex flex-row justify-start items-center gap-5 animate fast fadeInDown">
               <div class="flex flex-row gap-2">
                 <span class="faded">Showing</span>
@@ -479,8 +484,9 @@
           } @else {
             @if (acServ.actionRes.hasValue() && acServ.filter()) {
               <div class="flex flex-row justify-center items-center gap-5">
-                <div class="warn animate fast fadeInDown">No actions to display using filter <b>{{ acServ.filter()?.name }}</b></div>
-                <button mat-raised-button (click)="acServ.clearFilter()">Clear Filter</button>
+                <div class="warn animate fast fadeInDown">No actions to display using filter
+                  <b>{{ acServ.filter()?.name }}</b></div>
+                <button mat-raised-button class="filter-btn" (click)="acServ.clearFilter()">Clear Filter</button>
               </div>
             } @else {
               <div></div>
