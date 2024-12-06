@@ -46,9 +46,7 @@ import {animate, scroll} from "motion";
 import {ActDataViewComponent} from "../../act-data-view/act-data-view.component";
 import {MatRipple} from "@angular/material/core";
 import {PermissionTreeComponent} from "../../permission-tree/permission-tree.component";
-import {MatCheckbox} from "@angular/material/checkbox";
 import {FormsModule} from "@angular/forms";
-import {MatFormField} from "@angular/material/form-field";
 import {MatInput} from "@angular/material/input";
 import {ChainService} from "../../../services/chain.service";
 
@@ -122,9 +120,7 @@ interface FlatNode {
     MatRipple,
     PermissionTreeComponent,
     MatIconButton,
-    MatCheckbox,
     FormsModule,
-    MatFormField,
     MatInput
   ],
   templateUrl: './account.component.html',

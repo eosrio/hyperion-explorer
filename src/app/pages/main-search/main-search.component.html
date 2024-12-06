@@ -103,7 +103,9 @@
   <!--  </div>-->
 
   <div id="content-container" class="flex flex-col justify-between pb-10 w-full grow">
-    <router-outlet></router-outlet>
+    <div>
+      <router-outlet></router-outlet>
+    </div>
     <div class="flex md:flex-row flex-col justify-between items-center hr-container w-full pt-4 gap-4">
       <div class="w-[4.383rem]"></div>
       <div class="footer-color justify-self-center">v{{ version }} | Made with

@@ -231,4 +231,7 @@ $overlay-backdrop-color: rgba(0, 0, 0, 0.8) !important;
   ));
 }
 
+.mat-mdc-progress-spinner.mat-primary svg {
+  stroke: var(--primary);
+}
 
