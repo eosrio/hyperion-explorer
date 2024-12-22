@@ -326,7 +326,7 @@ export class AccountService {
 
   public myCpuBalance = computed(() => {
     const account = this.accountComputed();
-    if (account.self_delegated_bandwidth) {
+    if (account.self_delegated_bandwidth && account.self_delegated_bandwidth.cpu_weight) {
       return parseFloat(account.self_delegated_bandwidth.cpu_weight.split(' ')[0]);
     }
     return 0;
@@ -334,7 +334,7 @@ export class AccountService {
 
   public myNetBalance = computed(() => {
     const account = this.accountComputed();
-    if (account.self_delegated_bandwidth) {
+    if (account.self_delegated_bandwidth && account.self_delegated_bandwidth.net_weight) {
       return parseFloat(account.self_delegated_bandwidth.net_weight.split(' ')[0]);
     }
     return 0;
@@ -342,7 +342,7 @@ export class AccountService {
 
   public liquidBalance = computed(() => {
     const account = this.accountComputed();
-    if (account.core_liquid_balance) {
+    if (account.core_liquid_balance && account.core_liquid_balance.length > 0) {
       return parseFloat(account.core_liquid_balance.split(' ')[0]);
     }
     return 0;
@@ -351,7 +351,12 @@ export class AccountService {
   public cpuBalance = computed(() => {
     const account = this.accountComputed();
     if (account.total_resources) {
-      return parseFloat(account.total_resources.cpu_weight.split(' ')[0]);
+      console.log(account);
+      if (account.total_resources.cpu_weight) {
+        return parseFloat(account.total_resources.cpu_weight.split(' ')[0]);
+      } else {
+        return 0;
+      }
     }
     return 0;
   });
@@ -359,13 +364,21 @@ export class AccountService {
   public netBalance = computed(() => {
     const account = this.accountComputed();
     if (account.total_resources) {
-      return parseFloat(account.total_resources.net_weight.split(' ')[0]);
+      if (account.total_resources.net_weight) {
+        return parseFloat(account.total_resources.net_weight.split(' ')[0]);
+      } else {
+        return 0;
+      }
     }
     return 0;
   });
 
   public totalBalance = computed(() => {
     return this.liquidBalance() + this.myCpuBalance() + this.myNetBalance();
+  });
+
+  public totalBalanceUSD = computed(() => {
+    return this.totalBalance() * this.chain.priceRateUsd();
   });
 
   public myStakedBalance = computed(() => {

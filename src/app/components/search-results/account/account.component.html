@@ -31,8 +31,12 @@
                 <div>{{ acServ.accountComputed().account_name }}</div>
               </div>
               <div id="totalBalance" class="font-medium faded text-[0.938rem] mt-1 opacity-0">
-                {{ acServ.totalBalance() | number: "1.0-" + systemPrecision }}
-                {{ systemSymbol }}
+                <span class="primary">
+                  {{ acServ.totalBalance() | number: "1.0-" + systemPrecision }}
+                  {{ systemSymbol }}
+                </span>
+                | ${{ acServ.totalBalanceUSD() | number: "1.0-2" }}
+                <span class="text-sm">&#64; ${{ chain.priceRateUsd() }} / {{ systemSymbol }}</span>
               </div>
             </div>
             @defer (when acServ.hasContract()) {
@@ -54,27 +58,43 @@
           <div class="total-balance w-full">
             <strong class="uppercase font-bold text-[0.938rem]">Total Balance: </strong>
             <span class="float-right font-semibold text-[0.938rem]">
-                {{ acServ.totalBalance() | number: "1.0-" + systemPrecision }}
+              {{ acServ.totalBalance() | number: "1.0-" + systemPrecision }}
               {{ systemSymbol }}
-              </span>
+            </span>
+          </div>
+
+          <!-- total usd balance-->
+          <div class="mb-1.5 w-full">
+            <strong class="font-semibold faded">USD Value: </strong>
+            <span class="float-right">
+              ${{ acServ.totalBalanceUSD() | number: "1.0-2" }}
+            </span>
+          </div>
+
+          <!-- current usd price -->
+          <div class="mb-1.5 w-full bottom-divider">
+            <span class="font-semibold faded">{{systemSymbol}} Price: </span>
+            <span class="float-right">
+              ${{ chain.priceRateUsd() }}
+            </span>
           </div>
 
           <!-- liquid balance-->
           <div class="mb-1.5 w-full">
             <strong class="font-semibold faded">Liquid Balance: </strong>
             <span class="float-right">
-                {{ acServ.liquidBalance() | number: "1.0-" + systemPrecision }}
+              {{ acServ.liquidBalance() | number: "1.0-" + systemPrecision }}
               {{ systemSymbol }}
-              </span>
+            </span>
           </div>
 
           <!-- staked balance-->
           <div class="mb-1.5 w-full">
             <strong class="font-semibold faded">Staked Balance: </strong>
             <span class="float-right">
-                {{ acServ.myStakedBalance() | number: "1.0-" + systemPrecision }}
+              {{ acServ.myStakedBalance() | number: "1.0-" + systemPrecision }}
               {{ systemSymbol }}
-              </span>
+            </span>
           </div>
 
           <!-- refunding balance-->
@@ -418,21 +438,21 @@
               </button>
 
               <div class="pr-6">More filters</div>
-<!--              @if (filterExpansionPanel.expanded) {-->
-                <mat-panel-description class="grow">
-                  <div class="flex flex-row gap-7 items-center py-2">
-                    <div class="flex flex-row gap-2 items-center">
-                      <input type="checkbox" [(ngModel)]="useUTC" (click)="$event.stopPropagation()"/>
-                      <div class="faded">Dates in UTC</div>
-                    </div>
-
-                    <div class="flex flex-row gap-2 items-center">
-                      <input type="checkbox" [(ngModel)]="compactMode" (click)="$event.stopPropagation()"/>
-                      <div class="faded">Compact Mode</div>
-                    </div>
+              <!--              @if (filterExpansionPanel.expanded) {-->
+              <mat-panel-description class="grow">
+                <div class="flex flex-row gap-7 items-center py-2">
+                  <div class="flex flex-row gap-2 items-center">
+                    <input type="checkbox" [(ngModel)]="useUTC" (click)="$event.stopPropagation()"/>
+                    <div class="faded">Dates in UTC</div>
                   </div>
-                </mat-panel-description>
-<!--              }-->
+
+                  <div class="flex flex-row gap-2 items-center">
+                    <input type="checkbox" [(ngModel)]="compactMode" (click)="$event.stopPropagation()"/>
+                    <div class="faded">Compact Mode</div>
+                  </div>
+                </div>
+              </mat-panel-description>
+              <!--              }-->
             </div>
           </mat-expansion-panel-header>
 

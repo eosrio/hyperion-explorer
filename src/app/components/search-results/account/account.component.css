@@ -15,6 +15,12 @@
   margin-bottom: 0.625rem;
 }
 
+.bottom-divider {
+  border-bottom: 1px solid var(--line-divider);
+  padding-bottom: 0.625rem;
+  margin-bottom: 0.625rem;
+}
+
 .title {
   font-size: 1.313rem; /*21px*/
   color: var(--primary);
