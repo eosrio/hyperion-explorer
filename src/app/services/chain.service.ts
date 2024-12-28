@@ -106,8 +106,8 @@ export class ChainService {
   }
 
   constructor() {
-    effect(() => {
-      console.log(`Oracle Data`, this.oracleData.value());
-    });
+    // effect(() => {
+    //   console.log(`Oracle Data`, this.oracleData.value());
+    // });
   }
 }
