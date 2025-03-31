@@ -31,7 +31,7 @@
           <div>
 
             <span>Scope Search Limit</span>
-            <input matInput class="custom-input outline-none ml-0 pl-5 py-4 rounded-l-full h-[2.625rem] min-w-0"
+            <input matInput class="custom-input outline-hidden ml-0 pl-5 py-4 rounded-l-full h-[2.625rem] min-w-0"
                    [(ngModel)]="getTableByScopeLimit" placeholder="Scope Search Limit" type="number" min="1"
                    max="1000">
 
@@ -70,7 +70,7 @@
         rounded-full border-transparent">
               <div class="grow min-w-0">
                 <input #customScope matInput id="customScope" type="text"
-                       class="custom-input outline-none ml-0 pl-5 py-4 rounded-l-full h-[2.625rem] min-w-0"
+                       class="custom-input outline-hidden ml-0 pl-5 py-4 rounded-l-full h-[2.625rem] min-w-0"
                        (keyup.enter)="selectScope(customScope.value)" [value]="scope()">
               </div>
               <!--            </mat-form-field>-->

@@ -138,7 +138,7 @@
       <!-- ACCOUNT RESOURCES, CPU, NET AND RAM -->
       <div class="custom-card md:col-span-2">
         <mat-card-content>
-          <div class="flex flex-row flex-wrap justify-start items-start flex-grow gap-10">
+          <div class="flex flex-row flex-wrap justify-start items-start grow gap-10">
 
             <!--CPU-->
             <div class="w-full lg:w-[50%]">
@@ -226,7 +226,7 @@
             </div>
 
             <!--RAM-->
-            <div class="flex-grow">
+            <div class="grow">
               <div>
                 <span class="title mt-6">RAM</span>
                 @if (acServ.accountComputed().ram_quota === -1) {
@@ -310,7 +310,7 @@
             <!--            -->
             <mat-expansion-panel-header>
               <div class="flex flex-row flex-wrap w-full gap-5">
-                <mat-panel-title class="w-auto" style="flex-grow: 0 !important;">
+                <mat-panel-title class="w-auto" style="grow: 0 !important;">
                   <div class="flex flex-row items-center gap-2 text-xl">
                     @if (voterInfo.producers.length > 1) {
                       <button mat-icon-button class="small-arrow-btn">
@@ -461,13 +461,13 @@
             <div class="custom-input-group flex flex-row items-center max-w-full sm:w-auto w-full
                 rounded-full border-transparent">
               <input matInput id="contract" type="text"
-                     class="custom-input outline-none ml-0 pl-5 py-4 rounded-l-full h-[2.625rem]"
+                     class="custom-input outline-hidden ml-0 pl-5 py-4 rounded-l-full h-[2.625rem]"
                      [(ngModel)]="contractFilterInput" placeholder="Contract"/>
             </div>
             <div class="custom-input-group flex flex-row items-center max-w-full sm:w-auto w-full
                 rounded-full border-transparent">
               <input matInput id="action" type="text"
-                     class="custom-input outline-none ml-0 pl-5 py-4 rounded-l-full h-[2.625rem]"
+                     class="custom-input outline-hidden ml-0 pl-5 py-4 rounded-l-full h-[2.625rem]"
                      [(ngModel)]="actionFilterInput" placeholder="Action Name"/>
             </div>
 

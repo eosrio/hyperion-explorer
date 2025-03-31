@@ -4,7 +4,7 @@ import {ActivatedRoute} from "@angular/router";
 import {rxResource} from "@angular/core/rxjs-interop";
 import {map} from "rxjs";
 
-function rxResFromParam(route: ActivatedRoute, key: string): ResourceRef<string | null> {
+function rxResFromParam(route: ActivatedRoute, key: string): ResourceRef<string | null | undefined> {
   return rxResource<string | null, unknown>({
     loader: () => route.paramMap.pipe(map(p => p.get(key)))
   });

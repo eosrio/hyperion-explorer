@@ -12,7 +12,7 @@
     <form [formGroup]="searchForm" (ngSubmit)="submit()" class="flex flex-col">
       <div class="custom-input-group grow w-full flex flex-row rounded-full">
         <input #searchField formControlName="search_field" [placeholder]="searchPlaceholder()"
-               class="custom-input grow outline-none pl-5 rounded-l-full w-full sm:w-96 max-w-full"
+               class="custom-input grow outline-hidden pl-5 rounded-l-full w-full sm:w-96 max-w-full"
                [style.padding-top]="searchInputPadding() +  'rem'"
                [style.padding-bottom]="searchInputPadding() +  'rem'"
                [matAutocomplete]="auto">

@@ -209,7 +209,7 @@ export class AccountService {
   });
 
   // accountData Resource
-  public accountDataRes: ResourceRef<GetAccountResponse | null> = resource<GetAccountResponse | null, {
+  public accountDataRes: ResourceRef<GetAccountResponse | null | undefined> = resource<GetAccountResponse | null, {
     accountName: string,
   }>({
     request: () => {
