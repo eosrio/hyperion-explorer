@@ -23,6 +23,18 @@ export const routes: Routes = [
     loadComponent: loadMainSearchComponent,
     children: [
       {
+        path: '',
+        children: [
+          {
+            path: '',
+            loadComponent: async () => {
+              let m = await import('./components/search-results/home-tabs/home-tabs.component');
+              return m.HomeTabsComponent;
+            }
+          },
+        ]
+      },
+      {
         path: 'account',
         children: [
           {path: '', redirectTo: '/', pathMatch: 'full'},

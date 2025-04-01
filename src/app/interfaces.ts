@@ -169,6 +169,45 @@ export interface Keys {
   weight: number;
 }
 
+// Interfaces for /v1/chain/get_producers response
+export interface ProducerData {
+  owner: string;
+  total_votes: string; // Usually a large number as a string
+  producer_key: string;
+  is_active: number; // 0 or 1
+  url: string;
+  unpaid_blocks: number;
+  last_claim_time: string; // ISO 8601 format date string
+  location: number;
+  // Other potential fields depending on chain config: producer_authority, etc.
+}
+
+export interface GetProducersResponse {
+  rows: ProducerData[];
+  total_producer_vote_weight: string; // Usually a large number as a string
+  more: string; // Usually empty or indicates pagination key
+}
+
+// Interface for the /v1/chain/get_info response
+export interface ChainInfo {
+  server_version: string;
+  chain_id: string;
+  head_block_num: number;
+  last_irreversible_block_num: number;
+  last_irreversible_block_id: string;
+  head_block_id: string;
+  head_block_time: string; // ISO 8601 format date string
+  head_block_producer: string;
+  virtual_block_cpu_limit: number;
+  virtual_block_net_limit: number;
+  block_cpu_limit: number;
+  block_net_limit: number;
+  server_version_string?: string; // Optional, might not be present on all versions
+  fork_db_head_block_num?: number; // Optional
+  fork_db_head_block_id?: string; // Optional
+  server_full_version_string?: string; // Optional
+}
+
 export interface Account {
   permission: Perm;
   weight: number;
@@ -183,4 +222,3 @@ export interface Waits {
   wait_sec: number;
   weight: number;
 }
-

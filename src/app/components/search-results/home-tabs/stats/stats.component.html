@@ -1,0 +1,63 @@
+<div class="p-4">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+
+    <!-- LIB Card -->
+    <div class="stat-card">
+      <div class="stat-icon">
+        <fa-icon [icon]="icons.solid.cube" class="opacity-70"></fa-icon> <!-- Slightly different icon/style for LIB -->
+      </div>
+      <div class="stat-content">
+        <div class="stat-label">Last Irreversible Block</div>
+<!--        <div class="stat-value">{{ info.last_irreversible_block_num | number }}</div>-->
+      </div>
+    </div>
+
+    <!-- Chain ID Card (Takes 2/3 on lg, full on sm) -->
+    <div class="stat-card sm:col-span-2 lg:col-span-2"> <!-- Changed lg:col-span-3 to lg:col-span-2 -->
+      <div class="stat-icon">
+        <fa-icon [icon]="icons.solid.link"></fa-icon>
+      </div>
+      <div class="stat-content">
+        <div class="stat-label">Chain ID</div>
+<!--        <div class="stat-value" [title]="info.chain_id">{{ info.chain_id }}</div> &lt;!&ndash; Removed truncate class &ndash;&gt;-->
+      </div>
+    </div>
+
+    <!-- Head Block Card (Moved Up, takes 1/3 on lg) -->
+    <div class="stat-card"> <!-- No lg:col-span needed, defaults to 1 -->
+      <div class="stat-icon">
+        <fa-icon [icon]="icons.solid.cube"></fa-icon>
+      </div>
+      <div class="stat-content">
+        <div class="stat-label">Head Block</div>
+<!--        <div class="stat-value">{{ info.head_block_num | number }}</div>-->
+      </div>
+    </div>
+
+
+    <!-- Head Block Time Card -->
+    <div class="stat-card">
+      <div class="stat-icon">
+        <fa-icon [icon]="icons.solid.clock"></fa-icon>
+      </div>
+      <div class="stat-content">
+        <div class="stat-label">Head Block Time</div>
+<!--        <div class="stat-value">{{ info.head_block_time | date:'medium' }}</div>-->
+      </div>
+    </div>
+
+    <!-- Server Version Card -->
+    <div class="stat-card">
+      <div class="stat-icon">
+        <fa-icon [icon]="icons.solid.server"></fa-icon>
+      </div>
+      <div class="stat-content">
+        <div class="stat-label">Server Version</div>
+<!--        <div class="stat-value">{{ info.server_version_string }}</div>-->
+      </div>
+    </div>
+
+  </div>
+
+
+</div>
