@@ -1,7 +1,7 @@
 @let isLoading = blockService.blockResource.isLoading();
 @let block = blockService.blockResource.value();
 @let deltas = deltaService.deltasResource.value()?.deltas;
-@let libNumber = chain.libNumber();
+@let libNumber = chain.lastIrreversibleBlockNum(); // Use the new signal
 
 @if (isLoading) {
   <div class="hr-container flex flex-row justify-center items-center">
@@ -30,7 +30,7 @@
             </div>
 
             <mat-chip-listbox class="mat-mdc-chip-set-stacked">
-              @if (libNumber && libNumber > block.number) {
+              @if (libNumber && block && libNumber > block.number) { // Check block exists too
                 <mat-chip-option selected>
                   <fa-icon [icon]="icons.solid.faLock" style="margin-right: 5px"></fa-icon>
                   Irreversible

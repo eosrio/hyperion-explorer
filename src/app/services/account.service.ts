@@ -438,12 +438,14 @@ export class AccountService {
 
     effect(() => {
       const pendingActions = this.pendingActions();
-      console.log(`Pending Actions (lib: ${this.chain.libNumber()})`, pendingActions);
+      // Use the new computed signal for LIB
+      console.log(`Pending Actions (lib: ${this.chain.lastIrreversibleBlockNum()})`, pendingActions);
       if (pendingActions.length > 0) {
         untracked(() => {
           setTimeout(() => {
-            console.log(`Rechecking LIB...`);
-            const reloadStatus = this.chain.libNumberResource.reload();
+            console.log(`Rechecking Chain Info (for LIB)...`);
+            // Use the new resource for chain info
+            const reloadStatus = this.chain.chainInfoResource.reload();
             console.log(`Reload status: ${reloadStatus}`);
           }, 2000);
         });
@@ -532,7 +534,8 @@ export class AccountService {
   // }
 
   pendingActions = computed(() => {
-    const lib = this.chain.libNumber();
+    // Use the new computed signal for LIB
+    const lib = this.chain.lastIrreversibleBlockNum();
     if (lib) {
       return this.actionsComputed().filter(action => action.block_num > lib);
     } else {

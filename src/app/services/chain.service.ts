@@ -1,7 +1,27 @@
-import {computed, effect, inject, Injectable, resource} from '@angular/core';
-import {lastValueFrom} from "rxjs";
-import {HttpClient} from "@angular/common/http";
-import {DataService} from "./data.service";
+import { computed, effect, inject, Injectable, resource, signal } from '@angular/core';
+import { lastValueFrom } from "rxjs";
+import { HttpClient } from "@angular/common/http";
+import { DataService } from "./data.service";
+
+// Define an interface for the expected structure of the /v1/chain/get_info response
+interface ChainInfo {
+  server_version: string;
+  chain_id: string;
+  head_block_num: number;
+  last_irreversible_block_num: number;
+  last_irreversible_block_id: string;
+  head_block_id: string;
+  head_block_time: string; // ISO 8601 format date string
+  head_block_producer: string;
+  virtual_block_cpu_limit: number;
+  virtual_block_net_limit: number;
+  block_cpu_limit: number;
+  block_net_limit: number;
+  server_version_string?: string; // Optional, might exist on some chains
+  fork_db_head_block_num?: number;
+  fork_db_head_block_id?: string;
+  server_full_version_string?: string;
+}
 
 @Injectable({
   providedIn: 'root'
@@ -11,14 +31,26 @@ export class ChainService {
   data = inject(DataService);
   httpClient = inject(HttpClient);
 
-  libNumberResource = resource<number, any>({
+  // Resource to fetch and store the full chain info
+  chainInfoResource = resource<ChainInfo | null, void>({
     loader: async () => {
-      console.log('Checking LIB...');
-      const lib = await this.checkLib() ?? 0;
-      console.log('LIB:', lib);
-      return lib;
+      console.log('Fetching Chain Info...');
+      try {
+        const info = await lastValueFrom(this.httpClient.get<ChainInfo>(this.data.env.hyperionApiUrl + '/v1/chain/get_info'));
+        console.log('Chain Info:', info);
+        // Add server_version_string if it doesn't exist but server_version does (for compatibility)
+        if (info && !info.server_version_string && info.server_version) {
+          info.server_version_string = info.server_version;
+        }
+        return info;
+      } catch (e: any) {
+        console.error('Failed to fetch chain info:', e.message);
+        return null;
+      }
     }
+    // Removed initialValue as it's not a valid option
   });
+
 
   oracleData = resource<any, any>({
     loader: async () => {
@@ -87,27 +119,19 @@ export class ChainService {
     }
   });
 
-  libNumber = computed<number>(() => {
-    return this.libNumberResource.value() ?? 0;
-  });
+  // Computed signals for specific chain info fields
+  chainInfo = computed(() => this.chainInfoResource.value());
+  lastIrreversibleBlockNum = computed(() => this.chainInfo()?.last_irreversible_block_num ?? 0);
+  chainId = computed(() => this.chainInfo()?.chain_id ?? 'N/A');
+  headBlockNum = computed(() => this.chainInfo()?.head_block_num ?? 0);
+  headBlockTime = computed(() => this.chainInfo()?.head_block_time ?? null); // Keep as string or null
+  serverVersion = computed(() => this.chainInfo()?.server_version_string ?? this.chainInfo()?.server_version ?? 'N/A');
 
-  async checkLib(): Promise<number | null> {
-    try {
-      const info = await lastValueFrom(this.httpClient.get(this.data.env.hyperionApiUrl + '/v1/chain/get_info')) as any;
-      if (info) {
-        return info.last_irreversible_block_num;
-      } else {
-        return null;
-      }
-    } catch (e: any) {
-      console.log(e.message);
-      return null;
-    }
-  }
 
   constructor() {
+    // Optional: Log when chain info changes
     // effect(() => {
-    //   console.log(`Oracle Data`, this.oracleData.value());
+    //   console.log(`Chain Info Updated`, this.chainInfo());
     // });
   }
 }

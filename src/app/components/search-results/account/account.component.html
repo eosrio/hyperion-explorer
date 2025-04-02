@@ -381,8 +381,8 @@
 
           <span class="lib">
             Last Irreversible Block:
-              <a [routerLink]="['/block', chain.libNumber()]">
-                <strong class="monospace div-link">{{ chain.libNumber() }}</strong>
+              <a [routerLink]="['/block', chain.lastIrreversibleBlockNum()]">
+                <strong class="monospace div-link">{{ chain.lastIrreversibleBlockNum() | number }}</strong>
               </a>
           </span>
 
