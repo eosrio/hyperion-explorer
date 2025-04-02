@@ -23,6 +23,29 @@ interface ChainInfo {
   server_full_version_string?: string;
 }
 
+// Interface for the structure of a single producer row from get_producers
+interface ProducerRow {
+  owner: string;
+  total_votes: string; // Usually a string representing a large number
+  producer_key: string;
+  is_active: number; // 1 if active, 0 otherwise
+  url: string;
+  unpaid_blocks: number;
+  last_claim_time: string;
+  location: number; // Often a number code, might need mapping or interpretation
+  producer_authority?: any; // Can be complex, ignore for now
+  // Additional fields might exist depending on the chain (e.g., producer_json)
+  bp_json?: any; // Sometimes BP info is here
+}
+
+// Interface for the full /v1/chain/get_producers response
+interface GetProducersResponse {
+  rows: ProducerRow[];
+  total_producer_vote_weight: string;
+  more: string; // Indicates if more producers are available (pagination)
+}
+
+
 @Injectable({
   providedIn: 'root'
 })
@@ -134,4 +157,31 @@ export class ChainService {
     //   console.log(`Chain Info Updated`, this.chainInfo());
     // });
   }
+
+  // Resource to fetch producer data
+  producersResource = resource<GetProducersResponse | null, void>({
+    loader: async () => {
+      console.log('Fetching Producers...');
+      try {
+        // Standard endpoint, might need adjustment based on specific Hyperion config
+        const producers = await lastValueFrom(this.httpClient.post<GetProducersResponse>(this.data.env.hyperionApiUrl + '/v1/chain/get_producers', {
+          json: true,
+          limit: 1000 // Fetch a large number, assuming pagination isn't needed for typical top producer lists
+        }));
+        console.log('Producers:', producers);
+        // Sort producers by total_votes descending to easily determine rank later
+        if (producers && producers.rows) {
+          producers.rows.sort((a, b) => parseFloat(b.total_votes) - parseFloat(a.total_votes));
+        }
+        return producers;
+      } catch (e: any) {
+        console.error('Failed to fetch producers:', e.message);
+        return null;
+      }
+    }
+  });
+
+  // Computed signal for the producer rows, sorted by votes
+  producers = computed(() => this.producersResource.value()?.rows ?? []);
+
 }

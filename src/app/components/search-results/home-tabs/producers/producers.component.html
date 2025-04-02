@@ -1,74 +1,65 @@
 <div class="p-4">
-  <table mat-table
+  <!-- Bind dataSource to the producers signal -->
+  <table mat-table [dataSource]="chainService.producers()"
          matSort
-         matSortActive="block_num"
-         matSortStart="desc"
-         class="producers-table">
+         matSortActive="totalVotes"
+         matSortDirection="desc"
+         class="producers-table w-full"> <!-- Moved comment out & ensured closing '>' -->
+    <!-- Sort by votes by default -->
 
     <!-- Rank Column -->
     <ng-container matColumnDef="rank">
-      <th mat-header-cell *matHeaderCellDef>Rank</th>
-      <td mat-cell *matCellDef="let action" data-label="Rank" class="h-full">
-        <div class="flex flex-col items-start gap-1">
-
-        </div>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Rank</th>
+      <!-- Use index + 1 for rank as data is pre-sorted by votes -->
+      <td mat-cell *matCellDef="let producer; let i = index" data-label="Rank">
+        {{ i + 1 }}
       </td>
     </ng-container>
 
     <!-- Account Column -->
     <ng-container matColumnDef="account">
-      <th mat-header-cell *matHeaderCellDef>Account</th>
-      <td mat-cell *matCellDef="let action" data-label="Account">
-        <div class="action-cell">
-
-        </div>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Account</th>
+      <td mat-cell *matCellDef="let producer" data-label="Account">
+        <!-- Add link to account page -->
+        <a [routerLink]="['/account', producer.owner]" class="link-primary font-medium">
+          {{ producer.owner }}
+        </a>
       </td>
     </ng-container>
 
     <!-- Location Column -->
     <ng-container matColumnDef="location">
-      <th mat-header-cell *matHeaderCellDef>Location</th>
-      <td mat-cell *matCellDef="let action" data-label="Location">
-        <div class="action-cell">
-
-        </div>
+      <th mat-header-cell *matHeaderCellDef mat-sort-header>Location</th>
+      <td mat-cell *matCellDef="let producer" data-label="Location">
+        <!-- Display location code - might need mapping later -->
+        {{ producer.location }}
+        <!-- TODO: Add country flag or name based on location code if available -->
       </td>
     </ng-container>
 
     <!-- Total Votes Column -->
-    <ng-container matColumnDef="location">
-      <th mat-header-cell *matHeaderCellDef>Total Votes</th>
-      <td mat-cell *matCellDef="let action" data-label="Total Votes">
-        <div class="action-cell">
-
-        </div>
+    <ng-container matColumnDef="totalVotes"> <!-- Corrected from 'location' -->
+      <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by total votes">Total Votes</th>
+      <td mat-cell *matCellDef="let producer" data-label="Total Votes">
+        <!-- Format votes as number -->
+        {{ producer.total_votes | number:'1.0-0' }}
       </td>
     </ng-container>
+
+    <!-- Define header and row -->
+    <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr> <!-- Removed sticky: true -->
+    <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+
   </table>
+
+  <!-- Add loading indicator -->
+  @if (chainService.producersResource.isLoading()) {
+    <div class="flex justify-center items-center p-4">
+      <mat-progress-spinner diameter="30" mode="indeterminate"></mat-progress-spinner>
+    </div>
+  }
+  <!-- Add message if no producers found -->
+  @if (!chainService.producersResource.isLoading() && chainService.producers().length === 0) {
+    <div class="text-center p-4 text-gray-500">No producers found.</div>
+  }
 </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
