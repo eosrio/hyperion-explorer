@@ -60,7 +60,6 @@ export class ChainService {
       console.log('Fetching Chain Info...');
       try {
         const info = await lastValueFrom(this.httpClient.get<ChainInfo>(this.data.env.hyperionApiUrl + '/v1/chain/get_info'));
-        console.log('Chain Info:', info);
         // Add server_version_string if it doesn't exist but server_version does (for compatibility)
         if (info && !info.server_version_string && info.server_version) {
           info.server_version_string = info.server_version;
@@ -168,11 +167,12 @@ export class ChainService {
           json: true,
           limit: 1000 // Fetch a large number, assuming pagination isn't needed for typical top producer lists
         }));
-        console.log('Producers:', producers);
+
         // Sort producers by total_votes descending to easily determine rank later
         if (producers && producers.rows) {
           producers.rows.sort((a, b) => parseFloat(b.total_votes) - parseFloat(a.total_votes));
         }
+
         return producers;
       } catch (e: any) {
         console.error('Failed to fetch producers:', e.message);

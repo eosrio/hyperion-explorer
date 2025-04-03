@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core'; // Import inject
-import { MatSort } from "@angular/material/sort";
-import { MatTableDataSource, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatRowDef, MatHeaderRowDef, MatRow } from "@angular/material/table"; // Import more table modules
+import { MatSort, MatSortModule } from "@angular/material/sort"; // Import MatSortModule
+import { MatTableDataSource, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatRowDef, MatHeaderRowDef, MatRow, MatTableModule } from "@angular/material/table"; // Import more table modules & MatTableModule
 import { FaIconComponent } from "@fortawesome/angular-fontawesome";
 import { MatRipple } from "@angular/material/core";
 import { MatTooltip } from "@angular/material/tooltip";
@@ -15,6 +15,8 @@ import { MatProgressSpinner } from "@angular/material/progress-spinner"; // Impo
   imports: [
     CommonModule, // Add CommonModule
     RouterModule, // Add RouterModule
+    MatTableModule, // Add MatTableModule
+    MatSortModule, // Add MatSortModule
     MatSort,
     MatTable,
     MatColumnDef,
