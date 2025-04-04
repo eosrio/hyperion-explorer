@@ -1,5 +1,6 @@
 import {
   ApplicationConfig,
+  importProvidersFrom, // Import importProvidersFrom
   inject,
   PLATFORM_ID,
   provideAppInitializer,
@@ -15,6 +16,10 @@ import {provideHttpClient, withFetch} from "@angular/common/http";
 import {DataService, DataServiceBrowser} from "./services/data.service";
 import {isPlatformBrowser} from "@angular/common";
 import {defineOrigin} from "./origin-config";
+import { NgxEchartsModule } from 'ngx-echarts'; // Import NgxEchartsModule
+
+// Removed global echarts.use() - NgxEchartsModule.forRoot handles it
+
 
 async function initApp(): Promise<void> {
   const ds = inject(DataService);
@@ -46,6 +51,10 @@ export const appConfig: ApplicationConfig = {
     {provide: DataService, useClass: DataServiceBrowser},
     provideAppInitializer(initApp),
     provideAnimationsAsync(),
-    provideHttpClient(withFetch())
+    provideHttpClient(withFetch()),
+    // Provide NgxEchartsModule globally
+    importProvidersFrom(NgxEchartsModule.forRoot({
+      echarts: () => import('echarts')
+    }))
   ]
 };

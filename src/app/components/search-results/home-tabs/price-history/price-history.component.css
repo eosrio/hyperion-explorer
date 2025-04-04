@@ -1,0 +1,40 @@
+.stat-card {
+  display: flex;
+  align-items: center;
+  background: var(--card-bg-gradient, linear-gradient(135deg, #f9f9f9, #e9e9e9)); /* Use theme gradient or fallback */
+  padding: 1rem 1.25rem; /* Adjust padding */
+  border-radius: 0.75rem; /* Rounded corners */
+  gap: 1rem; /* Space between icon and content */
+  min-height: 80px; /* Ensure consistent height */
+}
+
+.stat-icon {
+  font-size: 1.75rem; /* Larger icon */
+  color: var(--primary); /* Use primary theme color */
+  flex-shrink: 0; /* Prevent icon from shrinking */
+  width: 40px; /* Fixed width for alignment */
+  text-align: center;
+}
+
+.stat-content {
+  display: flex;
+  flex-direction: column;
+  /* overflow: hidden; */ /* Allow content to expand vertically */
+  min-width: 0; /* Prevent flex item from overflowing its container */
+}
+
+.stat-label {
+  font-size: 0.8rem; /* Smaller label */
+  color: var(--faded); /* Use secondary text color */
+  margin-bottom: 0.15rem;
+  text-transform: uppercase; /* Uppercase label */
+  font-weight: 500;
+}
+
+.stat-value {
+  font-size: 1.1rem; /* Larger value */
+  color: var(--main-text); /* Use primary text color */
+  line-height: 1.3;
+  white-space: normal; /* Allow wrapping */
+  word-break: break-all; /* Break long strings like IDs */
+}

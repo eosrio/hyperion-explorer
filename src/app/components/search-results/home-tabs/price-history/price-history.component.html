@@ -1,0 +1,32 @@
+<div class="p-4">
+
+  <div class="flex flex-row justify-center gap-4">
+    <div class="stat-card">
+      <div class="stat-icon">
+        <fa-icon [icon]="icons.solid.tag" class="opacity-70"></fa-icon>
+      </div>
+      <div class="stat-content">
+        <div class="stat-label faded">{{systemSymbol}} Current Price</div>
+        <div class="stat-value">
+              ${{ chain.priceRateUsd() }}
+        </div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon">
+        <fa-icon [icon]="icons.solid.tags" class="opacity-70"></fa-icon>
+      </div>
+      <div class="stat-content">
+        <div class="stat-label faded">ATH</div>
+        <div class="stat-value">
+          $
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Add the echarts container -->
+  <div echarts [options]="chartOptions" class="w-full"></div>
+  <!-- Using w-full and h-96 (height: 24rem) for basic sizing -->
+</div>

@@ -71,6 +71,7 @@
 ::ng-deep .mat-mdc-tab-body-content {
   /* Style the content area of the tabs */
   padding-top: 1rem;
+  min-height: 420px; /* Ensure content area has height for the chart */
   border-radius: 0 0 var(--card-border-radius) var(--card-border-radius);
   background: none;
   box-shadow: none;
