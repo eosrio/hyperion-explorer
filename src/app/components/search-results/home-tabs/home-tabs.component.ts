@@ -4,15 +4,16 @@ import { MatTab, MatTabContent, MatTabGroup, MatTabLabel } from "@angular/materi
 import { StatsComponent } from "./stats/stats.component";
 import { ProducersComponent } from "./producers/producers.component";
 import { PriceHistoryComponent } from "./price-history/price-history.component";
-import { MatButtonModule } from "@angular/material/button"; // Import MatButtonModule
-import { MatIconModule } from "@angular/material/icon"; // Import MatIconModule
-import { CommonModule } from "@angular/common"; // Import CommonModule for *ngIf
+import { MatButtonModule } from "@angular/material/button"; // For MatIconButton
+import { MatIconModule } from "@angular/material/icon";
+import { MatRippleModule } from '@angular/material/core'; // Import MatRippleModule for ripple effect
+import { CommonModule } from "@angular/common";
 
 @Component({
   selector: 'app-home-tabs',
   standalone: true, // Ensure component is standalone
   imports: [
-    CommonModule, // Add CommonModule here
+    CommonModule,
     MatTabGroup,
     MatTab,
     MatTabLabel,
@@ -20,32 +21,54 @@ import { CommonModule } from "@angular/common"; // Import CommonModule for *ngIf
     StatsComponent,
     ProducersComponent,
     PriceHistoryComponent,
-    MatButtonModule, // Add MatButtonModule here
-    MatIconModule // Add MatIconModule here
+    MatButtonModule, // Keep MatButtonModule (provides MatIconButton)
+    MatIconModule,
+    MatRippleModule // Add MatRippleModule
   ],
   templateUrl: './home-tabs.component.html',
   styleUrl: './home-tabs.component.css',
-  animations: [ // Add animations array
+  animations: [
     trigger('expandCollapse', [
       state('collapsed', style({
         height: '0px',
-        minHeight: '0',
+        minHeight: '0', // Ensure min-height doesn't interfere
         opacity: 0,
         overflow: 'hidden',
-        // Adjust padding/margin if needed for smooth collapse
+        // Ensure padding/margin don't add height when collapsed
         paddingTop: '0',
         paddingBottom: '0',
         marginTop: '0',
         marginBottom: '0'
       })),
       state('expanded', style({
-        height: '*', // Auto height
+        height: '*', // Let content determine height
         opacity: 1,
-        overflow: 'visible' // Allow content to be visible
-        // Reset padding/margin if adjusted in collapsed state
+        overflow: 'visible' // Allow content overflow (like dropdowns) when fully expanded
       })),
-      transition('expanded <=> collapsed', [
-        animate('300ms cubic-bezier(0.4, 0.0, 0.2, 1)') // Smooth animation timing
+      // Expand transition
+      transition('collapsed => expanded', [
+         // Start with overflow hidden to clip during animation
+        style({ overflow: 'hidden', opacity: 0 }), // Ensure opacity starts at 0 for fade-in effect
+        animate('300ms cubic-bezier(0.4, 0.0, 0.2, 1)', style({
+          height: '*',
+          opacity: 1
+          // Let padding/margin be determined by content or CSS
+        }))
+      ]),
+      // Collapse transition - Use 'ease-out' for a more noticeable effect
+      transition('expanded => collapsed', [
+        style({ overflow: 'hidden', height: '*', opacity: 1 }),
+        // Apply the 'ease-out' timing function
+        animate('300ms ease-out', style({
+          // Animate TO these styles for collapse
+          height: '0px',
+          opacity: 0,
+          // Ensure padding/margin are also animated to 0 if they might exist in expanded state
+          paddingTop: '0',
+          paddingBottom: '0',
+          marginTop: '0',
+          marginBottom: '0'
+        }))
       ]),
     ])
   ]
@@ -53,7 +76,8 @@ import { CommonModule } from "@angular/common"; // Import CommonModule for *ngIf
 export class HomeTabsComponent {
   isExpanded = false; // State variable for expansion
 
-  toggleExpansion(): void {
+  toggleExpansion(event?: MouseEvent): void {
+    event?.stopPropagation();
     this.isExpanded = !this.isExpanded;
   }
 }

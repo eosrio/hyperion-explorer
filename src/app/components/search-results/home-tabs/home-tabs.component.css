@@ -88,58 +88,47 @@
 
 /* Styles for the clickable card */
 .tabs-card.is-collapsed {
-  cursor: pointer;
-  min-height: 60px; /* Adjust as needed for collapsed height */
-  display: flex; /* Needed for collapsed-header alignment */
-  align-items: center; /* Center content vertically */
-  padding: 0 24px; /* Add padding for collapsed state */
-  transition: min-height 0.3s ease-in-out, border-radius 0.3s ease-in-out; /* Smooth transition for height and radius */
+  /* min-height: 60px; /* Minimum height is maintained by the content padding in HTML */
+  /* display: flex; /* Flex handled in HTML */
+  /* align-items: center; /* Alignment handled in HTML */
+  /* padding: 0 24px; /* Padding handled in HTML */
+  transition: min-height 0.3s ease-in-out, border-radius 0.3s ease-in-out; /* Keep height/radius transition */
   border-radius: var(--card-border-radius); /* Apply full radius when collapsed */
   overflow: hidden; /* Hide overflowing content when collapsed */
+  /* cursor: pointer; /* Cursor handled on the .collapsed-header element in HTML */
 }
 
 .tabs-card.is-expanded {
+  position: relative; /* Ensure this is the positioning context for the absolute button */
   border-radius: var(--card-border-radius); /* Keep consistent radius */
   padding: 0; /* Reset padding when expanded */
   cursor: default; /* Default cursor when expanded */
   min-height: auto; /* Allow natural height */
   overflow: visible; /* Show content when expanded */
+  /* Ensure enough padding at the bottom for the absolute positioned button */
+  padding-bottom: 60px; /* Adjust as needed based on button size and desired spacing */
 }
 
-/* Styles for the collapsed header */
+/* Styles for the collapsed header - Most styling moved to Tailwind classes in HTML */
 .collapsed-header {
-  display: flex;
-  justify-content: space-between; /* Space out text and icon */
-  align-items: center;
-  width: 100%;
-  font-weight: 500;
-  color: var(--main-text); /* Use main text color */
-  transition: background-color 0.2s ease; /* Add transition for hover */
+  /* display: flex; */
+  /* justify-content: space-between; */
+  /* align-items: center; */
+  /* width: 100%; */
+  /* font-weight: 500; */
+  /* color: var(--main-text); */
+  /* transition: background-color 0.2s ease; */
+  /* Removed styles now handled by Tailwind */
 }
 
-/* Style the icon to be more button-like */
-.expand-collapse-icon {
-  color: var(--primary) !important; /* Use primary color */
-  padding: 4px; /* Add some padding */
-  border-radius: 50%; /* Make it circular */
-  transition: background-color 0.2s ease, transform 0.3s ease-in-out; /* Smooth transitions */
-  margin-left: 16px; /* Add space between text and icon */
-}
-
-.tabs-card.is-collapsed:hover .expand-collapse-icon {
-  background-color: rgba(var(--rgb-primary), 0.1); /* Subtle background on hover */
-}
-
-/* Rotate icon when expanded */
-.tabs-card.is-expanded .expand-collapse-icon {
-  transform: rotate(180deg);
-}
+/* Removed old icon styles as they are handled by Tailwind on the button/div elements */
+/* .expand-collapse-icon { ... } */
+/* .tabs-card.is-collapsed:hover .expand-collapse-icon { ... } */
+/* .tabs-card.is-expanded .expand-collapse-icon { ... } */
 
 
-.tabs-card.is-collapsed:hover {
-   background: var(--card-bg-gradient), color-mix(in srgb, var(--main-background) 90%, white 10%); /* Enhance hover background */
-   box-shadow: var(--card-box-shadow-hover); /* Optional: Add hover shadow */
-}
+/* Removed hover styles for the card itself, hover is now on the header element in HTML */
+/* .tabs-card.is-collapsed:hover { ... } */
 
 /* Wrapper for animation */
 .expanded-content-wrapper {
