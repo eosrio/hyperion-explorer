@@ -7,6 +7,7 @@
   border-radius: 0.75rem; /* Rounded corners */
   gap: 1rem; /* Space between icon and content */
   min-height: 80px; /* Ensure consistent height */
+  border: 1px solid var(--line-divider);
 }
 
 .stat-icon {

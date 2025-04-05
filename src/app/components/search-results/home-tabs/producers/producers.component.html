@@ -68,6 +68,6 @@
   }
   <!-- Add message if no producers found -->
   @if (!chainService.producersResource.isLoading() && chainService.producers().length === 0) {
-    <div class="text-center p-4 text-gray-500">No producers found.</div>
+    <div class="text-center p-4 faded">No producers found.</div>
   }
 </div>
