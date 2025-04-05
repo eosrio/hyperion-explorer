@@ -1,12 +1,10 @@
 .tabs-card {
   /*background: var(--card-bg-gradient);*/
-  background: var(--card-bg-gradient), var(--main-background);
-  box-shadow: var(--card-box-shadow);
-  border-radius: var(--card-border-radius);
+  /*background: var(--card-bg-gradient), var(--main-background);*/
+  /*box-shadow: var(--card-box-shadow);*/
   padding: 0;
   box-sizing: border-box;
   color: var(--main-text);
-
 }
 
 /* Enhanced Tab Styling */
@@ -71,7 +69,7 @@
 ::ng-deep .mat-mdc-tab-body-content {
   /* Style the content area of the tabs */
   padding-top: 1rem;
-  min-height: 420px; /* Ensure content area has height for the chart */
+  min-height: 400px; /* Ensure content area has height for the chart */
   border-radius: 0 0 var(--card-border-radius) var(--card-border-radius);
   background: none;
   box-shadow: none;
@@ -106,19 +104,22 @@
   min-height: auto; /* Allow natural height */
   overflow: visible; /* Show content when expanded */
   /* Ensure enough padding at the bottom for the absolute positioned button */
-  padding-bottom: 60px; /* Adjust as needed based on button size and desired spacing */
 }
 
-/* Styles for the collapsed header - Most styling moved to Tailwind classes in HTML */
+/*collapsed header*/
 .collapsed-header {
-  /* display: flex; */
-  /* justify-content: space-between; */
-  /* align-items: center; */
-  /* width: 100%; */
-  /* font-weight: 500; */
-  /* color: var(--main-text); */
-  /* transition: background-color 0.2s ease; */
-  /* Removed styles now handled by Tailwind */
+  color: var(--primary);
+  border-radius: var(--mdc-protected-button-container-shape, var(--mat-sys-corner-full));
+  transition: background 0.2s ease !important;
+}
+
+.collapsed-header.is-expanded {
+  border-radius: var(--card-border-radius);
+}
+
+.collapsed-header:hover {
+  background: oklch(from var(--faded) l c h / 0.1);
+  text-decoration: underline;
 }
 
 /* Removed old icon styles as they are handled by Tailwind on the button/div elements */
@@ -134,6 +135,9 @@
 .expanded-content-wrapper {
   overflow: hidden; /* Crucial for height animation */
   width: 100%;
+  background: var(--card-bg-gradient), var(--main-background);
+  box-shadow: var(--card-box-shadow);
+  border-radius: var(--card-border-radius);
 }
 
 /* Ensure expanded content takes up space */
@@ -148,3 +152,33 @@
 .expanded-content-wrapper ::ng-deep .mat-mdc-tab-body-content {
    padding-top: 1rem; /* Re-apply padding inside the animated container */
 }
+
+/*chevron animation start*/
+::ng-deep .arrowUp {
+  transform: rotate(0deg);
+  animation: arrowUpAnimation 225ms cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+::ng-deep .arrowDown {
+  transform: rotate(-180deg);
+  animation: arrowDownAnimation 225ms cubic-bezier(0.4, 0.0, 0.2, 1);
+}
+
+@keyframes arrowUpAnimation {
+  from {
+    transform: rotate(-180deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes arrowDownAnimation {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(-180deg);
+  }
+}
+/*chevron animation end*/

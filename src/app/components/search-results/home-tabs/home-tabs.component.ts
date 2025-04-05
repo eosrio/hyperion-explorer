@@ -45,30 +45,10 @@ import { CommonModule } from "@angular/common";
         opacity: 1,
         overflow: 'visible' // Allow content overflow (like dropdowns) when fully expanded
       })),
-      // Expand transition
-      transition('collapsed => expanded', [
-         // Start with overflow hidden to clip during animation
-        style({ overflow: 'hidden', opacity: 0 }), // Ensure opacity starts at 0 for fade-in effect
-        animate('300ms cubic-bezier(0.4, 0.0, 0.2, 1)', style({
-          height: '*',
-          opacity: 1
-          // Let padding/margin be determined by content or CSS
-        }))
-      ]),
-      // Collapse transition - Use 'ease-out' for a more noticeable effect
-      transition('expanded => collapsed', [
-        style({ overflow: 'hidden', height: '*', opacity: 1 }),
-        // Apply the 'ease-out' timing function
-        animate('300ms ease-out', style({
-          // Animate TO these styles for collapse
-          height: '0px',
-          opacity: 0,
-          // Ensure padding/margin are also animated to 0 if they might exist in expanded state
-          paddingTop: '0',
-          paddingBottom: '0',
-          marginTop: '0',
-          marginBottom: '0'
-        }))
+      // Use standard cubic-bezier for both transitions
+      transition('collapsed <=> expanded', [
+        style({ overflow: 'hidden' }), // Keep hidden during animation
+        animate('300ms cubic-bezier(0.4, 0.0, 0.2, 1)')
       ]),
     ])
   ]

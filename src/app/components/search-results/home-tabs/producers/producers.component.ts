@@ -27,9 +27,6 @@ import { MatProgressSpinner } from "@angular/material/progress-spinner"; // Impo
     MatRowDef,
     MatHeaderRowDef,
     MatRow,
-    FaIconComponent, // Keep FaIconComponent if needed later
-    MatRipple, // Keep MatRipple if needed later
-    MatTooltip,
     MatProgressSpinner // Add MatProgressSpinner
     // Removed duplicate imports
   ],

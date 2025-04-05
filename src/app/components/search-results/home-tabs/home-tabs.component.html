@@ -1,38 +1,39 @@
 <div class="hr-container justify-start flex flex-col items-center w-full">
 
   <!-- Card Container -->
-  <div class="grid grid-cols-1 md:grid-cols-3 auto-cols-max gap-5 text-black appear w-full">
-    <div
-      class="tabs-card relative w-full min-w-full h-full min-h-full md:col-span-3"
-      [class.is-expanded]="isExpanded"
-      [class.is-collapsed]="!isExpanded"
-    >
-      <!-- Collapsed Header: Clickable area to expand -->
-      <div
-        *ngIf="!isExpanded"
-        class="collapsed-header flex items-center gap-2 px-4 py-2 cursor-pointer hover:bg-gray-100/10 dark:hover:bg-white/5 transition-colors duration-200 ease-in-out rounded-[var(--card-border-radius)]"
-        (click)="toggleExpansion()"
-        role="button"
-        tabindex="0"
-        (keydown.enter)="toggleExpansion()"
-        (keydown.space)="toggleExpansion()"
-        aria-expanded="false"
-        aria-controls="expanded-content-area"
-      >
-        <!-- Simplified Icon Button -->
-        <button mat-icon-button type="button"
-                class="flex-shrink-0 text-[var(--primary)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 focus:ring-offset-[var(--card-bg)]"
-                aria-hidden="true"
-                tabindex="-1"> <!-- This comment position is OK -->
-          <mat-icon class="text-xl leading-none">expand_more</mat-icon> <!-- This comment position is OK -->
-        </button>
-        <span class="font-medium text-[var(--main-text)] flex-grow text-sm">Show Chain Details</span>
+  <div class="appear w-full">
+    <!-- Header Button: Clickable area to expand/collapse -->
+    <div class="w-auto flex flex-col items-start">
+      <div matRipple [class.is-expanded]="isExpanded"
+           class="collapsed-header cursor-pointer px-2 py-2 w-auto
+             transition-colors duration-200 ease-in-out"
+           (click)="toggleExpansion()" role="button" tabindex="0" (keydown.enter)="toggleExpansion()"
+           (keydown.space)="toggleExpansion()" aria-expanded="false" aria-controls="expanded-content-area">
+        <div class="flex flex-row items-center gap-2 w-auto">
+          <!-- Simplified Icon Button -->
+          <mat-icon class="text-xl leading-none"
+                    [ngClass]="isExpanded ? 'arrowDown' : 'arrowUp'">
+            expand_more
+          </mat-icon>
+          <div class="font-medium text-[var(--main-text)] text-sm w-auto">
+            <span *ngIf="!isExpanded">Show</span><span *ngIf="isExpanded">Hide</span> Chain Details
+          </div>
+          <div class="w-[0.625rem]"></div>
+        </div>
       </div>
+    </div>
+
+    <div class="tabs-card relative h-full min-h-full w-full min-w-full flex flex-col flex-grow"
+         [class.is-expanded]="isExpanded"
+         [class.is-collapsed]="!isExpanded">
 
       <!-- Expanded Content Wrapper (Handles animation) -->
-      <div id="expanded-content-area" class="expanded-content-wrapper" [@expandCollapse]="isExpanded ? 'expanded' : 'collapsed'">
+      <div id="expanded-content-area" class="expanded-content-wrapper w-full"
+           [@expandCollapse]="isExpanded ? 'expanded' : 'collapsed'">
         <!-- Actual Tab Group (Only rendered when expanded) -->
-        <mat-tab-group *ngIf="isExpanded" fitInkBarToContent class="h-full login-source-tabs expanded-content" (click)="$event.stopPropagation()">
+        <!--        *ngIf="isExpanded"-->
+        <mat-tab-group fitInkBarToContent class="h-full login-source-tabs expanded-content w-full"
+                       (click)="$event.stopPropagation()">
           <!-- Tab Header Area (Prevent collapsing when clicking here) -->
           <ng-template matTabHeaderFocus></ng-template>
 
@@ -75,20 +76,19 @@
             </ng-template>
           </mat-tab>
         </mat-tab-group>
+        <!-- Separate Expand/Collapse Icon Button (Only visible & functional when expanded) -->
+        <!--        <button-->
+        <!--          *ngIf="isExpanded"-->
+        <!--          mat-icon-button type="button"-->
+        <!--          class="m-4 z-20 w-8 h-8 leading-none bg-[var(&#45;&#45;primary)] text-[var(&#45;&#45;primary-content)] shadow-md hover:bg-[var(&#45;&#45;primary-hover)] focus:outline-none transition-all duration-200 ease-in-out transform rotate-180"-->
+        <!--          (click)="toggleExpansion($event)"-->
+        <!--          aria-label="Collapse chain details"-->
+        <!--          [attr.aria-expanded]="isExpanded"-->
+        <!--          aria-controls="expanded-content-area">-->
+        <!--          <mat-icon class="text-xl leading-none">expand_more</mat-icon>-->
+        <!--        </button>-->
       </div> <!-- End .expanded-content-wrapper -->
 
-      <!-- Separate Expand/Collapse Icon Button (Only visible & functional when expanded) -->
-      <button
-        *ngIf="isExpanded"
-        mat-icon-button type="button"
-        class="absolute bottom-4 left-4 z-20 w-8 h-8 leading-none bg-[var(--primary)] text-[var(--primary-content)] shadow-md hover:bg-[var(--primary-hover)] focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:ring-offset-2 focus:ring-offset-[var(--card-bg)] transition-all duration-200 ease-in-out transform rotate-180"
-        (click)="toggleExpansion($event)"
-        aria-label="Collapse chain details"
-        [attr.aria-expanded]="isExpanded"
-        aria-controls="expanded-content-area"
-      >
-        <mat-icon class="text-xl leading-none">expand_more</mat-icon>
-      </button>
 
     </div> <!-- End .tabs-card -->
   </div> <!-- End .grid -->
