@@ -32,7 +32,7 @@
            [@expandCollapse]="isExpanded ? 'expanded' : 'collapsed'">
         <!-- Actual Tab Group (Only rendered when expanded) -->
         <!--        *ngIf="isExpanded"-->
-        <mat-tab-group fitInkBarToContent class="h-full login-source-tabs expanded-content w-full"
+        <mat-tab-group fitInkBarToContent class="h-full home-tabs expanded-content w-full overflow-y-hidden"
                        (click)="$event.stopPropagation()">
           <!-- Tab Header Area (Prevent collapsing when clicking here) -->
           <ng-template matTabHeaderFocus></ng-template>
@@ -44,7 +44,7 @@
               </div>
             </ng-template>
             <ng-template matTabContent>
-              <div (click)="$event.stopPropagation()">
+              <div (click)="$event.stopPropagation()" class="overflow-y-hidden">
                 <app-stats></app-stats>
               </div>
             </ng-template>

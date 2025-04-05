@@ -8,24 +8,17 @@
 }
 
 /* Enhanced Tab Styling */
-::ng-deep .mat-mdc-tab-group {
-  /* Optional: Add background or border if needed */
-  /*margin-bottom: 1rem; !* Add some space below the tabs *!*/
-}
-
-::ng-deep .mat-mdc-tab-header {
+::ng-deep .home-tabs .mat-mdc-tab-header {
   /* Style the tab header container */
-  /*border-bottom: 1px solid var(--table-border-color, #e0e0e0); !* Use a theme variable or lighter default *!*/
-  /*background-color: var(--card-bg, #ffffff); !* Optional: Match card background *!*/
   border-radius: var(--card-border-radius) var(--card-border-radius) 0 0;
 }
 
-::ng-deep .mat-mdc-tab {
+::ng-deep .home-tabs .mat-mdc-tab {
   /* Style individual tab labels */
-  color: var(--faded); /* Use a theme variable */
+  color: var(--faded);
   opacity: 0.7;
-  height: 52px !important; /* Slightly taller tabs */
-  padding: 0 24px !important; /* Increase horizontal padding */
+  height: 3.25rem !important; /* 52px Slightly taller tabs */
+  padding: 0 1.5rem !important; /* 24px Increase horizontal padding */
   font-weight: 500; /* Medium font weight */
   transition: color 0.3s ease, opacity 0.3s ease; /* Smooth transition */
   background: none;
@@ -33,40 +26,40 @@
   background-color: transparent;
 }
 
-::ng-deep .mat-mdc-tab.mdc-tab .mdc-tab__text-label {
+::ng-deep .home-tabs .mat-mdc-tab.mdc-tab .mdc-tab__text-label {
   color: var(--faded) !important;
 }
 
-::ng-deep .mat-mdc-tab:not(.mdc-tab--active):hover {
+::ng-deep .home-tabs .mat-mdc-tab:not(.mdc-tab--active):hover {
   opacity: 1;
   background-color: rgba(0,0,0,0.03); /* Subtle hover effect */
 }
 
-::ng-deep .mat-mdc-tab.mdc-tab--active {
+::ng-deep .home-tabs .mat-mdc-tab.mdc-tab--active {
   /* Style the active tab label */
   color: var(--primary) !important; /* Use primary theme color */
   opacity: 1;
   font-weight: 600; /* Slightly bolder active tab */
 }
 
-::ng-deep .mat-mdc-tab.mdc-tab--active .mdc-tab__text-label {
+::ng-deep .home-tabs .mat-mdc-tab.mdc-tab--active .mdc-tab__text-label {
   color: var(--primary) !important;
 }
 
-::ng-deep .mat-mdc-tab .mdc-tab-indicator__content--underline {
+::ng-deep .home-tabs .mat-mdc-tab .mdc-tab-indicator__content--underline {
   /* Style the active tab indicator line */
   border-color: var(--primary) !important; /* Use primary theme color */
   border-top-width: 3px !important; /* Make indicator thicker */
 }
 
-::ng-deep .mat-mdc-tab .mdc-tab__content {
+::ng-deep .home-tabs .mat-mdc-tab .mdc-tab__content {
   width: 100%;
   background: none;
   box-shadow: none;
   background-color: transparent;
 }
 
-::ng-deep .mat-mdc-tab-body-content {
+::ng-deep .home-tabs .mat-mdc-tab-body-content {
   /* Style the content area of the tabs */
   padding-top: 1rem;
   min-height: 400px; /* Ensure content area has height for the chart */
@@ -77,11 +70,15 @@
 }
 
 /* Style for the tab body wrapper if needed */
-::ng-deep .mat-mdc-tab-body-wrapper {
+::ng-deep .home-tabs .mat-mdc-tab-body-wrapper {
   background: none;
   box-shadow: none;
   background-color: transparent;
   /* background-color: var(--card-bg, #ffffff); Optional: Match card background */
+}
+
+::ng-deep .home-tabs .mat-mdc-tab-body.mat-mdc-tab-body-active {
+  overflow: hidden;
 }
 
 /* Styles for the clickable card */
@@ -133,7 +130,6 @@
 
 /* Wrapper for animation */
 .expanded-content-wrapper {
-  overflow: hidden; /* Crucial for height animation */
   width: 100%;
   background: var(--card-bg-gradient), var(--main-background);
   box-shadow: var(--card-box-shadow);
@@ -151,6 +147,7 @@
 /* Override tab body padding if needed for animation */
 .expanded-content-wrapper ::ng-deep .mat-mdc-tab-body-content {
    padding-top: 1rem; /* Re-apply padding inside the animated container */
+  overflow: hidden;
 }
 
 /*chevron animation start*/
