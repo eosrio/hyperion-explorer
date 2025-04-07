@@ -247,7 +247,7 @@ body {
 }
 
 .div-link:hover {
-  color: oklch(from var(--main-text) 60% c h);
+  color: oklch(from var(--main-text) 60% c h) !important;
   transition: color 0.7s ease;
 }
 

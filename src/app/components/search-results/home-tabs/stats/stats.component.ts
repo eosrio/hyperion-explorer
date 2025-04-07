@@ -2,14 +2,16 @@ import { Component, inject } from '@angular/core'; // Import inject
 import { faClock, faCube, faLink, faServer } from "@fortawesome/free-solid-svg-icons";
 import { FaIconComponent } from "@fortawesome/angular-fontawesome";
 import { ChainService } from "../../../../services/chain.service"; // Import ChainService
-import { CommonModule } from "@angular/common"; // Import CommonModule for pipes
+import { CommonModule } from "@angular/common";
+import {RouterLink} from "@angular/router"; // Import CommonModule for pipes
 
 @Component({
   selector: 'app-stats',
   standalone: true, // Make component standalone
   imports: [
     CommonModule, // Add CommonModule for pipes (number, date)
-    FaIconComponent
+    FaIconComponent,
+    RouterLink
   ],
   templateUrl: './stats.component.html',
   styleUrl: './stats.component.css'
