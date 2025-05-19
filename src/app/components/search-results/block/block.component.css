@@ -105,7 +105,7 @@ tr.element-row:not(.expanded-row):active {
   ::ng-deep .transactions-table > thead >  .mat-mdc-header-row {
     background: transparent;
     position: sticky;
-    z-index: 100;
+    z-index: 49;
   }
 
   ::ng-deep .deltas-table > thead >  .mat-mdc-header-row {
@@ -122,11 +122,12 @@ tr.element-row:not(.expanded-row):active {
     border-radius: var(--card-border-radius) !important;
   }
 
-  tr.element-row:not(.expanded-row) .mat-column-icon, [mat-header-cell].mat-column-icon {
+  tr.element-row:not(.expanded-row) .mat-column-icon, [mat-header-cell].mat-column-icon, .mat-mdc-header-cell:first-of-type {
     border-radius:  var(--card-border-radius) 0 0  var(--card-border-radius);
+    z-index: 0;
   }
 
-  tr.element-row:not(.expanded-row) .mat-column-action, [mat-header-cell].mat-column-action {
+  tr.element-row:not(.expanded-row) .mat-column-action, [mat-header-cell].mat-column-action, .mat-mdc-header-cell:last-of-type {
     border-radius: 0  var(--card-border-radius)  var(--card-border-radius) 0;
   }
 
