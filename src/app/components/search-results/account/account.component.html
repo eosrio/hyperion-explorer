@@ -4,10 +4,9 @@
     <mat-progress-spinner [diameter]="45" mode="indeterminate" color="primary"></mat-progress-spinner>
   </div>
 }
-
 <!--MAIN CONTENT-->
 <div class="hr-container justify-start">
-  @if (acServ.accountDataRes.value()) {
+  @if (acServ.accountDataRes.value() && acServ.accountDataRes.value()?.account) {
     @let systemSymbol = acServ.systemSymbol();
     @let systemPrecision = acServ.systemPrecision();
 
