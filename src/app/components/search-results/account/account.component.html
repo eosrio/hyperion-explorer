@@ -1,6 +1,6 @@
 <!--LOADER-->
 @if (acServ.accountDataRes.isLoading()) {
-  <div class="hr-container flex flex-row justify-center items-center">
+  <div class="hr-container flex flex-row items-center justify-center">
     <mat-progress-spinner [diameter]="45" mode="indeterminate" color="primary"></mat-progress-spinner>
   </div>
 }
@@ -10,13 +10,13 @@
     @let systemSymbol = acServ.systemSymbol();
     @let systemPrecision = acServ.systemPrecision();
 
-    <div id="account-content" class="grid grid-cols-1 md:grid-cols-3 auto-cols-max gap-5 text-black appear">
+    <div id="account-content" class="appear grid auto-cols-max grid-cols-1 gap-5 text-black md:grid-cols-3">
       <!-- ACCOUNT NAME-->
-      <div id="account-name-sticky" class="custom-card card-top-sticky bg-no-transparency w-full md:col-span-3 sticky z-40">
+      <div id="account-name-sticky" class="custom-card card-top-sticky bg-no-transparency sticky z-40 w-full md:col-span-3">
         <mat-card-header>
-          <div class="flex flex-row flex-wrap justify-between items-center w-full">
+          <div class="flex w-full flex-row flex-wrap items-center justify-between">
             <div class="flex flex-row items-center gap-3">
-              <div class="text-2xl acc-title flex flex-row items-center gap-3">
+              <div class="acc-title flex flex-row items-center gap-3 text-2xl">
                 @if (acServ.accountComputed().privileged) {
                   <fa-layers matTooltip="System Account (privileged)" [fixedWidth]="true">
                     <fa-icon [icon]="icons.solid.faShield" transform="grow-3"></fa-icon>
@@ -27,7 +27,7 @@
                 }
                 <div>{{ acServ.accountComputed().account_name }}</div>
               </div>
-              <div id="totalBalance" class="font-medium faded text-[0.938rem] mt-1 opacity-0">
+              <div id="totalBalance" class="faded mt-1 text-[0.938rem] font-medium opacity-0">
                 <span class="primary">
                   {{ acServ.totalBalance() | number: "1.0-" + systemPrecision }}
                   {{ systemSymbol }}
@@ -38,7 +38,7 @@
             </div>
             @defer (when acServ.hasContract()) {
               @if (acServ.hasContract()) {
-                <button (click)="openContractsDialog(null, null)" mat-raised-button>Explore Smart Contract </button>
+                <button (click)="openContractsDialog(null, null)" mat-raised-button>Explore Smart Contract</button>
               }
             }
           </div>
@@ -47,11 +47,11 @@
 
       <!-- ACCOUNT BALANCE -->
       <div #balanceCard class="custom-card" id="balance-card">
-        <div class="flex-auto mt-2 flex flex-col justify-start items-start min-h-full">
+        <div class="mt-2 flex min-h-full flex-auto flex-col items-start justify-start">
           <!-- total balance-->
           <div class="total-balance w-full">
-            <strong class="uppercase font-bold text-[0.938rem]">Total Balance:</strong>
-            <span class="float-right font-semibold text-[0.938rem]">
+            <strong class="text-[0.938rem] font-bold uppercase">Total Balance:</strong>
+            <span class="float-right text-[0.938rem] font-semibold">
               {{ acServ.totalBalance() | number: "1.0-" + systemPrecision }}
               {{ systemSymbol }}
             </span>
@@ -59,19 +59,19 @@
 
           <!-- total usd balance-->
           <div class="mb-1.5 w-full">
-            <strong class="font-semibold faded">USD Value:</strong>
+            <strong class="faded font-semibold">USD Value:</strong>
             <span class="float-right">${{ acServ.totalBalanceUSD() | number: "1.0-2" }}</span>
           </div>
 
           <!-- current usd price -->
-          <div class="mb-1.5 w-full bottom-divider">
-            <span class="font-semibold faded">{{ systemSymbol }} Price:</span>
+          <div class="bottom-divider mb-1.5 w-full">
+            <span class="faded font-semibold">{{ systemSymbol }} Price:</span>
             <span class="float-right">${{ chain.priceRateUsd() }}</span>
           </div>
 
           <!-- liquid balance-->
           <div class="mb-1.5 w-full">
-            <strong class="font-semibold faded">Liquid Balance:</strong>
+            <strong class="faded font-semibold">Liquid Balance:</strong>
             <span class="float-right">
               {{ acServ.liquidBalance() | number: "1.0-" + systemPrecision }}
               {{ systemSymbol }}
@@ -80,7 +80,7 @@
 
           <!-- staked balance-->
           <div class="mb-1.5 w-full">
-            <strong class="font-semibold faded">Staked Balance:</strong>
+            <strong class="faded font-semibold">Staked Balance:</strong>
             <span class="float-right">
               {{ acServ.myStakedBalance() | number: "1.0-" + systemPrecision }}
               {{ systemSymbol }}
@@ -89,7 +89,7 @@
 
           <!-- refunding balance-->
           <div class="w-full">
-            <strong class="font-semibold faded">Refunding:</strong>
+            <strong class="faded font-semibold">Refunding:</strong>
             <span class="float-right">
               {{ acServ.refundBalance() | number: "1.0-" + systemPrecision }}
               {{ systemSymbol }}
@@ -102,7 +102,7 @@
               @if (creationData().creator) {
                 <div class="mt-2 w-full">
                   <strong class="font-medium">Created by:</strong>
-                  <a [routerLink]="['/account', creationData().creator]" class="float-right link-gray">
+                  <a [routerLink]="['/account', creationData().creator]" class="link-gray float-right">
                     {{ creationData().creator }}
                   </a>
                 </div>
@@ -123,7 +123,7 @@
       <!-- ACCOUNT RESOURCES, CPU, NET AND RAM -->
       <div class="custom-card md:col-span-2">
         <mat-card-content>
-          <div class="flex flex-row flex-wrap justify-start items-start grow gap-10">
+          <div class="flex grow flex-row flex-wrap items-start justify-start gap-10">
             <!--CPU-->
             <div class="w-full lg:w-[50%]">
               <div>
@@ -133,13 +133,13 @@
                 } @else {
                   <span class="faded ml-2">{{ acServ.userResPct().cpu | number: "1.0-2" }}% used</span>
                 }
-                <span class="mt-2 float-right">{{ acServ.userResPct().cpuStr }}</span>
+                <span class="float-right mt-2">{{ acServ.userResPct().cpuStr }}</span>
               </div>
 
               <mat-progress-bar class="mt-2.5" mode="determinate" [value]="acServ.userResPct().cpu"></mat-progress-bar>
 
               <div class="small-info">
-                <div class="mb-1 faded">
+                <div class="faded mb-1">
                   <span>Self-staked:</span>
                   <span class="float-right">
                     {{ acServ.myCpuBalance() | number: "1.0-" + systemPrecision }}
@@ -147,7 +147,7 @@
                   </span>
                 </div>
 
-                <div class="mb-1 faded">
+                <div class="faded mb-1">
                   <span>Staked by others:</span>
                   <span class="float-right">
                     {{ acServ.cpuByOthers() | number: "1.0-" + systemPrecision }}
@@ -174,13 +174,13 @@
                 } @else {
                   <span class="faded ml-2">{{ acServ.userResPct().net | number: "1.0-2" }}% used</span>
                 }
-                <span class="mt-2 float-right">{{ acServ.userResPct().netStr }}</span>
+                <span class="float-right mt-2">{{ acServ.userResPct().netStr }}</span>
               </div>
 
               <mat-progress-bar class="mt-2.5" mode="determinate" [value]="acServ.userResPct().net"></mat-progress-bar>
 
               <div class="small-info">
-                <div class="mb-1 faded">
+                <div class="faded mb-1">
                   <span>Self-staked:</span>
                   <span class="float-right">
                     {{ acServ.myNetBalance() | number: "1.0-" + systemPrecision }}
@@ -188,7 +188,7 @@
                   </span>
                 </div>
 
-                <div class="mb-1 faded">
+                <div class="faded mb-1">
                   <span>Staked by others:</span>
                   <span class="float-right">
                     {{ acServ.netByOthers() | number: "1.0-" + systemPrecision }}
@@ -215,7 +215,7 @@
                 } @else {
                   <span class="faded ml-2">{{ acServ.userResPct().ram | number: "1.0-2" }}% used</span>
                 }
-                <span class="mt-2 float-right">{{ acServ.userResPct().ramStr }}</span>
+                <span class="float-right mt-2">{{ acServ.userResPct().ramStr }}</span>
               </div>
 
               <mat-progress-bar class="mt-2.5" mode="determinate" [value]="acServ.userResPct().ram"></mat-progress-bar>
@@ -234,7 +234,7 @@
           Tokens
           <fa-icon
             [icon]="icons.regular.faQuestionCircle"
-            class="faded float-right pointer"
+            class="faded pointer float-right"
             matTooltip="Only liquid balances are displayed"
             matTooltipClass="tooltip-bigger"
           ></fa-icon>
@@ -279,7 +279,7 @@
       <!--VOTE CARD-->
       @let voterInfo = acServ.accountComputed().voter_info;
       @if (voterInfo && (voterInfo.proxy || voterInfo.producers.length > 0)) {
-        <mat-accordion class="custom-card w-full vote-card md:col-span-3 text-black">
+        <mat-accordion class="custom-card vote-card w-full text-black md:col-span-3">
           <mat-expansion-panel
             #voteExpansionPanel
             [disabled]="voterInfo.producers.length <= 0"
@@ -288,12 +288,12 @@
             <!--            -->
             <!--            -->
             <mat-expansion-panel-header>
-              <div class="flex flex-row flex-wrap w-full gap-5">
+              <div class="flex w-full flex-row flex-wrap gap-5">
                 <mat-panel-title class="w-auto" style="grow: 0 !important">
                   <div class="flex flex-row items-center gap-2 text-xl">
                     @if (voterInfo.producers.length > 1) {
                       <button mat-icon-button class="small-arrow-btn">
-                        <div class="flex flex-col justify-center items-center">
+                        <div class="flex flex-col items-center justify-center">
                           <fa-icon
                             [ngClass]="voteExpansionPanel.expanded ? 'arrowDown' : 'arrowRight'"
                             [icon]="icons.solid.faChevronRight"
@@ -353,8 +353,8 @@
       }
 
       <!--ACTIONS CARD/TABLE-->
-      <div class="custom-card w-full min-w-full h-full min-h-full md:col-span-3">
-        <div class="flex flex-row justify-between items-start">
+      <div class="custom-card h-full min-h-full w-full min-w-full md:col-span-3">
+        <div class="flex flex-row items-start justify-between">
           <h3 style="margin-top: 0">
             <fa-layers [fixedWidth]="true" style="margin-right: 5px">
               <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
@@ -391,34 +391,41 @@
 
         <!-- aqui -->
         @if (acServ.totalActionCounter() || (acServ.filter() && acServ.totalActionCounter() === 0)) {
+
           <!--ACTION FILTERS-->
-          <div
-            class="flex flex-row lg:flex-wrap gap-5 mb-1 lg:mb-0 lg:justify-end items-center py-4 pr-1.5 relative overflow-x-auto overflow-y-hidden snap-proximity snap-x snap-always"
-          >
+          <div class="relative mb-1 flex snap-x snap-proximity snap-always flex-row items-center gap-5
+          overflow-x-auto overflow-y-hidden
+          py-4 pr-1.5
+          lg:mb-0 lg:flex-wrap lg:justify-end">
+
             <div class="faded">Filter by</div>
+
             @for (filter of acServ.commonFilters; track filter.name) {
-              <div class="snap-center shrink-0 first:pl-1 last:pr-1">
-                <button
-                  mat-raised-button
-                  class="filter-btn w-max"
-                  [class.primary-btn]="acServ.filter()?.name === filter.name"
-                  (click)="setFilter(filter)"
-                >
-                  <div class="flex flex-row gap-2 items-center">
+
+              <div class="shrink-0 snap-center first:pl-1 last:pr-1">
+
+                <button mat-raised-button
+                        class="filter-btn w-max"
+                        [class.primary-btn]="acServ.filter()?.name === filter.name"
+                        (click)="setFilter(filter)">
+
+                  <div class="flex flex-row items-center gap-2">
+
                     @if (filter.icon) {
                       <fa-icon [icon]="filter.icon" class="text-base"></fa-icon>
                     }
+
                     <div>{{ filter.name }}</div>
+
                     @if (filter.userFilter) {
-                      <!--                  <button mat-icon-button>-->
                       <fa-icon
                         (click)="removeUserFilter(filter); $event.stopPropagation()"
                         [icon]="icons.solid.faTimes"
                         class="warn remove-filter relative text-base"
-                        matTooltip="remove filter"
-                      ></fa-icon>
-                      <!--                  </button>-->
+                        matTooltip="remove filter">
+                      </fa-icon>
                     }
+
                   </div>
                 </button>
               </div>
@@ -430,9 +437,9 @@
           @if (!(acServ.filter() && acServ.totalActionCounter() === 0)) {
             <mat-expansion-panel #filterExpansionPanel hideToggle class="filter-panel">
               <mat-expansion-panel-header>
-                <div class="flex flex-row flex-wrap items-center w-full gap-2 pt-1">
+                <div class="flex w-full flex-row flex-wrap items-center gap-2 pt-1">
                   <button mat-icon-button class="small-arrow-btn">
-                    <div class="flex flex-col justify-center items-center">
+                    <div class="flex flex-col items-center justify-center">
                       <fa-icon
                         [ngClass]="filterExpansionPanel.expanded ? 'arrowDown' : 'arrowRight'"
                         [icon]="icons.solid.faChevronRight"
@@ -444,13 +451,13 @@
                   <div class="pr-6">More filters</div>
                   <!--              @if (filterExpansionPanel.expanded) {-->
                   <mat-panel-description class="grow">
-                    <div class="flex flex-row gap-7 items-center py-2">
-                      <div class="flex flex-row gap-2 items-center">
+                    <div class="flex flex-row items-center gap-7 py-2">
+                      <div class="flex flex-row items-center gap-2">
                         <input type="checkbox" [(ngModel)]="useUTC" (click)="$event.stopPropagation()" />
                         <div class="faded">Dates in UTC</div>
                       </div>
 
-                      <div class="flex flex-row gap-2 items-center">
+                      <div class="flex flex-row items-center gap-2">
                         <input type="checkbox" [(ngModel)]="compactMode" (click)="$event.stopPropagation()" />
                         <div class="faded">Compact Mode</div>
                       </div>
@@ -462,22 +469,22 @@
 
               <!--CUSTOM FILTERS-->
               <div class="flex flex-row flex-wrap items-center gap-4">
-                <div class="custom-input-group flex flex-row items-center max-w-full sm:w-auto w-full rounded-full border-transparent">
+                <div class="custom-input-group flex w-full max-w-full flex-row items-center rounded-full border-transparent sm:w-auto">
                   <input
                     matInput
                     id="contract"
                     type="text"
-                    class="custom-input outline-hidden ml-0 pl-5 py-4 rounded-l-full h-[2.625rem]"
+                    class="custom-input ml-0 h-[2.625rem] rounded-l-full py-4 pl-5 outline-hidden"
                     [(ngModel)]="contractFilterInput"
                     placeholder="Contract"
                   />
                 </div>
-                <div class="custom-input-group flex flex-row items-center max-w-full sm:w-auto w-full rounded-full border-transparent">
+                <div class="custom-input-group flex w-full max-w-full flex-row items-center rounded-full border-transparent sm:w-auto">
                   <input
                     matInput
                     id="action"
                     type="text"
-                    class="custom-input outline-hidden ml-0 pl-5 py-4 rounded-l-full h-[2.625rem]"
+                    class="custom-input ml-0 h-[2.625rem] rounded-l-full py-4 pl-5 outline-hidden"
                     [(ngModel)]="actionFilterInput"
                     placeholder="Action Name"
                   />
@@ -486,16 +493,16 @@
                 <button [disabled]="!contractFilterInput() && !actionFilterInput()" (click)="useCustomFilter()" mat-raised-button>
                   Filter
                 </button>
-                <div class="flex flex-row gap-2 items-center">
+                <div class="flex flex-row items-center gap-2">
                   <input type="checkbox" [(ngModel)]="saveCustomFilter" />
                   <div class="faded">Save this filter</div>
                 </div>
               </div>
             </mat-expansion-panel>
           }
-          <div #actionsTable class="flex flex-row flex-wrap justify-between items-center gap-2 pt-5 pb-3">
+          <div #actionsTable class="flex flex-row flex-wrap items-center justify-between gap-2 pt-5 pb-3">
             @if (filteredActions && filteredActions.length > 0 && acServ.filter()) {
-              <div class="flex flex-row justify-start items-center gap-5 animate fast fadeInDown">
+              <div class="animate fast fadeInDown flex flex-row items-center justify-start gap-5">
                 <div class="flex flex-row gap-2">
                   <span class="faded">Showing</span>
                   <span class="font-medium">{{ filteredActions.length }}</span>
@@ -510,7 +517,7 @@
               </div>
             } @else {
               @if (acServ.actionRes.hasValue() && acServ.filter()) {
-                <div class="flex flex-row justify-center items-center gap-5">
+                <div class="flex flex-row items-center justify-center gap-5">
                   <div class="warn animate fast fadeInDown">
                     No actions to display using filter
                     <b>{{ acServ.filter()?.name }}</b>
@@ -567,7 +574,7 @@
                       </a>
                     </div>
                     <a matRipple (click)="onRowClick(action)" class="link-btn faded">
-                      <div class="flex flex-row gap-2 items-center">
+                      <div class="flex flex-row items-center gap-2">
                         <!--                      <fa-icon [icon]="icons.solid.glassMore"></fa-icon>-->
                         <fa-icon [icon]="icons.solid.dots"></fa-icon>
                         <div class="text-xs uppercase">Expand Details</div>
@@ -584,7 +591,7 @@
                   <div class="action-cell">
                     <span class="accent font-medium">{{ action["act"]["name"] }}</span>
                     <span class="main-color">on</span>
-                    <span [routerLink]="['/account', action['act']['account']]" class="font-medium div-link main-color">
+                    <span [routerLink]="['/account', action['act']['account']]" class="div-link main-color font-medium">
                       {{ action["act"]["account"] }}
                     </span>
                   </div>
@@ -598,7 +605,7 @@
                   @if (compactMode()) {
                     <div class="flex flex-row items-center">
                       <button mat-icon-button class="small-arrow-btn" (click)="action._expanded = !action._expanded">
-                        <div class="flex flex-col justify-center items-center">
+                        <div class="flex flex-col items-center justify-center">
                           <fa-icon
                             [ngClass]="action._expanded ? 'arrowUp' : 'arrowUpDown'"
                             [icon]="icons.solid.faChevronDown"
@@ -650,7 +657,7 @@
               showFirstLastButtons
             ></mat-paginator>
 
-            <button mat-raised-button class="float-right filter-btn mr-4" (click)="acServ.loadMoreActions()">load more actions</button>
+            <button mat-raised-button class="filter-btn float-right mr-4" (click)="acServ.loadMoreActions()"> load more actions</button>
           }
         } @else {
           No actions to display
@@ -659,7 +666,7 @@
     </div>
   } @else {
     <!--      NO ACCOUNT-->
-    <div style="height: 100%" class="flex flex-col justify-start items-center gap-[15px] appear">
+    <div style="height: 100%" class="appear flex flex-col items-center justify-start gap-[15px]">
       <div class="custom-card w-full">
         <h1 class="faded">
           <fa-icon [icon]="icons.solid.faSadTear" style="margin-right: 5px"></fa-icon>

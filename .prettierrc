@@ -4,16 +4,10 @@
   "useTabs": false,
   "semi": true,
   "singleQuote": false,
-  "trailingComma": "all",
+  "trailingComma": "none",
   "bracketSpacing": true,
   "arrowParens": "avoid",
   "htmlWhitespaceSensitivity": "strict",
   "embeddedLanguageFormatting": "auto",
-  "endOfLine": "crlf",
-  "plugins": [
-    "prettier-plugin-tailwindcss",
-    "prettier-plugin-classnames",
-    "prettier-plugin-merge"
-  ],
-  "tailwindStylesheet": "./src/styles.css"
+  "endOfLine": "crlf"
 }

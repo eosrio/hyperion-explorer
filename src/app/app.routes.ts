@@ -1,119 +1,118 @@
-import {Routes} from '@angular/router';
-import {RenderMode, ServerRoute} from "@angular/ssr";
-import {accountNameGuard} from "./guards/account-name.guard";
-import {TopHoldersChartComponent} from "./components/top-holders-chart/top-holders-chart.component";
+import { Routes } from "@angular/router";
+import { RenderMode, ServerRoute } from "@angular/ssr";
+import { accountNameGuard } from "./guards/account-name.guard";
+import { TopHoldersChartComponent } from "./components/top-holders-chart/top-holders-chart.component";
 
 async function loadMainSearchComponent() {
-  let m = await import('./pages/main-search/main-search.component');
+  let m = await import("./pages/main-search/main-search.component");
   return m.MainSearchComponent;
 }
 
 async function loadContractComponent() {
-  let m = await import('./pages/contract/contract.component');
+  let m = await import("./pages/contract/contract.component");
   return m.ContractComponent;
 }
 
 export const routes: Routes = [
   {
-    path: 'top-holders/:contract/:symbol',
+    path: "top-holders/:contract/:symbol",
     component: TopHoldersChartComponent
   },
   {
-    path: '',
+    path: "",
     loadComponent: loadMainSearchComponent,
     children: [
       {
-        path: '',
+        path: "",
         children: [
           {
-            path: '',
+            path: "",
             loadComponent: async () => {
-              let m = await import('./components/search-results/home-tabs/home-tabs.component');
+              let m = await import("./components/search-results/home-tabs/home-tabs.component");
               return m.HomeTabsComponent;
             }
-          },
+          }
         ]
       },
       {
-        path: 'account',
+        path: "account",
         children: [
-          {path: '', redirectTo: '/', pathMatch: 'full'},
+          { path: "", redirectTo: "/", pathMatch: "full" },
           {
-            path: ':account_name',
+            path: ":account_name",
             canActivate: [accountNameGuard],
             loadComponent: async () => {
-              let m = await import('./components/search-results/account/account.component');
+              let m = await import("./components/search-results/account/account.component");
               return m.AccountComponent;
             }
-          },
+          }
         ]
       },
       {
-        path: 'block',
+        path: "block",
         children: [
-          {path: '', redirectTo: '/', pathMatch: 'full'},
+          { path: "", redirectTo: "/", pathMatch: "full" },
           {
-            path: ':block_num_or_id',
+            path: ":block_num_or_id",
             loadComponent: async () => {
-              let m = await import('./components/search-results/block/block.component');
+              let m = await import("./components/search-results/block/block.component");
               return m.BlockComponent;
             }
           }
         ]
       },
       {
-        path: 'key',
+        path: "key",
         children: [
-          {path: '', redirectTo: '/', pathMatch: 'full'},
+          { path: "", redirectTo: "/", pathMatch: "full" },
           {
-            path: ':pub_key',
+            path: ":pub_key",
             loadComponent: async () => {
-              let m = await import('./components/search-results/key/key.component');
+              let m = await import("./components/search-results/key/key.component");
               return m.KeyComponent;
-            }
-          }
-        ],
-
-      },
-      {
-        path: 'transaction',
-        children: [
-          {path: '', redirectTo: '/', pathMatch: 'full'},
-          {
-            path: ':transaction_id',
-            loadComponent: async () => {
-              let m = await import('./components/search-results/transaction/transaction.component');
-              return m.TransactionComponent;
             }
           }
         ]
       },
+      {
+        path: "transaction",
+        children: [
+          { path: "", redirectTo: "/", pathMatch: "full" },
+          {
+            path: ":transaction_id",
+            loadComponent: async () => {
+              let m = await import("./components/search-results/transaction/transaction.component");
+              return m.TransactionComponent;
+            }
+          }
+        ]
+      }
     ]
   },
   {
-    path: 'contract',
+    path: "contract",
     children: [
-      {path: ':code/:table/:scope', loadComponent: loadContractComponent},
-      {path: ':code/:table', loadComponent: loadContractComponent},
-      {path: ':code', loadComponent: loadContractComponent},
-    ],
+      { path: ":code/:table/:scope", loadComponent: loadContractComponent },
+      { path: ":code/:table", loadComponent: loadContractComponent },
+      { path: ":code", loadComponent: loadContractComponent }
+    ]
   },
   {
-    path: 'error',
+    path: "error",
     loadComponent: async () => {
-      let m = await import('./pages/error/error.component');
+      let m = await import("./pages/error/error.component");
       return m.ErrorComponent;
     }
   },
   {
-    path: '**',
+    path: "**",
     loadComponent: loadMainSearchComponent
   }
 ];
 
 export const serverRoutes: ServerRoute[] = [
   {
-    path: '**',
+    path: "**",
     renderMode: RenderMode.Server
   }
 ];
