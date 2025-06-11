@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, PLATFORM_ID, ElementRef } from '@angular/core'; // Import inject, PLATFORM_ID, ElementRef
-import { isPlatformBrowser, CommonModule } from '@angular/common'; // Import isPlatformBrowser
+import { isPlatformBrowser } from '@angular/common'; // Import isPlatformBrowser
 import { NgxEchartsModule } from 'ngx-echarts'; // Keep NgxEchartsModule
 import { EChartsOption } from 'echarts';
 import {FaIconComponent} from "@fortawesome/angular-fontawesome";
@@ -13,11 +13,9 @@ import {faTag, faTags} from "@fortawesome/free-solid-svg-icons";
   selector: 'app-price-history',
   standalone: true, // Assuming it should be standalone like other components
   imports: [
-    CommonModule,
     NgxEchartsModule,
-    FaIconComponent,
-    // Add NgxEchartsModule here
-  ],
+    FaIconComponent
+],
   // Removed providers array
   templateUrl: './price-history.component.html',
   styleUrl: './price-history.component.css'

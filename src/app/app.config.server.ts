@@ -1,3 +1,4 @@
+import { provideServerRendering, withRoutes } from '@angular/ssr';
 import {
   ApplicationConfig,
   inject,
@@ -6,10 +7,8 @@ import {
   provideAppInitializer,
   REQUEST
 } from '@angular/core';
-import {provideServerRendering} from '@angular/platform-server';
 import {appConfig} from './app.config';
 import {DataService, DataServiceServer} from "./services/data.service";
-import {provideServerRoutesConfig} from "@angular/ssr";
 import {serverRoutes} from "./app.routes";
 import {provideClientHydration} from "@angular/platform-browser";
 import {readdirSync, readFileSync} from "node:fs";
@@ -24,8 +23,7 @@ async function injectCustomTheme(file: string, ds: DataService) {
 }
 
 const serverConfig: ApplicationConfig = {
-  providers: [
-    provideAppInitializer(async () => {
+  providers: [provideAppInitializer(async () => {
       const request = inject(REQUEST);
       const ds = inject(DataService);
 
@@ -44,12 +42,7 @@ const serverConfig: ApplicationConfig = {
         }
       }
 
-    }),
-    provideClientHydration(),
-    provideServerRendering(),
-    provideServerRoutesConfig(serverRoutes),
-    {provide: DataService, useClass: DataServiceServer}
-  ]
+    }), provideClientHydration(), provideServerRendering(withRoutes(serverRoutes)), {provide: DataService, useClass: DataServiceServer}]
 };
 
 export const config = mergeApplicationConfig(appConfig, serverConfig);
