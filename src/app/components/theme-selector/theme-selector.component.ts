@@ -24,18 +24,18 @@ export class ThemeSelectorComponent {
   selectedTheme = signal('');
 
   themeData = rxResource<any, { theme: string }>({
-    request: () => {
+    params: () => {
       return {theme: this.selectedTheme()}
     },
-    loader: (params) => {
-      if (params.request.theme === 'UNSET_THEME') {
+    stream: ({params}) => {
+      if (params.theme === 'UNSET_THEME') {
         window.location.href = window ? window.location.origin : '/';
         return of({} as any);
       }
-      if (!params.request.theme) {
+      if (!params.theme) {
         return of({} as any);
       } else {
-        return this.http.get('/.internal/read_theme/' + params.request.theme) as Observable<any>;
+        return this.http.get('/.internal/read_theme/' + params.theme) as Observable<any>;
       }
     }
   });

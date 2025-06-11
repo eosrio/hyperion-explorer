@@ -163,7 +163,7 @@ export class AccountService {
     first: number,
     sort: string
   }>({
-    request: () => {
+    params: () => {
       return {
         accountName: this.accountName(),
         customParams: this.customParams(),
@@ -173,17 +173,17 @@ export class AccountService {
         sort: this.sortDirection()
       };
     },
-    loader: async (param) => {
-      const cp = param.request.customParams;
-      console.log(param.request);
-      const {limit, skip, sort} = param.request;
+    loader: async ({params}) => {
+      const cp = params.customParams;
+      console.log(params);
+      const {limit, skip, sort} = params;
       if (cp || skip > 0 || sort === 'asc') {
         const query = new URLSearchParams();
-        query.set('account', param.request.accountName);
+        query.set('account', params.accountName);
         query.set('limit', limit.toString());
         query.set('skip', skip.toString());
         // global sequence marker to lock the action on the time of page load
-        query.set('global_sequence', `0-${param.request.first}`);
+        query.set('global_sequence', `0-${params.first}`);
         if (sort) {
           query.set('sort', sort);
         }
@@ -212,14 +212,14 @@ export class AccountService {
   public accountDataRes: ResourceRef<GetAccountResponse | null | undefined> = resource<GetAccountResponse | null, {
     accountName: string,
   }>({
-    request: () => {
+    params: () => {
       return {
         accountName: this.accountName(),
       }
     },
-    loader: async (param: ResourceLoaderParams<{ accountName: string }>): Promise<GetAccountResponse | null> => {
-      if (param.request) {
-        const account = param.request.accountName;
+    loader: async (loaderParams: ResourceLoaderParams<{ accountName: string }>): Promise<GetAccountResponse | null> => {
+      if (loaderParams.params) {
+        const account = loaderParams.params.accountName;
         if (account) {
           const url = this.data.env.hyperionApiUrl + '/v2/state/get_account?account=' + account;
           return await lastValueFrom(this.httpClient.get(url)) as GetAccountResponse;

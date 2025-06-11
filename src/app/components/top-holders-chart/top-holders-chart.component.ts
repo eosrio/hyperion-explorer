@@ -74,16 +74,16 @@ export class TopHoldersChartComponent implements OnInit {
   }
 
   holders = resource<any, any>({
-    request: () => {
+    params: () => {
       return {
         contract: this.tokenContract(),
         symbol: this.tokenSymbol()
       }
     },
-    loader: async ({request}) => {
+    loader: async ({params}) => {
       try {
-        const params = `contract=${request.contract}&symbol=${request.symbol}&limit=10`;
-        const getTopHolders = this.data.env.hyperionApiUrl + `/v2/state/get_top_holders?${params}`;
+        const opts = `contract=${params.contract}&symbol=${params.symbol}&limit=10`;
+        const getTopHolders = this.data.env.hyperionApiUrl + `/v2/state/get_top_holders?${opts}`;
         const data = await lastValueFrom(this.httpClient.get(getTopHolders)) as any;
         if (data && data.holders && data.holders.length > 0) {
           return data.holders;

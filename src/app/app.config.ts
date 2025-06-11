@@ -4,7 +4,7 @@ import {
   inject,
   PLATFORM_ID,
   provideAppInitializer,
-  provideExperimentalZonelessChangeDetection,
+  provideZonelessChangeDetection,
   REQUEST
 } from '@angular/core';
 import {provideRouter, Router} from '@angular/router';
@@ -46,7 +46,7 @@ async function initApp(): Promise<void> {
 export const appConfig: ApplicationConfig = {
   providers: [
     provideRouter(routes),
-    provideExperimentalZonelessChangeDetection(),
+    provideZonelessChangeDetection(),
     provideClientHydration(withIncrementalHydration()),
     {provide: DataService, useClass: DataServiceBrowser},
     provideAppInitializer(initApp),

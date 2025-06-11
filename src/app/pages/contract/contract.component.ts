@@ -6,7 +6,7 @@ import {map} from "rxjs";
 
 function rxResFromParam(route: ActivatedRoute, key: string): ResourceRef<string | null | undefined> {
   return rxResource<string | null, unknown>({
-    loader: () => route.paramMap.pipe(map(p => p.get(key)))
+    stream: () => route.paramMap.pipe(map(p => p.get(key)))
   });
 }
 

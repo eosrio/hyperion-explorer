@@ -14,18 +14,18 @@ export class BlockService {
   blockNum = signal<number>(0);
 
   blockResource = resource<any, any>({
-    request: () => {
+    params: () => {
       return {
         id: this.blockId(),
         block_num: this.blockNum(),
       };
     },
-    loader: async (param) => {
+    loader: async ({params}) => {
       const body = {} as any;
-      if (param.request.id) {
-        body.block_id = param.request.id;
-      } else if (param.request.block_num) {
-        body.block_num = param.request.block_num;
+      if (params.id) {
+        body.block_id = params.id;
+      } else if (params.block_num) {
+        body.block_num = params.block_num;
       } else {
         return null;
       }

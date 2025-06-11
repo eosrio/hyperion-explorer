@@ -87,8 +87,8 @@ export class ContractExplorerComponent {
 
   // request new abi when the code signal changes
   abiRes = rxResource({
-    request: () => this.code(),
-    loader: ({request: code}) => {
+    params: () => this.code(),
+    stream: ({params: code}) => {
       if (code) {
         return this.http.post<GetAbiResponse>(this.endpoints.getAbi, {
           account_name: code,
@@ -109,14 +109,14 @@ export class ContractExplorerComponent {
     limit: number,
     lb: string
   }>({
-    request: () => {
+    params: () => {
       return {
         table: this.table(),
         limit: this.getTableByScopeLimit() ?? 30,
         lb: this.scopeLb()
       }
     },
-    loader: ({request: data}) => {
+    stream: ({params: data}) => {
       if (data.table) {
         // request table scopes
         return this.http.post<any>(this.endpoints.getTableByScope, {
@@ -134,8 +134,8 @@ export class ContractExplorerComponent {
   });
 
   tableRowRes = rxResource({
-    request: () => this.scope(),
-    loader: ({request: scope}) => {
+    params: () => this.scope(),
+    stream: ({params: scope}) => {
       if (scope) {
         // request table scopes
         return this.http.post<any>(this.endpoints.getTableRows, {
@@ -153,13 +153,13 @@ export class ContractExplorerComponent {
   });
 
   nextScopePresentRes = resource({
-    request: () => {
+    params: () => {
       return {
         next: this.tableScopesRes.value()?.more,
         table: this.table()
       }
     },
-    loader: async ({request: data}) => {
+    loader: async ({params: data}) => {
       if (data.next && data.table) {
         const entry = await lastValueFrom(this.http.post<any>(this.endpoints.getTableRows, {
           code: this.code(),

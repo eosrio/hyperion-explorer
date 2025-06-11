@@ -22,14 +22,14 @@ export class DeltaService {
     blockNum: number | null,
     blockId: string | null
   }>({
-    request: () => {
+    params: () => {
       return {
         blockNum: this.blockNum(),
         blockId: this.blockId()
       };
     },
-    loader: async (param) => {
-      const {blockNum, blockId} = param.request;
+    loader: async ({params}) => {
+      const {blockNum, blockId} = params;
       if (blockNum || blockId) {
         const query = new URLSearchParams();
         if (blockNum) {
