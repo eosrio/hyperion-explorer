@@ -106,7 +106,7 @@
 /*collapsed header*/
 .collapsed-header {
   color: var(--primary);
-  border-radius: var(--mdc-protected-button-container-shape, var(--mat-sys-corner-full));
+  border-radius: var(--mat-button-protected-container-shape, var(--mat-sys-corner-full));
   transition: background 0.2s ease !important;
 }
 
