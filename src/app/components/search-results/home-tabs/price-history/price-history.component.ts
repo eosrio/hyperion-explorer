@@ -3,7 +3,7 @@ import { isPlatformBrowser } from '@angular/common'; // Import isPlatformBrowser
 import { NgxEchartsModule } from 'ngx-echarts'; // Keep NgxEchartsModule
 import { EChartsOption } from 'echarts';
 import {FaIconComponent} from "@fortawesome/angular-fontawesome";
-import {faHandHoldingDollar} from "@fortawesome/free-solid-svg-icons/faHandHoldingDollar";
+import {faHandHoldingDollar} from "@fortawesome/free-solid-svg-icons";
 import {ChainService} from "../../../../services/chain.service";
 import {faTag, faTags} from "@fortawesome/free-solid-svg-icons";
 
