@@ -1,8 +1,8 @@
 // Description: Theme for Jungle Testnet
 
 globalThis.themeData = {
-  "--primary": "#fba219",
-  "--accent": "#2fbce1",
+  "--primary": "#2b35dc",
+  "--accent": "#ff5f00",
   "--faded": "#a8968a",
   "--main-background": "#f1f1f1",
   "--card-bg-gradient": "linear-gradient(115deg, rgb(255 255 255 / 70%) 0%, rgb(255 255 255 / 90%) 50%, rgb(255 255 255 / 70%) 100%)",
