@@ -11,26 +11,19 @@ import {
   signal,
   untracked,
   WritableSignal
-} from '@angular/core';
-import {HttpClient} from '@angular/common/http';
-import {AccountCreationData, AccountData, GetAccountResponse, GetActionsResponse, TokenData} from '../interfaces';
-// import {HyperionStreamClient} from '@eosrio/hyperion-stream-client';
-import {lastValueFrom, Observable, of} from "rxjs";
-import {DataService} from "./data.service";
-import {toObservable} from "@angular/core/rxjs-interop";
-import {convertMicroS, getPrecision, getSymbol} from "../utils";
-import {
-  faComputer,
-  faFilter,
-  faMoneyBill,
-  faRightFromBracket,
-  faRightToBracket,
-  faVoteYea
-} from "@fortawesome/free-solid-svg-icons";
-import {IconDefinition} from "@fortawesome/angular-fontawesome";
-import {isPlatformBrowser} from "@angular/common";
-import {SortDirection} from "@angular/material/sort";
-import {ChainService} from "./chain.service";
+} from "@angular/core";
+import { HttpClient } from "@angular/common/http";
+import { AccountCreationData, AccountData, GetAccountResponse, GetActionsResponse, TokenData } from "../interfaces";
+import { HyperionStreamClient } from "@eosrio/hyperion-stream-client";
+import { lastValueFrom, Observable, of } from "rxjs";
+import { DataService } from "./data.service";
+import { toObservable } from "@angular/core/rxjs-interop";
+import { convertMicroS, getPrecision, getSymbol } from "../utils";
+import { faComputer, faFilter, faMoneyBill, faRightFromBracket, faRightToBracket, faVoteYea } from "@fortawesome/free-solid-svg-icons";
+import { IconDefinition } from "@fortawesome/angular-fontawesome";
+import { isPlatformBrowser } from "@angular/common";
+import { SortDirection } from "@angular/material/sort";
+import { ChainService } from "./chain.service";
 
 interface HealthResponse {
   features: {
@@ -38,29 +31,28 @@ interface HealthResponse {
       deltas: boolean;
       enable: boolean;
       traces: boolean;
-    }
+    };
   };
 }
 
 export interface ActionFilterSpec {
   name: string;
-  icon?: IconDefinition,
+  icon?: IconDefinition;
   userFilter?: boolean;
   exec: (params: WritableSignal<Record<string, string> | undefined>) => void;
 }
 
 export const MAX_ES_SKIP = 10000;
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: "root" })
 export class AccountService {
-
   private data = inject(DataService);
   private httpClient = inject(HttpClient);
   chain = inject(ChainService);
 
   emptyAccount: AccountData & any = {
-    cpu_limit: {used: 1, max: 1},
-    net_limit: {used: 1, max: 1}
+    cpu_limit: { used: 1, max: 1 },
+    net_limit: { used: 1, max: 1 }
   };
 
   actions: any[] = [];
@@ -81,7 +73,7 @@ export class AccountService {
   // pagination signals
   pageIndex = signal(0);
   pageSize = signal(20);
-  sortDirection = signal<SortDirection>('desc');
+  sortDirection = signal<SortDirection>("desc");
 
   filter = signal<ActionFilterSpec | null>(null);
 
@@ -90,61 +82,61 @@ export class AccountService {
   commonFilters: ActionFilterSpec[] = [
     // received transfers
     {
-      name: 'Incoming Transfers',
+      name: "Incoming Transfers",
       icon: faRightToBracket,
-      exec: (params) => {
+      exec: params => {
         params.set({
-          '@transfer.to': this.accountName()
+          "@transfer.to": this.accountName()
         });
       }
     },
     // sent transfers
     {
-      name: 'Outgoing Transfers',
+      name: "Outgoing Transfers",
       icon: faRightFromBracket,
-      exec: (params) => {
+      exec: params => {
         params.set({
-          '@transfer.from': this.accountName()
+          "@transfer.from": this.accountName()
         });
       }
     },
     {
       name: "Native Transfers",
       icon: faMoneyBill,
-      exec: (params) => {
+      exec: params => {
         params.set({
-          'act.account': "eosio.token",
-          'act.name': "transfer"
+          "act.account": "eosio.token",
+          "act.name": "transfer"
         });
       }
     },
     {
       name: "Other Transfers",
       icon: faMoneyBill,
-      exec: (params) => {
+      exec: params => {
         params.set({
-          'act.account': "!eosio.token",
-          'act.name': "transfer"
+          "act.account": "!eosio.token",
+          "act.name": "transfer"
         });
       }
     },
     {
       name: "System Actions",
       icon: faComputer,
-      exec: (params) => {
+      exec: params => {
         params.set({
-          'act.account': "eosio"
+          "act.account": "eosio"
         });
       }
     },
     // votes
     {
-      name: 'Votes',
+      name: "Votes",
       icon: faVoteYea,
-      exec: (params) => {
+      exec: params => {
         params.set({
-          'act.account': "eosio",
-          'act.name': "voteproducer",
+          "act.account": "eosio",
+          "act.name": "voteproducer"
         });
       }
     }
@@ -155,14 +147,17 @@ export class AccountService {
   accountActions: any[] = [];
 
   // actions Resource
-  public actionRes = resource<GetActionsResponse, {
-    accountName: string,
-    customParams?: Record<string, string>,
-    limit: number,
-    skip: number,
-    first: number,
-    sort: string
-  }>({
+  public actionRes = resource<
+    GetActionsResponse,
+    {
+      accountName: string;
+      customParams?: Record<string, string>;
+      limit: number;
+      skip: number;
+      first: number;
+      sort: string;
+    }
+  >({
     params: () => {
       return {
         accountName: this.accountName(),
@@ -173,19 +168,19 @@ export class AccountService {
         sort: this.sortDirection()
       };
     },
-    loader: async ({params}) => {
+    loader: async ({ params }) => {
       const cp = params.customParams;
       console.log(params);
-      const {limit, skip, sort} = params;
-      if (cp || skip > 0 || sort === 'asc') {
+      const { limit, skip, sort } = params;
+      if (cp || skip > 0 || sort === "asc") {
         const query = new URLSearchParams();
-        query.set('account', params.accountName);
-        query.set('limit', limit.toString());
-        query.set('skip', skip.toString());
+        query.set("account", params.accountName);
+        query.set("limit", limit.toString());
+        query.set("skip", skip.toString());
         // global sequence marker to lock the action on the time of page load
-        query.set('global_sequence', `0-${params.first}`);
+        query.set("global_sequence", `0-${params.first}`);
         if (sort) {
-          query.set('sort', sort);
+          query.set("sort", sort);
         }
         for (const key in cp) {
           if (cp.hasOwnProperty(key)) {
@@ -196,33 +191,36 @@ export class AccountService {
         if (this.queryCache.has(key)) {
           return this.queryCache.get(key);
         } else {
-          const url = this.data.env.hyperionApiUrl + '/v2/history/get_actions?' + key;
-          const res = await lastValueFrom(this.httpClient.get(url)) as GetActionsResponse;
-          console.log('Query Time', res.query_time_ms);
+          const url = this.data.env.hyperionApiUrl + "/v2/history/get_actions?" + key;
+          const res = (await lastValueFrom(this.httpClient.get(url))) as GetActionsResponse;
+          console.log("Query Time", res.query_time_ms);
           this.queryCache.set(key, res);
           return res;
         }
       } else {
-        return {actions: []} as unknown as GetActionsResponse;
+        return { actions: [] } as unknown as GetActionsResponse;
       }
     }
   });
 
   // accountData Resource
-  public accountDataRes: ResourceRef<GetAccountResponse | null | undefined> = resource<GetAccountResponse | null, {
-    accountName: string,
-  }>({
+  public accountDataRes: ResourceRef<GetAccountResponse | null | undefined> = resource<
+    GetAccountResponse | null,
+    {
+      accountName: string;
+    }
+  >({
     params: () => {
       return {
-        accountName: this.accountName(),
-      }
+        accountName: this.accountName()
+      };
     },
     loader: async (loaderParams: ResourceLoaderParams<{ accountName: string }>): Promise<GetAccountResponse | null> => {
       if (loaderParams.params) {
         const account = loaderParams.params.accountName;
         if (account) {
-          const url = this.data.env.hyperionApiUrl + '/v2/state/get_account?account=' + account;
-          return await lastValueFrom(this.httpClient.get(url)) as GetAccountResponse;
+          const url = this.data.env.hyperionApiUrl + "/v2/state/get_account?account=" + account;
+          return (await lastValueFrom(this.httpClient.get(url))) as GetAccountResponse;
         } else {
           return null;
         }
@@ -234,7 +232,7 @@ export class AccountService {
 
   public firstGlobalSequence = computed<number>(() => {
     return this.accountDataRes.value()?.actions[0]?.global_sequence ?? 0;
-  })
+  });
 
   public totalActionCounter = computed(() => {
     if (this.filter()) {
@@ -284,7 +282,7 @@ export class AccountService {
     },
     computation: (source, previous) => {
       // if we are on filtered action or on a different page, replace the filtered actions with the account actions
-      if (source.filteredActions && (source.activeFilter || source.pageIndex > 0 || source.sortDirection === 'asc')) {
+      if (source.filteredActions && (source.activeFilter || source.pageIndex > 0 || source.sortDirection === "asc")) {
         if (source.filteredActions.length > 0) {
           return source.filteredActions;
         } else {
@@ -327,7 +325,7 @@ export class AccountService {
   public myCpuBalance = computed(() => {
     const account = this.accountComputed();
     if (account.self_delegated_bandwidth && account.self_delegated_bandwidth.cpu_weight) {
-      return parseFloat(account.self_delegated_bandwidth.cpu_weight.split(' ')[0]);
+      return parseFloat(account.self_delegated_bandwidth.cpu_weight.split(" ")[0]);
     }
     return 0;
   });
@@ -335,7 +333,7 @@ export class AccountService {
   public myNetBalance = computed(() => {
     const account = this.accountComputed();
     if (account.self_delegated_bandwidth && account.self_delegated_bandwidth.net_weight) {
-      return parseFloat(account.self_delegated_bandwidth.net_weight.split(' ')[0]);
+      return parseFloat(account.self_delegated_bandwidth.net_weight.split(" ")[0]);
     }
     return 0;
   });
@@ -343,7 +341,7 @@ export class AccountService {
   public liquidBalance = computed(() => {
     const account = this.accountComputed();
     if (account.core_liquid_balance && account.core_liquid_balance.length > 0) {
-      return parseFloat(account.core_liquid_balance.split(' ')[0]);
+      return parseFloat(account.core_liquid_balance.split(" ")[0]);
     }
     return 0;
   });
@@ -353,7 +351,7 @@ export class AccountService {
     if (account.total_resources) {
       console.log(account);
       if (account.total_resources.cpu_weight) {
-        return parseFloat(account.total_resources.cpu_weight.split(' ')[0]);
+        return parseFloat(account.total_resources.cpu_weight.split(" ")[0]);
       } else {
         return 0;
       }
@@ -365,7 +363,7 @@ export class AccountService {
     const account = this.accountComputed();
     if (account.total_resources) {
       if (account.total_resources.net_weight) {
-        return parseFloat(account.total_resources.net_weight.split(' ')[0]);
+        return parseFloat(account.total_resources.net_weight.split(" ")[0]);
       } else {
         return 0;
       }
@@ -394,7 +392,7 @@ export class AccountService {
   });
 
   public stakedByOthers = computed(() => {
-    return (this.cpuBalance() + this.netBalance()) - (this.myCpuBalance() + this.myNetBalance());
+    return this.cpuBalance() + this.netBalance() - (this.myCpuBalance() + this.myNetBalance());
   });
 
   systemSymbol = computed(() => {
@@ -420,14 +418,21 @@ export class AccountService {
     let netRefund = 0;
     const account = this.accountComputed();
     if (account.refund_request) {
-      cpuRefund = parseFloat(account.refund_request.cpu_amount.split(' ')[0]);
-      netRefund = parseFloat(account.refund_request.net_amount.split(' ')[0]);
+      cpuRefund = parseFloat(account.refund_request.cpu_amount.split(" ")[0]);
+      netRefund = parseFloat(account.refund_request.net_amount.split(" ")[0]);
     }
     return cpuRefund + netRefund;
   });
   private platformId = inject(PLATFORM_ID);
 
   constructor() {
+    const streamClient = new HyperionStreamClient({
+      endpoint: this.data.env.hyperionApiUrl
+    });
+
+    streamClient.connect().then(() => {
+      console.log("Connected to stream client");
+    });
 
     // console.log('AccountService created');
 
@@ -471,27 +476,27 @@ export class AccountService {
     // this.initStreamClient().catch(console.log);
 
     if (isPlatformBrowser(this.platformId)) {
-      const localSavedFilters = localStorage.getItem('userSavedFilters');
+      const localSavedFilters = localStorage.getItem("userSavedFilters");
       if (localSavedFilters) {
         try {
           this.userSavedFilters = JSON.parse(localSavedFilters);
           if (this.userSavedFilters && this.userSavedFilters.length) {
             this.userSavedFilters.forEach(value => {
               const filterSpec: ActionFilterSpec = {
-                name: (value.contract || '*') + '::' + (value.action || '*'),
+                name: (value.contract || "*") + "::" + (value.action || "*"),
                 icon: faFilter,
                 userFilter: true,
                 exec: params => {
                   const conf = {} as Record<string, string>;
                   if (value.contract) {
-                    conf['act.account'] = value.contract;
+                    conf["act.account"] = value.contract;
                   }
                   if (value.action) {
-                    conf['act.name'] = value.action;
+                    conf["act.name"] = value.action;
                   }
                   params.set(conf);
                 }
-              }
+              };
               this.commonFilters.push(filterSpec);
             });
           }
@@ -541,7 +546,7 @@ export class AccountService {
     } else {
       return [];
     }
-  })
+  });
 
   // async checkIrreversibility(): Promise<void> {
   //   const lastIrreversibleBlock = await this.checkLib() ?? 0;
@@ -664,10 +669,10 @@ export class AccountService {
   async loadMoreActions(): Promise<void> {
     const accountName = this.accountName();
     const firstAction = this.actions[this.actions.length - 1];
-    const maxGs = (firstAction.global_sequence - 1);
+    const maxGs = firstAction.global_sequence - 1;
     try {
       const q = `${this.data.env.hyperionApiUrl}/v2/history/get_actions?account=${accountName}&global_sequence=0-${maxGs}&limit=50`;
-      const results = await lastValueFrom(this.httpClient.get(q)) as any;
+      const results = (await lastValueFrom(this.httpClient.get(q))) as any;
       if (results.actions && results.actions.length > 0) {
         this.actions.push(...results.actions);
         // this.tableDataSource.data = this.actions;
@@ -680,7 +685,7 @@ export class AccountService {
   async loadTxData(txId: string): Promise<any> {
     this.loaded.set(false);
     try {
-      const url = this.data.env.hyperionApiUrl + '/v2/history/get_transaction?id=' + txId;
+      const url = this.data.env.hyperionApiUrl + "/v2/history/get_transaction?id=" + txId;
       const data = await lastValueFrom(this.httpClient.get(url));
       this.loaded.set(true);
       return data;
@@ -694,8 +699,8 @@ export class AccountService {
   async loadBlockData(blockNum: number): Promise<any> {
     this.loaded.set(false);
     try {
-      const url = this.data.env.hyperionApiUrl + '/v1/trace_api/get_block';
-      const data = await lastValueFrom(this.httpClient.post(url, {block_num: blockNum}));
+      const url = this.data.env.hyperionApiUrl + "/v1/trace_api/get_block";
+      const data = await lastValueFrom(this.httpClient.post(url, { block_num: blockNum }));
       this.loaded.set(true);
       return data;
     } catch (error) {
@@ -706,10 +711,10 @@ export class AccountService {
   }
 
   async loadPubKey(key: string): Promise<any> {
-    console.log('Loading key data for: ' + key);
+    console.log("Loading key data for: " + key);
     this.loaded.set(false);
     try {
-      const url = this.data.env.hyperionApiUrl + '/v2/state/get_key_accounts?public_key=' + key + '&details=true';
+      const url = this.data.env.hyperionApiUrl + "/v2/state/get_key_accounts?public_key=" + key + "&details=true";
       const data = await lastValueFrom(this.httpClient.get(url));
       this.loaded.set(true);
       return data;
@@ -722,8 +727,8 @@ export class AccountService {
 
   async getCreator(accountName: string): Promise<AccountCreationData | null> {
     try {
-      const url = this.data.env.hyperionApiUrl + '/v2/history/get_creator?account=' + accountName;
-      return await lastValueFrom(this.httpClient.get(url)) as AccountCreationData;
+      const url = this.data.env.hyperionApiUrl + "/v2/history/get_creator?account=" + accountName;
+      return (await lastValueFrom(this.httpClient.get(url))) as AccountCreationData;
     } catch (error) {
       console.log(error);
       return null;
@@ -770,17 +775,19 @@ export class AccountService {
   // save user created filter on local storage
   saveFilter(contract: string, action: string) {
     if (isPlatformBrowser(this.platformId)) {
-      const filter = {contract, action};
+      const filter = { contract, action };
 
       // check if filter already exists by name
-      if (this.userSavedFilters.find(value => {
-        return (value.contract + '::' + value.action) === (filter.contract + '::' + filter.action);
-      })) {
+      if (
+        this.userSavedFilters.find(value => {
+          return value.contract + "::" + value.action === filter.contract + "::" + filter.action;
+        })
+      ) {
         return;
       }
 
       this.userSavedFilters.push(filter);
-      localStorage.setItem('userSavedFilters', JSON.stringify(this.userSavedFilters));
+      localStorage.setItem("userSavedFilters", JSON.stringify(this.userSavedFilters));
     }
   }
 
@@ -792,9 +799,9 @@ export class AccountService {
   removeFilter(filter: ActionFilterSpec) {
     if (isPlatformBrowser(this.platformId)) {
       this.userSavedFilters = this.userSavedFilters.filter(value => {
-        return (value.contract + '::' + value.action) !== filter.name;
+        return value.contract + "::" + value.action !== filter.name;
       });
-      localStorage.setItem('userSavedFilters', JSON.stringify(this.userSavedFilters));
+      localStorage.setItem("userSavedFilters", JSON.stringify(this.userSavedFilters));
       this.commonFilters = this.commonFilters.filter(value => {
         return value.name !== filter.name;
       });

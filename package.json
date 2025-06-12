@@ -28,6 +28,7 @@
     "@angular/platform-server": "^20.0.2",
     "@angular/router": "^20.0.2",
     "@angular/ssr": "^20.0.1",
+    "@eosrio/hyperion-stream-client": "file:../hyperion-stream-client",
     "@fastify/compress": "^8.0.3",
     "@fastify/static": "^8.2.0",
     "@fortawesome/angular-fontawesome": "^2.0.1",
