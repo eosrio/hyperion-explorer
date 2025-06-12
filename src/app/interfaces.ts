@@ -9,6 +9,15 @@ export interface ExplorerMetadata {
   last_indexed_block: number;
   last_indexed_block_time: string;
   theme: Record<string, any>;
+  oracle?: {
+    custom_mode?: string;
+    pair?: string;
+    contract?: string;
+    table?: string;
+    path?: string;
+    type?: string;
+    factor?: number;
+  };
 }
 
 export interface TokenData {
@@ -21,34 +30,34 @@ export interface TokenData {
 export interface AccountData {
   account_name: string;
   core_liquid_balance: string;
-  permissions: Permission[],
+  permissions: Permission[];
   cpu_limit: {
     used: number;
     max: number;
-  },
+  };
   net_limit: {
     used: number;
     max: number;
-  },
+  };
   privileged: boolean;
   self_delegated_bandwidth: {
     cpu_weight: string;
     net_weight: string;
-  },
+  };
   total_resources: {
     cpu_weight: string;
     net_weight: string;
-  },
+  };
   refund_request: {
     cpu_amount: string;
     net_amount: string;
-  },
+  };
   ram_quota: number;
   ram_usage: number;
   voter_info: {
     producers: string[];
     proxy: string;
-  },
+  };
   last_code_update: string;
 }
 
@@ -70,7 +79,7 @@ export interface GetActionsResponse {
   total: {
     value: number;
     relation: string;
-  }
+  };
 }
 
 export interface GetDeltasResponse {
@@ -93,7 +102,7 @@ export interface GetDeltasResponse {
   total: {
     value: number;
     relation: string;
-  }
+  };
 }
 
 export interface TableData {
@@ -139,7 +148,7 @@ export interface GetAbiResponse {
     types: any[];
     variants: any[];
     version: string;
-  },
+  };
   account_name: string;
 }
 
