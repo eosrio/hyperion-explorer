@@ -127,3 +127,196 @@
     margin-bottom: 1.25rem;
   }
 }
+
+/* View mode toggle styles */
+.view-mode-toggle {
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.9rem;
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.selected-view {
+  color: var(--primary) !important;
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+/* Card view styles */
+.card-grid-view {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1rem;
+}
+
+.data-card {
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: var(--box-shadow-bg-sharp);
+  transition: transform 0.2s, box-shadow 0.2s;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--line-divider);
+}
+
+.data-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--box-shadow-bg-sharp), 0 10px 20px rgba(0, 0, 0, 0.15);
+  border-color: var(--primary);
+}
+
+.data-card-header {
+  padding: 0.75rem 1rem;
+  font-weight: 600;
+  background-color: rgba(0, 0, 0, 0.08);
+  color: var(--primary);
+  border-bottom: 1px solid var(--line-divider);
+  border-left: 3px solid var(--primary);
+}
+
+.data-card-content {
+  padding: 1rem;
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.data-card-field {
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s;
+}
+
+.data-card-field:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.data-card-field:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.data-card-field-name {
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  color: var(--main-text);
+  padding: 0.25rem 0;
+  border-left: 2px solid transparent;
+  padding-left: 0.25rem;
+}
+
+.data-card-field:hover .data-card-field-name {
+  border-left-color: var(--primary);
+  color: var(--primary);
+}
+
+.data-card-field-value {
+  word-break: break-word;
+}
+
+/* Expanded view styles */
+.expanded-view {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.expanded-item {
+  border-radius: 0.5rem;
+  overflow: hidden;
+  box-shadow: var(--box-shadow-bg-sharp);
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--line-divider);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.expanded-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--box-shadow-bg-sharp), 0 10px 20px rgba(0, 0, 0, 0.15);
+  border-color: var(--primary);
+}
+
+.expanded-item-header {
+  padding: 0.75rem 1rem;
+  background-color: rgba(0, 0, 0, 0.08);
+  color: var(--primary);
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--line-divider);
+  border-left: 3px solid var(--primary);
+  transition: background-color 0.2s;
+}
+
+.expanded-item-header:hover {
+  background-color: rgba(0, 0, 0, 0.12);
+}
+
+.expanded-item-content {
+  padding: 1rem;
+  background-color: rgba(255, 255, 255, 0.02);
+}
+
+.expanded-item-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.expanded-item-table tr {
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  transition: background-color 0.2s;
+}
+
+.expanded-item-table tr:hover {
+  background-color: rgba(0, 0, 0, 0.03);
+}
+
+.expanded-item-table tr:last-child {
+  border-bottom: none;
+}
+
+.expanded-field-name {
+  padding: 0.75rem 0.5rem 0.75rem 0;
+  font-weight: 500;
+  color: var(--main-text);
+  width: 30%;
+  vertical-align: top;
+  border-left: 2px solid transparent;
+  padding-left: 0.5rem;
+  transition: color 0.2s, border-left-color 0.2s;
+}
+
+.expanded-item-table tr:hover .expanded-field-name {
+  color: var(--primary);
+  border-left-color: var(--primary);
+}
+
+.expanded-field-value {
+  padding: 0.75rem 0 0.75rem 0.5rem;
+  word-break: break-word;
+}
+
+/* Expand/collapse icon styles */
+.expand-icon {
+  transition: transform 0.3s ease;
+}
+
+.expand-icon.rotated {
+  transform: rotate(180deg);
+}
+
+/* Animation for expanding/collapsing content */
+.expanded-item-content {
+  overflow: hidden;
+  animation: expandAnimation 0.3s ease-out forwards;
+}
+
+@keyframes expandAnimation {
+  from {
+    max-height: 0;
+    opacity: 0;
+  }
+  to {
+    max-height: 1000px;
+    opacity: 1;
+  }
+}

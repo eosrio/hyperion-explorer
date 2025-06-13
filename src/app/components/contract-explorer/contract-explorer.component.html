@@ -93,47 +93,134 @@
 
       @if (scope()) {
         <div id="data-section" class="acc-header px-5 py-3 mt-5 overflow-x-scroll">
-          <div class="text-lg mt-5 flex flex-row items-center gap-3">
-            <span class="underline main-color">Scope: </span>
-            <span class="font-medium underline">{{ scope() }}</span>
-            <span class="faded text-sm">with {{ tableData().length }} row@if (tableData().length > 1) {
-              <span>s</span>
-            } </span>
-            <button matTooltip="Reload Rows" (click)="reloadRows()" [disabled]="tableRowRes.isLoading()"
-                    mat-icon-button>
-              <mat-icon>sync</mat-icon>
-            </button>
+          <div class="text-lg mt-5 flex flex-row flex-wrap justify-between items-start gap-3">
+            <div class="view-mode-toggle text-lg flex flex-row items-center gap-3">
+              <span class="underline main-color">Scope: </span>
+              <span class="font-medium underline">{{ scope() }}</span>
+              <span class="faded text-sm">with {{ tableData().length }} row@if (tableData().length > 1) {
+                <span>s</span>
+              } </span>
+              <button matTooltip="Reload Rows" (click)="reloadRows()" [disabled]="tableRowRes.isLoading()"
+                      mat-icon-button>
+                <mat-icon>sync</mat-icon>
+              </button>
+            </div>
+
+            @if (tableData().length > 1) {
+              <!-- View mode toggle buttons -->
+              <div class="flex flex-row items-center gap-2">
+                <span class="text-sm">View mode:</span>
+                <button mat-icon-button matTooltip="Table View"
+                        [ngClass]="{'selected-view': viewMode() === 'table'}"
+                        (click)="setViewMode('table')">
+                  <mat-icon>table_chart</mat-icon>
+                </button>
+                <button mat-icon-button matTooltip="Card View"
+                        [ngClass]="{'selected-view': viewMode() === 'card'}"
+                        (click)="setViewMode('card')">
+                  <mat-icon>grid_view</mat-icon>
+                </button>
+                <button mat-icon-button matTooltip="Collapsible List View"
+                        [ngClass]="{'selected-view': viewMode() === 'expanded'}"
+                        (click)="setViewMode('expanded')">
+                  <mat-icon>view_list</mat-icon>
+                </button>
+              </div>
+            }
           </div>
+
 
           @defer (when displayedColumns().length > 0) {
 
             @if (tableData().length === 1) {
               <!--              <pre class="text-wrap break-words">{{ tableData()[0] | json }}</pre>-->
-              <app-act-data-view [data]="tableData()[0]"></app-act-data-view>
+              <div class="mt-5 mx-3 appear">
+                <app-act-data-view [data]="tableData()[0]" ></app-act-data-view>
+              </div>
             } @else {
-              <table mat-table [dataSource]="tableData()" class="transparent-table max-w-full w-full mt-5"
-                     matSort (matSortChange)="announceSortChange($event)">
-                @for (field of fields(); track field.name) {
-                  <ng-container [matColumnDef]="field.name">
+              <!-- Table View -->
+              @if (viewMode() === 'table') {
+                <table mat-table [dataSource]="tableData()" class="appear transparent-table max-w-full w-full mt-5"
+                       matSort (matSortChange)="announceSortChange($event)">
+                  @for (field of fields(); track field.name) {
+                    <ng-container [matColumnDef]="field.name">
 
-                    <th mat-header-cell
-                        *matHeaderCellDef mat-sort-header
-                        [matTooltip]="'Type: ' + field.type"
-                        [sortActionDescription]="'Sort by ' + field.name">{{ field.name }}
-                    </th>
+                      <th mat-header-cell
+                          *matHeaderCellDef mat-sort-header
+                          [matTooltip]="'Type: ' + field.type"
+                          [sortActionDescription]="'Sort by ' + field.name">{{ field.name }}
+                      </th>
 
-                    <td mat-cell
-                        *matCellDef="let element" [attr.data-label]="field.name + '\n\n(' + field.type + ')'"
-                        class="text-wrap break-words lg:max-w-[15.313rem]">
+                      <td mat-cell
+                          *matCellDef="let element" [attr.data-label]="field.name + '\n\n(' + field.type + ')'"
+                          class="text-wrap break-words lg:max-w-[15.313rem]">
 
-                      <app-act-data-view [data]="element[field.name] "></app-act-data-view>
-                      <!--                      {{ element[field.name] | json }}-->
-                    </td>
-                  </ng-container>
-                }
-                <tr mat-header-row *matHeaderRowDef="displayedColumns()"></tr>
-                <tr mat-row *matRowDef="let row; columns: displayedColumns();"></tr>
-              </table>
+                        <app-act-data-view [data]="element[field.name] "></app-act-data-view>
+                        <!--                      {{ element[field.name] | json }}-->
+                      </td>
+                    </ng-container>
+                  }
+                  <tr mat-header-row *matHeaderRowDef="displayedColumns()"></tr>
+                  <tr mat-row *matRowDef="let row; columns: displayedColumns();"></tr>
+                </table>
+              }
+
+              <!-- Card View -->
+              @if (viewMode() === 'card') {
+                <div class="appear card-grid-view mt-5">
+                  @for (row of tableData(); track $index) {
+                    <div class="data-card">
+                      <div class="data-card-header">Row {{ $index + 1 }}</div>
+                      <div class="data-card-content">
+                        @for (field of fields(); track field.name) {
+                          <div class="data-card-field">
+                            <div class="data-card-field-name" [matTooltip]="'Type: ' + field.type">
+                              {{ field.name }}:
+                            </div>
+                            <div class="data-card-field-value">
+                              <app-act-data-view [data]="row[field.name]"></app-act-data-view>
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+
+              <!-- Expanded View -->
+              @if (viewMode() === 'expanded') {
+                <div class="appear expanded-view mt-5">
+                  @for (row of tableData(); track $index) {
+                    <div class="expanded-item">
+                      <div class="expanded-item-header" (click)="toggleItemExpanded($index)">
+                        <span class="expanded-item-title">Row {{ $index + 1 }}</span>
+                        <mat-icon class="expand-icon" [ngClass]="{'rotated': isItemExpanded($index)}">
+                          expand_more
+                        </mat-icon>
+                      </div>
+                      @if (isItemExpanded($index)) {
+                        <div class="expanded-item-content">
+                          <table class="expanded-item-table">
+                            <tbody>
+                              @for (field of fields(); track field.name) {
+                                <tr>
+                                  <td class="expanded-field-name" [matTooltip]="'Type: ' + field.type">
+                                    {{ field.name }}
+                                  </td>
+                                  <td class="expanded-field-value">
+                                    <app-act-data-view [data]="row[field.name]"></app-act-data-view>
+                                  </td>
+                                </tr>
+                              }
+                            </tbody>
+                          </table>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
             }
           }
         </div>

@@ -244,6 +244,31 @@ export class ContractExplorerComponent {
   sortBy = signal<string>("");
   sortDirection = signal<string>("desc");
 
+  // View mode for table data: 'table', 'card', 'expanded'
+  viewMode = signal<string>("table");
+
+  // Track expanded items in expanded view
+  expandedItems = signal<Set<number>>(new Set<number>());
+
+  // Toggle expanded state of an item
+  toggleItemExpanded(index: number) {
+    const currentExpanded = this.expandedItems();
+    const newExpanded = new Set(currentExpanded);
+
+    if (newExpanded.has(index)) {
+      newExpanded.delete(index);
+    } else {
+      newExpanded.add(index);
+    }
+
+    this.expandedItems.set(newExpanded);
+  }
+
+  // Check if an item is expanded
+  isItemExpanded(index: number): boolean {
+    return this.expandedItems().has(index);
+  }
+
   tableData = linkedSignal<any, any[]>({
     source: () => {
       return {
@@ -292,6 +317,7 @@ export class ContractExplorerComponent {
     this.scopeLb.set("");
     this.lastScope.set("");
     this.tableData.set([]);
+    this.expandedItems.set(new Set<number>());
     this.table.set(name);
     if (this.navMode() === 'dialog') {
       // append scope as a query parameter
@@ -305,6 +331,7 @@ export class ContractExplorerComponent {
 
   async selectScope(name: string) {
     this.scope.set(name);
+    this.expandedItems.set(new Set<number>());
     if (this.navMode() === 'dialog') {
       // append scope as a query parameter
       await this.router.navigate([], {queryParams: {table: this.table(), scope: name}});
@@ -360,5 +387,12 @@ export class ContractExplorerComponent {
     if (this.lastScope) {
       this.scopeLb.set(this.lastScope());
     }
+  }
+
+  // Method to change the view mode
+  setViewMode(mode: string) {
+    this.viewMode.set(mode);
+    // Reset expanded items when changing view mode
+    this.expandedItems.set(new Set<number>());
   }
 }
