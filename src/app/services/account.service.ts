@@ -15,7 +15,7 @@ import {
 import { HttpClient } from "@angular/common/http";
 import { AccountCreationData, AccountData, GetAccountResponse, GetActionsResponse, TokenData } from "../interfaces";
 import { HyperionStreamClient } from "@eosrio/hyperion-stream-client";
-import { lastValueFrom, Observable, of } from "rxjs";
+import { lastValueFrom, Observable } from "rxjs";
 import { DataService } from "./data.service";
 import { toObservable } from "@angular/core/rxjs-interop";
 import { convertMicroS, getPrecision, getSymbol } from "../utils";
@@ -57,7 +57,7 @@ export class AccountService {
 
   actions: any[] = [];
   public tableDataSource: Observable<any[]>;
-  // streamClient?: HyperionStreamClient;
+  streamClient?: HyperionStreamClient;
   public streamClientStatus = signal(false);
   public libNum = signal<number>(0);
   private verificationLoop: any;
@@ -275,6 +275,7 @@ export class AccountService {
       return {
         accountActions: this.accountDataRes.value()?.actions ?? [],
         filteredActions: this.actionRes.value()?.actions ?? [],
+        streamingActions: this.streamingActions() ?? [],
         activeFilter: this.filter(),
         pageIndex: this.pageIndex(),
         sortDirection: this.sortDirection()
@@ -294,7 +295,7 @@ export class AccountService {
         }
       } else {
         if (source.accountActions.length > 0) {
-          return source.accountActions;
+          return [...source.streamingActions, ...source.accountActions].slice(0, 20);
         } else {
           if (source.activeFilter) {
             return previous?.value ?? [];
@@ -424,16 +425,14 @@ export class AccountService {
     return cpuRefund + netRefund;
   });
   private platformId = inject(PLATFORM_ID);
+  private streamingActions = signal<any[]>([]);
+
+  // Computed signal to expose the size of streamingActions
+  public streamingActionsSize = computed(() => {
+    return this.streamingActions().length;
+  });
 
   constructor() {
-    const streamClient = new HyperionStreamClient({
-      endpoint: this.data.env.hyperionApiUrl
-    });
-
-    streamClient.connect().then(() => {
-      console.log("Connected to stream client");
-    });
-
     // console.log('AccountService created');
 
     // effect(() => {
@@ -443,9 +442,10 @@ export class AccountService {
 
     effect(() => {
       const pendingActions = this.pendingActions();
+      const isStreaming = this.streamClientStatus();
       // Use the new computed signal for LIB
-      console.log(`Pending Actions (lib: ${this.chain.lastIrreversibleBlockNum()})`, pendingActions);
-      if (pendingActions.length > 0) {
+      console.log(`Pending Actions (lib: ${this.chain.lastIrreversibleBlockNum()})`, pendingActions.length);
+      if (pendingActions.length > 0 && !isStreaming) {
         untracked(() => {
           setTimeout(() => {
             console.log(`Rechecking Chain Info (for LIB)...`);
@@ -736,8 +736,17 @@ export class AccountService {
   }
 
   toggleStreaming(): void {
-
-    this.streamClientStatus.set(!this.streamClientStatus())
+    if (this.streamClientStatus()) {
+      // Pause Streaming
+      if (this.streamClient) {
+        this.streamClient.disconnect();
+      }
+      this.streamClientStatus.set(false);
+    } else {
+      // Start Streaming from the last received block
+      this.startActionStream().catch(console.log);
+      this.streamClientStatus.set(true);
+    }
 
     // if (this.streamClientStatus) {
     //   this.streamClient.disconnect();
@@ -807,6 +816,42 @@ export class AccountService {
       localStorage.setItem("userSavedFilters", JSON.stringify(this.userSavedFilters));
       this.commonFilters = this.commonFilters.filter(value => {
         return value.name !== filter.name;
+      });
+    }
+  }
+
+  async startActionStream() {
+    if (!this.streamClient) {
+      this.streamClient = new HyperionStreamClient({
+        endpoint: this.data.env.hyperionApiUrl,
+        libMonitor: true
+      });
+      await this.streamClient.connect();
+
+      this.streamClient.on("libUpdate", data => {
+        this.chain.streamLib.set(data.block_num);
+      });
+
+      console.log("Connected to stream client");
+    }
+
+    if (this.streamClient && this.streamClient.online) {
+      const lastReceivedBlock = this.actionsComputed().length > 0 ? this.actionsComputed()[0].block_num : 0;
+      console.log(`Last received block: ${lastReceivedBlock}`);
+
+      const actionStream = await this.streamClient.streamActions({
+        account: this.accountName(),
+        filters: [],
+        read_until: 0,
+        start_from: lastReceivedBlock + 1
+      });
+
+      actionStream.on("message", data => {
+        const action = data.content;
+        this.streamingActions.update(value => {
+          // Add the new action to the beginning of the array and limit to 500 items
+          return [action, ...value].slice(0, 500);
+        });
       });
     }
   }

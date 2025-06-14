@@ -1,4 +1,4 @@
-import { computed, effect, inject, Injectable, resource, signal } from '@angular/core';
+import { computed, effect, inject, Injectable, resource, signal } from "@angular/core";
 import { lastValueFrom } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { DataService } from "./data.service";
@@ -45,46 +45,45 @@ interface GetProducersResponse {
   more: string; // Indicates if more producers are available (pagination)
 }
 
-
 @Injectable({
-  providedIn: 'root'
+  providedIn: "root"
 })
 export class ChainService {
-
   data = inject(DataService);
   httpClient = inject(HttpClient);
 
   // Resource to fetch and store the full chain info
   chainInfoResource = resource<ChainInfo | null, void>({
     loader: async () => {
-      console.log('Fetching Chain Info...');
+      console.log("Fetching Chain Info...");
       try {
-        const info = await lastValueFrom(this.httpClient.get<ChainInfo>(this.data.env.hyperionApiUrl + '/v1/chain/get_info'));
+        const info = await lastValueFrom(this.httpClient.get<ChainInfo>(this.data.env.hyperionApiUrl + "/v1/chain/get_info"));
         // Add server_version_string if it doesn't exist but server_version does (for compatibility)
         if (info && !info.server_version_string && info.server_version) {
           info.server_version_string = info.server_version;
         }
         return info;
       } catch (e: any) {
-        console.error('Failed to fetch chain info:', e.message);
+        console.error("Failed to fetch chain info:", e.message);
         return null;
       }
     }
     // Removed initialValue as it's not a valid option
   });
 
-
   oracleData = resource<any, any>({
     loader: async () => {
       try {
-        const getTableRows = this.data.env.hyperionApiUrl + '/v1/chain/get_table_rows';
-        const data = await lastValueFrom(this.httpClient.post(getTableRows, {
-          code: "eosio.oracle",
-          scope: "eosio.oracle",
-          table: "lastknwnrate",
-          limit: 1,
-          json: true
-        })) as any;
+        const getTableRows = this.data.env.hyperionApiUrl + "/v1/chain/get_table_rows";
+        const data = (await lastValueFrom(
+          this.httpClient.post(getTableRows, {
+            code: "eosio.oracle",
+            scope: "eosio.oracle",
+            table: "lastknwnrate",
+            limit: 1,
+            json: true
+          })
+        )) as any;
         if (data && data.rows && data.rows.length > 0) {
           return data.rows[0];
         } else {
@@ -101,12 +100,12 @@ export class ChainService {
     try {
       const data = this.oracleData.value();
       if (data && data.latest_rate && data.latest_rate.price) {
-        return parseFloat(data.latest_rate.price.split(' ')[0]);
+        return parseFloat(data.latest_rate.price.split(" ")[0]);
       } else {
         return 0;
       }
     } catch (e: any) {
-      console.log('Failed to parse USD Rate from oracle', e.message);
+      console.log("Failed to parse USD Rate from oracle", e.message);
       return 0;
     }
   });
@@ -114,20 +113,22 @@ export class ChainService {
   systemSymbol = resource<string, any>({
     loader: async () => {
       try {
-        const getTableRows = this.data.env.hyperionApiUrl + '/v1/chain/get_table_rows';
-        const ramMarket = await lastValueFrom(this.httpClient.post(getTableRows, {
-          code: "eosio",
-          scope: "eosio",
-          table: "rammarket",
-          limit: 1,
-          json: true
-        })) as any;
+        const getTableRows = this.data.env.hyperionApiUrl + "/v1/chain/get_table_rows";
+        const ramMarket = (await lastValueFrom(
+          this.httpClient.post(getTableRows, {
+            code: "eosio",
+            scope: "eosio",
+            table: "rammarket",
+            limit: 1,
+            json: true
+          })
+        )) as any;
         if (ramMarket && ramMarket.rows && ramMarket.rows.length > 0) {
           const row = ramMarket.rows[0];
           if (row.quote && row.quote.balance) {
-            return row.quote.balance.split(' ')[1];
+            return row.quote.balance.split(" ")[1];
           } else if (row.core_reserve) {
-            return row.core_reserve.split(' ')[1];
+            return row.core_reserve.split(" ")[1];
           } else {
             return "SYS";
           }
@@ -143,12 +144,24 @@ export class ChainService {
 
   // Computed signals for specific chain info fields
   chainInfo = computed(() => this.chainInfoResource.value());
-  lastIrreversibleBlockNum = computed(() => this.chainInfo()?.last_irreversible_block_num ?? 0);
-  chainId = computed(() => this.chainInfo()?.chain_id ?? 'N/A');
+  streamLib = signal(0);
+
+  lastIrreversibleBlockNum = computed(() => {
+    const streamLib = this.streamLib();
+    const chainInfo = this.chainInfo();
+    if (streamLib && streamLib > 0) {
+      return streamLib;
+    } else if (chainInfo && chainInfo.last_irreversible_block_num) {
+      return chainInfo.last_irreversible_block_num;
+    } else {
+      return 0;
+    }
+  });
+
+  chainId = computed(() => this.chainInfo()?.chain_id ?? "N/A");
   headBlockNum = computed(() => this.chainInfo()?.head_block_num ?? 0);
   headBlockTime = computed(() => this.chainInfo()?.head_block_time ?? null); // Keep as string or null
-  serverVersion = computed(() => this.chainInfo()?.server_version_string ?? this.chainInfo()?.server_version ?? 'N/A');
-
+  serverVersion = computed(() => this.chainInfo()?.server_version_string ?? this.chainInfo()?.server_version ?? "N/A");
 
   constructor() {
     // Optional: Log when chain info changes
@@ -160,13 +173,15 @@ export class ChainService {
   // Resource to fetch producer data
   producersResource = resource<GetProducersResponse | null, void>({
     loader: async () => {
-      console.log('Fetching Producers...');
+      console.log("Fetching Producers...");
       try {
         // Standard endpoint, might need adjustment based on specific Hyperion config
-        const producers = await lastValueFrom(this.httpClient.post<GetProducersResponse>(this.data.env.hyperionApiUrl + '/v1/chain/get_producers', {
-          json: true,
-          limit: 1000 // Fetch a large number, assuming pagination isn't needed for typical top producer lists
-        }));
+        const producers = await lastValueFrom(
+          this.httpClient.post<GetProducersResponse>(this.data.env.hyperionApiUrl + "/v1/chain/get_producers", {
+            json: true,
+            limit: 1000 // Fetch a large number, assuming pagination isn't needed for typical top producer lists
+          })
+        );
 
         // Sort producers by total_votes descending to easily determine rank later
         if (producers && producers.rows) {
@@ -175,7 +190,7 @@ export class ChainService {
 
         return producers;
       } catch (e: any) {
-        console.error('Failed to fetch producers:', e.message);
+        console.error("Failed to fetch producers:", e.message);
         return null;
       }
     }
@@ -183,5 +198,4 @@ export class ChainService {
 
   // Computed signal for the producer rows, sorted by votes
   producers = computed(() => this.producersResource.value()?.rows ?? []);
-
 }
