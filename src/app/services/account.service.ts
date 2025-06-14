@@ -58,7 +58,7 @@ export class AccountService {
   actions: any[] = [];
   public tableDataSource: Observable<any[]>;
   // streamClient?: HyperionStreamClient;
-  public streamClientStatus = false;
+  public streamClientStatus = signal(false);
   public libNum = signal<number>(0);
   private verificationLoop: any;
   private predictionLoop: any;
@@ -736,6 +736,9 @@ export class AccountService {
   }
 
   toggleStreaming(): void {
+
+    this.streamClientStatus.set(!this.streamClientStatus())
+
     // if (this.streamClientStatus) {
     //   this.streamClient.disconnect();
     //   this.streamClientStatus = false;

@@ -354,14 +354,36 @@
 
       <!--ACTIONS CARD/TABLE-->
       <div class="custom-card h-full min-h-full w-full min-w-full md:col-span-3">
-        <div class="flex flex-row items-start justify-between">
-          <h3 style="margin-top: 0">
-            <fa-layers [fixedWidth]="true" style="margin-right: 5px">
-              <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
-              <fa-icon [icon]="icons.solid.faHistory" [inverse]="true" transform="shrink-5"></fa-icon>
-            </fa-layers>
-            Actions
-          </h3>
+        <div class="flex flex-row flex-wrap items-start justify-between">
+          <div class="flex flex-row flex-wrap items-center gap-3">
+            <h3 style="margin-top: 0">
+              <fa-layers [fixedWidth]="true" style="margin-right: 5px">
+                <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
+                <fa-icon [icon]="icons.solid.faHistory" [inverse]="true" transform="shrink-5"></fa-icon>
+              </fa-layers>
+              Actions
+            </h3>
+
+            <!--          @if (acServ.streamClientLoaded) {-->
+            <div class="livestream-container flex flex-row items-center gap-3" matTooltip="Toggle action live streaming"
+                 matTooltipClass="tooltip-bigger">
+              <div class="livestream-label">
+                <fa-icon [icon]="icons.solid.broadcast" class="livestream-icon"></fa-icon>
+                <span>Action Live Streaming</span>
+              </div>
+              <div class="livestream-toggle" (click)="acServ.toggleStreaming()">
+                <div class="toggle-track" [ngClass]="{'toggle-track-on': acServ.streamClientStatus()}">
+                  <div class="toggle-indicator" [ngClass]="{'toggle-indicator-on': acServ.streamClientStatus()}">
+                    <div class="toggle-indicator-light" [ngClass]="{'pulse': acServ.streamClientStatus()}"></div>
+                  </div>
+                </div>
+                <span class="toggle-status font-medium">
+                {{ acServ.streamClientStatus() ? "ON" : "OFF" }}
+              </span>
+              </div>
+            </div>
+            <!--          }-->
+          </div>
 
           <span class="lib">
             Last Irreversible Block:
@@ -372,21 +394,6 @@
             </a>
           </span>
 
-          @if (acServ.streamClientLoaded) {
-            <div (click)="acServ.toggleStreaming()" class="livestream" matTooltip="click to turn on/off" matTooltipClass="tooltip-bigger">
-              action live streaming
-              <span class="font-medium">
-                {{ acServ.streamClientStatus ? "enabled" : "disabled" }}
-              </span>
-              <span
-                class="dot"
-                [ngClass]="{
-                  pulse: acServ.streamClientStatus,
-                  'red-dot': !acServ.streamClientStatus,
-                }"
-              ></span>
-            </div>
-          }
         </div>
 
         <!-- aqui -->
@@ -453,12 +460,12 @@
                   <mat-panel-description class="grow">
                     <div class="flex flex-row items-center gap-7 py-2">
                       <div class="flex flex-row items-center gap-2">
-                        <input type="checkbox" [(ngModel)]="useUTC" (click)="$event.stopPropagation()" />
+                        <input type="checkbox" [(ngModel)]="useUTC" (click)="$event.stopPropagation()"/>
                         <div class="faded">Dates in UTC</div>
                       </div>
 
                       <div class="flex flex-row items-center gap-2">
-                        <input type="checkbox" [(ngModel)]="compactMode" (click)="$event.stopPropagation()" />
+                        <input type="checkbox" [(ngModel)]="compactMode" (click)="$event.stopPropagation()"/>
                         <div class="faded">Compact Mode</div>
                       </div>
                     </div>
@@ -494,7 +501,7 @@
                   Filter
                 </button>
                 <div class="flex flex-row items-center gap-2">
-                  <input type="checkbox" [(ngModel)]="saveCustomFilter" />
+                  <input type="checkbox" [(ngModel)]="saveCustomFilter"/>
                   <div class="faded">Save this filter</div>
                 </div>
               </div>
@@ -636,7 +643,7 @@
                   <a [routerLink]="['/block', action['block_num']]" class="link-primary">
                     {{ action["block_num"] }}
                   </a>
-                  <br />
+                  <br/>
                   <span>
                     {{ action["@timestamp"] + (useUTC() ? "" : "Z") | date: "medium" }}
                   </span>

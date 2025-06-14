@@ -49,6 +49,7 @@ import {PermissionTreeComponent} from "../../permission-tree/permission-tree.com
 import {FormsModule} from "@angular/forms";
 import {MatInput} from "@angular/material/input";
 import {ChainService} from "../../../services/chain.service";
+import {faTowerBroadcast} from "@fortawesome/free-solid-svg-icons/faTowerBroadcast";
 
 interface Permission {
   perm_name: string;
@@ -172,7 +173,8 @@ export class AccountComponent implements OnInit {
       faUser: faUser,
       faVote: faVoteYea,
       dots: faEllipsisV,
-      glassMore: faMagnifyingGlassPlus
+      glassMore: faMagnifyingGlassPlus,
+      broadcast: faTowerBroadcast
     },
     regular: {
       faQuestionCircle: faQuestionCircle
