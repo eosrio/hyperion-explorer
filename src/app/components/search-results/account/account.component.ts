@@ -223,6 +223,15 @@ export class AccountComponent implements OnInit {
       }
     });
 
+    // Re-apply table sticky motion when filter changes
+    toObservable(this.acServ.filter).subscribe(() => {
+      if (this.actionsTable() && isPlatformBrowser(this.platformId)) {
+        setTimeout(() => {
+          this.tableStickyMotion(this.actionsTable());
+        }, 100);
+      }
+    });
+
     toObservable(this.acServ.accountDataRes.value).subscribe((value) => {
 
       if (!this.dataService.explorerMetadata) {
