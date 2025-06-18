@@ -205,10 +205,36 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     this.updateTransitionProgress();
   }
 
-  // Update transition progress on resize
+  // Update transition progress and header animation on resize
   @HostListener('window:resize', [])
   onWindowResize(): void {
     this.updateTransitionProgress();
+
+    // Update header animation to maintain correct height based on current scroll position
+    if (this.headerAnimation && this.headerScrollCleanup) {
+      const scrollY = window.scrollY;
+      const headerContainer = document.querySelector('#header-container') as HTMLDivElement;
+      if (headerContainer) {
+        // Calculate progress based on the same offset used in the scroll animation
+        // The offset is defined as ['start start', '300px 100px']
+        // This means the animation starts when the top of the header reaches the top of the viewport
+        // and ends when the top of the header is 300px below the top of the viewport
+        const headerRect = headerContainer.getBoundingClientRect();
+        const viewportTop = 0;
+        const startProgress = headerRect.top <= viewportTop ? 0 : -1; // -1 means not started
+        const endProgress = 1;
+        const maxScrollDistance = 300; // From the offset definition
+
+        let progress = 0;
+        if (startProgress >= 0) {
+          // If we've started the animation, calculate the progress
+          progress = Math.min(endProgress, Math.max(startProgress, scrollY / maxScrollDistance));
+        }
+
+        // Update the animation time to match the current scroll progress
+        this.headerAnimation.time = progress;
+      }
+    }
   }
 
   closeAutoComplete() {
