@@ -14,7 +14,7 @@ import {
 } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { AccountCreationData, AccountData, GetAccountResponse, GetActionsResponse, TokenData } from "../interfaces";
-import { HyperionStreamClient } from "@eosrio/hyperion-stream-client";
+import { ActionContent, HyperionStream, HyperionStreamClient } from "@eosrio/hyperion-stream-client";
 import { lastValueFrom, Observable } from "rxjs";
 import { DataService } from "./data.service";
 import { toObservable } from "@angular/core/rxjs-interop";
@@ -24,6 +24,7 @@ import { IconDefinition } from "@fortawesome/angular-fontawesome";
 import { isPlatformBrowser } from "@angular/common";
 import { SortDirection } from "@angular/material/sort";
 import { ChainService } from "./chain.service";
+import { devEnv } from "../dev.env";
 
 interface HealthResponse {
   features: {
@@ -60,8 +61,6 @@ export class AccountService {
   streamClient?: HyperionStreamClient;
   public streamClientStatus = signal(false);
   public libNum = signal<number>(0);
-  private verificationLoop: any;
-  private predictionLoop: any;
   private pendingSet = new Set<number>();
   public streamClientLoaded = false;
 
@@ -169,8 +168,17 @@ export class AccountService {
       };
     },
     loader: async ({ params }) => {
+      let firstGS = params.first;
+
+      // stop streaming if enabled
+      if (this.streamClientStatus() && this.streamClient?.online && this.actionStream) {
+        console.log("Stopping Stream Client");
+        this.actionStream.stop();
+        this.streamingActions.set([]);
+        this.streamClientStatus.set(false);
+      }
+
       const cp = params.customParams;
-      console.log(params);
       const { limit, skip, sort } = params;
       if (cp || skip > 0 || sort === "asc") {
         const query = new URLSearchParams();
@@ -178,7 +186,7 @@ export class AccountService {
         query.set("limit", limit.toString());
         query.set("skip", skip.toString());
         // global sequence marker to lock the action on the time of page load
-        query.set("global_sequence", `0-${params.first}`);
+        query.set("global_sequence", `0-${firstGS}`);
         if (sort) {
           query.set("sort", sort);
         }
@@ -431,15 +439,10 @@ export class AccountService {
   public streamingActionsSize = computed(() => {
     return this.streamingActions().length;
   });
+  private actionStream?: HyperionStream<ActionContent>;
 
   constructor() {
-    // console.log('AccountService created');
-
-    // effect(() => {
-    //   console.log('Account resource loaded:', this.accountDataRes.value());
-    //   // console.log(this.hasContract())
-    // });
-
+    // monitor pending actions for LIB check
     effect(() => {
       const pendingActions = this.pendingActions();
       const isStreaming = this.streamClientStatus();
@@ -452,28 +455,12 @@ export class AccountService {
             // Use the new resource for chain info
             const reloadStatus = this.chain.chainInfoResource.reload();
             console.log(`Reload status: ${reloadStatus}`);
-          }, 2000);
+          }, 10000);
         });
       }
     });
 
-    //
-    // effect(() => {
-    //   console.log('tokensComputed:', this.tokensComputed());
-    // });
-    //
-    // effect(() => {
-    //   console.log('accountComputed:', this.accountComputed());
-    // });
-    //
-
-    // effect(() => {
-    //   console.log('actions:', this.actionsComputed());
-    // });
-
-    const baseUrl = this.data.env.hyperionApiUrl;
     this.tableDataSource = toObservable(this.actionsComputed);
-    // this.initStreamClient().catch(console.log);
 
     if (isPlatformBrowser(this.platformId)) {
       const localSavedFilters = localStorage.getItem("userSavedFilters");
@@ -507,37 +494,6 @@ export class AccountService {
     }
   }
 
-  // async monitorLib(): Promise<void> {
-  //   console.log('Starting LIB monitoring...');
-  //
-  //   if (!this.verificationLoop) {
-  //     this.verificationLoop = setInterval(async () => {
-  //       await this.updateLib();
-  //     }, 21 * 12 * 500);
-  //   }
-  //
-  //   if (!this.predictionLoop) {
-  //     this.predictionLoop = setInterval(() => {
-  //
-  //       this.libNum.update(value => {
-  //         return (value ?? 0) + 12;
-  //       });
-  //
-  //       if (this.pendingSet.size > 0) {
-  //         this.pendingSet.forEach(async (value) => {
-  //           if (value < (this.libNum() ?? 0)) {
-  //             console.log(`Block cleared ${value} < ${this.libNum()}`);
-  //             this.pendingSet.delete(value);
-  //           }
-  //         });
-  //       } else {
-  //         console.log('No more pending actions, clearing loops');
-  //         this.clearLoops();
-  //       }
-  //     }, 12 * 500);
-  //   }
-  // }
-
   pendingActions = computed(() => {
     // Use the new computed signal for LIB
     const lib = this.chain.lastIrreversibleBlockNum();
@@ -547,124 +503,6 @@ export class AccountService {
       return [];
     }
   });
-
-  // async checkIrreversibility(): Promise<void> {
-  //   const lastIrreversibleBlock = await this.checkLib() ?? 0;
-  //   this.libNum.set(lastIrreversibleBlock);
-  //   if (lastIrreversibleBlock) {
-  //     let counter = 0;
-  //     for (const action of this.actions) {
-  //       if (action.block_num <= lastIrreversibleBlock) {
-  //         action.irreversible = true;
-  //       } else {
-  //         counter++;
-  //         this.pendingSet.add(action.block_num);
-  //       }
-  //     }
-  //     if (counter > 0) {
-  //       console.log('Pending actions: ' + counter);
-  //       this.monitorLib().catch(console.log);
-  //     }
-  //   }
-  // }
-
-  // async initStreamClient(): Promise<void> {
-  //   try {
-  //     const health = await lastValueFrom(this.httpClient.get(this.server + '/v2/health')) as HealthResponse;
-  //     if (health.features.streaming.enable) {
-  //       this.streamClient = new HyperionStreamClient(this.server, {async: true});
-  //       this.streamClient = new HyperionStreamClient({
-  //           endpoint: this.server
-  //       });
-  //       this.streamClientLoaded = true;
-  //       this.streamClient.onConnect = () => {
-  //         this.streamClientStatus = this.streamClient.online;
-  //       };
-  //
-  //       this.streamClient.onLIB = (data) => {
-  //         this.libNum = data.block_num;
-  //       };
-  //
-  //       this.streamClient.onData = async (data: IncomingData, ack) => {
-  //         if (data.type === 'action') {
-  //           this.actions.unshift(data.content);
-  //           if (this.actions.length > 20) {
-  //             this.actions.pop();
-  //           }
-  //           this.tableDataSource.data = this.actions;
-  //         }
-  //         ack();
-  //       };
-  //     } else {
-  //       console.log('Streaming disabled!');
-  //       this.streamClientLoaded = false;
-  //     }
-  //   } catch (e) {
-  //     console.log(e);
-  //   }
-  // }
-
-  // setupRequests(): void {
-  //   // find latest block
-  //   let maxBlock = 0;
-  //   for (const action of this.actions) {
-  //     if (action.block_num > maxBlock) {
-  //       maxBlock = action.block_num;
-  //     }
-  //   }
-  //
-  //   console.log(maxBlock);
-  //
-  //   // setup request
-  //   this.streamClient.onConnect = () => {
-  //     this.streamClient.streamActions({
-  //       account: this.account.account_name,
-  //       action: '*',
-  //       contract: '*',
-  //       filters: [],
-  //       read_until: 0,
-  //       start_from: maxBlock + 1
-  //     }).catch(console.log);
-  //     this.streamClientStatus = this.streamClient.online;
-  //   };
-  // }
-
-  // async loadAccountData(accountName: string): Promise<boolean> {
-  //   this.loaded.set(false);
-  //   if (accountName.length > 13) {
-  //     console.error(`Account name (${accountName}) is invalid`);
-  //     return false;
-  //   }
-  //   console.log('Loading account data for: ' + accountName);
-  //   try {
-  //     const url = this.data.env.hyperionApiUrl + '/v2/state/get_account?account=' + accountName;
-  //     console.log(url);
-  //     this.jsonData = await lastValueFrom(this.httpClient.get(url)) as GetAccountResponse;
-  //
-  //     if (this.jsonData.account) {
-  //       this.account = this.jsonData.account;
-  //     }
-  //
-  //     if (this.jsonData.actions) {
-  //       this.actions = this.jsonData.actions;
-  //       if (isPlatformBrowser(this.platformId)) {
-  //         this.checkIrreversibility().catch(console.log);
-  //       }
-  //     }
-  //
-  //     if (this.jsonData.total_actions) {
-  //       this.pagService.totalItems = this.jsonData.total_actions;
-  //     }
-  //
-  //     this.loaded.set(true);
-  //     return true;
-  //   } catch (error: any) {
-  //     console.log(error.message);
-  //     this.jsonData = null;
-  //     this.loaded.set(true);
-  //     return false;
-  //   }
-  // }
 
   async loadMoreActions(): Promise<void> {
     const accountName = this.accountName();
@@ -735,49 +573,20 @@ export class AccountService {
     }
   }
 
-  toggleStreaming(): void {
+  async toggleStreaming(): Promise<void> {
     if (this.streamClientStatus()) {
       // Pause Streaming
-      if (this.streamClient) {
-        this.streamClient.disconnect();
+      if (this.streamClient && this.actionStream) {
+        this.actionStream.stop();
       }
       this.streamClientStatus.set(false);
     } else {
       // Start Streaming from the last received block
-      this.startActionStream().catch(console.log);
+      this.pageIndex.set(0);
+      await this.startActionStream();
       this.streamClientStatus.set(true);
     }
-
-    // if (this.streamClientStatus) {
-    //   this.streamClient.disconnect();
-    //   this.streamClientStatus = false;
-    //   this.checkIrreversibility().catch(console.log);
-    // } else {
-    //   this.tableDataSource.paginator.firstPage();
-    //   this.clearLoops();
-    //   this.setupRequests();
-    //   this.streamClient.connect(() => {
-    //     console.log('hyperion streaming client connected!');
-    //   });
-    // }
   }
-
-  clearLoops(): void {
-    if (this.predictionLoop) {
-      clearInterval(this.predictionLoop);
-    }
-    if (this.verificationLoop) {
-      clearInterval(this.verificationLoop);
-    }
-  }
-
-  // disconnectStream(): void {
-  //     if (this.streamClient && this.streamClientStatus) {
-  //         this.streamClient.disconnect();
-  //         this.streamClient.online = false;
-  //         this.streamClientStatus = false;
-  //     }
-  // }
 
   setFilter(filter: ActionFilterSpec): void {
     this.filter.set(filter);
@@ -823,30 +632,39 @@ export class AccountService {
   async startActionStream() {
     if (!this.streamClient) {
       this.streamClient = new HyperionStreamClient({
-        endpoint: this.data.env.hyperionApiUrl,
-        libMonitor: true
+        endpoint: devEnv.streamApiUrl ?? this.data.env.hyperionApiUrl,
+        libMonitor: true,
+        debug: true
       });
       await this.streamClient.connect();
-
       this.streamClient.on("libUpdate", data => {
         this.chain.streamLib.set(data.block_num);
       });
-
       console.log("Connected to stream client");
+    }
+
+    if (this.streamClient && !this.streamClient.online) {
+      await this.streamClient.connect();
+      console.log("Reconnected to stream client");
     }
 
     if (this.streamClient && this.streamClient.online) {
       const lastReceivedBlock = this.actionsComputed().length > 0 ? this.actionsComputed()[0].block_num : 0;
+
       console.log(`Last received block: ${lastReceivedBlock}`);
 
-      const actionStream = await this.streamClient.streamActions({
+      this.actionStream = await this.streamClient.streamActions({
         account: this.accountName(),
         filters: [],
         read_until: 0,
         start_from: lastReceivedBlock + 1
       });
 
-      actionStream.on("message", data => {
+      console.log(
+        `Streaming actions from block ${lastReceivedBlock + 1} for account ${this.accountName()}, hash: ${this.actionStream.requestHash}`
+      );
+
+      this.actionStream.on("message", data => {
         const action = data.content;
         this.streamingActions.update(value => {
           // Add the new action to the beginning of the array and limit to 500 items

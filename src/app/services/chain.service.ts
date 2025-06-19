@@ -1,4 +1,4 @@
-import { computed, effect, inject, Injectable, resource, signal } from "@angular/core";
+import { computed, effect, inject, Injectable, resource, signal, untracked } from "@angular/core";
 import { lastValueFrom } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { DataService } from "./data.service";
@@ -150,8 +150,10 @@ export class ChainService {
     const streamLib = this.streamLib();
     const chainInfo = this.chainInfo();
     if (streamLib && streamLib > 0) {
+      console.log(`LIB from Stream: ${streamLib}`);
       return streamLib;
     } else if (chainInfo && chainInfo.last_irreversible_block_num) {
+      console.log(`LIB from Chain: ${chainInfo.last_irreversible_block_num}`);
       return chainInfo.last_irreversible_block_num;
     } else {
       return 0;
@@ -163,11 +165,35 @@ export class ChainService {
   headBlockTime = computed(() => this.chainInfo()?.head_block_time ?? null); // Keep as string or null
   serverVersion = computed(() => this.chainInfo()?.server_version_string ?? this.chainInfo()?.server_version ?? "N/A");
 
+  elapsedTime = signal(0);
+
+  secondsToLib = computed(() => {
+    const lib = this.lastIrreversibleBlockNum();
+    const chainInfo = this.chainInfo();
+    const headBlock = chainInfo?.head_block_num;
+    if (headBlock) {
+      const numBlocks = headBlock - lib;
+      return numBlocks * 2 - this.elapsedTime();
+    } else {
+      return 0;
+    }
+  });
+
   constructor() {
-    // Optional: Log when chain info changes
-    // effect(() => {
-    //   console.log(`Chain Info Updated`, this.chainInfo());
-    // });
+    effect(() => {
+      // reset the libSeconds counter when the lib is updated
+      const lib = this.lastIrreversibleBlockNum();
+      if (lib > 0) {
+        untracked(() => {
+          this.elapsedTime.set(0);
+        });
+      }
+    });
+
+    // Increment the elapsed signal every second
+    setInterval(() => {
+      this.elapsedTime.update(v => v + 1);
+    }, 1000);
   }
 
   // Resource to fetch producer data
@@ -198,4 +224,10 @@ export class ChainService {
 
   // Computed signal for the producer rows, sorted by votes
   producers = computed(() => this.producersResource.value()?.rows ?? []);
+
+  // Method to refresh the chain info
+  refreshChainInfo() {
+    console.log("Refreshing Chain Info...");
+    this.chainInfoResource.reload();
+  }
 }

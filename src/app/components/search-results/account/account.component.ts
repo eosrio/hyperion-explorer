@@ -28,6 +28,7 @@ import {
   faSadTear,
   faShield,
   faStar,
+  faSync,
   faTimes,
   faUser,
   faUserCircle,
@@ -174,7 +175,8 @@ export class AccountComponent implements OnInit {
       faVote: faVoteYea,
       dots: faEllipsisV,
       glassMore: faMagnifyingGlassPlus,
-      broadcast: faTowerBroadcast
+      broadcast: faTowerBroadcast,
+      faSync: faSync
     },
     regular: {
       faQuestionCircle: faQuestionCircle

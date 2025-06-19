@@ -1,32 +1,32 @@
-import {inject, Injectable, makeStateKey, signal, TransferState} from '@angular/core';
-import {ExplorerMetadata} from "../interfaces";
-import {Title} from "@angular/platform-browser";
+import { inject, Injectable, makeStateKey, signal, TransferState } from "@angular/core";
+import { ExplorerMetadata } from "../interfaces";
+import { Title } from "@angular/platform-browser";
 
 export abstract class DataService {
-
   env = {
-    hyperionApiUrl: '',
-    systemContract: 'eosio',
-    userResourcesTable: 'userres'
+    hyperionApiUrl: "",
+    streamApiUrl: "",
+    systemContract: "eosio",
+    userResourcesTable: "userres"
   };
 
-  metadataKey = makeStateKey<ExplorerMetadata>('chain_data');
-  initErrorKey = makeStateKey<string>('init_error');
-  themesKey = makeStateKey<string[]>('available_themes');
+  metadataKey = makeStateKey<ExplorerMetadata>("chain_data");
+  initErrorKey = makeStateKey<string>("init_error");
+  themesKey = makeStateKey<string[]>("available_themes");
 
   url = () => {
-    return this.env.hyperionApiUrl + '/v2/explorer_metadata';
+    return this.env.hyperionApiUrl + "/v2/explorer_metadata";
   };
 
   abstract explorerMetadata: ExplorerMetadata | null;
   abstract initError: string | null;
   customTheme?: Record<string, any>;
-  routeError?: string = '';
+  routeError?: string = "";
   availableThemes: string[] = [];
 
   abstract load(): Promise<void>;
 
-  abstract activateTheme(): Promise<void>
+  abstract activateTheme(): Promise<void>;
 
   ready = signal(false);
 
@@ -37,16 +37,15 @@ export abstract class DataService {
       console.log(`(${platform}) Setting origin to:`, this.env.hyperionApiUrl);
     } catch (e) {
       console.log(hyperionServer);
-      console.log('Error setting origin:', e);
+      console.log("Error setting origin:", e);
     }
   }
 }
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: "root" })
 export class DataServiceServer extends DataService {
-
   override async activateTheme(): Promise<void> {
-    console.log('activateTheme not implemented on server');
+    console.log("activateTheme not implemented on server");
   }
 
   state = inject(TransferState);
@@ -67,7 +66,7 @@ export class DataServiceServer extends DataService {
       if (response.ok) {
         const data: ExplorerMetadata = await response.json();
         if (data && data.last_indexed_block && data.last_indexed_block > 1) {
-          data.logo = this.env.hyperionApiUrl + '/v2/explorer_logo';
+          data.logo = this.env.hyperionApiUrl + "/v2/explorer_logo";
           if (this.customTheme) {
             data.theme = this.customTheme;
           }
@@ -88,7 +87,7 @@ export class DataServiceServer extends DataService {
   }
 }
 
-@Injectable({providedIn: 'root'})
+@Injectable({ providedIn: "root" })
 export class DataServiceBrowser extends DataService {
   private title = inject(Title);
 
@@ -99,11 +98,10 @@ export class DataServiceBrowser extends DataService {
   async load() {
     // load metadata from state on browser
     this.explorerMetadata = this.state.get(this.metadataKey, null);
-    console.log('Loaded metadata from state:', this.explorerMetadata);
+    console.log("Loaded metadata from state:", this.explorerMetadata);
     this.initError = this.state.get(this.initErrorKey, null);
     if (this.explorerMetadata) {
-
-      const savedTheme = localStorage.getItem('theme-override');
+      const savedTheme = localStorage.getItem("theme-override");
       if (savedTheme) {
         this.explorerMetadata.theme = JSON.parse(savedTheme);
       }
@@ -121,12 +119,12 @@ export class DataServiceBrowser extends DataService {
       if (response.ok) {
         const data: ExplorerMetadata = await response.json();
         if (data && data.last_indexed_block && data.last_indexed_block > 1) {
-          data.logo = this.env.hyperionApiUrl + '/v2/explorer_logo';
+          data.logo = this.env.hyperionApiUrl + "/v2/explorer_logo";
           if (this.customTheme) {
             data.theme = this.customTheme;
           }
 
-          const savedTheme = localStorage.getItem('theme-override');
+          const savedTheme = localStorage.getItem("theme-override");
           if (savedTheme) {
             data.theme = JSON.parse(savedTheme);
           }
