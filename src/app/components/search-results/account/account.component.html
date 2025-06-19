@@ -576,19 +576,23 @@
                   <!--                justify-between items-start h-full-->
                   <div class="flex flex-col items-start gap-1">
                     <div class="flex flex-row items-center">
-                      @if (acServ.libNum() > 0 && acServ.libNum() < action["block_num"]) {
-                        <span matTooltip="time until irreversible" matTooltipClass="tooltip-bigger">
-                          <fa-icon [icon]="icons.solid.faClock" class="accent"></fa-icon>
-                          {{ (action["block_num"] - acServ.libNum()) / 2 }}s
+                      @if (chain.lastIrreversibleBlockNum() > 0 && chain.lastIrreversibleBlockNum() < action["block_num"]) {
+                        <span class="tx-status pending-status" matTooltip="time until irreversible" matTooltipClass="tooltip-bigger">
+                          <fa-icon [icon]="icons.solid.faClock" class="mr-1"></fa-icon>
+                          <span>{{ (action["block_num"] - chain.lastIrreversibleBlockNum()) / 2 }}s until confirmed</span>
+                        </span>
+                      } @else {
+                        <span class="tx-status confirmed-status" matTooltip="Transaction confirmed" matTooltipClass="tooltip-bigger">
+                          <fa-icon [icon]="icons.solid.faCheck" class="mr-1"></fa-icon>
+                          <span>Confirmed</span>
                         </span>
                       }
-                      <a matRipple [routerLink]="['/transaction', action['trx_id']]" class="link-primary p-2">
-                        {{ action["trx_id"].slice(0, 8) }}...
-                      </a>
                     </div>
+                    <a matRipple [routerLink]="['/transaction', action['trx_id']]" class="link-primary p-2">
+                      {{ action["trx_id"].slice(0, 8) }}...
+                    </a>
                     <a matRipple (click)="onRowClick(action)" class="link-btn faded">
                       <div class="flex flex-row items-center gap-2">
-                        <!--                      <fa-icon [icon]="icons.solid.glassMore"></fa-icon>-->
                         <fa-icon [icon]="icons.solid.dots"></fa-icon>
                         <div class="text-xs uppercase">Expand Details</div>
                       </div>
@@ -653,6 +657,13 @@
                   <span>
                     {{ action["@timestamp"] + (useUTC() ? "" : "Z") | date: "medium" }}
                   </span>
+                  @if (isRecentTransaction(action['@timestamp'])) {
+                      <span class="time-indicator time-recent" matTooltip="Transaction made in the last 24hrs"
+                            matTooltipClass="tooltip-bigger">
+                        <fa-icon [icon]="icons.solid.faHistory" class="text-xs mr-1"></fa-icon>
+                        Recent transaction
+                      </span>
+                  }
                 </td>
               </ng-container>
 

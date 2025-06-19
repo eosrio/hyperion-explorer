@@ -505,4 +505,28 @@ export class AccountComponent implements OnInit {
     this.acServ.pageIndex.set(0);
     this.acServ.sortDirection.set($event.direction);
   }
+
+  /**
+   * Determines if a transaction is recent based on its timestamp
+   * @param timestamp The timestamp of the transaction
+   * @returns true if the transaction is recent (within the last 24 hours), false otherwise
+   */
+  isRecentTransaction(timestamp: string): boolean {
+    if (!timestamp) return false;
+
+    // Parse the timestamp to a Date object
+    const txDate = new Date(timestamp);
+
+    // Get the current time
+    const now = new Date();
+
+    // Calculate the difference in milliseconds
+    const diffMs = now.getTime() - txDate.getTime();
+
+    // Convert to hours
+    const diffHours = diffMs / (1000 * 60 * 60);
+
+    // Consider transactions within the last 24 hours as recent
+    return diffHours <= 24;
+  }
 }

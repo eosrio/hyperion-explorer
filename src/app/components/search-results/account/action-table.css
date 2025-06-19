@@ -17,7 +17,7 @@
   text-align: center;
   width: max-content;
   border: 1px solid var(--line-divider);
-  border-radius: 0.188rem;
+  border-radius: var(--radius-lg);
   padding: 0.188rem 0.313rem;
 }
 
