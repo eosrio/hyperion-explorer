@@ -155,64 +155,64 @@
   background-color: transparent;
 }
 
-/* Responsive design for mobile views */
-@media (max-width: 768px) {
-  .actions-table {
-    display: block;
-    width: 100%;
-  }
+/*!* Responsive design for mobile views *!*/
+/*@media (max-width: 768px) {*/
+/*  .actions-table {*/
+/*    display: block;*/
+/*    width: 100%;*/
+/*  }*/
 
-  /* Convert table to a card-like layout on mobile */
-  .actions-table thead {
-    display: none; /* Hide the header row on mobile */
-  }
+/*  !* Convert table to a card-like layout on mobile *!*/
+/*  .actions-table thead {*/
+/*    display: none; !* Hide the header row on mobile *!*/
+/*  }*/
 
-  .actions-table tbody {
-    display: block;
-    width: 100%;
-  }
+/*  .actions-table tbody {*/
+/*    display: block;*/
+/*    width: 100%;*/
+/*  }*/
 
-  .actions-table tr.mat-mdc-row {
-    display: block;
-    margin-bottom: 1rem;
-    border: 1px solid var(--line-divider);
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    background-color: white;
-  }
+/*  .actions-table tr.mat-mdc-row {*/
+/*    display: block;*/
+/*    margin-bottom: 1rem;*/
+/*    border: 1px solid var(--line-divider);*/
+/*    border-radius: 8px;*/
+/*    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);*/
+/*    background-color: white;*/
+/*  }*/
 
-  .actions-table td.mat-mdc-cell {
-    display: block;
-    text-align: left;
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid var(--line-divider);
-  }
+/*  .actions-table td.mat-mdc-cell {*/
+/*    display: block;*/
+/*    text-align: left;*/
+/*    padding: 0.75rem 1rem;*/
+/*    border-bottom: 1px solid var(--line-divider);*/
+/*  }*/
 
-  .actions-table td.mat-mdc-cell:last-child {
-    border-bottom: none;
-  }
+/*  .actions-table td.mat-mdc-cell:last-child {*/
+/*    border-bottom: none;*/
+/*  }*/
 
-  /* Show data labels on mobile */
-  .actions-table td.mat-mdc-cell::before {
-    content: attr(data-label);
-    display: block;
-    font-weight: 600;
-    color: var(--faded);
-    margin-bottom: 0.25rem;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-  }
+/*  !* Show data labels on mobile *!*/
+/*  .actions-table td.mat-mdc-cell::before {*/
+/*    content: attr(data-label);*/
+/*    display: block;*/
+/*    font-weight: 600;*/
+/*    color: var(--faded);*/
+/*    margin-bottom: 0.25rem;*/
+/*    font-size: 0.75rem;*/
+/*    text-transform: uppercase;*/
+/*  }*/
 
-  /* Adjust specific cells for mobile */
-  .action-cell {
-    padding-top: 0.5rem;
-  }
+/*  !* Adjust specific cells for mobile *!*/
+/*  .action-cell {*/
+/*    padding-top: 0.5rem;*/
+/*  }*/
 
-  /* Improve spacing for the data column */
-  .actions-table td.mat-mdc-cell[data-label="Data"] .py-4 {
-    padding: 0.5rem 0;
-  }
-}
+/*  !* Improve spacing for the data column *!*/
+/*  .actions-table td.mat-mdc-cell[data-label="Data"] .py-4 {*/
+/*    padding: 0.5rem 0;*/
+/*  }*/
+/*}*/
 
 ::ng-deep .bigger-tooltip {
   font-size: 1rem; /*16px*/
