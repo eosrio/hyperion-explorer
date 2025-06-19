@@ -101,13 +101,14 @@
 }
 
 .actions-table .time-recent, .actions-table .confirmed-status {
-  background-color: rgba(76, 175, 80, 0.1); /* Light green for recent transactions */
-  color: #4caf50;
+  /*background-color: rgba(76, 175, 80, 0.1); !* Light green for recent transactions *!*/
+  background-color: oklch(from var(--success) l c h / 0.1);
+  color: var(--success);
 }
 
 .actions-table .pending-status {
-  background-color: rgba(255, 152, 0, 0.1); /* Light green for recent transactions */
-  color: #ff9800;
+  background-color: oklch(from var(--pending) l c h / 0.09); /* Light green for recent transactions */
+  color: var(--pending);
 }
 
 /* Add animation for new rows */

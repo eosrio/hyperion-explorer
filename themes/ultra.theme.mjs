@@ -3,6 +3,7 @@
 globalThis.themeData = {
   "--primary": "#794bdf",
   "--accent": "#01ab88",
+  "--success": "#01ab88",
   "--faded": "#7b738c",
   "--main-background": "#e8e1ff",
   "--card-bg-gradient": "linear-gradient(115deg, rgb(255 255 255 / 60%) 0%, rgb(255 255 255 / 90%) 50%, rgb(255 255 255 / 60%) 100%)",
