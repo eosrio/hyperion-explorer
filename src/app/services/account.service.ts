@@ -185,7 +185,7 @@ export class AccountService {
         query.set("account", params.accountName);
         query.set("limit", limit.toString());
         query.set("skip", skip.toString());
-        // global sequence marker to lock the action on the time of page load
+        // global sequence marker to lock the action on the time of a page load
         query.set("global_sequence", `0-${firstGS}`);
         if (sort) {
           query.set("sort", sort);
