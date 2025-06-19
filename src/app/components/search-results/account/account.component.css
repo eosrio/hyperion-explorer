@@ -3,9 +3,9 @@
 
 }
 
-@media (max-width: 599px) {
+@media (max-width: 700px) {
   .acc-title {
-    font-size: 1.25rem; /*20px*/
+    font-size: 1.25rem !important; /*20px*/
   }
 }
 
