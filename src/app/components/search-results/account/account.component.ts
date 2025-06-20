@@ -257,9 +257,26 @@ export class AccountComponent implements OnInit {
   }
 
   private tableStickyMotion(tableSticky?: ElementRef<HTMLDivElement>) {
-    scroll(animate('.mat-mdc-header-row', {
+    // Apply animation to the header row
+    scroll(
+      animate('.mat-mdc-header-row', {
         boxShadow: 'rgba(78 104 192, 0.25) 0px 4px 19px 0px, rgba(17, 12, 46, 0.15) 0px 20px 100px 0px',
         background: 'var(--table-top-bg-gradient)'
+      }, {duration: 1}),
+      {target: tableSticky?.nativeElement, offset: ['end 250px', '200px 250px']}
+    );
+
+    // Apply border radius animation to the trx_id column and column-block_num separately
+    scroll(
+      animate('[mat-header-cell].mat-column-trx_id', {
+        borderRadius: '1rem 0 0  1rem'
+      }, {duration: 1}),
+      {target: tableSticky?.nativeElement, offset: ['end 250px', '200px 250px']}
+    );
+
+    scroll(
+      animate('[mat-header-cell].mat-column-block_num', {
+        borderRadius: '0  1rem 1rem 0'
       }, {duration: 1}),
       {target: tableSticky?.nativeElement, offset: ['end 250px', '200px 250px']}
     );
