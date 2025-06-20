@@ -1,6 +1,6 @@
-import { inject, Injectable, makeStateKey, signal, TransferState } from "@angular/core";
-import { ExplorerMetadata } from "../interfaces";
-import { Title } from "@angular/platform-browser";
+import {inject, Injectable, makeStateKey, signal, TransferState} from "@angular/core";
+import {ExplorerMetadata} from "../interfaces";
+import {Title} from "@angular/platform-browser";
 
 export abstract class DataService {
   env = {
@@ -42,7 +42,7 @@ export abstract class DataService {
   }
 }
 
-@Injectable({ providedIn: "root" })
+@Injectable({providedIn: "root"})
 export class DataServiceServer extends DataService {
   override async activateTheme(): Promise<void> {
     console.log("activateTheme not implemented on server");
@@ -73,7 +73,13 @@ export class DataServiceServer extends DataService {
           this.state.set(this.metadataKey, data);
           this.explorerMetadata = data;
         } else {
-          this.initError = `Error fetching ${this.url()}: Invalid response`;
+          if (data && (!data.last_indexed_block || data.last_indexed_block <= 1)) {
+            console.warn(`Invalid last_indexed_block in response from ${this.url()}`);
+            this.initError = `Error fetching ${this.url()}: Invalid last_indexed_block`;
+          } else {
+            console.warn(`Invalid response from ${this.url()}`);
+            this.initError = `Error fetching ${this.url()}: Invalid response`;
+          }
           this.state.set(this.initErrorKey, this.initError);
         }
       } else {
@@ -87,7 +93,7 @@ export class DataServiceServer extends DataService {
   }
 }
 
-@Injectable({ providedIn: "root" })
+@Injectable({providedIn: "root"})
 export class DataServiceBrowser extends DataService {
   private title = inject(Title);
 
@@ -105,7 +111,6 @@ export class DataServiceBrowser extends DataService {
       if (savedTheme) {
         this.explorerMetadata.theme = JSON.parse(savedTheme);
       }
-
       this.title.setTitle(`${this.explorerMetadata.chain_name} Hyperion Explorer`);
     } else {
       await this.loadChainData();
@@ -116,6 +121,7 @@ export class DataServiceBrowser extends DataService {
   async loadChainData(): Promise<void> {
     try {
       const response = await fetch(this.url());
+      console.log(`Fetching chain data from: ${this.url()}`);
       if (response.ok) {
         const data: ExplorerMetadata = await response.json();
         if (data && data.last_indexed_block && data.last_indexed_block > 1) {
