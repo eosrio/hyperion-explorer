@@ -399,6 +399,9 @@
               </strong>
             </a>
           </span>
+          <button mat-icon-button matTooltip="Refresh Last Irreversible Block" (click)="chain.refreshChainInfo()">
+            <fa-icon [icon]="icons.solid.faSync"></fa-icon>
+          </button>
 
         </div>
 
@@ -466,12 +469,12 @@
                   <mat-panel-description class="grow">
                     <div class="flex flex-row items-center gap-7 py-2">
                       <div class="flex flex-row items-center gap-2">
-                        <input type="checkbox" [(ngModel)]="useUTC" (click)="$event.stopPropagation()"/>
+                        <input type="checkbox" [(ngModel)]="useUTC" (click)="$event.stopPropagation()" />
                         <div class="faded">Dates in UTC</div>
                       </div>
 
                       <div class="flex flex-row items-center gap-2">
-                        <input type="checkbox" [(ngModel)]="compactMode" (click)="$event.stopPropagation()"/>
+                        <input type="checkbox" [(ngModel)]="compactMode" (click)="$event.stopPropagation()" />
                         <div class="faded">Compact Mode</div>
                       </div>
                     </div>
@@ -507,7 +510,7 @@
                   Filter
                 </button>
                 <div class="flex flex-row items-center gap-2">
-                  <input type="checkbox" [(ngModel)]="saveCustomFilter"/>
+                  <input type="checkbox" [(ngModel)]="saveCustomFilter" />
                   <div class="faded">Save this filter</div>
                 </div>
               </div>
@@ -578,8 +581,16 @@
                     <div class="flex flex-row items-center">
                       @if (chain.lastIrreversibleBlockNum() > 0 && chain.lastIrreversibleBlockNum() < action["block_num"]) {
                         <span class="tx-status pending-status" matTooltip="time until irreversible" matTooltipClass="tooltip-bigger">
+
                           <fa-icon [icon]="icons.solid.faClock" class="mr-1"></fa-icon>
-                          <span>{{ (action["block_num"] - chain.lastIrreversibleBlockNum()) / 2 }}s until confirmed</span>
+
+                          @let eta = ((action["block_num"] - chain.lastIrreversibleBlockNum()) / 2) - chain.elapsedTime();
+                          @if (eta > 0) {
+                            <span>{{ eta }}s until confirmed</span>
+                          } @else {
+                            <span>validating confirmation...</span>
+                          }
+
                         </span>
                       } @else {
                         <span class="tx-status confirmed-status" matTooltip="Transaction confirmed" matTooltipClass="tooltip-bigger">
@@ -654,13 +665,13 @@
                     <a [routerLink]="['/block', action['block_num']]" class="link-primary mr-3">
                       {{ action["block_num"] }}
                     </a>
-<!--                    <br/>-->
+<!--                    <br />-->
                     <span>
                     {{ action["@timestamp"] + (useUTC() ? "" : "Z") | date: "medium" }}
                   </span>
                     @if (isRecentTransaction(action['@timestamp'])) {
-                      <span class="time-indicator time-recent" matTooltip="Transaction made in the last 24hrs"
-                            matTooltipClass="tooltip-bigger">
+                    <span class="time-indicator time-recent" matTooltip="Transaction made in the last 24hrs"
+                          matTooltipClass="tooltip-bigger">
                         <fa-icon [icon]="icons.solid.faHistory" class="text-xs mr-1"></fa-icon>
                         Recent transaction
                       </span>
