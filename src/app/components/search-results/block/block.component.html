@@ -210,18 +210,22 @@
               <th mat-header-cell *matHeaderCellDef style="text-align: center">State Location</th>
               <td mat-cell *matCellDef="let delta" data-label="State Location">
 
-                <div class="action-cell">
-                  <span matTooltip="Table" matTooltipPosition="above"
-                        class="font-medium">{{ delta.table }}</span>
-                  <span class="main-color"> on </span>
+                <div class="action-cell flex flex-col gap-1 text-center justify-center items-center">
+                  <div>
+                    <span matTooltip="Table" matTooltipPosition="above"
+                          class="font-medium">{{ delta.table }}</span>
+                    <span class="main-color"> on </span>
+                  </div>
                   <span matTooltip="Contract" matTooltipPosition="above" [routerLink]="['/account', delta.code]"
                         class="accent font-medium div-link main-color">
                     {{ delta.code }}
                   </span>
                   @if (delta.scope) {
-                    <span class="main-color"> for </span>
-                    <span matTooltip="Scope" matTooltipPosition="above"
+                    <div>
+                      <span class="main-color"> for </span>
+                      <span matTooltip="Scope" matTooltipPosition="above"
                           class="font-medium cursor-default">{{ delta.scope }}</span>
+                    </div>
                   }
                 </div>
 
@@ -231,7 +235,7 @@
             <ng-container matColumnDef="payer">
               <th mat-header-cell *matHeaderCellDef style="text-align: center">RAM Payer</th>
               <td mat-cell *matCellDef="let delta" style="text-align: center" data-label="Payer">
-                {{ delta.payer }}
+                <a [routerLink]="['/account', delta.payer]" class="link-accent">{{ delta.payer }}</a>
               </td>
             </ng-container>
 

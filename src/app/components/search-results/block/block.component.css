@@ -18,9 +18,24 @@ table {
 }
 
 .action-cell {
-  padding: 0.313rem 0.625rem;
   font-size: 0.813rem; /*13px*/
   letter-spacing: 0.5px;
+  text-align: center;
+  width: max-content;
+  border: 1px solid var(--line-divider);
+  border-radius: var(--radius-lg);
+  padding: 0.313rem 0.625rem;
+}
+
+.deltas-table td.mat-mdc-cell {
+  padding: 0.75rem;
+  border-bottom: 1px solid var(--line-divider);
+  vertical-align: middle;
+}
+
+/* Add alternating row colors for better readability */
+.deltas-table tr.mat-mdc-row:nth-child(even), .transactions-table tr.mat-mdc-row:nth-child(even) {
+  background-color: rgba(0, 0, 0, 0.007);
 }
 
 .action-border {
@@ -138,6 +153,10 @@ tr.element-row:not(.expanded-row):active {
     border-radius: 0  var(--card-border-radius)  var(--card-border-radius) 0;
   }
 
+  .mat-column-location {
+    justify-items: center;
+  }
+
 }
 
 /*table responsive*/
@@ -225,6 +244,12 @@ tr.element-row:not(.expanded-row):active {
 
   .custom-card .mat-expansion-panel [mat-table] {
     border: 0.5rem solid #fafafa;
+  }
+
+  .action-cell {
+    padding: 0;
+    text-align: left;
+    border: none;
   }
 }
 
