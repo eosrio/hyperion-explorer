@@ -70,7 +70,7 @@
                 <span class="faded italic">(array, size: {{ item.value.length }})</span>
                 @for (arrayItem of item.value; let idx = $index; track idx; let last = $last) {
                   <div
-                    class="border shadow-slate-400/10 shadow-lg rounded-lg m-2 flex flex-row justify-start items-start gap-2 px-2">
+                    class="border shadow-slate-400/10 shadow-lg rounded-lg my-2 flex flex-row justify-start items-start gap-2 py-2 px-1">
                     @if (item.value.length > 1) {
                       <div class="faded italic">{{ idx + 1 }}</div>
                     }

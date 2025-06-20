@@ -15,8 +15,8 @@
   text-align: center;
   width: max-content;
   border: 1px solid var(--line-divider);
-  border-radius: 0.188rem;
-  padding: 0.188rem 0.313rem;
+  border-radius: var(--radius-lg);
+  padding: 0.2rem 0.5rem;
 }
 
 @media (max-width: 960px) {
@@ -31,7 +31,15 @@
   }
 }
 
-@media (min-width: 600px) {
+/* Improve header styling */
+.actions-table th.mat-mdc-header-cell {
+  font-weight: 600;
+  color: var(--primary);
+  padding: 1rem 0.75rem;
+  white-space: nowrap;
+}
+
+@media (min-width: 829px) {
   .actions-table .mat-mdc-header-row {
     background: transparent;
     position: sticky;
@@ -56,7 +64,7 @@
 }
 
 /*table responsive*/
-@media (max-width: 599px) {
+@media (max-width: 828px) {
   [mat-table] [mat-header-row] {
     display: flex;
     flex-wrap: wrap;

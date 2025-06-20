@@ -11,14 +11,12 @@
 }
 
 .action-cell {
-  /*padding: 5px 10px;*/
   font-size: 0.813rem; /*13px*/
   letter-spacing: 0.5px;
   text-align: center;
   width: max-content;
   border: 1px solid var(--line-divider);
   border-radius: var(--radius-lg);
-  padding: 0.188rem 0.313rem;
 }
 
 /*table responsive*/

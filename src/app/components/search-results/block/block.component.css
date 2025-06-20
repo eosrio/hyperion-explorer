@@ -101,6 +101,13 @@ tr.element-row:not(.expanded-row):active {
   }
 }
 
+.transactions-table th.mat-mdc-header-cell, .deltas-table th.mat-mdc-header-cell {
+  font-weight: 600;
+  color: var(--primary);
+  padding: 1rem 0.75rem;
+  white-space: nowrap;
+}
+
 @media (min-width: 829px) {
   ::ng-deep .transactions-table > thead >  .mat-mdc-header-row {
     background: transparent;

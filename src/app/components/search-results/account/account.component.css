@@ -126,15 +126,9 @@
 }
 
 /* Style for action cell */
-.action-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
 .action-cell .accent {
   display: inline-block;
-  padding: 0.125rem 0.375rem;
+  /*padding: 0.125rem 0.375rem;*/
   border-radius: 4px;
   /*background-color: rgba(var(--primary-rgb), 0.1);*/
   margin-right: 0.25rem;
@@ -365,7 +359,6 @@
 .lib {
   font-size: 0.938rem; /*15px*/
   margin-top: 0.063rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
   padding-bottom: 0.813rem;
 }
 
@@ -498,4 +491,9 @@ input[type="checkbox"]:checked::after {
 
 ::ng-deep .cdk-overlay-pane:not(.mat-mdc-select-panel-above) .actions-table-paginator.mat-mdc-select-panel {
   border-radius: var(--card-border-radius);
+}
+
+.custom-icon-btn {
+  padding: 0.563rem !important;
+  min-width: unset !important;
 }
