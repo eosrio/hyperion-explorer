@@ -67,7 +67,7 @@
   font-weight: 600;
   color: var(--primary);
   padding: 1rem 0.75rem;
-  border-bottom: 2px solid var(--line-divider);
+  /*border-bottom: 2px solid var(--line-divider);*/
   white-space: nowrap;
 }
 
@@ -118,7 +118,7 @@
 
 @keyframes highlightRow {
   0% {
-    background-color: rgba(var(--primary-rgb), 0.2);
+    background-color: rgba(var(--primary), 0.2);
   }
   100% {
     background-color: transparent;
@@ -126,15 +126,9 @@
 }
 
 /* Style for action cell */
-.action-cell {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
 .action-cell .accent {
   display: inline-block;
-  padding: 0.125rem 0.375rem;
+  /*padding: 0.125rem 0.375rem;*/
   border-radius: 4px;
   /*background-color: rgba(var(--primary-rgb), 0.1);*/
   margin-right: 0.25rem;
@@ -154,65 +148,6 @@
 .actions-table-paginator {
   background-color: transparent;
 }
-
-/*!* Responsive design for mobile views *!*/
-/*@media (max-width: 768px) {*/
-/*  .actions-table {*/
-/*    display: block;*/
-/*    width: 100%;*/
-/*  }*/
-
-/*  !* Convert table to a card-like layout on mobile *!*/
-/*  .actions-table thead {*/
-/*    display: none; !* Hide the header row on mobile *!*/
-/*  }*/
-
-/*  .actions-table tbody {*/
-/*    display: block;*/
-/*    width: 100%;*/
-/*  }*/
-
-/*  .actions-table tr.mat-mdc-row {*/
-/*    display: block;*/
-/*    margin-bottom: 1rem;*/
-/*    border: 1px solid var(--line-divider);*/
-/*    border-radius: 8px;*/
-/*    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);*/
-/*    background-color: white;*/
-/*  }*/
-
-/*  .actions-table td.mat-mdc-cell {*/
-/*    display: block;*/
-/*    text-align: left;*/
-/*    padding: 0.75rem 1rem;*/
-/*    border-bottom: 1px solid var(--line-divider);*/
-/*  }*/
-
-/*  .actions-table td.mat-mdc-cell:last-child {*/
-/*    border-bottom: none;*/
-/*  }*/
-
-/*  !* Show data labels on mobile *!*/
-/*  .actions-table td.mat-mdc-cell::before {*/
-/*    content: attr(data-label);*/
-/*    display: block;*/
-/*    font-weight: 600;*/
-/*    color: var(--faded);*/
-/*    margin-bottom: 0.25rem;*/
-/*    font-size: 0.75rem;*/
-/*    text-transform: uppercase;*/
-/*  }*/
-
-/*  !* Adjust specific cells for mobile *!*/
-/*  .action-cell {*/
-/*    padding-top: 0.5rem;*/
-/*  }*/
-
-/*  !* Improve spacing for the data column *!*/
-/*  .actions-table td.mat-mdc-cell[data-label="Data"] .py-4 {*/
-/*    padding: 0.5rem 0;*/
-/*  }*/
-/*}*/
 
 ::ng-deep .bigger-tooltip {
   font-size: 1rem; /*16px*/
@@ -424,7 +359,6 @@
 .lib {
   font-size: 0.938rem; /*15px*/
   margin-top: 0.063rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
   padding-bottom: 0.813rem;
 }
 
@@ -557,4 +491,9 @@ input[type="checkbox"]:checked::after {
 
 ::ng-deep .cdk-overlay-pane:not(.mat-mdc-select-panel-above) .actions-table-paginator.mat-mdc-select-panel {
   border-radius: var(--card-border-radius);
+}
+
+.custom-icon-btn {
+  padding: 0.563rem !important;
+  min-width: unset !important;
 }
