@@ -664,7 +664,7 @@ export class AccountService {
         `Streaming actions from block ${lastReceivedBlock + 1} for account ${this.accountName()}, hash: ${this.actionStream.requestHash}`
       );
 
-      this.actionStream.on("message", data => {
+      this.actionStream.on("message", (data: any) => {
         const action = data.content;
         this.streamingActions.update(value => {
           // Add the new action to the beginning of the array and limit to 500 items

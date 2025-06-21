@@ -146,10 +146,10 @@ export class PriceHistoryComponent implements OnInit {
       console.error("Error loading available pairs:", error);
       // Provide fallback pairs to prevent template errors
       this.availablePairs = [
-        { name: "tlosusd", precision: 4 },
-        { name: "eosusd", precision: 4 }
+        { name: "-", precision: 4 }
+        
       ];
-      this.selectedPair = "tlosusd";
+      this.selectedPair = "-";
       this.selectedPairPrecision = 4;
       this.cdr.detectChanges();
     }
