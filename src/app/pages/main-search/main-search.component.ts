@@ -295,7 +295,9 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
       } else {
         // Stop animation if it exists
         if (this.taglineScrollControl) {
-          this.taglineScrollControl.stop();
+          if (this.taglineScrollControl && typeof this.taglineScrollControl.stop === 'function') {
+            this.taglineScrollControl.stop();
+          }
           this.taglineScrollControl = null;
         }
         // Always reset styles if not allowed
@@ -315,7 +317,9 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
       } else {
         // Stop animation if it exists
         if (this.taglineOpacityScrollControl) {
-          this.taglineOpacityScrollControl.stop();
+          if (this.taglineOpacityScrollControl && typeof this.taglineOpacityScrollControl.stop === 'function') {
+            this.taglineOpacityScrollControl.stop();
+          }
           this.taglineOpacityScrollControl = null;
         }
         // Always reset styles if not allowed
