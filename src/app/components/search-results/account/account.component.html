@@ -335,17 +335,15 @@
                   }
                 </mat-panel-description>
               </div>
-            </mat-expansion-panel-header>
-            @if (voterInfo.producers.length > 0) {
-              <div>
-                @for (producer of voterInfo.producers; track producer; let last = $last) {
-                  <span>
-                    <a [routerLink]="['/account', producer]" class="link-primary">{{ producer }}</a>
-                    @if (!last) {
-                      <span>,</span>
-                    }
-                  </span>
-                }
+            </mat-expansion-panel-header>            @if (voterInfo.producers.length > 0) {
+              <div class="mt-3">
+                <mat-chip-set aria-label="list of producers voted">
+                  @for (producer of voterInfo.producers; track producer) {
+                    <mat-chip [routerLink]="['/account', producer]" class="cursor-pointer">
+                      {{ producer }}
+                    </mat-chip>
+                  }
+                </mat-chip-set>
               </div>
             }
           </mat-expansion-panel>

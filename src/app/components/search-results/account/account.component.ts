@@ -39,6 +39,7 @@ import {AccountCreationData} from "../../../interfaces";
 import {DataService} from "../../../services/data.service";
 import {Title} from "@angular/platform-browser";
 import {MatAccordion, MatExpansionModule} from "@angular/material/expansion";
+import {MatChipsModule} from "@angular/material/chips";
 import {MatDialog, MatDialogRef} from "@angular/material/dialog";
 import {ActionDetailsComponent} from "../../action-details/action-details.component";
 import {ContractDialogComponent} from "../../contract-dialog/contract-dialog.component";
@@ -123,7 +124,8 @@ interface FlatNode {
     PermissionTreeComponent,
     MatIconButton,
     FormsModule,
-    MatInput
+    MatInput,
+    MatChipsModule
   ],
   templateUrl: './account.component.html',
   styleUrls: [
