@@ -7,7 +7,8 @@ export abstract class DataService {
     hyperionApiUrl: "",
     streamApiUrl: "",
     systemContract: "eosio",
-    userResourcesTable: "userres"
+    userResourcesTable: "userres",
+    defaultTicker: ""
   };
 
   metadataKey = makeStateKey<ExplorerMetadata>("chain_data");

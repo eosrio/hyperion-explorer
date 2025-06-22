@@ -9,6 +9,8 @@ import { faTag, faTags } from "@fortawesome/free-solid-svg-icons";
 import { OracleService, OracleHistogramResponse, OraclePair } from "../../../../services/oracle.service";
 import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
+import { devEnv } from "../../../../dev.env";
+
 
 // Removed ECharts core/component imports - handled globally now
 
@@ -34,7 +36,7 @@ export class PriceHistoryComponent implements OnInit {
   loading = false;
   error: string | null = null;
   selectedInterval = "1h"; // Default interval
-  selectedPair = "tlosusd"; // Default pair with USD
+  selectedPair = "-"; // Default pair with USD
   availablePairs: OraclePair[] = []; // Available trading pairs with precision
   selectedPairPrecision = 4; // Current pair precision
   dataPointsCount = 0; // Track number of data points
@@ -55,6 +57,11 @@ export class PriceHistoryComponent implements OnInit {
         try {
           // First, load available pairs
           await this.loadAvailablePairs();
+          //todo validar a passagem de selectedPair
+          if(devEnv){
+            this.selectedPair = devEnv.defaultTicker.toLowerCase() + 'usd'
+          }
+          
 
           // Wait for chain data to be available before loading price history
           if (this.chain.systemSymbol?.value && this.chain.systemSymbol.value()) {
