@@ -193,9 +193,11 @@ export class AccountComponent implements OnInit {
     creator: undefined,
     timestamp: undefined
   });
-
   systemTokenContract = 'eosio.token';
   private contractDialogRef?: MatDialogRef<ContractDialogComponent, any>;
+  // Expansion panel states
+  tokensExpanded = signal<boolean>(true);
+  permissionsExpanded = signal<boolean>(true);
 
   constructor() {
 
