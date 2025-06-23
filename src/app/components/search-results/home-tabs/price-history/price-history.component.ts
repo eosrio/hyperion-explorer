@@ -11,36 +11,30 @@ import { CommonModule } from "@angular/common";
 import { FormsModule } from "@angular/forms";
 import { devEnv } from "../../../../dev.env";
 
-
-// Removed ECharts core/component imports - handled globally now
-
 @Component({
   selector: "app-price-history",
-  standalone: true, // Assuming it should be standalone like other components
+  standalone: true,
   imports: [CommonModule, NgxEchartsModule, FaIconComponent, FormsModule],
-  // Removed providers array
   templateUrl: "./price-history.component.html",
   styleUrl: "./price-history.component.css"
 })
 export class PriceHistoryComponent implements OnInit {
-  // Implement OnInit
-
   platformId = inject(PLATFORM_ID);
-  elementRef = inject(ElementRef); // Inject ElementRef
-  cdr = inject(ChangeDetectorRef); // Inject ChangeDetectorRef
-  chartOptions: EChartsOption = {}; // Initialize chartOptions
+  elementRef = inject(ElementRef);
+  cdr = inject(ChangeDetectorRef);
+  chartOptions: EChartsOption = {};
 
   chain = inject(ChainService);
   oracleService = inject(OracleService);
 
   loading = false;
   error: string | null = null;
-  selectedInterval = "1h"; // Default interval
-  selectedPair = "-"; // Default pair with USD
+  selectedInterval = "1h";
+  selectedPair = "-";
   availablePairs: OraclePair[] = []; // Available trading pairs with precision
   selectedPairPrecision = 4; // Current pair precision
   dataPointsCount = 0; // Track number of data points
-  currentPairPrice: number | null = null; // Current price of selected pair
+  currentPairPrice: number | null = null;
 
   icons = {
     solid: {
@@ -58,10 +52,9 @@ export class PriceHistoryComponent implements OnInit {
           // First, load available pairs
           await this.loadAvailablePairs();
           //todo validar a passagem de selectedPair
-          if(devEnv){
-            this.selectedPair = devEnv.defaultTicker.toLowerCase() + 'usd'
+          if (devEnv) {
+            this.selectedPair = devEnv.defaultTicker.toLowerCase() + "usd";
           }
-          
 
           // Wait for chain data to be available before loading price history
           if (this.chain.systemSymbol?.value && this.chain.systemSymbol.value()) {
@@ -152,10 +145,7 @@ export class PriceHistoryComponent implements OnInit {
     } catch (error) {
       console.error("Error loading available pairs:", error);
       // Provide fallback pairs to prevent template errors
-      this.availablePairs = [
-        { name: "-", precision: 4 }
-        
-      ];
+      this.availablePairs = [{ name: "-", precision: 4 }];
       this.selectedPair = "-";
       this.selectedPairPrecision = 4;
       this.cdr.detectChanges();
@@ -212,19 +202,21 @@ export class PriceHistoryComponent implements OnInit {
       // Format dates for better display
       const formatDate = (dateStr: string) => {
         const date = new Date(dateStr);
-        // For longer intervals, show date only; for shorter intervals, show date and time
-        if (["1w", "1d"].includes(this.selectedInterval)) {
+        // For longer intervals (monthly, weekly, daily), show date only; for shorter intervals, show date and time
+        if (["1M", "1w", "1d"].includes(this.selectedInterval)) {
           return date.toLocaleDateString("en-US", {
             day: "2-digit",
             month: "2-digit",
-            year: "numeric"
+            year: "numeric",
+            timeZone: "UTC" // Use UTC to avoid timezone issues
           });
         } else {
           return date.toLocaleString("en-US", {
             day: "2-digit",
             month: "2-digit",
             hour: "2-digit",
-            minute: "2-digit"
+            minute: "2-digit",
+            timeZone: "UTC" // Use UTC to avoid timezone issues
           });
         }
       };
