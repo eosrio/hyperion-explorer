@@ -29,20 +29,18 @@
               <span>Block</span> {{ block.number }}
             </div>
 
-            <mat-chip-listbox class="mat-mdc-chip-set-stacked">
-              <!-- Check block exists too-->
-              @if (libNumber && block && libNumber > block.number) {
-                <mat-chip-option selected>
-                  <fa-icon [icon]="icons.solid.faLock" style="margin-right: 5px"></fa-icon>
-                  Irreversible
-                </mat-chip-option>
-              } @else {
-                <mat-chip-option color="accent" selected>
-                  <fa-icon [icon]="icons.solid.faHourglass" style="margin-right: 5px"></fa-icon>
-                  Pending ({{ countdownTimer }}s)
-                </mat-chip-option>
-              }
-            </mat-chip-listbox>
+            <!-- Check block exists too-->
+            @if (libNumber && block && libNumber > block.number) {
+              <span class="tx-status confirmed-status" matTooltip="Block is irreversible" matTooltipClass="tooltip-bigger">
+                <fa-icon [icon]="icons.solid.faLock" class="mr-1"></fa-icon>
+                <span>Irreversible</span>
+              </span>
+            } @else {
+              <span class="tx-status pending-status" matTooltip="Time until irreversible" matTooltipClass="tooltip-bigger">
+                <fa-icon [icon]="icons.solid.faHourglass" class="mr-1"></fa-icon>
+                <span>Pending ({{ countdownTimer }}s)</span>
+              </span>
+            }
           </div>
         </div>
         <div class="flex flex-col justify-start items-stretch gap-[10px]">
