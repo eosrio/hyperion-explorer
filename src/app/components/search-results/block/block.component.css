@@ -101,6 +101,9 @@ tr.element-row:not(.expanded-row):active {
 /*table expand row END*/
 
 @media (max-width: 960px) {
+  /*::ng-deep .actions-table > thead > .mat-mdc-header-row {*/
+  /*  top: 10.313rem;*/
+  /*}*/
   ::ng-deep .transactions-table > thead > .mat-mdc-header-row {
     top: 10.313rem;
   }
@@ -110,6 +113,9 @@ tr.element-row:not(.expanded-row):active {
 }
 
 @media (min-width: 961px) {
+  /*::ng-deep .actions-table > thead > .mat-mdc-header-row {*/
+  /*  top: 7.625rem;*/
+  /*}*/
   ::ng-deep .transactions-table > thead >.mat-mdc-header-row {
     top: 7.625rem;
   }
@@ -129,7 +135,7 @@ tr.element-row:not(.expanded-row):active {
   ::ng-deep .element-detail thead .mat-mdc-header-row {
     background: transparent;
     position: sticky;
-    z-index: 50 !important;
+    z-index: 1 !important;
   }
 
   ::ng-deep .transactions-table > thead >  .mat-mdc-header-row {

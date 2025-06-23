@@ -107,11 +107,11 @@ export class BlockComponent implements OnInit, OnDestroy {
       }
     });
 
-    toObservable(this.actionsTable).subscribe((value) => {
-      if (value && isPlatformBrowser(this.platformId)) {
-        this.tableStickyMotion('.actions-table-header', value);
-      }
-    });
+    // toObservable(this.actionsTable).subscribe((value) => {
+    //   if (value && isPlatformBrowser(this.platformId)) {
+    //     this.tableStickyMotion('.actions-table-header', value);
+    //   }
+    // });
 
     toObservable(this.deltasTable).subscribe((value) => {
       if (value && isPlatformBrowser(this.platformId)) {
