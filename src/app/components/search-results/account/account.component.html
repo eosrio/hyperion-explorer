@@ -273,7 +273,7 @@
               @for (token of acServ.tokensComputed(); track token.contract + token.symbol) {
                 <div class="sm:flex-[0_0_calc((100%]">
                   <div class="token-cell">
-                    <div class="faded monospace div-link" [routerLink]="['/account', token.contract]">
+                    <div class="faded monospace div-link min-w-min" [routerLink]="['/account', token.contract]">
                       {{ token.contract }}
                     </div>
                     <div class="token-amount">

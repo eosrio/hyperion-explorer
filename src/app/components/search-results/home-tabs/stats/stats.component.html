@@ -7,7 +7,7 @@
       <div class="stat-icon">
         <fa-icon [icon]="icons.solid.cube" class="opacity-70"></fa-icon> <!-- Slightly different icon/style for LIB -->
       </div>
-      <div class="stat-content">
+      <div class="flex flex-col min-w-0 items-start">
         <div class="stat-label">Last Irreversible Block</div>
         <a [routerLink]="['/block', chainService.lastIrreversibleBlockNum()]" class="stat-value link-accent">
           {{ chainService.lastIrreversibleBlockNum() | number }}
@@ -32,7 +32,7 @@
       <div class="stat-icon">
         <fa-icon [icon]="icons.solid.cube" class="opacity-70"></fa-icon>
       </div>
-      <div class="stat-content">
+      <div class="flex flex-col min-w-0 items-start">
         <div class="stat-label">Head Block</div>
         <a [routerLink]="['/block', chainService.headBlockNum()]" class="stat-value link-accent">
           {{ chainService.headBlockNum() | number }}

@@ -247,12 +247,27 @@ body {
 .div-link {
   cursor: pointer;
   outline: none;
+  position: relative;
+}
+
+.div-link::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 1px;
+  bottom: 0;
+  left: 0;
+  background-color: oklch(from var(--main-text) 60% c h);
+  transition: width 0.3s ease;
 }
 
 .div-link:hover {
   color: oklch(from var(--main-text) 60% c h) !important;
-  transition: color 0.7s ease, text-decoration 0.7s ease;
-  text-decoration: underline;
+  transition: color 0.7s ease;
+}
+
+.div-link:hover::after {
+  width: 100%;
 }
 
 .link-gray {
@@ -262,24 +277,53 @@ body {
 .link-primary {
   color: oklch(from var(--primary) 68% c h);
   border-radius: var(--btn-link-border-radius);
+  position: relative;
+}
+
+.link-primary::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 1px;
+  bottom: 0;
+  left: 0;
+  background-color: oklch(from var(--primary) 50% c h);
+  transition: width 0.3s ease;
 }
 
 .link-primary:hover {
   color: oklch(from var(--primary) 50% c h);
   /*font-weight: 500;*/
-  transition: color 0.7s ease, text-decoration 0.7s ease;
-  /*text-decoration: underline;*/
-  text-decoration: underline;
+  transition: color 0.7s ease;
+}
+
+.link-primary:hover::after {
+  width: 100%;
 }
 
 .link-accent {
   color: var(--accent);
+  position: relative;
+}
+
+.link-accent::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 1px;
+  bottom: 0;
+  left: 0;
+  background-color: oklch(from var(--accent) 50% c h);
+  transition: width 0.3s ease;
 }
 
 .link-accent:hover {
   color: oklch(from var(--accent) 50% c h);
   transition: color 0.7s ease;
-  text-decoration: underline;
+}
+
+.link-accent:hover::after {
+  width: 100%;
 }
 
 /*Appear animation START*/
@@ -384,4 +428,3 @@ body {
   color: var(--primary);
 }
 /*CUSTOM INPUT END*/
-
