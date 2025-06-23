@@ -1,4 +1,5 @@
 <div class="p-4 overflow-hidden">
+
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 overflow-hidden">
 
     <!-- LIB Card -->
@@ -64,5 +65,16 @@
 
   </div>
 
+  <!-- REFRESH BUTTON -->
+  <div class="flex justify-center mt-6">
+    <button mat-raised-button
+            class="primary-btn"
+            matTooltip="Refresh Chain Info"
+            (click)="chainService.chainInfoResource.reload()"
+            [disabled]="chainService.chainInfoResource.isLoading()">
+      <fa-icon [icon]="icons.solid.sync" class="mr-2"></fa-icon>
+      Refresh Data
+    </button>
+  </div>
 
 </div>

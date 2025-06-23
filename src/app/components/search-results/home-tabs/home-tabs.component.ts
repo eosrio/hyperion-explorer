@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import {Component, inject} from '@angular/core';
 import { trigger, state, style, animate, transition } from '@angular/animations'; // Import animation functions
 import { MatTab, MatTabContent, MatTabGroup, MatTabLabel } from "@angular/material/tabs";
 import { StatsComponent } from "./stats/stats.component";
@@ -8,6 +8,7 @@ import { MatButtonModule } from "@angular/material/button"; // For MatIconButton
 import { MatIconModule } from "@angular/material/icon";
 import { MatRippleModule } from '@angular/material/core'; // Import MatRippleModule for ripple effect
 import { CommonModule } from "@angular/common";
+import {DataService} from "../../../services/data.service";
 
 @Component({
   selector: 'app-home-tabs',
@@ -54,6 +55,9 @@ import { CommonModule } from "@angular/common";
   ]
 })
 export class HomeTabsComponent {
+
+  ds = inject(DataService);
+
   isExpanded = false; // State variable for expansion
 
   toggleExpansion(event?: MouseEvent): void {
