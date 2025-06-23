@@ -38,7 +38,9 @@
             </div>
             @defer (when acServ.hasContract()) {
               @if (acServ.hasContract()) {
-                <button (click)="openContractsDialog(null, null)" mat-raised-button>Explore Smart Contract</button>
+                <button (click)="openContractsDialog(null, null)" mat-raised-button class="primary-btn">
+                  Explore Smart Contract
+                </button>
               }
             }
           </div>
@@ -223,13 +225,16 @@
           </div>
         </mat-card-content>
       </div>      <!--TOKENS-->
-      <mat-accordion class="custom-card vote-card w-full text-black">        <mat-expansion-panel
+      <mat-accordion class="custom-card vote-card w-full text-black">
+        <mat-expansion-panel
           #tokensExpansionPanel
           [(expanded)]="tokensExpanded"
           [disabled]="acServ.tokensComputed().length <= 0"
-          [hideToggle]="acServ.tokensComputed().length <= 0"
-        ><mat-expansion-panel-header class="!px-4">
-            <mat-panel-title class="!flex-grow-0 !flex-shrink-0">              <div class="flex flex-row items-center gap-2 text-xl">
+          [hideToggle]="true"
+        >
+          <mat-expansion-panel-header>
+            <mat-panel-title class="!flex-grow-0 !flex-shrink-0">
+              <div class="flex flex-row items-center gap-2 text-xl">
                 @if (acServ.tokensComputed().length > 0) {
                   <button mat-icon-button class="small-arrow-btn">
                     <div class="flex flex-col items-center justify-center">
@@ -253,15 +258,16 @@
                   matTooltipClass="tooltip-bigger"
                 ></fa-icon>
               </div>
-            </mat-panel-title>            <mat-panel-description class="!text-right !justify-end !ml-auto !flex-grow-0 !flex-shrink-0">
+            </mat-panel-title>
+            <mat-panel-description class="!text-right !justify-end !ml-auto !flex-grow-0 !flex-shrink-0">
               @if (acServ.tokensComputed().length > 0) {
-                <span class="whitespace-nowrap"><strong>{{ acServ.tokensComputed().length }}</strong> found</span>
+                <span class="whitespace-nowrap faded text-sm"><strong>{{ acServ.tokensComputed().length }}</strong> found</span>
               } @else {
-                <span class="whitespace-nowrap">No tokens</span>
+                <span class="whitespace-nowrap faded text-sm">No tokens</span>
               }
             </mat-panel-description>
           </mat-expansion-panel-header>
-          
+
           @if (acServ.tokensComputed().length > 0) {
             <div class="mt-3 flex flex-col gap-[10px] sm:flex-row sm:flex-wrap sm:gap-[43px] md:flex-col md:gap-[10px]">
               @for (token of acServ.tokensComputed(); track token.contract + token.symbol) {
@@ -281,13 +287,14 @@
           }
         </mat-expansion-panel>
       </mat-accordion>      <!--KEYS-->
-      <mat-accordion class="custom-card vote-card w-full text-black md:col-span-2">        <mat-expansion-panel
-          #permissionsExpansionPanel
-          [(expanded)]="permissionsExpanded"
-          [disabled]="acServ.accountComputed().permissions.length <= 0"
-          [hideToggle]="acServ.accountComputed().permissions.length <= 0"
-        ><mat-expansion-panel-header class="!px-4">
-            <mat-panel-title class="!flex-grow-0 !flex-shrink-0">              <div class="flex flex-row items-center gap-2 text-xl">
+      <mat-accordion class="custom-card vote-card w-full text-black md:col-span-2">
+        <mat-expansion-panel #permissionsExpansionPanel
+                             [(expanded)]="permissionsExpanded"
+                             [disabled]="acServ.accountComputed().permissions.length <= 0"
+                             [hideToggle]="true">
+          <mat-expansion-panel-header>
+            <mat-panel-title class="!flex-grow-0 !flex-shrink-0">
+              <div class="flex flex-row items-center gap-2 text-xl">
                 @if (acServ.accountComputed().permissions.length > 0) {
                   <button mat-icon-button class="small-arrow-btn">
                     <div class="flex flex-col items-center justify-center">
@@ -305,15 +312,16 @@
                 </fa-layers>
                 <div class="vote-card-title mb-0 whitespace-nowrap">Permissions & Keys</div>
               </div>
-            </mat-panel-title>            <mat-panel-description class="!text-right !justify-end !ml-auto !flex-grow-0 !flex-shrink-0">
+            </mat-panel-title>
+            <mat-panel-description class="!text-right !justify-end !ml-auto !flex-grow-0 !flex-shrink-0">
               @if (acServ.accountComputed().permissions.length > 0) {
-                <span class="whitespace-nowrap"><strong>{{ acServ.accountComputed().permissions.length }}</strong> configured</span>
+                <span class="whitespace-nowrap faded text-sm"><strong>{{ acServ.accountComputed().permissions.length }}</strong> configured</span>
               } @else {
-                <span class="whitespace-nowrap">No permissions</span>
+                <span class="whitespace-nowrap faded text-sm">No permissions</span>
               }
             </mat-panel-description>
           </mat-expansion-panel-header>
-          
+
           <div class="mt-3">
             @defer (on immediate) {
               <app-permission-tree [permissions]="acServ.accountComputed().permissions"></app-permission-tree>
@@ -325,14 +333,17 @@
       <!--VOTE CARD-->
       @let voterInfo = acServ.accountComputed().voter_info;
       @if (voterInfo && (voterInfo.proxy || voterInfo.producers.length > 0)) {
-        <mat-accordion class="custom-card vote-card w-full text-black md:col-span-3">          <mat-expansion-panel
+        <mat-accordion class="custom-card vote-card w-full text-black md:col-span-3">
+          <mat-expansion-panel
             #voteExpansionPanel
             [disabled]="voterInfo.producers.length <= 0"
             [hideToggle]="voterInfo.producers.length <= 0"
           >
             <!--            -->
-            <!--            -->            <mat-expansion-panel-header class="!px-4">
-              <mat-panel-title class="!flex-grow-0 !flex-shrink-0">                <div class="flex flex-row items-center gap-2 text-xl">
+            <!--            -->
+            <mat-expansion-panel-header class="!px-4">
+              <mat-panel-title class="!flex-grow-0 !flex-shrink-0">
+                <div class="flex flex-row items-center gap-2 text-xl">
                   @if (voterInfo.producers.length > 0) {
                     <button mat-icon-button class="small-arrow-btn">
                       <div class="flex flex-col items-center justify-center">
@@ -350,28 +361,31 @@
                   </fa-layers>
                   <div class="vote-card-title mb-0 whitespace-nowrap">Votes</div>
                 </div>
-              </mat-panel-title>              <mat-panel-description class="!text-right !justify-end !ml-auto !flex-grow-0 !flex-shrink-0">
+              </mat-panel-title>
+              <mat-panel-description class="!text-right !justify-end !ml-auto !flex-grow-0 !flex-shrink-0">
                 @if (voterInfo) {
                   @if (voterInfo.proxy) {
-                    <span class="whitespace-nowrap">Proxy: <a [routerLink]="['/account', voterInfo.proxy]" class="link-primary">{{ voterInfo.proxy }}</a></span>
+                    <span class="whitespace-nowrap">Proxy: <a [routerLink]="['/account', voterInfo.proxy]"
+                                                              class="link-primary">{{ voterInfo.proxy }}</a></span>
                   } @else {
                     @if (voterInfo.producers.length > 0) {
-                      <span class="whitespace-nowrap"><strong>{{ voterInfo.producers.length }}</strong> producer{{voterInfo.producers.length > 1 ? 's' : ''}}</span>
+                      <span
+                        class="whitespace-nowrap"><strong>{{ voterInfo.producers.length }}</strong> producer{{ voterInfo.producers.length > 1 ? 's' : '' }}</span>
                     }
                   }
                 }
               </mat-panel-description>
             </mat-expansion-panel-header>@if (voterInfo.producers.length > 0) {
-              <div class="mt-3">
-                <mat-chip-set aria-label="list of producers voted">
-                  @for (producer of voterInfo.producers; track producer) {
-                    <mat-chip [routerLink]="['/account', producer]" class="cursor-pointer">
-                      {{ producer }}
-                    </mat-chip>
-                  }
-                </mat-chip-set>
-              </div>
-            }
+            <div class="mt-3">
+              <mat-chip-set aria-label="list of producers voted">
+                @for (producer of voterInfo.producers; track producer) {
+                  <mat-chip [routerLink]="['/account', producer]" class="cursor-pointer">
+                    {{ producer }}
+                  </mat-chip>
+                }
+              </mat-chip-set>
+            </div>
+          }
           </mat-expansion-panel>
         </mat-accordion>
       }
@@ -423,7 +437,7 @@
               </strong>
             </a>
             <button mat-button matTooltip="Refresh Last Irreversible Block" (click)="chain.refreshChainInfo()"
-            class="custom-icon-btn">
+                    class="custom-icon-btn">
               <fa-icon [icon]="icons.solid.faSync" class="text-lg faded"></fa-icon>
             </button>
           </div>

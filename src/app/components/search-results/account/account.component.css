@@ -34,10 +34,6 @@
   border-radius: 0.5rem;
 }
 
-.custom-card .mat-expansion-panel.mat-expanded {
-  border: 1px solid var(--line-divider);
-}
-
 .actions-table {
   width: 100%;
   background-color: transparent;
@@ -172,14 +168,19 @@
 }
 
 .vote-card .mat-expansion-panel-header {
-  padding-left: 0.938rem;
+  padding: 0 !important;
   height: auto;
   min-height: var(--mat-expansion-header-collapsed-state-height);
 }
 
 ::ng-deep .mat-expansion-panel-header {
+  padding: 0 !important;
   height: auto;
   min-height: 3rem;
+}
+
+::ng-deep .vote-card .mat-expansion-panel-body {
+  padding: 0 !important;
 }
 
 @media (max-width: 652px) {
@@ -539,11 +540,11 @@ input[type="checkbox"]:checked::after {
   ::ng-deep .mat-expansion-panel-header .mat-panel-description {
     font-size: 0.75rem !important;
   }
-  
+
   ::ng-deep .mat-expansion-panel-header .mat-panel-title .vote-card-title {
     font-size: 1rem !important;
   }
-  
+
   ::ng-deep .mat-expansion-panel-header .mat-content {
     gap: 8px !important;
   }
@@ -553,7 +554,7 @@ input[type="checkbox"]:checked::after {
   ::ng-deep .mat-expansion-panel-header .mat-panel-description {
     font-size: 0.7rem !important;
   }
-  
+
   ::ng-deep .mat-expansion-panel-header .mat-panel-title .vote-card-title {
     font-size: 0.875rem !important;
   }

@@ -251,7 +251,8 @@ body {
 
 .div-link:hover {
   color: oklch(from var(--main-text) 60% c h) !important;
-  transition: color 0.7s ease;
+  transition: color 0.7s ease, text-decoration 0.7s ease;
+  text-decoration: underline;
 }
 
 .link-gray {
@@ -266,8 +267,9 @@ body {
 .link-primary:hover {
   color: oklch(from var(--primary) 50% c h);
   /*font-weight: 500;*/
-  transition: color 0.7s ease;
+  transition: color 0.7s ease, text-decoration 0.7s ease;
   /*text-decoration: underline;*/
+  text-decoration: underline;
 }
 
 .link-accent {
@@ -277,6 +279,7 @@ body {
 .link-accent:hover {
   color: oklch(from var(--accent) 50% c h);
   transition: color 0.7s ease;
+  text-decoration: underline;
 }
 
 /*Appear animation START*/

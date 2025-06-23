@@ -9,7 +9,7 @@
       </div>
       <div class="stat-content">
         <div class="stat-label">Last Irreversible Block</div>
-        <a [routerLink]="['/block', chainService.lastIrreversibleBlockNum()]" class="stat-value div-link">
+        <a [routerLink]="['/block', chainService.lastIrreversibleBlockNum()]" class="stat-value link-accent">
           {{ chainService.lastIrreversibleBlockNum() | number }}
         </a>
       </div>
@@ -22,7 +22,7 @@
       </div>
       <div class="stat-content">
         <div class="stat-label">Chain ID</div>
-        <div class="stat-value" [title]="chainService.chainId()">{{ chainService.chainId() }}</div>
+        <div class="stat-value main-color" [title]="chainService.chainId()">{{ chainService.chainId() }}</div>
         <!-- Removed truncate class -->
       </div>
     </div>
@@ -34,7 +34,7 @@
       </div>
       <div class="stat-content">
         <div class="stat-label">Head Block</div>
-        <a [routerLink]="['/block', chainService.headBlockNum()]" class="stat-value div-link">
+        <a [routerLink]="['/block', chainService.headBlockNum()]" class="stat-value link-accent">
           {{ chainService.headBlockNum() | number }}
         </a>
       </div>
@@ -48,7 +48,7 @@
       </div>
       <div class="stat-content">
         <div class="stat-label faded">Head Block Time</div>
-        <div class="stat-value">{{ chainService.headBlockTime() | date:'medium' }}</div>
+        <div class="stat-value main-color">{{ chainService.headBlockTime() | date:'medium' }}</div>
       </div>
     </div>
 
@@ -59,7 +59,7 @@
       </div>
       <div class="stat-content">
         <div class="stat-label">Server Version</div>
-        <div class="stat-value">{{ chainService.serverVersion() }}</div>
+        <div class="stat-value main-color">{{ chainService.serverVersion() }}</div>
       </div>
     </div>
 

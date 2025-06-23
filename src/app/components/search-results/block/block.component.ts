@@ -4,10 +4,12 @@ import {MatProgressSpinner} from "@angular/material/progress-spinner";
 import {FontAwesomeModule} from "@fortawesome/angular-fontawesome";
 import {MatChipsModule} from "@angular/material/chips";
 import {MatTableModule} from "@angular/material/table";
-import {MatIconButton} from "@angular/material/button";
+import {MatButton, MatIconButton} from "@angular/material/button";
 import {ActivatedRoute, RouterModule} from "@angular/router";
 import {isPlatformBrowser, KeyValuePipe, NgClass} from "@angular/common";
 import {
+  faArrowLeft,
+  faArrowRight,
   faChevronDown,
   faChevronRight,
   faCircle,
@@ -41,7 +43,8 @@ import {MatTooltip} from "@angular/material/tooltip";
     NgClass,
     KeyValuePipe,
     ActDataViewComponent,
-    MatTooltip
+    MatTooltip,
+    MatButton
   ],
   templateUrl: './block.component.html',
   styleUrl: './block.component.css',
@@ -80,7 +83,9 @@ export class BlockComponent implements OnInit, OnDestroy {
       faChevronRight: faChevronRight,
       faChevronDown: faChevronDown,
       faSadTear: faSadTear,
-      faSpinner: faSpinner
+      faSpinner: faSpinner,
+      arrowRight: faArrowRight,
+      arrowLeft: faArrowLeft
     }
   }
 
