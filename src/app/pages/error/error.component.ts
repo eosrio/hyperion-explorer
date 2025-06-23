@@ -2,6 +2,7 @@ import {afterNextRender, Component, inject} from '@angular/core';
 import {DataService} from "../../services/data.service";
 import {PreHeaderComponent} from "../../components/pre-header/pre-header.component";
 import {animate} from "motion";
+import {Router} from "@angular/router";
 
 @Component({
   selector: 'app-error',
@@ -11,8 +12,12 @@ import {animate} from "motion";
 })
 export class ErrorComponent {
   ds = inject(DataService);
+  router = inject(Router);
 
   constructor() {
+    if (!this.ds.initError) {
+      this.router.navigate(['/']).catch(console.error);
+    }
     afterNextRender(() => {
       animate([
         ["#error-icon", {y: [50, 0], rotate: [-20, 0]}, {type: "spring", stiffness: 60, damping: 4}],

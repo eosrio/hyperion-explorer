@@ -48,16 +48,16 @@
   [mat-header-cell].mat-column-trx_id {
     /*border-radius:  var(--card-border-radius) 0 0  var(--card-border-radius);*/
     border-radius:  0;
-    max-width: 200px;
-    width: 200px;
+    max-width: 213px;
+    width: 213px;
     padding-left: calc(0.75rem + (var(--spacing) * 2)) !important;
   }
 
   [mat-header-cell].mat-column-block_num {
     /*border-radius: 0  var(--card-border-radius)  var(--card-border-radius) 0;*/
     border-radius: 0;
-    max-width: 210px;
-    width: 210px;
+    max-width: 200px;
+    width: 200px;
   }
 
   [mat-header-cell].mat-column-action {
@@ -155,7 +155,10 @@
   [mat-table] [mat-row]:not(:last-of-type) td:last-of-type {
     border-bottom: 0.5rem solid #e5e5e5;
     padding-bottom: 1.25rem !important;
-    margin-bottom: 1.25rem;
+  }
+
+  [mat-table] [mat-row]:not(:first-of-type) td:first-of-type {
+    padding-top: 1.5rem !important;
   }
 
   [mat-card] [mat-expansion-panel][mat-table] {
