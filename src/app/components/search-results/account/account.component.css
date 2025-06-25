@@ -131,11 +131,6 @@
   cursor: pointer;
 }
 
-.action-cell .div-link:hover {
-  text-decoration: underline;
-  color: var(--primary);
-}
-
 .actions-table-paginator {
   background-color: transparent;
 }

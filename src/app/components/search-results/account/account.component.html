@@ -272,7 +272,7 @@
             <div class="mt-3 flex flex-col gap-[10px] sm:flex-row sm:flex-wrap sm:gap-[43px] md:flex-col md:gap-[10px]">
               @for (token of acServ.tokensComputed(); track token.contract + token.symbol) {
                 <div class="sm:flex-[0_0_calc((100%]">
-                  <div class="token-cell">
+                  <div class="token-cell flex flex-col items-start gap-1">
                     <div class="faded monospace div-link min-w-min" [routerLink]="['/account', token.contract]">
                       {{ token.contract }}
                     </div>
@@ -639,7 +639,7 @@
                         </span>
                       }
                     </div>
-                    <a matRipple [routerLink]="['/transaction', action['trx_id']]" class="link-primary p-2">
+                    <a matRipple [routerLink]="['/transaction', action['trx_id']]" class="link-primary m-2">
                       {{ action["trx_id"].slice(0, 8) }}...
                     </a>
                     <a matRipple (click)="onRowClick(action)" class="link-btn faded">
