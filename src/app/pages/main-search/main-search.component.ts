@@ -96,6 +96,8 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     'Search by public key...'
   ];
 
+  private placeholderInterval: any = null;
+
   err = signal("");
 
   taglineMax = 145;
@@ -159,10 +161,90 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
       this.createMotionAnimation(); // Keep other setup animations
+      this.startPlaceholderAnimation(); // Start placeholder animation
     }
     if (this.dataService.routeError) {
       this.err.set(this.dataService.routeError);
       this.dataService.routeError = '';
+    }
+  }
+
+  private startPlaceholderAnimation(): void {
+    // Reset to the first placeholder to ensure we start from the beginning
+    this.currentPlaceholder = 0;
+    this.searchPlaceholder.set(this.placeholders[0]);
+
+    // Trigger the first animation immediately
+    setTimeout(() => {
+      this.animatePlaceholder();
+    }, 1000);
+
+    // Start the animation loop with a 3-second interval
+    this.placeholderInterval = setInterval(() => {
+      this.animatePlaceholder();
+    }, 3000);
+  }
+
+  private animatePlaceholder(): void {
+    // Get the input element
+    const inputElement = this.searchField()?.nativeElement;
+    if (!inputElement) return;
+
+    // Set backface-visibility to visible for the flip effect
+    inputElement.style.backfaceVisibility = 'visible !important';
+    // Add additional styles to match Animate.css flipInX
+    inputElement.style.transformOrigin = 'top center';
+    inputElement.style.animationFillMode = 'both';
+
+    // Define a fixed sequence to ensure all placeholders are shown
+    // This ensures we cycle through: account name -> block number -> transaction id -> public key
+    const sequence = [0, 1, 2, 3]; // Indices of placeholders array
+
+    // Calculate next placeholder index based on the fixed sequence
+    let nextIndex = sequence.indexOf(this.currentPlaceholder);
+    // If currentPlaceholder is not in the sequence, start from the beginning
+    if (nextIndex === -1) {
+      nextIndex = 0;
+    }
+    const nextPlaceholder = sequence[(nextIndex + 1) % sequence.length];
+
+    // Only animate if the input is not focused to avoid disrupting user typing
+    if (document.activeElement !== inputElement) {
+      // First update the placeholder text
+      this.currentPlaceholder = nextPlaceholder;
+      console.log('Changing to placeholder:', this.currentPlaceholder, this.placeholders[this.currentPlaceholder]);
+      this.searchPlaceholder.set(this.placeholders[this.currentPlaceholder]);
+
+      // Then animate the change - this way animation happens AFTER the text changes
+      animate(
+        inputElement,
+        // Use type assertion to avoid TypeScript error with opacity
+        {
+          opacity: [0, 0, 1, 1, 1],
+          transform: [
+            // from: 90deg rotation
+            'perspective(400px) rotate3d(1, 0, 0, 90deg)',
+            // 40%: -20deg rotation
+            'perspective(400px) rotate3d(1, 0, 0, -20deg)',
+            // 60%: 10deg rotation
+            'perspective(400px) rotate3d(1, 0, 0, 10deg)',
+            // 80%: -5deg rotation
+            'perspective(400px) rotate3d(1, 0, 0, -5deg)',
+            // to: no rotation
+            'perspective(400px)'
+          ]
+        } as any,
+        {
+          duration: 1, // Standard animation duration
+          // Use a more precise easing function that matches the CSS animation
+          easing: [0.36, 0, 0.66, 1] // Cubic-bezier approximation of ease-out
+        } as any
+      );
+    } else {
+      // If input is focused, just change the placeholder without animation
+      this.currentPlaceholder = nextPlaceholder;
+      console.log('Changing to placeholder (no animation):', this.currentPlaceholder, this.placeholders[this.currentPlaceholder]);
+      this.searchPlaceholder.set(this.placeholders[this.currentPlaceholder]);
     }
   }
 
@@ -180,6 +262,12 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     // Call the cleanup function returned by the scroll listener for the header
     this.headerScrollCleanup?.();
     this.headerScrollCleanup = null;
+
+    // Clear the placeholder animation interval
+    if (this.placeholderInterval) {
+      clearInterval(this.placeholderInterval);
+      this.placeholderInterval = null;
+    }
 
     // Unsubscribe from breakpoint observer
     this.breakpointSubscription?.unsubscribe();
