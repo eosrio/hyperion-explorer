@@ -20,6 +20,27 @@
   background-color: transparent;
 }
 
+/* Custom placeholder styles */
+.custom-placeholder {
+  color: var(--placeholder-color, #757575);
+  font-size: inherit;
+  font-family: inherit;
+  opacity: 0.7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.static-placeholder {
+  /* Static part of the placeholder */
+  display: inline-block;
+}
+
+.dynamic-placeholder {
+  /* Animated part of the placeholder */
+  display: inline-block;
+}
+
 @media screen and (max-width: 959px) {
   .custom-input {
     /*font-size: max(1.1rem, 16px);*/
@@ -152,5 +173,3 @@
   color: var(--footer-text);
   transition: color .3s ease;
 }
-
-

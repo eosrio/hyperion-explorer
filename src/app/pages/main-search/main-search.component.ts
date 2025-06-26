@@ -11,7 +11,7 @@ import {
   OnDestroy // Added import
 } from '@angular/core';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
-import {isPlatformBrowser, NgOptimizedImage} from "@angular/common";
+import {CommonModule, isPlatformBrowser, NgOptimizedImage} from "@angular/common";
 import {SearchService} from "../../services/search.service";
 import {DataService} from "../../services/data.service";
 import {faHeart, faSearch} from "@fortawesome/free-solid-svg-icons";
@@ -46,7 +46,8 @@ import {faGithub, faTelegram} from "@fortawesome/free-brands-svg-icons";
     FaIconComponent,
     LayoutTransitionComponent,
     RouterLink,
-    ThemeSelectorComponent
+    ThemeSelectorComponent,
+    CommonModule
   ],
   templateUrl: './main-search.component.html',
   styleUrl: './main-search.component.css'
@@ -82,18 +83,26 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
 
   searchForm: FormGroup;
   systemAccounts = ["eosio", "eosio.token", "eosio.msig"];
+  // Signal for the full placeholder (for backward compatibility)
   searchPlaceholder = signal<string>("");
+
+  // Signal for the dynamic part of the placeholder (for the animation)
+  dynamicPlaceholder = signal<string>("");
 
   autocomplete = viewChild(MatAutocompleteTrigger);
 
   private currentPlaceholder = 0;
 
+  // Static part of the placeholder
+  private staticPlaceholderText = 'Search by';
+
+  // Dynamic parts of the placeholder (without the static part)
   placeholders = [
-    'Search by account name...',
-    'Search by block number...',
-    'Search by transaction id...',
-    // 'Search by EVM hash...',
-    'Search by public key...'
+    ' account name...',
+    ' block number...',
+    ' transaction id...',
+    // 'EVM hash...',
+    ' public key...'
   ];
 
   private placeholderInterval: any = null;
@@ -127,7 +136,9 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
       search_field: ['', Validators.required]
     });
 
-    this.searchPlaceholder.set(this.placeholders[0]);
+    // Set both the full placeholder and the dynamic part
+    this.dynamicPlaceholder.set(this.placeholders[0]);
+    this.searchPlaceholder.set(this.staticPlaceholderText + this.placeholders[0]);
 
     this.searchForm.get('search_field')?.valueChanges?.pipe(debounceTime(300))?.subscribe((value) => {
       if (value && value.length > 2) {
@@ -172,7 +183,9 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   private startPlaceholderAnimation(): void {
     // Reset to the first placeholder to ensure we start from the beginning
     this.currentPlaceholder = 0;
-    this.searchPlaceholder.set(this.placeholders[0]);
+    // Set both the full placeholder and the dynamic part
+    this.dynamicPlaceholder.set(this.placeholders[0]);
+    this.searchPlaceholder.set(this.staticPlaceholderText + this.placeholders[0]);
 
     // Trigger the first animation immediately
     setTimeout(() => {
@@ -189,12 +202,6 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     // Get the input element
     const inputElement = this.searchField()?.nativeElement;
     if (!inputElement) return;
-
-    // Set backface-visibility to visible for the flip effect
-    inputElement.style.backfaceVisibility = 'visible !important';
-    // Add additional styles to match Animate.css flipInX
-    inputElement.style.transformOrigin = 'top center';
-    inputElement.style.animationFillMode = 'both';
 
     // Define a fixed sequence to ensure all placeholders are shown
     // This ensures we cycle through: account name -> block number -> transaction id -> public key
@@ -213,38 +220,54 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
       // First update the placeholder text
       this.currentPlaceholder = nextPlaceholder;
       console.log('Changing to placeholder:', this.currentPlaceholder, this.placeholders[this.currentPlaceholder]);
-      this.searchPlaceholder.set(this.placeholders[this.currentPlaceholder]);
 
-      // Then animate the change - this way animation happens AFTER the text changes
-      animate(
-        inputElement,
-        // Use type assertion to avoid TypeScript error with opacity
-        {
-          opacity: [0, 0, 1, 1, 1],
-          transform: [
-            // from: 90deg rotation
-            'perspective(400px) rotate3d(1, 0, 0, 90deg)',
-            // 40%: -20deg rotation
-            'perspective(400px) rotate3d(1, 0, 0, -20deg)',
-            // 60%: 10deg rotation
-            'perspective(400px) rotate3d(1, 0, 0, 10deg)',
-            // 80%: -5deg rotation
-            'perspective(400px) rotate3d(1, 0, 0, -5deg)',
-            // to: no rotation
-            'perspective(400px)'
-          ]
-        } as any,
-        {
-          duration: 1, // Standard animation duration
-          // Use a more precise easing function that matches the CSS animation
-          easing: [0.36, 0, 0.66, 1] // Cubic-bezier approximation of ease-out
-        } as any
-      );
+      // Set both the full placeholder and the dynamic part
+      this.dynamicPlaceholder.set(this.placeholders[this.currentPlaceholder]);
+      this.searchPlaceholder.set(this.staticPlaceholderText + this.placeholders[this.currentPlaceholder]);
+
+      // Find the dynamic placeholder element to animate
+      setTimeout(() => {
+        const dynamicPlaceholderElement = document.querySelector('.dynamic-placeholder') as HTMLElement;
+        if (dynamicPlaceholderElement) {
+          // Set animation properties for the dynamic part
+          dynamicPlaceholderElement.style.transformOrigin = 'top center';
+          dynamicPlaceholderElement.style.animationFillMode = 'both';
+          dynamicPlaceholderElement.style.backfaceVisibility = 'visible';
+
+          // Then animate only the dynamic part - this way animation happens AFTER the text changes
+          animate(
+            dynamicPlaceholderElement,
+            // Use type assertion to avoid TypeScript error with opacity
+            {
+              opacity: [0, 0, 1, 1, 1],
+              transform: [
+                // from: 90deg rotation
+                'perspective(400px) rotate3d(1, 0, 0, 90deg)',
+                // 40%: -20deg rotation
+                'perspective(400px) rotate3d(1, 0, 0, -20deg)',
+                // 60%: 10deg rotation
+                'perspective(400px) rotate3d(1, 0, 0, 10deg)',
+                // 80%: -5deg rotation
+                'perspective(400px) rotate3d(1, 0, 0, -5deg)',
+                // to: no rotation
+                'perspective(400px)'
+              ]
+            } as any,
+            {
+              duration: 1, // Standard animation duration
+              // Use a more precise easing function that matches the CSS animation
+              easing: [0.36, 0, 0.66, 1] // Cubic-bezier approximation of ease-out
+            } as any
+          );
+        }
+      }, 0); // Use setTimeout to ensure the DOM has updated with the new text
     } else {
       // If input is focused, just change the placeholder without animation
       this.currentPlaceholder = nextPlaceholder;
       console.log('Changing to placeholder (no animation):', this.currentPlaceholder, this.placeholders[this.currentPlaceholder]);
-      this.searchPlaceholder.set(this.placeholders[this.currentPlaceholder]);
+      // Set both the full placeholder and the dynamic part
+      this.dynamicPlaceholder.set(this.placeholders[this.currentPlaceholder]);
+      this.searchPlaceholder.set(this.staticPlaceholderText + this.placeholders[this.currentPlaceholder]);
     }
   }
 
@@ -413,7 +436,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
         // Always reset styles if not allowed
         // Instantly reset tagline position and opacity
         // Ensure the element exists before trying to animate it for reset
-        const taglineElement = document.querySelector('.tagline');
+        const taglineElement = document.querySelector('.tagline') as HTMLElement;
         if (taglineElement) {
             animate(taglineElement, { x: 0, opacity: 1 }, { duration: 0 });
         }
