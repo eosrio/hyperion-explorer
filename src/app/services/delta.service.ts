@@ -44,7 +44,7 @@ export class DeltaService {
         } else {
           const url = this.data.env.hyperionApiUrl + '/v2/history/get_deltas?' + key;
           const res = await lastValueFrom(this.httpClient.get(url)) as GetDeltasResponse;
-          console.log('Query Time', res.query_time_ms);
+          // console.log('Query Time', res.query_time_ms);
           this.queryCache.set(key, res);
           return res;
         }

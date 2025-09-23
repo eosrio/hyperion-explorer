@@ -55,7 +55,7 @@ export class ChainService {
   // Resource to fetch and store the full chain info
   chainInfoResource = resource<ChainInfo | null, void>({
     loader: async () => {
-      console.log("Fetching Chain Info...");
+      // console.log("Fetching Chain Info...");
       try {
         const info = await lastValueFrom(this.httpClient.get<ChainInfo>(this.data.env.hyperionApiUrl + "/v1/chain/get_info"));
         // Add server_version_string if it doesn't exist but server_version does (for compatibility)
@@ -150,10 +150,10 @@ export class ChainService {
     const streamLib = this.streamLib();
     const chainInfo = this.chainInfo();
     if (streamLib && streamLib > 0) {
-      console.log(`LIB from Stream: ${streamLib}`);
+      // console.log(`LIB from Stream: ${streamLib}`);
       return streamLib;
     } else if (chainInfo && chainInfo.last_irreversible_block_num) {
-      console.log(`LIB from Chain: ${chainInfo.last_irreversible_block_num}`);
+      // console.log(`LIB from Chain: ${chainInfo.last_irreversible_block_num}`);
       return chainInfo.last_irreversible_block_num;
     } else {
       return 0;
@@ -199,7 +199,7 @@ export class ChainService {
   // Resource to fetch producer data
   producersResource = resource<GetProducersResponse | null, void>({
     loader: async () => {
-      console.log("Fetching Producers...");
+      // console.log("Fetching Producers...");
       try {
         // Standard endpoint, might need adjustment based on specific Hyperion config
         const producers = await lastValueFrom(

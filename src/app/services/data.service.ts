@@ -35,7 +35,7 @@ export abstract class DataService {
     try {
       const url = new URL(hyperionServer);
       this.env.hyperionApiUrl = url.origin;
-      console.log(`(${platform}) Setting origin to:`, this.env.hyperionApiUrl);
+      // console.log(`(${platform}) Setting origin to:`, this.env.hyperionApiUrl);
     } catch (e) {
       console.log(hyperionServer);
       console.log("Error setting origin:", e);

@@ -201,7 +201,7 @@ export class AccountService {
         } else {
           const url = this.data.env.hyperionApiUrl + "/v2/history/get_actions?" + key;
           const res = (await lastValueFrom(this.httpClient.get(url))) as GetActionsResponse;
-          console.log("Query Time", res.query_time_ms);
+          // console.log("Query Time", res.query_time_ms);
           this.queryCache.set(key, res);
           return res;
         }
@@ -358,7 +358,7 @@ export class AccountService {
   public cpuBalance = computed(() => {
     const account = this.accountComputed();
     if (account.total_resources) {
-      console.log(account);
+      // console.log(account);
       if (account.total_resources.cpu_weight) {
         return parseFloat(account.total_resources.cpu_weight.split(" ")[0]);
       } else {
@@ -447,7 +447,7 @@ export class AccountService {
       const pendingActions = this.pendingActions();
       const isStreaming = this.streamClientStatus();
       // Use the new computed signal for LIB
-      console.log(`Pending Actions (lib: ${this.chain.lastIrreversibleBlockNum()})`, pendingActions.length);
+      // console.log(`Pending Actions (lib: ${this.chain.lastIrreversibleBlockNum()})`, pendingActions.length);
       if (pendingActions.length > 0 && !isStreaming) {
         untracked(() => {
           setTimeout(() => {

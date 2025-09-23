@@ -131,7 +131,7 @@ export class BlockComponent implements OnInit, OnDestroy {
     this.route.paramMap.subscribe(async value => {
       const block_num_or_id = value.get('block_num_or_id')?.trim();
 
-      console.log('block_num_or_id', block_num_or_id);
+      // console.log('block_num_or_id', block_num_or_id);
 
       if (block_num_or_id) {
         if (block_num_or_id.length === 64) {

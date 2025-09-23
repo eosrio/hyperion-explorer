@@ -31,7 +31,7 @@ export class BlockService {
       }
       const url = this.data.env.hyperionApiUrl + '/v1/trace_api/get_block';
       const data = await lastValueFrom(this.httpClient.post(url, body));
-      console.log('blockData', data);
+      // console.log('blockData', data);
       return data;
     }
   });

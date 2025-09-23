@@ -219,7 +219,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     if (document.activeElement !== inputElement) {
       // First update the placeholder text
       this.currentPlaceholder = nextPlaceholder;
-      console.log('Changing to placeholder:', this.currentPlaceholder, this.placeholders[this.currentPlaceholder]);
+      // console.log('Changing to placeholder:', this.currentPlaceholder, this.placeholders[this.currentPlaceholder]);
 
       // Set both the full placeholder and the dynamic part
       this.dynamicPlaceholder.set(this.placeholders[this.currentPlaceholder]);
@@ -264,7 +264,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     } else {
       // If input is focused, just change the placeholder without animation
       this.currentPlaceholder = nextPlaceholder;
-      console.log('Changing to placeholder (no animation):', this.currentPlaceholder, this.placeholders[this.currentPlaceholder]);
+      // console.log('Changing to placeholder (no animation):', this.currentPlaceholder, this.placeholders[this.currentPlaceholder]);
       // Set both the full placeholder and the dynamic part
       this.dynamicPlaceholder.set(this.placeholders[this.currentPlaceholder]);
       this.searchPlaceholder.set(this.staticPlaceholderText + this.placeholders[this.currentPlaceholder]);
@@ -295,8 +295,6 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     // Unsubscribe from breakpoint observer
     this.breakpointSubscription?.unsubscribe();
     this.breakpointSubscription = null;
-
-    console.log('MainSearchComponent destroyed, animations cleaned up.');
   }
 
 

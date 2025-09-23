@@ -25,7 +25,7 @@ export async function defineOrigin(ds: DataService, request: Request | null, pla
         const hyperionServer = request.headers.get('x-hyperion-server');
         if (hyperionServer) {
           // this means its being served by hyperion
-          console.log(`[${platform}] Using Hyperion server:`, hyperionServer);
+          // console.log(`[${platform}] Using Hyperion server:`, hyperionServer);
           ds.setOrigin(hyperionServer);
           apiUrl = hyperionServer;
         } else {
