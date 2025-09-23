@@ -101,7 +101,7 @@ export class TransactionComponent implements OnInit, OnDestroy {
       const trxId = this.txID();
       this.tx.set(await this.accountService.loadTxData(trxId));
 
-      const chainData = this.data.explorerMetadata;
+      const chainData = this.data.explorerMetadata();
 
       if (chainData && chainData.chain_name) {
         this.title.setTitle(`TX ${trxId.slice(0, 8)} • ${chainData.chain_name} Hyperion Explorer`);

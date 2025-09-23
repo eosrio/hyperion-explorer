@@ -49,6 +49,7 @@ interface GetProducersResponse {
   providedIn: "root"
 })
 export class ChainService {
+  
   data = inject(DataService);
   httpClient = inject(HttpClient);
 
@@ -72,14 +73,27 @@ export class ChainService {
   });
 
   oracleData = resource<any, any>({
-    loader: async () => {
+    params: () => ({
+      explorerMetadata: this.data.explorerMetadata()
+    }),
+    loader: async ({ params }) => {
       try {
+        const oracleConfig = params.explorerMetadata?.oracle;
+        if (!oracleConfig) {
+          return null;
+        }
+
+        const {contract, table} = oracleConfig;
+        if (!contract || !table) {
+          return null;
+        }
+
         const getTableRows = this.data.env.hyperionApiUrl + "/v1/chain/get_table_rows";
         const data = (await lastValueFrom(
           this.httpClient.post(getTableRows, {
-            code: "eosio.oracle",
-            scope: "eosio.oracle",
-            table: "lastknwnrate",
+            code: contract,
+            scope: contract,
+            table: table,
             limit: 1,
             json: true
           })

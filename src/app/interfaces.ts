@@ -9,7 +9,16 @@ export interface ExplorerMetadata {
   last_indexed_block: number;
   last_indexed_block_time: string;
   theme: Record<string, any>;
-  oracle?: boolean;
+  oracle?: {
+    custom_mode?: string;
+    pair?: string;
+    contract?: string;
+    table?: string;
+    path?: string;
+    type?: string;
+    factor?: number;
+  };
+  oracle_price_historgram?: boolean;
 }
 
 export interface TokenData {

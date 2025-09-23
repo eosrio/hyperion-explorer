@@ -1,6 +1,7 @@
-import {inject, Injectable, makeStateKey, signal, TransferState} from "@angular/core";
-import {ExplorerMetadata} from "../interfaces";
-import {Title} from "@angular/platform-browser";
+import { effect, inject, Injectable, makeStateKey, signal, TransferState, WritableSignal } from "@angular/core";
+import { ExplorerMetadata } from "../interfaces";
+import { Title } from "@angular/platform-browser";
+import { log } from "console";
 
 export abstract class DataService {
   env = {
@@ -19,14 +20,14 @@ export abstract class DataService {
     return this.env.hyperionApiUrl + "/v2/explorer_metadata";
   };
 
-  abstract explorerMetadata: ExplorerMetadata | null;
+  abstract explorerMetadata: WritableSignal<ExplorerMetadata | null>;
   abstract initError: string | null;
+
   customTheme?: Record<string, any>;
   routeError?: string = "";
   availableThemes: string[] = [];
 
   abstract load(): Promise<void>;
-
   abstract activateTheme(): Promise<void>;
 
   ready = signal(false);
@@ -43,14 +44,14 @@ export abstract class DataService {
   }
 }
 
-@Injectable({providedIn: "root"})
+@Injectable({ providedIn: "root" })
 export class DataServiceServer extends DataService {
   override async activateTheme(): Promise<void> {
     console.log("activateTheme not implemented on server");
   }
 
   state = inject(TransferState);
-  explorerMetadata: ExplorerMetadata | null = null;
+  explorerMetadata = signal<ExplorerMetadata | null>(null);
   initError: string | null = null;
 
   async load() {
@@ -72,7 +73,7 @@ export class DataServiceServer extends DataService {
             data.theme = this.customTheme;
           }
           this.state.set(this.metadataKey, data);
-          this.explorerMetadata = data;
+          this.explorerMetadata.set(data);
         } else {
           if (data && (!data.last_indexed_block || data.last_indexed_block <= 1)) {
             console.warn(`Invalid last_indexed_block in response from ${this.url()}`);
@@ -94,25 +95,38 @@ export class DataServiceServer extends DataService {
   }
 }
 
-@Injectable({providedIn: "root"})
+@Injectable({ providedIn: "root" })
 export class DataServiceBrowser extends DataService {
   private title = inject(Title);
 
   state = inject(TransferState);
   initError: string | null = null;
-  explorerMetadata: ExplorerMetadata | null = null;
+  explorerMetadata = signal<ExplorerMetadata | null>(null);
+
+  constructor() {
+    super();
+    effect(() => {
+      const data = this.explorerMetadata();
+      console.log("Explorer Metadata updated:", data);
+    });
+  }
 
   async load() {
     // load metadata from state on browser
-    this.explorerMetadata = this.state.get(this.metadataKey, null);
+    this.explorerMetadata.set(this.state.get(this.metadataKey, null));
     console.log("Loaded metadata from state:", this.explorerMetadata);
     this.initError = this.state.get(this.initErrorKey, null);
     if (this.explorerMetadata) {
       const savedTheme = localStorage.getItem("theme-override");
       if (savedTheme) {
-        this.explorerMetadata.theme = JSON.parse(savedTheme);
+        this.explorerMetadata.update(data => {
+          if (data) {
+            data.theme = JSON.parse(savedTheme);
+          }
+          return data;
+        });
       }
-      this.title.setTitle(`${this.explorerMetadata.chain_name} Hyperion Explorer`);
+      this.title.setTitle(`${this.explorerMetadata()?.chain_name} Hyperion Explorer`);
     } else {
       await this.loadChainData();
     }
@@ -136,7 +150,7 @@ export class DataServiceBrowser extends DataService {
             data.theme = JSON.parse(savedTheme);
           }
 
-          this.explorerMetadata = data;
+          this.explorerMetadata.set(data);
         } else {
           this.initError = `Error fetching ${this.url()}: Invalid response`;
         }
@@ -149,8 +163,9 @@ export class DataServiceBrowser extends DataService {
   }
 
   override async activateTheme(): Promise<void> {
-    if (this.explorerMetadata?.theme) {
-      for (const [key, value] of Object.entries(this.explorerMetadata?.theme)) {
+    const data = this.explorerMetadata();
+    if (data && data.theme) {
+      for (const [key, value] of Object.entries(data.theme)) {
         document.documentElement.style.setProperty(key, value);
       }
     }

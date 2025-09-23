@@ -151,10 +151,10 @@ export class BlockComponent implements OnInit, OnDestroy {
       }
 
       this.searchService.searchQuery.set(value.get('block_num_or_id') ?? "");
-      if (!this.dataService.explorerMetadata?.chain_name) {
+      if (!this.dataService.explorerMetadata()?.chain_name) {
         this.title.setTitle(`Block ${this.blockService.blockNum()} • Hyperion Explorer`);
       } else {
-        this.title.setTitle(`Block ${this.blockService.blockNum()} • ${this.dataService.explorerMetadata.chain_name} Hyperion Explorer`);
+        this.title.setTitle(`Block ${this.blockService.blockNum()} • ${this.dataService.explorerMetadata()?.chain_name} Hyperion Explorer`);
       }
 
       // if (this.block && this.block().status === 'pending') {

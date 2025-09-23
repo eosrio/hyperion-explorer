@@ -1,10 +1,10 @@
-import {Component, effect, inject, signal} from '@angular/core';
-import {DataService} from "../../services/data.service";
-import {MatFormField, MatLabel} from "@angular/material/form-field";
-import {MatOption, MatSelect} from "@angular/material/select";
-import {rxResource} from "@angular/core/rxjs-interop";
-import {HttpClient} from "@angular/common/http";
-import {Observable, of} from "rxjs";
+import { Component, effect, inject, signal } from '@angular/core';
+import { DataService } from "../../services/data.service";
+import { MatFormField, MatLabel } from "@angular/material/form-field";
+import { MatOption, MatSelect } from "@angular/material/select";
+import { rxResource } from "@angular/core/rxjs-interop";
+import { HttpClient } from "@angular/common/http";
+import { Observable, of } from "rxjs";
 
 @Component({
   selector: 'app-theme-selector',
@@ -25,9 +25,9 @@ export class ThemeSelectorComponent {
 
   themeData = rxResource<any, { theme: string }>({
     params: () => {
-      return {theme: this.selectedTheme()}
+      return { theme: this.selectedTheme() }
     },
-    stream: ({params}) => {
+    stream: ({ params }) => {
       if (params.theme === 'UNSET_THEME') {
         window.location.href = window ? window.location.origin : '/';
         return of({} as any);
@@ -42,10 +42,12 @@ export class ThemeSelectorComponent {
 
   constructor() {
     effect(() => {
-      if (this.ds.explorerMetadata) {
-        this.ds.explorerMetadata.theme = this.themeData.value();
+      const data = this.ds.explorerMetadata();
+      const ready = this.ds.ready();
+      if (data && ready) {
+        data.theme = this.themeData.value();
         this.ds.activateTheme().then(() => {
-          localStorage.setItem('theme-override', JSON.stringify(this.ds.explorerMetadata?.theme || {}));
+          localStorage.setItem('theme-override', JSON.stringify(data.theme || {}));
         }).catch(console.error);
       }
     });

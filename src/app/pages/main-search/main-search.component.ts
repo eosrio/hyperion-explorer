@@ -8,27 +8,28 @@ import {
   signal,
   viewChild,
   afterNextRender,
-  OnDestroy // Added import
+  OnDestroy, // Added import
+  linkedSignal
 } from '@angular/core';
-import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
-import {CommonModule, isPlatformBrowser, NgOptimizedImage} from "@angular/common";
-import {SearchService} from "../../services/search.service";
-import {DataService} from "../../services/data.service";
-import {faHeart, faSearch} from "@fortawesome/free-solid-svg-icons";
-import {ExplorerMetadata} from "../../interfaces";
-import {MatAutocomplete, MatAutocompleteTrigger, MatOption} from "@angular/material/autocomplete";
-import {Router, RouterLink, RouterOutlet} from "@angular/router";
-import {debounceTime, map, Subscription} from "rxjs"; // Added Subscription import
-import {MatButton} from "@angular/material/button";
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from "@angular/forms";
+import { CommonModule, isPlatformBrowser, NgOptimizedImage } from "@angular/common";
+import { SearchService } from "../../services/search.service";
+import { DataService } from "../../services/data.service";
+import { faHeart, faSearch } from "@fortawesome/free-solid-svg-icons";
+import { ExplorerMetadata } from "../../interfaces";
+import { MatAutocomplete, MatAutocompleteTrigger, MatOption } from "@angular/material/autocomplete";
+import { Router, RouterLink, RouterOutlet } from "@angular/router";
+import { debounceTime, map, Subscription } from "rxjs"; // Added Subscription import
+import { MatButton } from "@angular/material/button";
 
-import {version as PackageVersion} from '../../../../package.json';
-import {FaIconComponent} from "@fortawesome/angular-fontawesome";
-import {LayoutTransitionComponent} from "../../components/layout-transition/layout-transition.component";
+import { version as PackageVersion } from '../../../../package.json';
+import { FaIconComponent } from "@fortawesome/angular-fontawesome";
+import { LayoutTransitionComponent } from "../../components/layout-transition/layout-transition.component";
 // Import AnimationControls and ensure animate/scroll are imported
 import { animate, scroll } from "motion"; // Removed AnimationControls import
-import {BreakpointObserver, Breakpoints} from "@angular/cdk/layout";
-import {ThemeSelectorComponent} from "../../components/theme-selector/theme-selector.component";
-import {faGithub, faTelegram} from "@fortawesome/free-brands-svg-icons";
+import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
+import { ThemeSelectorComponent } from "../../components/theme-selector/theme-selector.component";
+import { faGithub, faTelegram } from "@fortawesome/free-brands-svg-icons";
 
 
 @Component({
@@ -76,7 +77,14 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     }
   }
 
-  chainData = signal<ExplorerMetadata>({} as ExplorerMetadata);
+  chainData = linkedSignal<ExplorerMetadata>(() => {
+    const data = this.dataService.explorerMetadata();
+    if (data) {
+      return data;
+    } else {
+      return {} as ExplorerMetadata;
+    }
+  });
   searchField = viewChild<ElementRef<HTMLInputElement>>('searchField');
   validSearch = signal<boolean>(false);
   filteredAccounts = signal<string[]>([]);
@@ -106,6 +114,13 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   ];
 
   private placeholderInterval: any = null;
+  // Scramble animation state
+  private scrambleFrame: number | null = null;
+  private scrambleQueue: Array<{ from: string; to: string; start: number; end: number; ch?: string }> = [];
+  private scrambleStartTime = 0;
+  private readonly scrambleDuration = 600; // ms (faster)
+  // Restrict to lowercase alpha to match placeholder style
+  private readonly scrambleChars = 'abcdefghijklmnopqrstuvwxyz';
 
   err = signal("");
 
@@ -128,9 +143,6 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   private breakpointSubscription: Subscription | null = null; // To store breakpoint observer subscription
 
   constructor() {
-    if (this.dataService.explorerMetadata) {
-      this.chainData.set(this.dataService.explorerMetadata);
-    }
 
     this.searchForm = this.formBuilder.group({
       search_field: ['', Validators.required]
@@ -181,8 +193,10 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   }
 
   private startPlaceholderAnimation(): void {
+
     // Reset to the first placeholder to ensure we start from the beginning
     this.currentPlaceholder = 0;
+    
     // Set both the full placeholder and the dynamic part
     this.dynamicPlaceholder.set(this.placeholders[0]);
     this.searchPlaceholder.set(this.staticPlaceholderText + this.placeholders[0]);
@@ -199,76 +213,117 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   }
 
   private animatePlaceholder(): void {
-    // Get the input element
+    if (!isPlatformBrowser(this.platformId)) return;
+
     const inputElement = this.searchField()?.nativeElement;
     if (!inputElement) return;
 
-    // Define a fixed sequence to ensure all placeholders are shown
-    // This ensures we cycle through: account name -> block number -> transaction id -> public key
-    const sequence = [0, 1, 2, 3]; // Indices of placeholders array
-
-    // Calculate next placeholder index based on the fixed sequence
+    // Fixed sequence so all placeholders are shown
+    const sequence = [0, 1, 2, 3];
     let nextIndex = sequence.indexOf(this.currentPlaceholder);
-    // If currentPlaceholder is not in the sequence, start from the beginning
-    if (nextIndex === -1) {
-      nextIndex = 0;
-    }
+    if (nextIndex === -1) nextIndex = 0;
     const nextPlaceholder = sequence[(nextIndex + 1) % sequence.length];
 
-    // Only animate if the input is not focused to avoid disrupting user typing
-    if (document.activeElement !== inputElement) {
-      // First update the placeholder text
+    const targetText = this.placeholders[nextPlaceholder];
+
+    // If input focused, set instantly and cancel any running scramble
+    if (document.activeElement === inputElement) {
+      this.cancelScramble();
       this.currentPlaceholder = nextPlaceholder;
-      // console.log('Changing to placeholder:', this.currentPlaceholder, this.placeholders[this.currentPlaceholder]);
-
-      // Set both the full placeholder and the dynamic part
-      this.dynamicPlaceholder.set(this.placeholders[this.currentPlaceholder]);
-      this.searchPlaceholder.set(this.staticPlaceholderText + this.placeholders[this.currentPlaceholder]);
-
-      // Find the dynamic placeholder element to animate
-      setTimeout(() => {
-        const dynamicPlaceholderElement = document.querySelector('.dynamic-placeholder') as HTMLElement;
-        if (dynamicPlaceholderElement) {
-          // Set animation properties for the dynamic part
-          dynamicPlaceholderElement.style.transformOrigin = 'top center';
-          dynamicPlaceholderElement.style.animationFillMode = 'both';
-          dynamicPlaceholderElement.style.backfaceVisibility = 'visible';
-
-          // Then animate only the dynamic part - this way animation happens AFTER the text changes
-          animate(
-            dynamicPlaceholderElement,
-            // Use type assertion to avoid TypeScript error with opacity
-            {
-              opacity: [0, 0, 1, 1, 1],
-              transform: [
-                // from: 90deg rotation
-                'perspective(400px) rotate3d(1, 0, 0, 90deg)',
-                // 40%: -20deg rotation
-                'perspective(400px) rotate3d(1, 0, 0, -20deg)',
-                // 60%: 10deg rotation
-                'perspective(400px) rotate3d(1, 0, 0, 10deg)',
-                // 80%: -5deg rotation
-                'perspective(400px) rotate3d(1, 0, 0, -5deg)',
-                // to: no rotation
-                'perspective(400px)'
-              ]
-            } as any,
-            {
-              duration: 1, // Standard animation duration
-              // Use a more precise easing function that matches the CSS animation
-              easing: [0.36, 0, 0.66, 1] // Cubic-bezier approximation of ease-out
-            } as any
-          );
-        }
-      }, 0); // Use setTimeout to ensure the DOM has updated with the new text
-    } else {
-      // If input is focused, just change the placeholder without animation
-      this.currentPlaceholder = nextPlaceholder;
-      // console.log('Changing to placeholder (no animation):', this.currentPlaceholder, this.placeholders[this.currentPlaceholder]);
-      // Set both the full placeholder and the dynamic part
-      this.dynamicPlaceholder.set(this.placeholders[this.currentPlaceholder]);
-      this.searchPlaceholder.set(this.staticPlaceholderText + this.placeholders[this.currentPlaceholder]);
+      this.dynamicPlaceholder.set(targetText);
+      this.searchPlaceholder.set(this.staticPlaceholderText + targetText);
+      return;
     }
+
+    // Start scramble from current displayed dynamic text
+    const fromText = this.dynamicPlaceholder();
+    this.currentPlaceholder = nextPlaceholder;
+    this.startScramble(fromText, targetText);
+  }
+
+  // Begin a text scramble from 'fromText' to 'toText'
+  private startScramble(fromText: string, toText: string): void {
+    this.cancelScramble();
+    const maxLen = Math.max(fromText.length, toText.length);
+    this.scrambleQueue = [];
+    const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+    this.scrambleStartTime = now;
+
+    for (let i = 0; i < maxLen; i++) {
+      const fromCh = fromText[i] ?? ' ';
+      const toCh = toText[i] ?? ' ';
+      const same = fromCh === toCh;
+      const isAlnum = /[A-Za-z0-9]/.test(toCh);
+
+      if (same || !isAlnum) {
+        // No scramble for identical or non-alphanumeric targets (spaces, punctuation)
+        this.scrambleQueue.push({ from: fromCh, to: toCh, start: 0, end: 0 });
+      } else {
+        // Left-to-right stagger with a bit more emphasis and jitter for a clearer wave
+        const progress = maxLen > 1 ? i / (maxLen - 1) : 0;
+        const start = progress * (this.scrambleDuration * 0.7) + Math.random() * (this.scrambleDuration * 0.08);
+        const end = start + (this.scrambleDuration * (0.28 + Math.random() * 0.18)); // keep window similar
+        this.scrambleQueue.push({ from: fromCh, to: toCh, start, end });
+      }
+    }
+
+    const frame = () => {
+      const t = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - this.scrambleStartTime;
+      let output = '';
+      let complete = 0;
+      for (let i = 0; i < this.scrambleQueue.length; i++) {
+        const item = this.scrambleQueue[i];
+        if (t >= item.end) {
+          complete++;
+          output += item.to;
+        } else if (t >= item.start) {
+          // Bias towards the correct character as we approach 'end'
+          const span = Math.max(1, item.end - item.start);
+          const local = Math.max(0, Math.min(1, (t - item.start) / span)); // 0..1
+
+          // Probability to show the final char increases with local progress
+          const showTargetProb = 0.15 + local * 0.75; // 15% -> 90%
+          const flipProb = 0.12 * (1 - local); // taper random flips near completion
+
+          if (Math.random() < showTargetProb) {
+            output += item.to;
+          } else {
+            if (!item.ch || Math.random() < flipProb) {
+              item.ch = this.randomScrambleChar();
+            }
+            output += item.ch;
+          }
+        } else {
+          output += item.from;
+        }
+      }
+
+      this.dynamicPlaceholder.set(output);
+      this.searchPlaceholder.set(this.staticPlaceholderText + output);
+
+      if (complete === this.scrambleQueue.length) {
+        this.cancelScramble();
+        // Ensure final text is exact
+        this.dynamicPlaceholder.set(toText);
+        this.searchPlaceholder.set(this.staticPlaceholderText + toText);
+        return;
+      }
+      this.scrambleFrame = requestAnimationFrame(frame);
+    };
+
+    this.scrambleFrame = requestAnimationFrame(frame);
+  }
+
+  private randomScrambleChar(): string {
+    return this.scrambleChars[Math.floor(Math.random() * this.scrambleChars.length)];
+  }
+
+  private cancelScramble(): void {
+    if (this.scrambleFrame != null) {
+      cancelAnimationFrame(this.scrambleFrame);
+      this.scrambleFrame = null;
+    }
+    this.scrambleQueue = [];
   }
 
   ngOnDestroy(): void {
@@ -292,6 +347,9 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
       this.placeholderInterval = null;
     }
 
+    // Cancel any running text scramble frames
+    this.cancelScramble();
+
     // Unsubscribe from breakpoint observer
     this.breakpointSubscription?.unsubscribe();
     this.breakpointSubscription = null;
@@ -312,6 +370,18 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   @HostListener('window:scroll', [])
   onWindowScroll(): void {
     this.updateTransitionProgress();
+  }
+
+  // If the user focuses the input while scrambling, stop immediately
+  @HostListener('window:focusin', ['$event'])
+  onFocusIn(event: FocusEvent): void {
+    const inputEl = this.searchField()?.nativeElement;
+    if (inputEl && event.target === inputEl) {
+      this.cancelScramble();
+      const targetText = this.placeholders[this.currentPlaceholder] ?? '';
+      this.dynamicPlaceholder.set(targetText);
+      this.searchPlaceholder.set(this.staticPlaceholderText + targetText);
+    }
   }
 
   // Update transition progress and header animation on resize
@@ -416,8 +486,8 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
 
       // --- Tagline X & Opacity Animation ---
       if (canAnimateMotion) {
-         if (!this.taglineOpacityScrollControl && headerContainer) {
-           // Create animation if allowed and not already active
+        if (!this.taglineOpacityScrollControl && headerContainer) {
+          // Create animation if allowed and not already active
           this.taglineOpacityScrollControl = scroll(
             animate('.tagline', { x: [0, -100], opacity: [1, 0] }, { duration: 1 }), // Recreate the animate call inside scroll
             { target: headerContainer, offset: ['start start', '300px 100px'] }
@@ -436,7 +506,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
         // Ensure the element exists before trying to animate it for reset
         const taglineElement = document.querySelector('.tagline') as HTMLElement;
         if (taglineElement) {
-            animate(taglineElement, { x: 0, opacity: 1 }, { duration: 0 });
+          animate(taglineElement, { x: 0, opacity: 1 }, { duration: 0 });
         }
       }
     }
@@ -481,7 +551,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
             '20.875rem', // Initial height
             isSmall ? '9.5rem' : '6.7rem' // Final height
           ]
-        }, {ease: "easeIn", duration: 1, autoplay: false});
+        }, { ease: "easeIn", duration: 1, autoplay: false });
 
         // Link the header height animation progress to the scroll offset defined by motion
         if (!scrollConfigured) {

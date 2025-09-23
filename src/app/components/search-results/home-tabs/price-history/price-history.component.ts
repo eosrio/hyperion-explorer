@@ -1,15 +1,13 @@
-import { Component, OnInit, inject, PLATFORM_ID, ElementRef, ChangeDetectorRef } from "@angular/core"; // Added ChangeDetectorRef
-import { isPlatformBrowser } from "@angular/common"; // Import isPlatformBrowser
-import { NgxEchartsModule } from "ngx-echarts"; // Keep NgxEchartsModule
-import { EChartsOption } from "echarts";
-import { FaIconComponent } from "@fortawesome/angular-fontawesome";
-import { faHandHoldingDollar } from "@fortawesome/free-solid-svg-icons";
-import { ChainService } from "../../../../services/chain.service";
-import { faTag, faTags } from "@fortawesome/free-solid-svg-icons";
-import { OracleService, OracleHistogramResponse, OraclePair } from "../../../../services/oracle.service";
-import { CommonModule } from "@angular/common";
+import { CommonModule, isPlatformBrowser } from "@angular/common"; // Import isPlatformBrowser
+import { ChangeDetectorRef, Component, effect, ElementRef, inject, PLATFORM_ID, signal } from "@angular/core"; // Added ChangeDetectorRef
 import { FormsModule } from "@angular/forms";
-import { devEnv } from "../../../../dev.env";
+import { FaIconComponent } from "@fortawesome/angular-fontawesome";
+import { faHandHoldingDollar, faTag, faTags } from "@fortawesome/free-solid-svg-icons";
+import { EChartsOption } from "echarts";
+import { NgxEchartsModule } from "ngx-echarts"; // Keep NgxEchartsModule
+import { ChainService } from "../../../../services/chain.service";
+import { DataService } from "../../../../services/data.service";
+import { OracleHistogramResponse, OraclePair, OracleService } from "../../../../services/oracle.service";
 
 @Component({
   selector: "app-price-history",
@@ -18,20 +16,21 @@ import { devEnv } from "../../../../dev.env";
   templateUrl: "./price-history.component.html",
   styleUrl: "./price-history.component.css"
 })
-export class PriceHistoryComponent implements OnInit {
+export class PriceHistoryComponent {
   platformId = inject(PLATFORM_ID);
   elementRef = inject(ElementRef);
   cdr = inject(ChangeDetectorRef);
   chartOptions: EChartsOption = {};
 
   chain = inject(ChainService);
+  data = inject(DataService);
   oracleService = inject(OracleService);
 
-  loading = false;
-  error: string | null = null;
-  selectedInterval = "1h";
-  selectedPair = "-";
-  availablePairs: OraclePair[] = []; // Available trading pairs with precision
+  loading = signal(false);
+  error = signal<string>('');
+  selectedInterval = signal<string>("1h");
+  selectedPair = signal<string>("-");
+  availablePairs = signal<OraclePair[]>([]);
   selectedPairPrecision = 4; // Current pair precision
   dataPointsCount = 0; // Track number of data points
   currentPairPrice: number | null = null;
@@ -44,38 +43,25 @@ export class PriceHistoryComponent implements OnInit {
     }
   };
 
-  async ngOnInit(): Promise<void> {
+  constructor() {
     if (isPlatformBrowser(this.platformId)) {
-      // Use setTimeout to avoid ExpressionChangedAfterItHasBeenCheckedError
-      setTimeout(async () => {
-        try {
-          // First, load available pairs
-          await this.loadAvailablePairs();
-          //todo validar a passagem de selectedPair
-          if (devEnv) {
-            this.selectedPair = devEnv.defaultTicker.toLowerCase() + "usd";
-          }
-
-          // Wait for chain data to be available before loading price history
-          if (this.chain.systemSymbol?.value && this.chain.systemSymbol.value()) {
+      effect(() => {
+        const explorerMetadata = this.data.explorerMetadata();
+        const systemSymbol = this.chain.systemSymbol.value();
+        if (explorerMetadata && explorerMetadata.oracle && systemSymbol) {
+          this.loading.set(true);
+          this.loadAvailablePairs().then(async () => {
             await this.loadPriceHistory();
-          } else {
-            // If chain data is not ready, wait a bit and try again
-            setTimeout(async () => {
-              if (this.chain.systemSymbol?.value && this.chain.systemSymbol.value()) {
-                await this.loadPriceHistory();
-              }
-            }, 1000);
-          }
-        } catch (e) {
-          console.error("Error in ngOnInit:", e);
-          this.error = "Failed to initialize price history component";
-          this.loading = false;
-          this.cdr.detectChanges();
+            this.loading.set(false);
+          }).catch((e) => {
+            console.error("Error loading oracle data:", e);
+            this.error.set("Failed to load oracle data");
+            this.loading.set(false);
+          });
         }
-      }, 0);
+      });
     }
-  } // End ngOnInit
+  }
 
   /**
    * Format price values based on their magnitude for better readability
@@ -105,7 +91,7 @@ export class PriceHistoryComponent implements OnInit {
   async onPairChange(): Promise<void> {
     if (isPlatformBrowser(this.platformId)) {
       // Update precision when pair changes
-      const pairData = this.availablePairs.find(p => p.name === this.selectedPair);
+      const pairData = this.availablePairs().find(p => p.name === this.selectedPair());
       if (pairData) {
         this.selectedPairPrecision = pairData.precision;
       }
@@ -124,20 +110,20 @@ export class PriceHistoryComponent implements OnInit {
       console.log("Loaded pairs:", pairs);
 
       // Ensure all pairs have the proper structure
-      this.availablePairs = pairs.filter(pair => pair && pair.name && typeof pair.name === "string");
+      this.availablePairs.set(pairs.filter(pair => pair && pair.name && typeof pair.name === "string"));
 
       console.log("Filtered pairs:", this.availablePairs);
 
       // Set default pair to the first one that includes 'usd', or first available
-      const usdPair = this.availablePairs.find(pair => pair.name.toLowerCase().includes("usd"));
+      const usdPair = this.availablePairs().find(pair => pair.name.toLowerCase().includes("usd"));
       if (usdPair) {
-        this.selectedPair = usdPair.name;
+        this.selectedPair.set(usdPair.name);
         this.selectedPairPrecision = usdPair.precision;
         console.log("Selected USD pair:", usdPair);
-      } else if (this.availablePairs.length > 0) {
-        this.selectedPair = this.availablePairs[0].name;
-        this.selectedPairPrecision = this.availablePairs[0].precision;
-        console.log("Selected first available pair:", this.availablePairs[0]);
+      } else if (this.availablePairs().length > 0) {
+        this.selectedPair.set(this.availablePairs()[0].name);
+        this.selectedPairPrecision = this.availablePairs()[0].precision;
+        console.log("Selected first available pair:", this.availablePairs()[0]);
       }
 
       // Trigger change detection to update template
@@ -145,8 +131,8 @@ export class PriceHistoryComponent implements OnInit {
     } catch (error) {
       console.error("Error loading available pairs:", error);
       // Provide fallback pairs to prevent template errors
-      this.availablePairs = [{ name: "-", precision: 4 }];
-      this.selectedPair = "-";
+      this.availablePairs.set([{ name: "-", precision: 4 }]);
+      this.selectedPair.set("-");
       this.selectedPairPrecision = 4;
       this.cdr.detectChanges();
     }
@@ -154,8 +140,8 @@ export class PriceHistoryComponent implements OnInit {
 
   private async loadPriceHistory(): Promise<void> {
     try {
-      this.loading = true;
-      this.error = null;
+      this.loading.set(true);
+      this.error.set('');
 
       // Trigger change detection after updating loading state
       this.cdr.detectChanges();
@@ -182,7 +168,7 @@ export class PriceHistoryComponent implements OnInit {
       const areaColor = toRgba(primaryColor, 0.2); // Area color with 0.2 alpha
 
       // Fetch real price history from API using the selected interval and pair
-      const response: OracleHistogramResponse = await this.oracleService.getPriceHistory(this.selectedPair, this.selectedInterval);
+      const response: OracleHistogramResponse = await this.oracleService.getPriceHistory(this.selectedPair(), this.selectedInterval());
 
       if (!response || !response.histogram || response.histogram.length === 0) {
         throw new Error("No price history data available");
@@ -203,7 +189,7 @@ export class PriceHistoryComponent implements OnInit {
       const formatDate = (dateStr: string) => {
         const date = new Date(dateStr);
         // For longer intervals (monthly, weekly, daily), show date only; for shorter intervals, show date and time
-        if (["1M", "1w", "1d"].includes(this.selectedInterval)) {
+        if (["1M", "1w", "1d"].includes(this.selectedInterval())) {
           return date.toLocaleDateString("en-US", {
             day: "2-digit",
             month: "2-digit",
@@ -236,11 +222,11 @@ export class PriceHistoryComponent implements OnInit {
       // For very small ranges, enhance visual contrast
       const enhancedPrices = isVerySmallRange
         ? prices.map(price => {
-            // Amplify the relative differences for better visualization
-            const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
-            const deviation = price - avgPrice;
-            return avgPrice + deviation * 3; // Amplify by 3x
-          })
+          // Amplify the relative differences for better visualization
+          const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
+          const deviation = price - avgPrice;
+          return avgPrice + deviation * 3; // Amplify by 3x
+        })
         : prices;
 
       // Define chart options
@@ -297,7 +283,7 @@ export class PriceHistoryComponent implements OnInit {
         },
         title: {
           left: "center",
-          text: `Price History - ${this.selectedPair.toUpperCase()} (${this.selectedInterval})`,
+          text: `Price History - ${this.selectedPair().toUpperCase()} (${this.selectedInterval()})`,
           subtext: isVerySmallRange ? "* Visual differences amplified for better readability" : "",
           textStyle: {
             fontSize: 16,
@@ -425,8 +411,8 @@ export class PriceHistoryComponent implements OnInit {
             areaStyle:
               response.histogram.length > 1
                 ? {
-                    color: areaColor
-                  }
+                  color: areaColor
+                }
                 : undefined, // Only show area for multiple points
             data: enhancedPrices, // Use enhanced prices for better visualization
             emphasis: {
@@ -442,9 +428,9 @@ export class PriceHistoryComponent implements OnInit {
       };
     } catch (e: any) {
       console.error("Error loading price history:", e);
-      this.error = e?.message || "Failed to load price history.";
+      this.error.set(e?.message || "Failed to load price history.");
     } finally {
-      this.loading = false;
+      this.loading.set(false);
 
       // Trigger change detection after updating loading and error states
       this.cdr.detectChanges();

@@ -76,6 +76,8 @@ export class SearchService {
 
   submitSearch(searchText: any, filteredAccounts: string[]): boolean {
 
+    const explorerMetadata = this.data.explorerMetadata();
+
     const sValue = searchText.trim().toLowerCase();
     this.searchQuery.set(sValue);
 
@@ -92,7 +94,7 @@ export class SearchService {
       const blockNumCandidate = parseInt(sValue.substring(0, 8), 16);
       const isNumber = !isNaN(blockNumCandidate);
 
-      if (isNumber && this.data.explorerMetadata && this.data.explorerMetadata.last_indexed_block >= blockNumCandidate) {
+      if (isNumber && explorerMetadata && explorerMetadata.last_indexed_block >= blockNumCandidate) {
 
         if (blockNumCandidate === 0) {
           return false;

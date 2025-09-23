@@ -55,7 +55,7 @@ export class KeyComponent implements OnInit {
 
       this.key.set(await this.accountService.loadPubKey(this.pubKey()) as KeyResponse);
 
-      const chainData = this.data.explorerMetadata;
+      const chainData = this.data.explorerMetadata();
 
       if (chainData && chainData.chain_name) {
         this.title.setTitle(`🔑 ${this.pubKey().slice(0, 12)} • ${chainData.chain_name} Hyperion Explorer`);

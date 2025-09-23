@@ -4,94 +4,93 @@
   <div class="appear w-full">
     <!-- Header Button: Clickable area to expand/collapse -->
     <div class="w-auto flex flex-col items-start">
-      <div matRipple [class.is-expanded]="isExpanded"
-           class="collapsed-header cursor-pointer px-2 py-2 w-auto
-             transition-colors duration-200 ease-in-out"
-        (click)="toggleExpansion()" role="button" tabindex="0" (keydown.enter)="toggleExpansion()"
-        (keydown.space)="toggleExpansion()" aria-expanded="false" aria-controls="expanded-content-area">
+      <div matRipple [class.is-expanded]="isExpanded" class="collapsed-header cursor-pointer px-2 py-2 w-auto
+             transition-colors duration-200 ease-in-out" (click)="toggleExpansion()" role="button" tabindex="0"
+        (keydown.enter)="toggleExpansion()" (keydown.space)="toggleExpansion()" aria-expanded="false"
+        aria-controls="expanded-content-area">
         <div class="flex flex-row items-center gap-2 w-auto">
           <!-- Simplified Icon Button -->
-          <mat-icon class="text-xl leading-none"
-            [ngClass]="isExpanded ? 'arrowDown' : 'arrowUp'">
+          <mat-icon class="text-xl leading-none" [ngClass]="isExpanded ? 'arrowDown' : 'arrowUp'">
             expand_more
           </mat-icon>
           <div class="font-medium text-[var(--main-text)] text-sm w-auto">
             @if (!isExpanded) {
-              <span>Show</span>
-              }@if (isExpanded) {
-              <span>Hide</span>
-              } Chain Details
-            </div>
-            <div class="w-[0.625rem]"></div>
+            <span>Show</span>
+            }@if (isExpanded) {
+            <span>Hide</span>
+            } Chain Details
           </div>
+          <div class="w-[0.625rem]"></div>
         </div>
       </div>
+    </div>
 
-      <div class="tabs-card relative h-full min-h-full w-full min-w-full flex flex-col flex-grow"
-        [class.is-expanded]="isExpanded"
-        [class.is-collapsed]="!isExpanded">
+    <div class="tabs-card relative h-full min-h-full w-full min-w-full flex flex-col flex-grow"
+      [class.is-expanded]="isExpanded" [class.is-collapsed]="!isExpanded">
 
-        <!-- Expanded Content Wrapper (Handles animation) -->
-        <div id="expanded-content-area" class="expanded-content-wrapper w-full"
-          [@expandCollapse]="isExpanded ? 'expanded' : 'collapsed'">
-          <!-- Actual Tab Group (Only rendered when expanded) -->
-          <!--        *ngIf="isExpanded"-->
-          <mat-tab-group fitInkBarToContent class="h-full home-tabs expanded-content w-full overflow-y-hidden"
-            (click)="$event.stopPropagation()">
-            <!-- Tab Header Area (Prevent collapsing when clicking here) -->
-            <ng-template matTabHeaderFocus></ng-template>
+      <!-- Expanded Content Wrapper (Handles animation) -->
+      <div id="expanded-content-area" class="expanded-content-wrapper w-full"
+        [@expandCollapse]="isExpanded ? 'expanded' : 'collapsed'">
+        <!-- Actual Tab Group (Only rendered when expanded) -->
+        <!--        *ngIf="isExpanded"-->
+        <mat-tab-group fitInkBarToContent class="h-full home-tabs expanded-content w-full overflow-y-hidden"
+          (click)="$event.stopPropagation()">
+          <!-- Tab Header Area (Prevent collapsing when clicking here) -->
+          <ng-template matTabHeaderFocus></ng-template>
 
-            <mat-tab #statsTab>
-              <ng-template mat-tab-label>
-                <div class="flex flex-row items-center gap-3 w-full">
-                  <div>Chain Stats</div>
-                </div>
-              </ng-template>
-              <ng-template matTabContent>
-                <div (click)="$event.stopPropagation()" class="overflow-y-hidden">
-                  <app-stats></app-stats>
-                </div>
-              </ng-template>
-            </mat-tab>
+          <mat-tab #statsTab>
+            <ng-template mat-tab-label>
+              <div class="flex flex-row items-center gap-3 w-full">
+                <div>Chain Stats</div>
+              </div>
+            </ng-template>
+            <ng-template matTabContent>
+              <div (click)="$event.stopPropagation()" class="overflow-y-hidden">
+                <app-stats></app-stats>
+              </div>
+            </ng-template>
+          </mat-tab>
 
-            @if (ds.explorerMetadata?.oracle) {
-              <mat-tab #priceTab>
-                <ng-template mat-tab-label>
-                  <div class="flex flex-row items-center gap-3 w-full">
-                    <div>Price History</div>
-                  </div>
-                </ng-template>
-                <ng-template matTabContent>
-                  <div (click)="$event.stopPropagation()">
-                    <app-price-history></app-price-history>
-                  </div>
-                </ng-template>
-              </mat-tab>
-            }
+          @defer(when ds.explorerMetadata()?.oracle_price_historgram) {
+          @if (ds.explorerMetadata()?.oracle_price_historgram) {
+          <mat-tab #priceTab>
+            <ng-template mat-tab-label>
+              <div class="flex flex-row items-center gap-3 w-full">
+                <div>Price History</div>
+              </div>
+            </ng-template>
+            <ng-template matTabContent>
+              <div (click)="$event.stopPropagation()">
+                <app-price-history></app-price-history>
+              </div>
+            </ng-template>
+          </mat-tab>
+          }
+          }
 
-            <mat-tab #producersTab>
-              <ng-template mat-tab-label>
-                <div class="flex flex-row items-center gap-3 w-full">
-                  <div>Producers</div>
-                </div>
-              </ng-template>
-              <ng-template matTabContent>
-                <div (click)="$event.stopPropagation()">
-                  <app-producers></app-producers>
-                </div>
-              </ng-template>
-            </mat-tab>
-          </mat-tab-group>
-          <!-- Separate Expand/Collapse Icon Button (Only visible & functional when expanded) -->
-          <!--        <button-->
-          <!--          *ngIf="isExpanded"-->
-          <!--          mat-icon-button type="button"-->
-          <!--          class="m-4 z-20 w-8 h-8 leading-none bg-[var(&#45;&#45;primary)] text-[var(&#45;&#45;primary-content)] shadow-md hover:bg-[var(&#45;&#45;primary-hover)] focus:outline-none transition-all duration-200 ease-in-out transform rotate-180"-->
-          <!--          (click)="toggleExpansion($event)"-->
-          <!--          aria-label="Collapse chain details"-->
-          <!--          [attr.aria-expanded]="isExpanded"-->
-          <!--          aria-controls="expanded-content-area">-->
-          <!--          <mat-icon class="text-xl leading-none">expand_more</mat-icon>-->
+          <mat-tab #producersTab>
+            <ng-template mat-tab-label>
+              <div class="flex flex-row items-center gap-3 w-full">
+                <div>Producers</div>
+              </div>
+            </ng-template>
+            <ng-template matTabContent>
+              <div (click)="$event.stopPropagation()">
+                <app-producers></app-producers>
+              </div>
+            </ng-template>
+          </mat-tab>
+        </mat-tab-group>
+        <!-- Separate Expand/Collapse Icon Button (Only visible & functional when expanded) -->
+        <!--        <button-->
+        <!--          *ngIf="isExpanded"-->
+        <!--          mat-icon-button type="button"-->
+        <!--          class="m-4 z-20 w-8 h-8 leading-none bg-[var(&#45;&#45;primary)] text-[var(&#45;&#45;primary-content)] shadow-md hover:bg-[var(&#45;&#45;primary-hover)] focus:outline-none transition-all duration-200 ease-in-out transform rotate-180"-->
+        <!--          (click)="toggleExpansion($event)"-->
+        <!--          aria-label="Collapse chain details"-->
+        <!--          [attr.aria-expanded]="isExpanded"-->
+        <!--          aria-controls="expanded-content-area">-->
+        <!--          <mat-icon class="text-xl leading-none">expand_more</mat-icon>-->
         <!--        </button>-->
       </div> <!-- End .expanded-content-wrapper -->
 

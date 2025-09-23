@@ -1,17 +1,17 @@
-import {Component, ElementRef, inject, OnInit, PLATFORM_ID, signal, viewChild} from '@angular/core';
-import {SearchService} from "../../../services/search.service";
-import {MatButton, MatIconButton} from "@angular/material/button";
-import {ActivatedRoute, Router, RouterLink} from "@angular/router";
-import {MatProgressSpinner} from "@angular/material/progress-spinner";
-import {MatCardContent, MatCardHeader} from "@angular/material/card";
-import {FaIconComponent, FaLayersComponent} from "@fortawesome/angular-fontawesome";
-import {MatProgressBar} from "@angular/material/progress-bar";
-import {MatTooltip} from "@angular/material/tooltip";
-import {DatePipe, DecimalPipe, isPlatformBrowser, NgClass} from "@angular/common";
-import {MatPaginator, PageEvent} from "@angular/material/paginator";
-import {MatCell, MatColumnDef, MatHeaderCell, MatHeaderRow, MatRow, MatTableModule} from "@angular/material/table";
-import {AccountService, ActionFilterSpec, MAX_ES_SKIP} from "../../../services/account.service";
-import {faQuestionCircle} from "@fortawesome/free-regular-svg-icons";
+import { Component, ElementRef, inject, OnInit, PLATFORM_ID, signal, viewChild } from '@angular/core';
+import { SearchService } from "../../../services/search.service";
+import { MatButton, MatIconButton } from "@angular/material/button";
+import { ActivatedRoute, Router, RouterLink } from "@angular/router";
+import { MatProgressSpinner } from "@angular/material/progress-spinner";
+import { MatCardContent, MatCardHeader } from "@angular/material/card";
+import { FaIconComponent, FaLayersComponent } from "@fortawesome/angular-fontawesome";
+import { MatProgressBar } from "@angular/material/progress-bar";
+import { MatTooltip } from "@angular/material/tooltip";
+import { DatePipe, DecimalPipe, isPlatformBrowser, NgClass } from "@angular/common";
+import { MatPaginator, PageEvent } from "@angular/material/paginator";
+import { MatCell, MatColumnDef, MatHeaderCell, MatHeaderRow, MatRow, MatTableModule } from "@angular/material/table";
+import { AccountService, ActionFilterSpec, MAX_ES_SKIP } from "../../../services/account.service";
+import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
 import {
   faCheck,
   faChevronDown,
@@ -34,24 +34,24 @@ import {
   faUserCircle,
   faVoteYea
 } from '@fortawesome/free-solid-svg-icons';
-import {MatSort, MatSortModule, Sort} from "@angular/material/sort";
-import {AccountCreationData} from "../../../interfaces";
-import {DataService} from "../../../services/data.service";
-import {Title} from "@angular/platform-browser";
-import {MatAccordion, MatExpansionModule} from "@angular/material/expansion";
-import {MatChipsModule} from "@angular/material/chips";
-import {MatDialog, MatDialogRef} from "@angular/material/dialog";
-import {ActionDetailsComponent} from "../../action-details/action-details.component";
-import {ContractDialogComponent} from "../../contract-dialog/contract-dialog.component";
-import {toObservable} from "@angular/core/rxjs-interop";
-import {animate, scroll} from "motion";
-import {ActDataViewComponent} from "../../act-data-view/act-data-view.component";
-import {MatRipple} from "@angular/material/core";
-import {PermissionTreeComponent} from "../../permission-tree/permission-tree.component";
-import {FormsModule} from "@angular/forms";
-import {MatInput} from "@angular/material/input";
-import {ChainService} from "../../../services/chain.service";
-import {faTowerBroadcast} from "@fortawesome/free-solid-svg-icons/faTowerBroadcast";
+import { MatSort, MatSortModule, Sort } from "@angular/material/sort";
+import { AccountCreationData } from "../../../interfaces";
+import { DataService } from "../../../services/data.service";
+import { Title } from "@angular/platform-browser";
+import { MatAccordion, MatExpansionModule } from "@angular/material/expansion";
+import { MatChipsModule } from "@angular/material/chips";
+import { MatDialog, MatDialogRef } from "@angular/material/dialog";
+import { ActionDetailsComponent } from "../../action-details/action-details.component";
+import { ContractDialogComponent } from "../../contract-dialog/contract-dialog.component";
+import { toObservable } from "@angular/core/rxjs-interop";
+import { animate, scroll } from "motion";
+import { ActDataViewComponent } from "../../act-data-view/act-data-view.component";
+import { MatRipple } from "@angular/material/core";
+import { PermissionTreeComponent } from "../../permission-tree/permission-tree.component";
+import { FormsModule } from "@angular/forms";
+import { MatInput } from "@angular/material/input";
+import { ChainService } from "../../../services/chain.service";
+import { faTowerBroadcast } from "@fortawesome/free-solid-svg-icons/faTowerBroadcast";
 
 interface Permission {
   perm_name: string;
@@ -245,9 +245,9 @@ export class AccountComponent implements OnInit {
       }
 
       const accountName = this.acServ.accountName();
-      const chainData = this.dataService.explorerMetadata;
+      const chainData = this.dataService.explorerMetadata();
 
-      if (!chainData.chain_name) {
+      if (!chainData || !chainData.chain_name) {
         this.title.setTitle(`${accountName} • Hyperion Explorer`);
       } else {
         this.title.setTitle(`${accountName} • ${chainData.chain_name} Hyperion Explorer`);
@@ -257,8 +257,8 @@ export class AccountComponent implements OnInit {
 
   private accountStickyMotion(accountNameSticky?: ElementRef<HTMLDivElement>) {
     scroll(
-      animate('#totalBalance', {x: [-100, 0], opacity: [0, 1]}, {duration: 1}),
-      {target: accountNameSticky?.nativeElement, offset: ['start 200px', 'start 100px']}
+      animate('#totalBalance', { x: [-100, 0], opacity: [0, 1] }, { duration: 1 }),
+      { target: accountNameSticky?.nativeElement, offset: ['start 200px', 'start 100px'] }
     );
   }
 
@@ -268,23 +268,23 @@ export class AccountComponent implements OnInit {
       animate('.mat-mdc-header-row', {
         boxShadow: 'rgba(78 104 192, 0.25) 0px 4px 19px 0px, rgba(17, 12, 46, 0.15) 0px 20px 100px 0px',
         background: 'var(--table-top-bg-gradient)'
-      }, {duration: 1}),
-      {target: tableSticky?.nativeElement, offset: ['end 250px', '200px 250px']}
+      }, { duration: 1 }),
+      { target: tableSticky?.nativeElement, offset: ['end 250px', '200px 250px'] }
     );
 
     // Apply border radius animation to the trx_id column and column-block_num separately
     scroll(
       animate('[mat-header-cell].mat-column-trx_id', {
         borderRadius: '1rem 0 0  1rem'
-      }, {duration: 1}),
-      {target: tableSticky?.nativeElement, offset: ['end 250px', '200px 250px']}
+      }, { duration: 1 }),
+      { target: tableSticky?.nativeElement, offset: ['end 250px', '200px 250px'] }
     );
 
     scroll(
       animate('[mat-header-cell].mat-column-block_num', {
         borderRadius: '0  1rem 1rem 0'
-      }, {duration: 1}),
-      {target: tableSticky?.nativeElement, offset: ['end 250px', '200px 250px']}
+      }, { duration: 1 }),
+      { target: tableSticky?.nativeElement, offset: ['end 250px', '200px 250px'] }
     );
   }
 
