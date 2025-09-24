@@ -3,352 +3,243 @@
   <div class="hr-container flex flex-row items-center justify-center">
     <mat-progress-spinner [diameter]="45" mode="indeterminate" color="primary"></mat-progress-spinner>
   </div>
-}
-<!--MAIN CONTENT-->
-<div class="hr-container justify-start">
-  @if (acServ.accountDataRes.value() && acServ.accountDataRes.value()?.account) {
-    @let systemSymbol = acServ.systemSymbol();
-    @let systemPrecision = acServ.systemPrecision();
+} @else {
+  <!--MAIN CONTENT-->
+  <div class="hr-container justify-start">
+    @if (acServ.accountDataRes.value() && acServ.accountDataRes.value()?.account) {
+      @let systemSymbol = acServ.systemSymbol();
+      @let systemPrecision = acServ.systemPrecision();
 
-    <div id="account-content" class="appear grid auto-cols-max grid-cols-1 gap-5 text-black md:grid-cols-3">
-      <!-- ACCOUNT NAME-->
-      <div id="account-name-sticky" class="custom-card card-top-sticky bg-no-transparency sticky z-40 w-full md:col-span-3">
-        <mat-card-header>
-          <div class="flex w-full flex-row flex-wrap items-center justify-between">
-            <div class="flex flex-row items-center gap-3">
-              <div class="acc-title flex flex-row items-center gap-3 text-2xl">
-                @if (acServ.accountComputed().privileged) {
-                  <fa-layers matTooltip="System Account (privileged)" [fixedWidth]="true">
-                    <fa-icon [icon]="icons.solid.faShield" transform="grow-3"></fa-icon>
-                    <fa-icon [icon]="icons.solid.faCheck" [inverse]="true" transform="shrink-5"></fa-icon>
-                  </fa-layers>
-                } @else {
-                  <fa-icon [icon]="icons.solid.faUserCircle"></fa-icon>
-                }
-                <div>{{ acServ.accountComputed().account_name }}</div>
-              </div>
-              <div id="totalBalance" class="faded mt-1 text-[0.938rem] font-medium opacity-0">
+      <div id="account-content" class="appear grid auto-cols-max grid-cols-1 gap-5 text-black md:grid-cols-3">
+        <!-- ACCOUNT NAME-->
+        <div id="account-name-sticky" class="custom-card card-top-sticky bg-no-transparency sticky z-40 w-full md:col-span-3">
+          <mat-card-header>
+            <div class="flex w-full flex-row flex-wrap items-center justify-between">
+              <div class="flex flex-row items-center gap-3">
+                <div class="acc-title flex flex-row items-center gap-3 text-2xl">
+                  @if (acServ.accountComputed().privileged) {
+                    <fa-layers matTooltip="System Account (privileged)" [fixedWidth]="true">
+                      <fa-icon [icon]="icons.solid.faShield" transform="grow-3"></fa-icon>
+                      <fa-icon [icon]="icons.solid.faCheck" [inverse]="true" transform="shrink-5"></fa-icon>
+                    </fa-layers>
+                  } @else {
+                    <fa-icon [icon]="icons.solid.faUserCircle"></fa-icon>
+                  }
+                  <div>{{ acServ.accountComputed().account_name }}</div>
+                </div>
+                <div id="totalBalance" class="faded mt-1 text-[0.938rem] font-medium opacity-0">
                 <span class="primary">
                   {{ acServ.totalBalance() | number: "1.0-" + systemPrecision }}
                   {{ systemSymbol }}
                 </span>
-                | ${{ acServ.totalBalanceUSD() | number: "1.0-2" }}
-                <span class="text-sm">&#64; ${{ chain.priceRateUsd() }} / {{ systemSymbol }}</span>
-              </div>
-            </div>
-            @defer (when acServ.hasContract()) {
-              @if (acServ.hasContract()) {
-                <button (click)="openContractsDialog(null, null)" mat-raised-button class="primary-btn">
-                  Explore Smart Contract
-                </button>
-              }
-            }
-          </div>
-        </mat-card-header>
-      </div>
-
-      <!-- ACCOUNT BALANCE -->
-      <div #balanceCard class="custom-card" id="balance-card">
-        <div class="mt-2 flex min-h-full flex-auto flex-col items-start justify-start">
-          <!-- total balance-->
-          <div class="total-balance w-full">
-            <strong class="text-[0.938rem] font-bold uppercase">Total Balance:</strong>
-            <span class="float-right text-[0.938rem] font-semibold">
-              {{ acServ.totalBalance() | number: "1.0-" + systemPrecision }}
-              {{ systemSymbol }}
-            </span>
-          </div>
-
-          <!-- total usd balance-->
-          <div class="mb-1.5 w-full">
-            <strong class="faded font-semibold">USD Value:</strong>
-            <span class="float-right">${{ acServ.totalBalanceUSD() | number: "1.0-2" }}</span>
-          </div>
-
-          <!-- current usd price -->
-          <div class="bottom-divider mb-1.5 w-full">
-            <span class="faded font-semibold">{{ systemSymbol }} Price:</span>
-            <span class="float-right">${{ chain.priceRateUsd() }}</span>
-          </div>
-
-          <!-- liquid balance-->
-          <div class="mb-1.5 w-full">
-            <strong class="faded font-semibold">Liquid Balance:</strong>
-            <span class="float-right">
-              {{ acServ.liquidBalance() | number: "1.0-" + systemPrecision }}
-              {{ systemSymbol }}
-            </span>
-          </div>
-
-          <!-- staked balance-->
-          <div class="mb-1.5 w-full">
-            <strong class="faded font-semibold">Staked Balance:</strong>
-            <span class="float-right">
-              {{ acServ.myStakedBalance() | number: "1.0-" + systemPrecision }}
-              {{ systemSymbol }}
-            </span>
-          </div>
-
-          <!-- refunding balance-->
-          <div class="w-full">
-            <strong class="faded font-semibold">Refunding:</strong>
-            <span class="float-right">
-              {{ acServ.refundBalance() | number: "1.0-" + systemPrecision }}
-              {{ systemSymbol }}
-            </span>
-          </div>
-
-          <!-- creation data -->
-          <div class="w-full" style="margin-top: 12px">
-            @if (creationData()) {
-              @if (creationData().creator) {
-                <div class="mt-2 w-full">
-                  <strong class="font-medium">Created by:</strong>
-                  <a [routerLink]="['/account', creationData().creator]" class="link-gray float-right">
-                    {{ creationData().creator }}
-                  </a>
+                  | ${{ acServ.totalBalanceUSD() | number: "1.0-2" }}
+                  <span class="text-sm">&#64; ${{ chain.priceRateUsd() }} / {{ systemSymbol }}</span>
                 </div>
+              </div>
+              @defer (when acServ.hasContract()) {
+                @if (acServ.hasContract()) {
+                  <button (click)="openContractsDialog(null, null)" mat-raised-button class="primary-btn">
+                    Explore Smart Contract
+                  </button>
+                }
               }
-              @if (creationData().timestamp) {
-                <div class="mt-2 w-full">
-                  <span class="font-medium">Created on:</span>
-                  <span class="float-right">
+            </div>
+          </mat-card-header>
+        </div>
+
+        <!-- ACCOUNT BALANCE -->
+        <div #balanceCard class="custom-card" id="balance-card">
+          <div class="mt-2 flex min-h-full flex-auto flex-col items-start justify-start">
+            <!-- total balance-->
+            <div class="total-balance w-full">
+              <strong class="text-[0.938rem] font-bold uppercase">Total Balance:</strong>
+              <span class="float-right text-[0.938rem] font-semibold">
+              {{ acServ.totalBalance() | number: "1.0-" + systemPrecision }}
+                {{ systemSymbol }}
+            </span>
+            </div>
+
+            <!-- total usd balance-->
+            <div class="mb-1.5 w-full">
+              <strong class="faded font-semibold">USD Value:</strong>
+              <span class="float-right">${{ acServ.totalBalanceUSD() | number: "1.0-2" }}</span>
+            </div>
+
+            <!-- current usd price -->
+            <div class="bottom-divider mb-1.5 w-full">
+              <span class="faded font-semibold">{{ systemSymbol }} Price:</span>
+              <span class="float-right">${{ chain.priceRateUsd() }}</span>
+            </div>
+
+            <!-- liquid balance-->
+            <div class="mb-1.5 w-full">
+              <strong class="faded font-semibold">Liquid Balance:</strong>
+              <span class="float-right">
+              {{ acServ.liquidBalance() | number: "1.0-" + systemPrecision }}
+                {{ systemSymbol }}
+            </span>
+            </div>
+
+            <!-- staked balance-->
+            <div class="mb-1.5 w-full">
+              <strong class="faded font-semibold">Staked Balance:</strong>
+              <span class="float-right">
+              {{ acServ.myStakedBalance() | number: "1.0-" + systemPrecision }}
+                {{ systemSymbol }}
+            </span>
+            </div>
+
+            <!-- refunding balance-->
+            <div class="w-full">
+              <strong class="faded font-semibold">Refunding:</strong>
+              <span class="float-right">
+              {{ acServ.refundBalance() | number: "1.0-" + systemPrecision }}
+                {{ systemSymbol }}
+            </span>
+            </div>
+
+            <!-- creation data -->
+            <div class="w-full" style="margin-top: 12px">
+              @if (creationData()) {
+                @if (creationData().creator) {
+                  <div class="mt-2 w-full">
+                    <strong class="font-medium">Created by:</strong>
+                    <a [routerLink]="['/account', creationData().creator]" class="link-gray float-right">
+                      {{ creationData().creator }}
+                    </a>
+                  </div>
+                }
+                @if (creationData().timestamp) {
+                  <div class="mt-2 w-full">
+                    <span class="font-medium">Created on:</span>
+                    <span class="float-right">
                     {{ creationData().timestamp | date: "medium" }}
                   </span>
-                </div>
+                  </div>
+                }
               }
-            }
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- ACCOUNT RESOURCES, CPU, NET AND RAM -->
-      <div class="custom-card md:col-span-2">
-        <mat-card-content>
-          <div class="flex grow flex-row flex-wrap items-start justify-start gap-10">
-            <!--CPU-->
-            <div class="w-full lg:w-[50%]">
-              <div>
-                <span class="title">CPU</span>
-                @if (acServ.accountComputed().cpu_limit.max === -1) {
-                  <span class="faded ml-2">unlimited</span>
-                } @else {
-                  <span class="faded ml-2">{{ acServ.userResPct().cpu | number: "1.0-2" }}% used</span>
-                }
-                <span class="float-right mt-2">{{ acServ.userResPct().cpuStr }}</span>
-              </div>
+        <!-- ACCOUNT RESOURCES, CPU, NET AND RAM -->
+        <div class="custom-card md:col-span-2">
+          <mat-card-content>
+            <div class="flex grow flex-row flex-wrap items-start justify-start gap-10">
+              <!--CPU-->
+              <div class="w-full lg:w-[50%]">
+                <div>
+                  <span class="title">CPU</span>
+                  @if (acServ.accountComputed().cpu_limit.max === -1) {
+                    <span class="faded ml-2">unlimited</span>
+                  } @else {
+                    <span class="faded ml-2">{{ acServ.userResPct().cpu | number: "1.0-2" }}% used</span>
+                  }
+                  <span class="float-right mt-2">{{ acServ.userResPct().cpuStr }}</span>
+                </div>
 
-              <mat-progress-bar class="mt-2.5" mode="determinate" [value]="acServ.userResPct().cpu"></mat-progress-bar>
+                <mat-progress-bar class="mt-2.5" mode="determinate" [value]="acServ.userResPct().cpu"></mat-progress-bar>
 
-              <div class="small-info">
-                <div class="faded mb-1">
-                  <span>Self-staked:</span>
-                  <span class="float-right">
+                <div class="small-info">
+                  <div class="faded mb-1">
+                    <span>Self-staked:</span>
+                    <span class="float-right">
                     {{ acServ.myCpuBalance() | number: "1.0-" + systemPrecision }}
-                    {{ systemSymbol }}
+                      {{ systemSymbol }}
                   </span>
-                </div>
+                  </div>
 
-                <div class="faded mb-1">
-                  <span>Staked by others:</span>
-                  <span class="float-right">
+                  <div class="faded mb-1">
+                    <span>Staked by others:</span>
+                    <span class="float-right">
                     {{ acServ.cpuByOthers() | number: "1.0-" + systemPrecision }}
-                    {{ systemSymbol }}
+                      {{ systemSymbol }}
                   </span>
-                </div>
+                  </div>
 
-                <div class="faded">
-                  <span>Total in CPU:</span>
-                  <span class="float-right">
+                  <div class="faded">
+                    <span>Total in CPU:</span>
+                    <span class="float-right">
                     {{ acServ.cpuBalance() | number: "1.0-" + systemPrecision }}
-                    {{ systemSymbol }}
+                      {{ systemSymbol }}
                   </span>
-                </div>
-              </div>
-            </div>
-
-            <!--NET-->
-            <div class="grow">
-              <div>
-                <span class="title">NET</span>
-                @if (acServ.accountComputed().net_limit.max === -1) {
-                  <span class="faded ml-2">unlimited</span>
-                } @else {
-                  <span class="faded ml-2">{{ acServ.userResPct().net | number: "1.0-2" }}% used</span>
-                }
-                <span class="float-right mt-2">{{ acServ.userResPct().netStr }}</span>
-              </div>
-
-              <mat-progress-bar class="mt-2.5" mode="determinate" [value]="acServ.userResPct().net"></mat-progress-bar>
-
-              <div class="small-info">
-                <div class="faded mb-1">
-                  <span>Self-staked:</span>
-                  <span class="float-right">
-                    {{ acServ.myNetBalance() | number: "1.0-" + systemPrecision }}
-                    {{ systemSymbol }}
-                  </span>
-                </div>
-
-                <div class="faded mb-1">
-                  <span>Staked by others:</span>
-                  <span class="float-right">
-                    {{ acServ.netByOthers() | number: "1.0-" + systemPrecision }}
-                    {{ systemSymbol }}
-                  </span>
-                </div>
-
-                <div class="faded">
-                  <span>Total in NET:</span>
-                  <span class="float-right">
-                    {{ acServ.netBalance() | number: "1.0-" + systemPrecision }}
-                    {{ systemSymbol }}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <!--RAM-->
-            <div class="grow">
-              <div>
-                <span class="title mt-6">RAM</span>
-                @if (acServ.accountComputed().ram_quota === -1) {
-                  <span class="faded ml-2">unlimited</span>
-                } @else {
-                  <span class="faded ml-2">{{ acServ.userResPct().ram | number: "1.0-2" }}% used</span>
-                }
-                <span class="float-right mt-2">{{ acServ.userResPct().ramStr }}</span>
-              </div>
-
-              <mat-progress-bar class="mt-2.5" mode="determinate" [value]="acServ.userResPct().ram"></mat-progress-bar>
-            </div>
-          </div>
-        </mat-card-content>
-      </div>      <!--TOKENS-->
-      <mat-accordion class="custom-card vote-card w-full text-black">
-        <mat-expansion-panel
-          #tokensExpansionPanel
-          [(expanded)]="tokensExpanded"
-          [disabled]="acServ.tokensComputed().length <= 0"
-          [hideToggle]="true"
-        >
-          <mat-expansion-panel-header>
-            <mat-panel-title class="!flex-grow-0 !flex-shrink-0">
-              <div class="flex flex-row items-center gap-2 text-xl">
-                @if (acServ.tokensComputed().length > 0) {
-                  <button mat-icon-button class="small-arrow-btn">
-                    <div class="flex flex-col items-center justify-center">
-                      <fa-icon
-                        [ngClass]="tokensExpansionPanel.expanded ? 'arrowDown' : 'arrowRight'"
-                        [icon]="icons.solid.faChevronRight"
-                        class="arrowSize main-color"
-                      ></fa-icon>
-                    </div>
-                  </button>
-                }
-                <fa-layers [fixedWidth]="true">
-                  <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
-                  <fa-icon [icon]="icons.solid.faStar" [inverse]="true" transform="shrink-5"></fa-icon>
-                </fa-layers>
-                <div class="vote-card-title mb-0 whitespace-nowrap">Tokens</div>
-                <fa-icon
-                  [icon]="icons.regular.faQuestionCircle"
-                  class="faded pointer ml-2"
-                  matTooltip="Only liquid balances are displayed"
-                  matTooltipClass="tooltip-bigger"
-                ></fa-icon>
-              </div>
-            </mat-panel-title>
-            <mat-panel-description class="!text-right !justify-end !ml-auto !flex-grow-0 !flex-shrink-0">
-              @if (acServ.tokensComputed().length > 0) {
-                <span class="whitespace-nowrap faded text-sm"><strong>{{ acServ.tokensComputed().length }}</strong> found</span>
-              } @else {
-                <span class="whitespace-nowrap faded text-sm">No tokens</span>
-              }
-            </mat-panel-description>
-          </mat-expansion-panel-header>
-
-          @if (acServ.tokensComputed().length > 0) {
-            <div class="mt-3 flex flex-col gap-[10px] sm:flex-row sm:flex-wrap sm:gap-[43px] md:flex-col md:gap-[10px]">
-              @for (token of acServ.tokensComputed(); track token.contract + token.symbol) {
-                <div class="sm:flex-[0_0_calc((100%]">
-                  <div class="token-cell flex flex-col items-start gap-1">
-                    <div class="faded monospace div-link min-w-min" [routerLink]="['/account', token.contract]">
-                      {{ token.contract }}
-                    </div>
-                    <div class="token-amount">
-                      {{ token.amount | number: "1.0-" + (token.precision || 4) }}
-                      <span class="token">{{ token.symbol }}</span>
-                    </div>
                   </div>
                 </div>
-              }
-            </div>
-          }
-        </mat-expansion-panel>
-      </mat-accordion>      <!--KEYS-->
-      <mat-accordion class="custom-card vote-card w-full text-black md:col-span-2">
-        <mat-expansion-panel #permissionsExpansionPanel
-                             [(expanded)]="permissionsExpanded"
-                             [disabled]="acServ.accountComputed().permissions.length <= 0"
-                             [hideToggle]="true">
-          <mat-expansion-panel-header>
-            <mat-panel-title class="!flex-grow-0 !flex-shrink-0">
-              <div class="flex flex-row items-center gap-2 text-xl">
-                @if (acServ.accountComputed().permissions.length > 0) {
-                  <button mat-icon-button class="small-arrow-btn">
-                    <div class="flex flex-col items-center justify-center">
-                      <fa-icon
-                        [ngClass]="permissionsExpansionPanel.expanded ? 'arrowDown' : 'arrowRight'"
-                        [icon]="icons.solid.faChevronRight"
-                        class="arrowSize main-color"
-                      ></fa-icon>
-                    </div>
-                  </button>
-                }
-                <fa-layers [fixedWidth]="true">
-                  <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
-                  <fa-icon [icon]="icons.solid.faLink" [inverse]="true" transform="shrink-5"></fa-icon>
-                </fa-layers>
-                <div class="vote-card-title mb-0 whitespace-nowrap">Permissions & Keys</div>
               </div>
-            </mat-panel-title>
-            <mat-panel-description class="!text-right !justify-end !ml-auto !flex-grow-0 !flex-shrink-0">
-              @if (acServ.accountComputed().permissions.length > 0) {
-                <span class="whitespace-nowrap faded text-sm"><strong>{{ acServ.accountComputed().permissions.length }}</strong> configured</span>
-              } @else {
-                <span class="whitespace-nowrap faded text-sm">No permissions</span>
-              }
-            </mat-panel-description>
-          </mat-expansion-panel-header>
 
-          <div class="mt-3">
-            @defer (on immediate) {
-              <app-permission-tree [permissions]="acServ.accountComputed().permissions"></app-permission-tree>
-            }
-          </div>
-        </mat-expansion-panel>
-      </mat-accordion>
+              <!--NET-->
+              <div class="grow">
+                <div>
+                  <span class="title">NET</span>
+                  @if (acServ.accountComputed().net_limit.max === -1) {
+                    <span class="faded ml-2">unlimited</span>
+                  } @else {
+                    <span class="faded ml-2">{{ acServ.userResPct().net | number: "1.0-2" }}% used</span>
+                  }
+                  <span class="float-right mt-2">{{ acServ.userResPct().netStr }}</span>
+                </div>
 
-      <!--VOTE CARD-->
-      @let voterInfo = acServ.accountComputed().voter_info;
-      @if (voterInfo && (voterInfo.proxy || voterInfo.producers.length > 0)) {
-        <mat-accordion class="custom-card vote-card w-full text-black md:col-span-3">
+                <mat-progress-bar class="mt-2.5" mode="determinate" [value]="acServ.userResPct().net"></mat-progress-bar>
+
+                <div class="small-info">
+                  <div class="faded mb-1">
+                    <span>Self-staked:</span>
+                    <span class="float-right">
+                    {{ acServ.myNetBalance() | number: "1.0-" + systemPrecision }}
+                      {{ systemSymbol }}
+                  </span>
+                  </div>
+
+                  <div class="faded mb-1">
+                    <span>Staked by others:</span>
+                    <span class="float-right">
+                    {{ acServ.netByOthers() | number: "1.0-" + systemPrecision }}
+                      {{ systemSymbol }}
+                  </span>
+                  </div>
+
+                  <div class="faded">
+                    <span>Total in NET:</span>
+                    <span class="float-right">
+                    {{ acServ.netBalance() | number: "1.0-" + systemPrecision }}
+                      {{ systemSymbol }}
+                  </span>
+                  </div>
+                </div>
+              </div>
+
+              <!--RAM-->
+              <div class="grow">
+                <div>
+                  <span class="title mt-6">RAM</span>
+                  @if (acServ.accountComputed().ram_quota === -1) {
+                    <span class="faded ml-2">unlimited</span>
+                  } @else {
+                    <span class="faded ml-2">{{ acServ.userResPct().ram | number: "1.0-2" }}% used</span>
+                  }
+                  <span class="float-right mt-2">{{ acServ.userResPct().ramStr }}</span>
+                </div>
+
+                <mat-progress-bar class="mt-2.5" mode="determinate" [value]="acServ.userResPct().ram"></mat-progress-bar>
+              </div>
+            </div>
+          </mat-card-content>
+        </div>      <!--TOKENS-->
+        <mat-accordion class="custom-card vote-card w-full text-black">
           <mat-expansion-panel
-            #voteExpansionPanel
-            [disabled]="voterInfo.producers.length <= 0"
-            [hideToggle]="voterInfo.producers.length <= 0"
+            #tokensExpansionPanel
+            [(expanded)]="tokensExpanded"
+            [disabled]="acServ.tokensComputed().length <= 0"
+            [hideToggle]="true"
           >
-            <!--            -->
-            <!--            -->
-            <mat-expansion-panel-header class="!px-4">
+            <mat-expansion-panel-header>
               <mat-panel-title class="!flex-grow-0 !flex-shrink-0">
                 <div class="flex flex-row items-center gap-2 text-xl">
-                  @if (voterInfo.producers.length > 0) {
+                  @if (acServ.tokensComputed().length > 0) {
                     <button mat-icon-button class="small-arrow-btn">
                       <div class="flex flex-col items-center justify-center">
                         <fa-icon
-                          [ngClass]="voteExpansionPanel.expanded ? 'arrowDown' : 'arrowRight'"
+                          [ngClass]="tokensExpansionPanel.expanded ? 'arrowDown' : 'arrowRight'"
                           [icon]="icons.solid.faChevronRight"
                           class="arrowSize main-color"
                         ></fa-icon>
@@ -357,236 +248,481 @@
                   }
                   <fa-layers [fixedWidth]="true">
                     <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
-                    <fa-icon [icon]="icons.solid.faVote" [inverse]="true" transform="shrink-4"></fa-icon>
+                    <fa-icon [icon]="icons.solid.faStar" [inverse]="true" transform="shrink-5"></fa-icon>
                   </fa-layers>
-                  <div class="vote-card-title mb-0 whitespace-nowrap">Votes</div>
+                  <div class="vote-card-title mb-0 whitespace-nowrap">Tokens</div>
+                  <fa-icon
+                    [icon]="icons.regular.faQuestionCircle"
+                    class="faded pointer ml-2"
+                    matTooltip="Only liquid balances are displayed"
+                    matTooltipClass="tooltip-bigger"
+                  ></fa-icon>
                 </div>
               </mat-panel-title>
               <mat-panel-description class="!text-right !justify-end !ml-auto !flex-grow-0 !flex-shrink-0">
-                @if (voterInfo) {
-                  @if (voterInfo.proxy) {
-                    <span class="whitespace-nowrap">Proxy: <a [routerLink]="['/account', voterInfo.proxy]"
-                                                              class="link-primary">{{ voterInfo.proxy }}</a></span>
-                  } @else {
-                    @if (voterInfo.producers.length > 0) {
-                      <span
-                        class="whitespace-nowrap"><strong>{{ voterInfo.producers.length }}</strong> producer{{ voterInfo.producers.length > 1 ? 's' : '' }}</span>
-                    }
-                  }
+                @if (acServ.tokensComputed().length > 0) {
+                  <span class="whitespace-nowrap faded text-sm"><strong>{{ acServ.tokensComputed().length }}</strong> found</span>
+                } @else {
+                  <span class="whitespace-nowrap faded text-sm">No tokens</span>
                 }
               </mat-panel-description>
-            </mat-expansion-panel-header>@if (voterInfo.producers.length > 0) {
-            <div class="mt-3">
-              <mat-chip-set aria-label="list of producers voted">
-                @for (producer of voterInfo.producers; track producer) {
-                  <mat-chip [routerLink]="['/account', producer]" class="cursor-pointer">
-                    {{ producer }}
-                  </mat-chip>
-                }
-              </mat-chip-set>
-            </div>
-          }
-          </mat-expansion-panel>
-        </mat-accordion>
-      }
+            </mat-expansion-panel-header>
 
-      <!--ACTIONS CARD/TABLE-->
-      <div class="custom-card h-full min-h-full w-full min-w-full md:col-span-3">
-        <div class="flex flex-row flex-wrap items-start justify-between">
-          <div class="flex flex-row flex-wrap items-center gap-3">
-            <div class="text-xl mb-3" style="margin-top: 0">
-              <fa-layers [fixedWidth]="true" style="margin-right: 5px">
-                <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
-                <fa-icon [icon]="icons.solid.faHistory" [inverse]="true" transform="shrink-5"></fa-icon>
-              </fa-layers>
-              Actions
-            </div>
-
-            <!--          @if (acServ.streamClientLoaded) {-->
-            <div class="livestream-container flex flex-row items-center gap-3" matTooltip="Toggle action live streaming"
-                 matTooltipClass="tooltip-bigger">
-              <div class="livestream-label">
-                <fa-icon [icon]="icons.solid.broadcast" class="livestream-icon"></fa-icon>
-                <span>Action Live Streaming</span>
-              </div>
-              <div class="livestream-toggle" (click)="acServ.toggleStreaming()">
-                <div class="toggle-track" [ngClass]="{'toggle-track-on': acServ.streamClientStatus()}">
-                  <div class="toggle-indicator" [ngClass]="{'toggle-indicator-on': acServ.streamClientStatus()}">
-                    <div class="toggle-indicator-light" [ngClass]="{'pulse': acServ.streamClientStatus()}"></div>
+            @if (acServ.tokensComputed().length > 0) {
+              <div class="mt-3 flex flex-col gap-[10px] sm:flex-row sm:flex-wrap sm:gap-[43px] md:flex-col md:gap-[10px]">
+                @for (token of acServ.tokensComputed(); track token.contract + token.symbol) {
+                  <div class="sm:flex-[0_0_calc((100%]">
+                    <div class="token-cell flex flex-col items-start gap-1">
+                      <div class="faded monospace div-link min-w-min" [routerLink]="['/account', token.contract]">
+                        {{ token.contract }}
+                      </div>
+                      <div class="token-amount">
+                        {{ token.amount | number: "1.0-" + (token.precision || 4) }}
+                        <span class="token">{{ token.symbol }}</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <span class="toggle-status font-medium">
-                {{ acServ.streamClientStatus() ? "ON" : "OFF" }}
-              </span>
+                }
               </div>
-              @if (acServ.streamClientStatus()) {
-                <div class="ml-2 flex flex-row items-center gap-1">
-                  <span class="text-sm faded">Actions:</span>
-                  <span class="text-sm font-medium">{{ acServ.streamingActionsSize() }}/500</span>
+            }
+          </mat-expansion-panel>
+        </mat-accordion>      <!--KEYS-->
+        <mat-accordion class="custom-card vote-card w-full text-black md:col-span-2">
+          <mat-expansion-panel #permissionsExpansionPanel
+                               [(expanded)]="permissionsExpanded"
+                               [disabled]="acServ.accountComputed().permissions.length <= 0"
+                               [hideToggle]="true">
+            <mat-expansion-panel-header>
+              <mat-panel-title class="!flex-grow-0 !flex-shrink-0">
+                <div class="flex flex-row items-center gap-2 text-xl">
+                  @if (acServ.accountComputed().permissions.length > 0) {
+                    <button mat-icon-button class="small-arrow-btn">
+                      <div class="flex flex-col items-center justify-center">
+                        <fa-icon
+                          [ngClass]="permissionsExpansionPanel.expanded ? 'arrowDown' : 'arrowRight'"
+                          [icon]="icons.solid.faChevronRight"
+                          class="arrowSize main-color"
+                        ></fa-icon>
+                      </div>
+                    </button>
+                  }
+                  <fa-layers [fixedWidth]="true">
+                    <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
+                    <fa-icon [icon]="icons.solid.faLink" [inverse]="true" transform="shrink-5"></fa-icon>
+                  </fa-layers>
+                  <div class="vote-card-title mb-0 whitespace-nowrap">Permissions & Keys</div>
                 </div>
+              </mat-panel-title>
+              <mat-panel-description class="!text-right !justify-end !ml-auto !flex-grow-0 !flex-shrink-0">
+                @if (acServ.accountComputed().permissions.length > 0) {
+                  <span class="whitespace-nowrap faded text-sm"><strong>{{ acServ.accountComputed().permissions.length }}</strong> configured</span>
+                } @else {
+                  <span class="whitespace-nowrap faded text-sm">No permissions</span>
+                }
+              </mat-panel-description>
+            </mat-expansion-panel-header>
+
+            <div class="mt-3">
+              @defer (on immediate) {
+                <app-permission-tree [permissions]="acServ.accountComputed().permissions"></app-permission-tree>
               }
             </div>
-            <!--          }-->
+          </mat-expansion-panel>
+        </mat-accordion>
+
+        <!--VOTE CARD-->
+        @let voterInfo = acServ.accountComputed().voter_info;
+        @if (voterInfo && (voterInfo.proxy || voterInfo.producers.length > 0)) {
+          <mat-accordion class="custom-card vote-card w-full text-black md:col-span-3">
+            <mat-expansion-panel
+              #voteExpansionPanel
+              [disabled]="voterInfo.producers.length <= 0"
+              [hideToggle]="voterInfo.producers.length <= 0"
+            >
+              <!--            -->
+              <!--            -->
+              <mat-expansion-panel-header class="!px-4">
+                <mat-panel-title class="!flex-grow-0 !flex-shrink-0">
+                  <div class="flex flex-row items-center gap-2 text-xl">
+                    @if (voterInfo.producers.length > 0) {
+                      <button mat-icon-button class="small-arrow-btn">
+                        <div class="flex flex-col items-center justify-center">
+                          <fa-icon
+                            [ngClass]="voteExpansionPanel.expanded ? 'arrowDown' : 'arrowRight'"
+                            [icon]="icons.solid.faChevronRight"
+                            class="arrowSize main-color"
+                          ></fa-icon>
+                        </div>
+                      </button>
+                    }
+                    <fa-layers [fixedWidth]="true">
+                      <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
+                      <fa-icon [icon]="icons.solid.faVote" [inverse]="true" transform="shrink-4"></fa-icon>
+                    </fa-layers>
+                    <div class="vote-card-title mb-0 whitespace-nowrap">Votes</div>
+                  </div>
+                </mat-panel-title>
+                <mat-panel-description class="!text-right !justify-end !ml-auto !flex-grow-0 !flex-shrink-0">
+                  @if (voterInfo) {
+                    @if (voterInfo.proxy) {
+                      <span class="whitespace-nowrap">Proxy: <a [routerLink]="['/account', voterInfo.proxy]"
+                                                                class="link-primary">{{ voterInfo.proxy }}</a></span>
+                    } @else {
+                      @if (voterInfo.producers.length > 0) {
+                        <span
+                          class="whitespace-nowrap"><strong>{{ voterInfo.producers.length }}</strong> producer{{ voterInfo.producers.length > 1 ? 's' : '' }}</span>
+                      }
+                    }
+                  }
+                </mat-panel-description>
+              </mat-expansion-panel-header>@if (voterInfo.producers.length > 0) {
+              <div class="mt-3">
+                <mat-chip-set aria-label="list of producers voted">
+                  @for (producer of voterInfo.producers; track producer) {
+                    <mat-chip [routerLink]="['/account', producer]" class="cursor-pointer">
+                      {{ producer }}
+                    </mat-chip>
+                  }
+                </mat-chip-set>
+              </div>
+            }
+            </mat-expansion-panel>
+          </mat-accordion>
+        }
+
+        <!--ACTIONS CARD/TABLE-->
+        <div class="custom-card h-full min-h-full w-full min-w-full md:col-span-3">
+          <div class="flex flex-row flex-wrap items-start justify-between">
+            <div class="flex flex-row flex-wrap items-center gap-3">
+              <div class="text-xl mb-3" style="margin-top: 0">
+                <fa-layers [fixedWidth]="true" style="margin-right: 5px">
+                  <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
+                  <fa-icon [icon]="icons.solid.faHistory" [inverse]="true" transform="shrink-5"></fa-icon>
+                </fa-layers>
+                Actions
+              </div>
+
+              <!--          @if (acServ.streamClientLoaded) {-->
+              <div class="livestream-container flex flex-row items-center gap-3" matTooltip="Toggle action live streaming"
+                   matTooltipClass="tooltip-bigger">
+                <div class="livestream-label">
+                  <fa-icon [icon]="icons.solid.broadcast" class="livestream-icon"></fa-icon>
+                  <span>Action Live Streaming</span>
+                </div>
+                <div class="livestream-toggle" (click)="acServ.toggleStreaming()">
+                  <div class="toggle-track" [ngClass]="{'toggle-track-on': acServ.streamClientStatus()}">
+                    <div class="toggle-indicator" [ngClass]="{'toggle-indicator-on': acServ.streamClientStatus()}">
+                      <div class="toggle-indicator-light" [ngClass]="{'pulse': acServ.streamClientStatus()}"></div>
+                    </div>
+                  </div>
+                  <span class="toggle-status font-medium">
+                {{ acServ.streamClientStatus() ? "ON" : "OFF" }}
+              </span>
+                </div>
+                @if (acServ.streamClientStatus()) {
+                  <div class="ml-2 flex flex-row items-center gap-1">
+                    <span class="text-sm faded">Actions:</span>
+                    <span class="text-sm font-medium">{{ acServ.streamingActionsSize() }}/500</span>
+                  </div>
+                }
+              </div>
+              <!--          }-->
+            </div>
+
+            <div class="lib flex flex-row items-center gap-3">
+              Last Irreversible Block:
+              <a [routerLink]="['/block', chain.lastIrreversibleBlockNum()]">
+                <strong class="monospace div-link">
+                  {{ chain.lastIrreversibleBlockNum() | number }}
+                </strong>
+              </a>
+              <button mat-button matTooltip="Refresh Last Irreversible Block" (click)="chain.refreshChainInfo()"
+                      class="custom-icon-btn">
+                <fa-icon [icon]="icons.solid.faSync" class="text-lg faded"></fa-icon>
+              </button>
+            </div>
+
+
           </div>
 
-          <div class="lib flex flex-row items-center gap-3">
-            Last Irreversible Block:
-            <a [routerLink]="['/block', chain.lastIrreversibleBlockNum()]">
-              <strong class="monospace div-link">
-                {{ chain.lastIrreversibleBlockNum() | number }}
-              </strong>
-            </a>
-            <button mat-button matTooltip="Refresh Last Irreversible Block" (click)="chain.refreshChainInfo()"
-                    class="custom-icon-btn">
-              <fa-icon [icon]="icons.solid.faSync" class="text-lg faded"></fa-icon>
-            </button>
-          </div>
+          <!-- aqui -->
+          @if (acServ.totalActionCounter() || (acServ.filter() && acServ.totalActionCounter() === 0)) {
 
-
-        </div>
-
-        <!-- aqui -->
-        @if (acServ.totalActionCounter() || (acServ.filter() && acServ.totalActionCounter() === 0)) {
-
-          <!--ACTION FILTERS-->
-          <div class="relative mb-1 flex snap-x snap-proximity snap-always flex-row items-center gap-5
+            <!--ACTION FILTERS-->
+            <div class="relative mb-1 flex snap-x snap-proximity snap-always flex-row items-center gap-5
           overflow-x-auto overflow-y-hidden
           py-4 pr-1.5
           lg:mb-0 lg:flex-wrap lg:justify-end">
 
-            <div class="faded">Filter by</div>
+              <div class="faded">Filter by</div>
 
-            @for (filter of acServ.commonFilters; track filter.name) {
+              @for (filter of acServ.commonFilters; track filter.name) {
 
-              <div class="shrink-0 snap-center first:pl-1 last:pr-1">
+                <div class="shrink-0 snap-center first:pl-1 last:pr-1">
 
-                <button mat-raised-button
-                        class="filter-btn w-max"
-                        [class.primary-btn]="acServ.filter()?.name === filter.name"
-                        (click)="setFilter(filter)">
+                  <button mat-raised-button
+                          class="filter-btn w-max"
+                          [class.primary-btn]="acServ.filter()?.name === filter.name"
+                          (click)="setFilter(filter)">
 
-                  <div class="flex flex-row items-center gap-2">
+                    <div class="flex flex-row items-center gap-2">
 
-                    @if (filter.icon) {
-                      <fa-icon [icon]="filter.icon" class="text-base"></fa-icon>
-                    }
+                      @if (filter.icon) {
+                        <fa-icon [icon]="filter.icon" class="text-base"></fa-icon>
+                      }
 
-                    <div>{{ filter.name }}</div>
+                      <div>{{ filter.name }}</div>
 
-                    @if (filter.userFilter) {
-                      <fa-icon
-                        (click)="removeUserFilter(filter); $event.stopPropagation()"
-                        [icon]="icons.solid.faTimes"
-                        class="warn remove-filter relative text-base"
-                        matTooltip="remove filter">
-                      </fa-icon>
-                    }
+                      @if (filter.userFilter) {
+                        <fa-icon
+                          (click)="removeUserFilter(filter); $event.stopPropagation()"
+                          [icon]="icons.solid.faTimes"
+                          class="warn remove-filter relative text-base"
+                          matTooltip="remove filter">
+                        </fa-icon>
+                      }
 
-                  </div>
-                </button>
-              </div>
-            }
-          </div>
-
-          @let filteredActions = acServ.actionRes.value()?.actions;
-          @let totalFilteredActions = acServ.actionRes.value()?.total?.value;
-          @if (!(acServ.filter() && acServ.totalActionCounter() === 0)) {
-            <mat-expansion-panel #filterExpansionPanel hideToggle class="filter-panel">
-              <mat-expansion-panel-header>
-                <div class="flex w-full flex-row flex-wrap items-center gap-2 pt-1">
-                  <button mat-icon-button class="small-arrow-btn">
-                    <div class="flex flex-col items-center justify-center">
-                      <fa-icon
-                        [ngClass]="filterExpansionPanel.expanded ? 'arrowDown' : 'arrowRight'"
-                        [icon]="icons.solid.faChevronRight"
-                        class="arrowSize main-color"
-                      ></fa-icon>
                     </div>
                   </button>
+                </div>
+              }
+            </div>
 
-                  <div class="pr-6">More filters</div>
-                  <!--              @if (filterExpansionPanel.expanded) {-->
-                  <mat-panel-description class="grow">
-                    <div class="flex flex-row items-center gap-7 py-2">
-                      <div class="flex flex-row items-center gap-2">
-                        <input type="checkbox" [(ngModel)]="useUTC" (click)="$event.stopPropagation()"/>
-                        <div class="faded">Dates in UTC</div>
+            @let filteredActions = acServ.actionRes.value()?.actions;
+            @let totalFilteredActions = acServ.actionRes.value()?.total?.value;
+            @if (!(acServ.filter() && acServ.totalActionCounter() === 0)) {
+              <mat-expansion-panel #filterExpansionPanel hideToggle class="filter-panel">
+                <mat-expansion-panel-header>
+                  <div class="flex w-full flex-row flex-wrap items-center gap-2 pt-1">
+                    <button mat-icon-button class="small-arrow-btn">
+                      <div class="flex flex-col items-center justify-center">
+                        <fa-icon
+                          [ngClass]="filterExpansionPanel.expanded ? 'arrowDown' : 'arrowRight'"
+                          [icon]="icons.solid.faChevronRight"
+                          class="arrowSize main-color"
+                        ></fa-icon>
                       </div>
+                    </button>
 
-                      <div class="flex flex-row items-center gap-2">
-                        <input type="checkbox" [(ngModel)]="compactMode" (click)="$event.stopPropagation()"/>
-                        <div class="faded">Compact Mode</div>
+                    <div class="pr-6">More filters</div>
+                    <!--              @if (filterExpansionPanel.expanded) {-->
+                    <mat-panel-description class="grow">
+                      <div class="flex flex-row items-center gap-7 py-2">
+                        <div class="flex flex-row items-center gap-2">
+                          <input type="checkbox" [(ngModel)]="useUTC" (click)="$event.stopPropagation()"/>
+                          <div class="faded">Dates in UTC</div>
+                        </div>
+
+                        <div class="flex flex-row items-center gap-2">
+                          <input type="checkbox" [(ngModel)]="compactMode" (click)="$event.stopPropagation()"/>
+                          <div class="faded">Compact Mode</div>
+                        </div>
                       </div>
-                    </div>
-                  </mat-panel-description>
-                  <!--              }-->
-                </div>
-              </mat-expansion-panel-header>
-
-              <!--CUSTOM FILTERS-->
-              <div class="flex flex-row flex-wrap items-center gap-4">
-                <div class="custom-input-group flex w-full max-w-full flex-row items-center rounded-full border-transparent sm:w-auto">
-                  <input
-                    matInput
-                    id="contract"
-                    type="text"
-                    class="custom-input ml-0 h-[2.625rem] rounded-l-full py-4 pl-5 outline-hidden"
-                    [(ngModel)]="contractFilterInput"
-                    placeholder="Contract"
-                  />
-                </div>
-                <div class="custom-input-group flex w-full max-w-full flex-row items-center rounded-full border-transparent sm:w-auto">
-                  <input
-                    matInput
-                    id="action"
-                    type="text"
-                    class="custom-input ml-0 h-[2.625rem] rounded-l-full py-4 pl-5 outline-hidden"
-                    [(ngModel)]="actionFilterInput"
-                    placeholder="Action Name"
-                  />
-                </div>
-
-                <button [disabled]="!contractFilterInput() && !actionFilterInput()" (click)="useCustomFilter()" mat-raised-button>
-                  Filter
-                </button>
-                <div class="flex flex-row items-center gap-2">
-                  <input type="checkbox" [(ngModel)]="saveCustomFilter"/>
-                  <div class="faded">Save this filter</div>
-                </div>
-              </div>
-            </mat-expansion-panel>
-          }
-          <div #actionsTable class="flex flex-row flex-wrap items-center justify-between gap-2 pt-5 pb-3">
-            @if (filteredActions && filteredActions.length > 0 && acServ.filter()) {
-              <div class="animate fast fadeInDown flex flex-row items-center justify-start gap-5">
-                <div class="flex flex-row gap-2">
-                  <span class="faded">Showing</span>
-                  <span class="font-medium">{{ filteredActions.length }}</span>
-                  <span class="faded">of</span>
-                  <span class="font-medium">{{ totalFilteredActions }}</span>
-                  <span class="faded">actions</span>
-                </div>
-                <div class="flex flex-row gap-2">
-                  <span class="faded">Filtered by:</span>
-                  <span class="font-medium">{{ acServ.filter()?.name }}</span>
-                </div>
-              </div>
-            } @else {
-              @if (acServ.actionRes.hasValue() && acServ.filter()) {
-                <div class="flex flex-row items-center justify-center gap-5">
-                  <div class="warn animate fast fadeInDown">
-                    No actions to display using filter
-                    <b>{{ acServ.filter()?.name }}</b>
+                    </mat-panel-description>
+                    <!--              }-->
                   </div>
-                  <button mat-raised-button class="filter-btn" (click)="acServ.clearFilter()">Clear Filter</button>
+                </mat-expansion-panel-header>
+
+                <!--CUSTOM FILTERS-->
+                <div class="flex flex-row flex-wrap items-center gap-4">
+                  <div class="custom-input-group flex w-full max-w-full flex-row items-center rounded-full border-transparent sm:w-auto">
+                    <input
+                      matInput
+                      id="contract"
+                      type="text"
+                      class="custom-input ml-0 h-[2.625rem] rounded-l-full py-4 pl-5 outline-hidden"
+                      [(ngModel)]="contractFilterInput"
+                      placeholder="Contract"
+                    />
+                  </div>
+                  <div class="custom-input-group flex w-full max-w-full flex-row items-center rounded-full border-transparent sm:w-auto">
+                    <input
+                      matInput
+                      id="action"
+                      type="text"
+                      class="custom-input ml-0 h-[2.625rem] rounded-l-full py-4 pl-5 outline-hidden"
+                      [(ngModel)]="actionFilterInput"
+                      placeholder="Action Name"
+                    />
+                  </div>
+
+                  <button [disabled]="!contractFilterInput() && !actionFilterInput()" (click)="useCustomFilter()" mat-raised-button>
+                    Filter
+                  </button>
+                  <div class="flex flex-row items-center gap-2">
+                    <input type="checkbox" [(ngModel)]="saveCustomFilter"/>
+                    <div class="faded">Save this filter</div>
+                  </div>
+                </div>
+              </mat-expansion-panel>
+            }
+            <div #actionsTable class="flex flex-row flex-wrap items-center justify-between gap-2 pt-5 pb-3">
+              @if (filteredActions && filteredActions.length > 0 && acServ.filter()) {
+                <div class="animate fast fadeInDown flex flex-row items-center justify-start gap-5">
+                  <div class="flex flex-row gap-2">
+                    <span class="faded">Showing</span>
+                    <span class="font-medium">{{ filteredActions.length }}</span>
+                    <span class="faded">of</span>
+                    <span class="font-medium">{{ totalFilteredActions }}</span>
+                    <span class="faded">actions</span>
+                  </div>
+                  <div class="flex flex-row gap-2">
+                    <span class="faded">Filtered by:</span>
+                    <span class="font-medium">{{ acServ.filter()?.name }}</span>
+                  </div>
                 </div>
               } @else {
-                <div></div>
+                @if (acServ.actionRes.hasValue() && acServ.filter()) {
+                  <div class="flex flex-row items-center justify-center gap-5">
+                    <div class="warn animate fast fadeInDown">
+                      No actions to display using filter
+                      <b>{{ acServ.filter()?.name }}</b>
+                    </div>
+                    <button mat-raised-button class="filter-btn" (click)="acServ.clearFilter()">Clear Filter</button>
+                  </div>
+                } @else {
+                  <div></div>
+                }
               }
-            }
 
-            <!-- aqui2 -->
-            @if (acServ.totalActionCounter() >= 10) {
+              <!-- aqui2 -->
+              @if (acServ.totalActionCounter() >= 10) {
+                <mat-paginator
+                  class="actions-table-paginator"
+                  [selectConfig]="{ panelClass: 'actions-table-paginator' }"
+                  [pageSize]="acServ.pageSize()"
+                  [pageIndex]="acServ.pageIndex()"
+                  [pageSizeOptions]="[5, 10, 20, 50, 100]"
+                  [length]="acServ.totalActionCounter()"
+                  (page)="changePage($event)"
+                  showFirstLastButtons
+                ></mat-paginator>
+              }
+            </div>
+
+            <!-- aqui fim -->
+            @if (!(acServ.filter() && acServ.totalActionCounter() === 0)) {
+              <table
+                mat-table
+                matSort
+                (matSortChange)="onSort($event)"
+                matSortActive="block_num"
+                matSortStart="desc"
+                [matSortDirection]="acServ.sortDirection()"
+                class="actions-table"
+                [dataSource]="acServ.tableDataSource"
+              >
+                <!-- TX Column -->
+                <ng-container matColumnDef="trx_id">
+                  <th mat-header-cell *matHeaderCellDef>TX</th>
+                  <td mat-cell *matCellDef="let action" data-label="TX" class="h-full">
+                    <!--                justify-between items-start h-full-->
+                    <div class="flex flex-col items-start gap-1">
+                      <div class="flex flex-row items-center">
+                        @if (chain.lastIrreversibleBlockNum() > 0 && chain.lastIrreversibleBlockNum() < action["block_num"]) {
+                          <span class="tx-status pending-status" matTooltip="time until irreversible" matTooltipClass="tooltip-bigger">
+
+                          <fa-icon [icon]="icons.solid.faClock" class="mr-1"></fa-icon>
+
+                            @let eta = ((action["block_num"] - chain.lastIrreversibleBlockNum()) / 2) - chain.elapsedTime();
+                            @if (eta > 0) {
+                              <span>{{ eta }}s until confirmed</span>
+                            } @else {
+                              <span>Validating confirmation</span>
+                            }
+
+                        </span>
+                        } @else {
+                          <span class="tx-status confirmed-status" matTooltip="Transaction confirmed" matTooltipClass="tooltip-bigger">
+                          <fa-icon [icon]="icons.solid.faCheck" class="mr-1"></fa-icon>
+                          <span>Confirmed</span>
+                        </span>
+                        }
+                      </div>
+                      <a matRipple [routerLink]="['/transaction', action['trx_id']]" class="link-primary m-2">
+                        {{ action["trx_id"].slice(0, 8) }}...
+                      </a>
+                      <a matRipple (click)="onRowClick(action)" class="link-btn faded">
+                        <div class="flex flex-row items-center gap-2">
+                          <fa-icon [icon]="icons.solid.dots"></fa-icon>
+                          <div class="text-xs uppercase">Expand Details</div>
+                        </div>
+                      </a>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <!-- Action Column -->
+                <ng-container matColumnDef="action">
+                  <th mat-header-cell *matHeaderCellDef>Action</th>
+                  <td mat-cell *matCellDef="let action" data-label="Action">
+                    <div class="action-cell p-2 flex flex-col gap-1">
+                      <span class="accent font-medium">{{ action["act"]["name"] }}</span>
+                      <span class="main-color"> on</span>
+                      <span [routerLink]="['/account', action['act']['account']]" class="div-link main-color font-medium">
+                      {{ action["act"]["account"] }}
+                    </span>
+                    </div>
+                  </td>
+                </ng-container>
+
+                <!-- Data Column -->
+                <ng-container matColumnDef="data">
+                  <th mat-header-cell *matHeaderCellDef>Data</th>
+                  <td mat-cell *matCellDef="let action" data-label="Data">
+                    @if (compactMode()) {
+                      <div class="flex flex-row items-center">
+                        <button mat-icon-button class="small-arrow-btn" (click)="action._expanded = !action._expanded">
+                          <div class="flex flex-col items-center justify-center">
+                            <fa-icon
+                              [ngClass]="action._expanded ? 'arrowUp' : 'arrowUpDown'"
+                              [icon]="icons.solid.faChevronDown"
+                              class="arrowSize main-color"
+                            ></fa-icon>
+                          </div>
+                        </button>
+                        @if (action._expanded) {
+                          <span (click)="action._expanded = false" class="faded">collapse</span>
+                        } @else {
+                          <!--EXPAND-->
+                          <span (click)="action._expanded = true" class="faded">expand</span>
+                        }
+                      </div>
+                    }
+                    @if (!compactMode() || action._expanded) {
+                      <div class="py-4">
+                        <app-act-data-view [data]="action.act.data"></app-act-data-view>
+                      </div>
+                    }
+                  </td>
+                </ng-container>
+
+                <!-- Block & Date Column -->
+                <ng-container matColumnDef="block_num">
+                  <th mat-header-cell mat-sort-header *matHeaderCellDef>Block & Date</th>
+                  <td mat-cell *matCellDef="let action" data-label="Block & Date">
+                    <div class="flex flex-col items-start gap-2">
+                      <a [routerLink]="['/block', action['block_num']]" class="link-primary mr-3">
+                        {{ action["block_num"] }}
+                      </a>
+                      <!--                    <br />-->
+                      <span>
+                    {{ action["@timestamp"] + (useUTC() ? "" : "Z") | date: "medium" }}
+                  </span>
+                      @if (isRecentTransaction(action['@timestamp'])) {
+                        <span class="time-indicator time-recent" matTooltip="Transaction made in the last 24hrs"
+                              matTooltipClass="tooltip-bigger">
+                        <fa-icon [icon]="icons.solid.faHistory" class="text-xs mr-1"></fa-icon>
+                        Recent transaction
+                      </span>
+                      }
+                    </div>
+                  </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+              </table>
               <mat-paginator
                 class="actions-table-paginator"
                 [selectConfig]="{ panelClass: 'actions-table-paginator' }"
@@ -597,163 +733,28 @@
                 (page)="changePage($event)"
                 showFirstLastButtons
               ></mat-paginator>
+
+              <button mat-raised-button class="filter-btn float-right mr-4" (click)="acServ.loadMoreActions()"> load more actions</button>
             }
-          </div>
-
-          <!-- aqui fim -->
-          @if (!(acServ.filter() && acServ.totalActionCounter() === 0)) {
-            <table
-              mat-table
-              matSort
-              (matSortChange)="onSort($event)"
-              matSortActive="block_num"
-              matSortStart="desc"
-              [matSortDirection]="acServ.sortDirection()"
-              class="actions-table"
-              [dataSource]="acServ.tableDataSource"
-            >
-              <!-- TX Column -->
-              <ng-container matColumnDef="trx_id">
-                <th mat-header-cell *matHeaderCellDef>TX</th>
-                <td mat-cell *matCellDef="let action" data-label="TX" class="h-full">
-                  <!--                justify-between items-start h-full-->
-                  <div class="flex flex-col items-start gap-1">
-                    <div class="flex flex-row items-center">
-                      @if (chain.lastIrreversibleBlockNum() > 0 && chain.lastIrreversibleBlockNum() < action["block_num"]) {
-                        <span class="tx-status pending-status" matTooltip="time until irreversible" matTooltipClass="tooltip-bigger">
-
-                          <fa-icon [icon]="icons.solid.faClock" class="mr-1"></fa-icon>
-
-                          @let eta = ((action["block_num"] - chain.lastIrreversibleBlockNum()) / 2) - chain.elapsedTime();
-                          @if (eta > 0) {
-                            <span>{{ eta }}s until confirmed</span>
-                          } @else {
-                            <span>Validating confirmation</span>
-                          }
-
-                        </span>
-                      } @else {
-                        <span class="tx-status confirmed-status" matTooltip="Transaction confirmed" matTooltipClass="tooltip-bigger">
-                          <fa-icon [icon]="icons.solid.faCheck" class="mr-1"></fa-icon>
-                          <span>Confirmed</span>
-                        </span>
-                      }
-                    </div>
-                    <a matRipple [routerLink]="['/transaction', action['trx_id']]" class="link-primary m-2">
-                      {{ action["trx_id"].slice(0, 8) }}...
-                    </a>
-                    <a matRipple (click)="onRowClick(action)" class="link-btn faded">
-                      <div class="flex flex-row items-center gap-2">
-                        <fa-icon [icon]="icons.solid.dots"></fa-icon>
-                        <div class="text-xs uppercase">Expand Details</div>
-                      </div>
-                    </a>
-                  </div>
-                </td>
-              </ng-container>
-
-              <!-- Action Column -->
-              <ng-container matColumnDef="action">
-                <th mat-header-cell *matHeaderCellDef>Action</th>
-                <td mat-cell *matCellDef="let action" data-label="Action">
-                  <div class="action-cell p-2 flex flex-col gap-1">
-                    <span class="accent font-medium">{{ action["act"]["name"] }}</span>
-                    <span class="main-color"> on</span>
-                    <span [routerLink]="['/account', action['act']['account']]" class="div-link main-color font-medium">
-                      {{ action["act"]["account"] }}
-                    </span>
-                  </div>
-                </td>
-              </ng-container>
-
-              <!-- Data Column -->
-              <ng-container matColumnDef="data">
-                <th mat-header-cell *matHeaderCellDef>Data</th>
-                <td mat-cell *matCellDef="let action" data-label="Data">
-                  @if (compactMode()) {
-                    <div class="flex flex-row items-center">
-                      <button mat-icon-button class="small-arrow-btn" (click)="action._expanded = !action._expanded">
-                        <div class="flex flex-col items-center justify-center">
-                          <fa-icon
-                            [ngClass]="action._expanded ? 'arrowUp' : 'arrowUpDown'"
-                            [icon]="icons.solid.faChevronDown"
-                            class="arrowSize main-color"
-                          ></fa-icon>
-                        </div>
-                      </button>
-                      @if (action._expanded) {
-                        <span (click)="action._expanded = false" class="faded">collapse</span>
-                      } @else {
-                        <!--EXPAND-->
-                        <span (click)="action._expanded = true" class="faded">expand</span>
-                      }
-                    </div>
-                  }
-                  @if (!compactMode() || action._expanded) {
-                    <div class="py-4">
-                      <app-act-data-view [data]="action.act.data"></app-act-data-view>
-                    </div>
-                  }
-                </td>
-              </ng-container>
-
-              <!-- Block & Date Column -->
-              <ng-container matColumnDef="block_num">
-                <th mat-header-cell mat-sort-header *matHeaderCellDef>Block & Date</th>
-                <td mat-cell *matCellDef="let action" data-label="Block & Date">
-                  <div class="flex flex-col items-start gap-2">
-                    <a [routerLink]="['/block', action['block_num']]" class="link-primary mr-3">
-                      {{ action["block_num"] }}
-                    </a>
-                    <!--                    <br />-->
-                    <span>
-                    {{ action["@timestamp"] + (useUTC() ? "" : "Z") | date: "medium" }}
-                  </span>
-                    @if (isRecentTransaction(action['@timestamp'])) {
-                      <span class="time-indicator time-recent" matTooltip="Transaction made in the last 24hrs"
-                            matTooltipClass="tooltip-bigger">
-                        <fa-icon [icon]="icons.solid.faHistory" class="text-xs mr-1"></fa-icon>
-                        Recent transaction
-                      </span>
-                    }
-                  </div>
-                </td>
-              </ng-container>
-
-              <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-              <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-            </table>
-            <mat-paginator
-              class="actions-table-paginator"
-              [selectConfig]="{ panelClass: 'actions-table-paginator' }"
-              [pageSize]="acServ.pageSize()"
-              [pageIndex]="acServ.pageIndex()"
-              [pageSizeOptions]="[5, 10, 20, 50, 100]"
-              [length]="acServ.totalActionCounter()"
-              (page)="changePage($event)"
-              showFirstLastButtons
-            ></mat-paginator>
-
-            <button mat-raised-button class="filter-btn float-right mr-4" (click)="acServ.loadMoreActions()"> load more actions</button>
+          } @else {
+            No actions to display
           }
-        } @else {
-          No actions to display
-        }
-      </div>
-    </div>
-  } @else {
-    <!--      NO ACCOUNT-->
-    <div style="height: 100%" class="appear flex flex-col items-center justify-start gap-[15px]">
-      <div class="custom-card w-full">
-        <h1 class="faded">
-          <fa-icon [icon]="icons.solid.faSadTear" style="margin-right: 5px"></fa-icon>
-          Account not found
-        </h1>
-        <div>
-          We couldn't find the account
-          <strong>{{ acServ.accountName() }}</strong>
         </div>
       </div>
-    </div>
-  }
-</div>
+    } @else {
+      <!--      NO ACCOUNT-->
+      <div style="height: 100%" class="appear flex flex-col items-center justify-start gap-[15px]">
+        <div class="custom-card w-full">
+          <h1 class="faded">
+            <fa-icon [icon]="icons.solid.faSadTear" style="margin-right: 5px"></fa-icon>
+            Account not found
+          </h1>
+          <div>
+            We couldn't find the account
+            <strong>{{ acServ.accountName() }}</strong>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+}

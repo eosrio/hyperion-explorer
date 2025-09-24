@@ -5,165 +5,167 @@
       mode="indeterminate"
     ></mat-progress-spinner>
   </div>
-}
-
-
-@if (tx().actions && tx().actions.length === 0) {
-  <div class="hr-container w-full">
-    <div class="grid grid-cols-1 auto-cols-max gap-5 text-black appear">
-      <div class="custom-card w-full">
-        <h1 class="faded">
-          <fa-icon [icon]="icons.solid.faSadTear" style="margin-right: 5px"></fa-icon>
-          Transaction not found
-        </h1>
-        <div>
-          We couldn't find the transaction
-          <strong class="break-word">{{ txID() }}</strong>
+} @else {
+  @if (tx().actions && tx().actions.length === 0) {
+    <div class="hr-container w-full">
+      <div class="grid grid-cols-1 auto-cols-max gap-5 text-black appear">
+        <div class="custom-card w-full">
+          <h1 class="faded">
+            <fa-icon [icon]="icons.solid.faSadTear" style="margin-right: 5px"></fa-icon>
+            Transaction not found
+          </h1>
+          <div>
+            We couldn't find the transaction
+            <strong class="break-word">{{ txID() }}</strong>
+          </div>
         </div>
-      </div>
 
+      </div>
     </div>
-  </div>
-  <!--    <div style="height: calc(100vh - 209px)" class="flex flex-column justify-start items-center">-->
-    <!--    </div>-->
-}
+    <!--    <div style="height: calc(100vh - 209px)" class="flex flex-column justify-start items-center">-->
+      <!--    </div>-->
+  }
 
-@if (tx().actions && tx().actions.length > 0 && accountService.loaded()) {
-  <div class="hr-container w-full">
-    <!--    md:grid-cols-2 auto-cols-auto-->
-    <div class="flex flex-col gap-5 text-black w-full appear">
-      <!--      min-w-full-->
-      <div class="custom-card card-top-sticky bg-no-transparency w-full h-full min-h-full sticky top-[122px] z-40">
-        <div>
-          <div class="flex flex-row gap-2.5 justify-start items-center">
-            <div class="text-xl font-semibold faded">
-              <fa-layers [fixedWidth]="true" style="margin-right: 2px">
-                <fa-icon [icon]="icons.solid.faCircle" transform="grow-1"></fa-icon>
-                <fa-icon [icon]="icons.solid.faExchange" [inverse]="true" transform="shrink-4"></fa-icon>
-              </fa-layers>
-              Transaction
-            </div>
-            <mat-chip-listbox class="mat-mdc-chip-set-stacked">
-              @if (accountService.libNum > tx().actions[0]["block_num"]) {
-                <mat-chip-option selected>
-                  <fa-icon [icon]="icons.solid.faLock" style="margin-right: 5px"></fa-icon>
-                  Irreversible
-                </mat-chip-option>
-              }
-              @if (accountService.libNum < tx().actions[0]["block_num"]) {
-                <mat-chip-option color="accent" selected>
-                  <fa-icon
-                    [icon]="icons.solid.faHourglass"
-                    style="margin-right: 5px"
-                  ></fa-icon>
-                  Pending ({{ countdownTimer }}s)
-                </mat-chip-option>
-              }
-            </mat-chip-listbox>
-          </div>
-          <h4 style="margin: 10px 0 12px 0" class="break-word">
-            {{ tx().trx_id }}
-          </h4>
-        </div>
-      </div>
-      <div class="custom-card w-full">
-        <div class="flex flex-col justify-start items-stretch gap-[15px]">
-          <div>Block number:
-            <a [routerLink]="['/block', tx().actions[0].block_num]"
-               class="link-accent font-semibold">{{ tx().actions[0].block_num }}</a>
-          </div>
-          <div>Block time: {{ formatDate(tx().actions[0]["@timestamp"]) }}</div>
-          <div class="flex flex-row justify-start content-center gap-[50px]">
-            <div>
-              <div>
-                <span class="title">CPU</span>
-                <span class="faded used">usage</span>
+  @if (tx().actions && tx().actions.length > 0 && accountService.loaded()) {
+    <div class="hr-container w-full">
+      <!--    md:grid-cols-2 auto-cols-auto-->
+      <div class="flex flex-col gap-5 text-black w-full appear">
+        <!--      min-w-full-->
+        <div class="custom-card card-top-sticky bg-no-transparency w-full h-full min-h-full sticky top-[122px] z-40">
+          <div>
+            <div class="flex flex-row gap-2.5 justify-start items-center">
+              <div class="text-xl font-semibold faded">
+                <fa-layers [fixedWidth]="true" style="margin-right: 2px">
+                  <fa-icon [icon]="icons.solid.faCircle" transform="grow-1"></fa-icon>
+                  <fa-icon [icon]="icons.solid.faExchange" [inverse]="true" transform="shrink-4"></fa-icon>
+                </fa-layers>
+                Transaction
               </div>
-              <div>{{ tx().actions[0]["cpu_usage_us"] }} µs</div>
+              <mat-chip-listbox class="mat-mdc-chip-set-stacked">
+                @if (accountService.libNum > tx().actions[0]["block_num"]) {
+                  <mat-chip-option selected>
+                    <fa-icon [icon]="icons.solid.faLock" style="margin-right: 5px"></fa-icon>
+                    Irreversible
+                  </mat-chip-option>
+                }
+                @if (accountService.libNum < tx().actions[0]["block_num"]) {
+                  <mat-chip-option color="accent" selected>
+                    <fa-icon
+                      [icon]="icons.solid.faHourglass"
+                      style="margin-right: 5px"
+                    ></fa-icon>
+                    Pending ({{ countdownTimer }}s)
+                  </mat-chip-option>
+                }
+              </mat-chip-listbox>
             </div>
-            <div>
+            <h4 style="margin: 10px 0 12px 0" class="break-word">
+              {{ tx().trx_id }}
+            </h4>
+          </div>
+        </div>
+        <div class="custom-card w-full">
+          <div class="flex flex-col justify-start items-stretch gap-[15px]">
+            <div>Block number:
+              <a [routerLink]="['/block', tx().actions[0].block_num]"
+                 class="link-accent font-semibold">{{ tx().actions[0].block_num }}</a>
+            </div>
+            <div>Block time: {{ formatDate(tx().actions[0]["@timestamp"]) }}</div>
+            <div class="flex flex-row justify-start content-center gap-[50px]">
               <div>
-                <span class="title">NET</span>
-                <span class="faded used">usage</span>
+                <div>
+                  <span class="title">CPU</span>
+                  <span class="faded used">usage</span>
+                </div>
+                <div>{{ tx().actions[0]["cpu_usage_us"] }} µs</div>
               </div>
-              <div>{{ tx().actions[0]["net_usage_words"] }} bytes</div>
+              <div>
+                <div>
+                  <span class="title">NET</span>
+                  <span class="faded used">usage</span>
+                </div>
+                <div>{{ tx().actions[0]["net_usage_words"] }} bytes</div>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
 
-      <div class="custom-card w-full min-w-full h-full min-h-full md:col-span-2">
-        <div #actionsTable class="text-lg font-bold">
-          <fa-layers [fixedWidth]="true" style="margin-right: 5px">
-            <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
-            <fa-icon [icon]="icons.solid.faHistory" [inverse]="true" transform="shrink-5"></fa-icon>
-          </fa-layers>
-          <span>{{ tx().actions.length }} Action@if (tx().actions.length > 1) {
-            <span>s</span>
-          }</span>
-        </div>
-        <table mat-table [dataSource]="tx().actions" class="actions-table">
-          <!-- Contract Column -->
-          <ng-container matColumnDef="contract">
-            <th mat-header-cell *matHeaderCellDef>Contract</th>
-            <td mat-cell *matCellDef="let action" data-label="Contract">
+        <div class="custom-card w-full min-w-full h-full min-h-full md:col-span-2">
+          <div #actionsTable class="text-lg font-bold">
+            <fa-layers [fixedWidth]="true" style="margin-right: 5px">
+              <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
+              <fa-icon [icon]="icons.solid.faHistory" [inverse]="true" transform="shrink-5"></fa-icon>
+            </fa-layers>
+            <span>{{ tx().actions.length }} Action@if (tx().actions.length > 1) {
+              <span>s</span>
+            }</span>
+          </div>
+          <table mat-table [dataSource]="tx().actions" class="actions-table">
+            <!-- Contract Column -->
+            <ng-container matColumnDef="contract">
+              <th mat-header-cell *matHeaderCellDef>Contract</th>
+              <td mat-cell *matCellDef="let action" data-label="Contract">
               <span
                 [routerLink]="['/account', action.act.account]"
                 class="div-link"
               >{{ action.act.account }}</span
               >
-            </td>
-          </ng-container>
-          <!-- Action Column -->
-          <ng-container matColumnDef="action">
-            <th mat-header-cell *matHeaderCellDef>Action</th>
-            <td mat-cell *matCellDef="let action" data-label="Action">
-              <div class="action-cell">
-                <span class="accent font-medium">{{ action.act.name }}</span>
-              </div>
-            </td>
-          </ng-container>
+              </td>
+            </ng-container>
+            <!-- Action Column -->
+            <ng-container matColumnDef="action">
+              <th mat-header-cell *matHeaderCellDef>Action</th>
+              <td mat-cell *matCellDef="let action" data-label="Action">
+                <div class="action-cell">
+                  <span class="accent font-medium">{{ action.act.name }}</span>
+                </div>
+              </td>
+            </ng-container>
 
-          <!-- Data Column -->
-          <ng-container matColumnDef="data">
-            <th mat-header-cell *matHeaderCellDef>Data</th>
-            <td mat-cell *matCellDef="let action" data-label="Data">
-              <div class="py-4">
-                <app-act-data-view [data]="action.act.data"></app-act-data-view>
-              </div>
-            </td>
-          </ng-container>
-          <!-- Authorization Column -->
-          <ng-container matColumnDef="auth">
-            <th mat-header-cell *matHeaderCellDef>Authorization</th>
-            <td
-              mat-cell
-              *matCellDef="let action"
-              data-label="Authorization"
-            >
-              @for (auth of action["act"]["authorization"][0] | keyvalue;
-                track auth) {
-                <div class="pb-1">
+            <!-- Data Column -->
+            <ng-container matColumnDef="data">
+              <th mat-header-cell *matHeaderCellDef>Data</th>
+              <td mat-cell *matCellDef="let action" data-label="Data">
+                <div class="py-4">
+                  <app-act-data-view [data]="action.act.data"></app-act-data-view>
+                </div>
+              </td>
+            </ng-container>
+            <!-- Authorization Column -->
+            <ng-container matColumnDef="auth">
+              <th mat-header-cell *matHeaderCellDef>Authorization</th>
+              <td
+                mat-cell
+                *matCellDef="let action"
+                data-label="Authorization"
+              >
+                @for (auth of action["act"]["authorization"][0] | keyvalue;
+                  track auth) {
+                  <div class="pb-1">
                   <span class="font-medium">{{ auth.key }}</span
                   >: <span>{{ auth.value }}</span>
-                </div>
-              }
-            </td>
-          </ng-container
-          >
+                  </div>
+                }
+              </td>
+            </ng-container
+            >
 
-          <tr
-            mat-header-row
-            *matHeaderRowDef="columnsToDisplay; sticky: true"
-          ></tr>
+            <tr
+              mat-header-row
+              *matHeaderRowDef="columnsToDisplay; sticky: true"
+            ></tr>
 
-          <tr
-            mat-row
-            *matRowDef="let myRowData; columns: columnsToDisplay"
-          ></tr>
-        </table>
+            <tr
+              mat-row
+              *matRowDef="let myRowData; columns: columnsToDisplay"
+            ></tr>
+          </table>
+        </div>
       </div>
     </div>
-  </div>
+  }
 }
+
+
+

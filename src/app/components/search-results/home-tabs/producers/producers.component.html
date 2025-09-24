@@ -1,19 +1,19 @@
 <div class="p-4">
   <!-- Bind dataSource to the producers signal -->
-  <table mat-table [dataSource]="chainService.producers()"
-         matSort
-         matSortActive="totalVotes"
-         matSortDirection="desc"
-         class="producers-table w-full"> <!-- Moved comment out & ensured closing '>' -->
+  <table mat-table [dataSource]="dataSource"
+        matSort
+        matSortActive="total_votes"
+        matSortDirection="desc"
+        class="producers-table w-full"> <!-- Moved comment out & ensured closing '>' -->
     <!-- Sort by votes by default -->
 
     <!-- Rank Column -->
     <ng-container matColumnDef="rank">
       <th mat-header-cell *matHeaderCellDef mat-sort-header>Rank</th>
       <!-- Use index + 1 for rank as data is pre-sorted by votes -->
-      <td mat-cell *matCellDef="let producer; let i = index" data-label="Rank">
+      <td mat-cell *matCellDef="let producer" data-label="Rank">
         <div class="producer-cell">
-          {{ i + 1 }}
+          {{ producer._rank }}
         </div>
       </td>
     </ng-container>
@@ -36,15 +36,13 @@
       <th mat-header-cell *matHeaderCellDef mat-sort-header>Location</th>
       <td mat-cell *matCellDef="let producer" data-label="Location">
         <div class="producer-cell">
-          <!-- Display location code - might need mapping later -->
-          {{ producer.location }}
-          <!-- TODO: Add country flag or name based on location code if available -->
+          {{ countryName(producer.location) }}
         </div>
       </td>
     </ng-container>
 
     <!-- Total Votes Column -->
-    <ng-container matColumnDef="totalVotes"> <!-- Corrected from 'location' -->
+    <ng-container matColumnDef="total_votes">
       <th mat-header-cell *matHeaderCellDef mat-sort-header sortActionDescription="Sort by total votes">Total Votes</th>
       <td mat-cell *matCellDef="let producer" data-label="Total Votes">
         <div class="producer-cell">
