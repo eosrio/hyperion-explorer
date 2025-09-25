@@ -9,5 +9,5 @@ globalThis.themeData = {
   "--card-bg-gradient": "linear-gradient(115deg, rgb(255 255 255 / 60%) 0%, rgb(255 255 255 / 90%) 50%, rgb(255 255 255 / 60%) 100%)",
   "--table-top-bg-gradient": "linear-gradient(115deg, rgb(255 255 255 / 60%) 0%, rgb(255 255 255 / 90%) 87%, rgb(255 255 255 / 60%) 130%), var(--main-background)",
   "--main-text": "#141519",
-  "--footer-text": "#7c9b89"
+  "--footer-text": "#5c7767"
 }

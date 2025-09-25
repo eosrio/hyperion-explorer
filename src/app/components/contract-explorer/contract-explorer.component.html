@@ -110,20 +110,20 @@
               <!-- View mode toggle buttons -->
               <div class="flex flex-row items-center gap-2">
                 <span class="text-sm">View mode:</span>
-                <button mat-icon-button matTooltip="Table View"
-                        [ngClass]="{'selected-view': viewMode() === 'table'}"
-                        (click)="setViewMode('table')">
-                  <mat-icon>table_chart</mat-icon>
+                <button mat-icon-button matTooltip="Collapsible List View"
+                        [ngClass]="{'selected-view': viewMode() === 'expanded'}"
+                        (click)="setViewMode('expanded')">
+                  <mat-icon>view_list</mat-icon>
                 </button>
                 <button mat-icon-button matTooltip="Card View"
                         [ngClass]="{'selected-view': viewMode() === 'card'}"
                         (click)="setViewMode('card')">
                   <mat-icon>grid_view</mat-icon>
                 </button>
-                <button mat-icon-button matTooltip="Collapsible List View"
-                        [ngClass]="{'selected-view': viewMode() === 'expanded'}"
-                        (click)="setViewMode('expanded')">
-                  <mat-icon>view_list</mat-icon>
+                <button mat-icon-button matTooltip="Table View"
+                        [ngClass]="{'selected-view': viewMode() === 'table'}"
+                        (click)="setViewMode('table')">
+                  <mat-icon>table_chart</mat-icon>
                 </button>
               </div>
             }
@@ -135,7 +135,7 @@
             @if (tableData().length === 1) {
               <!--              <pre class="text-wrap break-words">{{ tableData()[0] | json }}</pre>-->
               <div class="mt-5 mx-3 appear">
-                <app-act-data-view [data]="tableData()[0]" ></app-act-data-view>
+                <app-act-data-view [data]="tableData()[0]"></app-act-data-view>
               </div>
             } @else {
               <!-- Table View -->

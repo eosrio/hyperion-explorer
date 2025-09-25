@@ -420,6 +420,7 @@ export class AccountComponent implements OnInit {
       this.contractDialogRef = this.dialog.open<ContractDialogComponent>(ContractDialogComponent, {
         width: '1024px',
         height: 'auto',
+        minHeight: '90dvh',
         restoreFocus: true,
         data: {
           account: this.searchService.searchQuery(),

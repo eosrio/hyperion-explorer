@@ -245,10 +245,13 @@ export class ContractExplorerComponent {
   sortDirection = signal<string>("desc");
 
   // View mode for table data: 'table', 'card', 'expanded'
-  viewMode = signal<string>("table");
+  // Default to 'expanded' (collapsible list view)
+  viewMode = signal<string>("expanded");
 
   // Track expanded items in expanded view
   expandedItems = signal<Set<number>>(new Set<number>());
+  // Internal flag to ensure auto-expand runs only once per table/scope/view session
+  autoExpanded = signal<boolean>(false);
 
   // Toggle expanded state of an item
   toggleItemExpanded(index: number) {
@@ -318,6 +321,7 @@ export class ContractExplorerComponent {
     this.lastScope.set("");
     this.tableData.set([]);
     this.expandedItems.set(new Set<number>());
+    this.autoExpanded.set(false);
     this.table.set(name);
     if (this.navMode() === 'dialog') {
       // append scope as a query parameter
@@ -332,6 +336,7 @@ export class ContractExplorerComponent {
   async selectScope(name: string) {
     this.scope.set(name);
     this.expandedItems.set(new Set<number>());
+    this.autoExpanded.set(false);
     if (this.navMode() === 'dialog') {
       // append scope as a query parameter
       await this.router.navigate([], {queryParams: {table: this.table(), scope: name}});
@@ -378,8 +383,21 @@ export class ContractExplorerComponent {
   }
 
   constructor() {
+    // Debug effect
     effect(() => {
       console.log(`Next present:`, this.nextScopePresent());
+    });
+
+    // Auto-expand the first item when entering expanded (list) view with data loaded
+    effect(() => {
+      const mode = this.viewMode();
+      const rows = this.tableData();
+      const expanded = this.expandedItems();
+      const alreadyAuto = this.autoExpanded();
+      if (mode === 'expanded' && rows && rows.length > 0 && expanded.size === 0 && !alreadyAuto) {
+        this.expandedItems.set(new Set<number>([0]));
+        this.autoExpanded.set(true);
+      }
     });
   }
 
@@ -394,5 +412,6 @@ export class ContractExplorerComponent {
     this.viewMode.set(mode);
     // Reset expanded items when changing view mode
     this.expandedItems.set(new Set<number>());
+    this.autoExpanded.set(false);
   }
 }
