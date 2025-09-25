@@ -116,3 +116,25 @@ $overlay-backdrop-color: rgba(0, 0, 0, 0.8) !important;
   stroke: var(--primary);
 }
 
+
+
+/* Contract Dialog: Remove default 65vh on mat-dialog-content and enable flexbox scrolling */
+.cdk-overlay-pane.contract-dialog-panel .mat-mdc-dialog-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 0; /* allow children to shrink below content size */
+}
+
+.cdk-overlay-pane.contract-dialog-panel .mat-mdc-dialog-content {
+  max-height: none !important; /* override Angular Material default 65vh */
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0; /* critical for flexbox scrolling */
+}
+
+.cdk-overlay-pane.contract-dialog-panel app-contract-explorer {
+  flex: 1 1 auto;
+  min-height: 0; /* allow this flex item to shrink */
+  overflow-y: auto; /* scroll only the content area */
+}

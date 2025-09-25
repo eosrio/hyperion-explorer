@@ -43,6 +43,7 @@
   border: none !important;
   box-shadow:  rgb(78 104 192 / 25%) 0 4px 19px 0, rgba(17, 12, 46, 0.15) 0 20px 100px 0 !important;
   color: var(--main-text);
+  min-height: fit-content;
 }
 
 .transparent-table {

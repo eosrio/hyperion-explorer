@@ -418,9 +418,10 @@ export class AccountComponent implements OnInit {
     console.log('Opening contract dialog');
     if (this.searchService.searchQuery()) {
       this.contractDialogRef = this.dialog.open<ContractDialogComponent>(ContractDialogComponent, {
-        width: '1024px',
+        width: '1235px',
         height: 'auto',
         minHeight: '90dvh',
+        maxHeight: '90dvh',
         restoreFocus: true,
         data: {
           account: this.searchService.searchQuery(),
@@ -428,7 +429,7 @@ export class AccountComponent implements OnInit {
           scope: scope
         },
         autoFocus: false,
-        panelClass: ['responsive-modal'],
+        panelClass: ['responsive-modal', 'contract-dialog-panel'],
       });
 
       this.contractDialogRef.afterClosed().subscribe(() => {
