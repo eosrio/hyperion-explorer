@@ -38,7 +38,7 @@
               </div>
               @defer (when acServ.hasContract()) {
                 @if (acServ.hasContract()) {
-                  <button (click)="openContractsDialog(null, null)" mat-raised-button class="primary-btn">
+                  <button (click)="openContractsDialog(null, null)" mat-raised-button class="primary-btn mt-2 md:mt-0">
                     Explore Smart Contract
                   </button>
                 }
@@ -449,16 +449,16 @@
           @if (acServ.totalActionCounter() || (acServ.filter() && acServ.totalActionCounter() === 0)) {
 
             <!--ACTION FILTERS-->
-            <div class="relative mb-1 flex snap-x snap-proximity snap-always flex-row items-center gap-5
+            <div class="action-filters relative mb-1 flex snap-x snap-proximity snap-always flex-row items-center gap-5
           overflow-x-auto overflow-y-hidden
-          py-4 pr-1.5
+          py-4 pr-1.5 -mx-6 lg:mx-0
           lg:mb-0 lg:flex-wrap lg:justify-end">
 
-              <div class="faded">Filter by</div>
+              <div class="faded pl-6.5">Filter by</div>
 
               @for (filter of acServ.commonFilters; track filter.name) {
 
-                <div class="shrink-0 snap-center first:pl-1 last:pr-1">
+                <div class="shrink-0 snap-center first:pl-1 last:pr-3">
 
                   <button mat-raised-button
                           class="filter-btn w-max"

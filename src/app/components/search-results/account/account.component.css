@@ -170,7 +170,7 @@
 
 ::ng-deep .mat-expansion-panel-header {
   padding: 0 !important;
-  height: auto;
+  height: auto !important;
   min-height: 3rem;
 }
 
@@ -192,6 +192,10 @@
 .vote-card-title {
   font-size: 1.188rem; /*19px*/
   margin-bottom: 0 !important;
+}
+
+::ng-deep .action-filters::-webkit-scrollbar {
+  height: 8px !important;
 }
 
 ::ng-deep .mat-expansion-indicator::after {
