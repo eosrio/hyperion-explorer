@@ -391,7 +391,7 @@
 }
 
 .filter-btn:not(:focus-visible):not(:hover):not(.primary-btn) {
-  color: var(--faded) !important;
+  color: gray !important;
 }
 
 input[type="checkbox"] {

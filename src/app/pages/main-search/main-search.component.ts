@@ -26,7 +26,7 @@ import { version as PackageVersion } from '../../../../package.json';
 import { FaIconComponent } from "@fortawesome/angular-fontawesome";
 import { LayoutTransitionComponent } from "../../components/layout-transition/layout-transition.component";
 // Import AnimationControls and ensure animate/scroll are imported
-import { animate, scroll } from "motion"; // Removed AnimationControls import
+import { animate } from "motion"; // Removed AnimationControls import
 import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
 import { ThemeSelectorComponent } from "../../components/theme-selector/theme-selector.component";
 import { faGithub, faTelegram } from "@fortawesome/free-brands-svg-icons";
@@ -159,10 +159,8 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   private readonly requiredScrollDistance = 100;
 
   // Store animation controls
-  private taglineScrollControl: any | null = null; // Changed type to any
-  private taglineOpacityScrollControl: any | null = null; // Changed type to any
   private headerAnimation: any | null = null; // Promoted to class property
-  private headerScrollCleanup: (() => void) | null = null; // To store scroll cleanup
+  private taglineAnimation: any | null = null;
   private breakpointSubscription: Subscription | null = null; // To store breakpoint observer subscription
 
   constructor() {
@@ -351,18 +349,12 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
 
   ngOnDestroy(): void {
     // Stop and clear tagline animations
-    this.taglineScrollControl?.stop();
-    this.taglineScrollControl = null;
-    this.taglineOpacityScrollControl?.stop();
-    this.taglineOpacityScrollControl = null;
+    this.taglineAnimation?.stop();
+    this.taglineAnimation = null;
 
     // Stop and clear header animation
     this.headerAnimation?.stop();
     this.headerAnimation = null;
-
-    // Call the cleanup function returned by the scroll listener for the header
-    this.headerScrollCleanup?.();
-    this.headerScrollCleanup = null;
 
     // Clear the placeholder animation interval
     if (this.placeholderInterval) {
@@ -411,32 +403,6 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   @HostListener('window:resize', [])
   onWindowResize(): void {
     this.updateTransitionProgress();
-
-    // Update header animation to maintain correct height based on current scroll position
-    if (this.headerAnimation && this.headerScrollCleanup) {
-      const scrollY = window.scrollY;
-      const headerContainer = document.querySelector('#header-container') as HTMLDivElement;
-      if (headerContainer) {
-        // Calculate progress based on the same offset used in the scroll animation
-        // The offset is defined as ['start start', '300px 100px']
-        // This means the animation starts when the top of the header reaches the top of the viewport
-        // and ends when the top of the header is 300px below the top of the viewport
-        const headerRect = headerContainer.getBoundingClientRect();
-        const viewportTop = 0;
-        const startProgress = headerRect.top <= viewportTop ? 0 : -1; // -1 means not started
-        const endProgress = 1;
-        const maxScrollDistance = 300; // From the offset definition
-
-        let progress = 0;
-        if (startProgress >= 0) {
-          // If we've started the animation, calculate the progress
-          progress = Math.min(endProgress, Math.max(startProgress, scrollY / maxScrollDistance));
-        }
-
-        // Update the animation time to match the current scroll progress
-        this.headerAnimation.time = progress;
-      }
-    }
   }
 
   closeAutoComplete() {
@@ -469,69 +435,40 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     if (isPlatformBrowser(this.platformId)) {
       const availableScrollDistance = document.documentElement.scrollHeight - window.innerHeight;
       const currentScrollY = window.scrollY;
-      const headerContainer = document.querySelector('#header-container') as HTMLDivElement; // Needed for target
-
-      // Calculate main transition progress (used by LayoutTransitionComponent)
-      if (availableScrollDistance < this.requiredScrollDistance) {
-        this.transitionProgress.set(0);
-      } else {
-        const progress = Math.min(1, Math.max(0, currentScrollY / this.requiredScrollDistance));
-        this.transitionProgress.set(progress);
-      }
 
       // Determine if motion animations should run
       const canAnimateMotion = availableScrollDistance >= this.requiredScrollDistance;
 
-      // --- Tagline Width & Padding Animation ---
+      let progress = 0;
+
       if (canAnimateMotion) {
-        if (!this.taglineScrollControl && headerContainer) {
-          // Create animation if allowed and not already active
-          this.taglineScrollControl = scroll(
-            (progress: any) => {
-              this.taglineWidth.set(this.taglineMax - (progress * this.taglineMax));
-              this.searchInputPadding.set((this.paddingMax * (1 - progress)) + (0.75 * progress));
-            },
-            { target: headerContainer, offset: ['start start', '300px 100px'] }
-          );
-        }
+        // Calculate progress based on the required scroll distance (e.g., 100px)
+        progress = Math.min(1, Math.max(0, currentScrollY / this.requiredScrollDistance));
       } else {
-        // Stop animation if it exists
-        if (this.taglineScrollControl) {
-          if (this.taglineScrollControl && typeof this.taglineScrollControl.stop === 'function') {
-            this.taglineScrollControl.stop();
-          }
-          this.taglineScrollControl = null;
-        }
-        // Always reset styles if not allowed
-        this.taglineWidth.set(this.taglineMax); // Reset width
-        this.searchInputPadding.set(this.paddingMax); // Reset padding
+        // If not enough scroll distance, remain in the initial state (progress 0)
+        progress = 0;
       }
 
-      // --- Tagline X & Opacity Animation ---
-      if (canAnimateMotion) {
-        if (!this.taglineOpacityScrollControl && headerContainer) {
-          // Create animation if allowed and not already active
-          this.taglineOpacityScrollControl = scroll(
-            animate('.tagline', { x: [0, -100], opacity: [1, 0] }, { duration: 1 }), // Recreate the animate call inside scroll
-            { target: headerContainer, offset: ['start start', '300px 100px'] }
-          );
-        }
-      } else {
-        // Stop animation if it exists
-        if (this.taglineOpacityScrollControl) {
-          if (this.taglineOpacityScrollControl && typeof this.taglineOpacityScrollControl.stop === 'function') {
-            this.taglineOpacityScrollControl.stop();
-          }
-          this.taglineOpacityScrollControl = null;
-        }
-        // Always reset styles if not allowed
-        // Instantly reset tagline position and opacity
-        // Ensure the element exists before trying to animate it for reset
-        const taglineElement = document.querySelector('.tagline') as HTMLElement;
-        if (taglineElement) {
-          animate(taglineElement, { x: 0, opacity: 1 }, { duration: 0 });
-        }
+      // Update the main progress signal (used by LayoutTransitionComponent)
+      this.transitionProgress.set(progress);
+
+      // Manually drive all animations and style changes using the calculated progress.
+
+      // 1. Header Height Animation
+      if (this.headerAnimation) {
+        this.headerAnimation.time = progress;
       }
+
+      // 2. Tagline Opacity/X Animation
+      if (this.taglineAnimation) {
+        this.taglineAnimation.time = progress;
+      }
+
+      // 3. Tagline Width & Search Input Padding (Direct style updates)
+      this.taglineWidth.set(this.taglineMax - (progress * this.taglineMax));
+      // Calculates padding transition from paddingMax (e.g., 1rem) down to 0.75rem
+      this.searchInputPadding.set((this.paddingMax * (1 - progress)) + (0.75 * progress));
+
     }
   }
 
@@ -539,6 +476,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   private initObserversAndAnimations() {
     const headerContainer = document.querySelector('#header-container') as HTMLDivElement;
     const contentContainer = document.querySelector('#content-container') as HTMLDivElement;
+    const taglineElement = document.querySelector('.tagline') as HTMLElement; // ⭐ Get tagline element
 
     if (!headerContainer || !contentContainer) {
       return;
@@ -550,6 +488,11 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
         paddingTop: `${headerContainer.clientHeight + 30}px`,
       }],
     ]);
+
+    // Initialize Tagline Animation (if element exists)
+    if (taglineElement) {
+      this.createTaglineAnimation(taglineElement);
+    }
 
     // --- Combined Breakpoint Observers ---
     // We observe the layout breakpoint AND the animation breakpoints (XSmall/Small).
@@ -571,10 +514,27 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
 
         // 3. Recreate animation (This handles both initial creation and updates)
         this.createHeaderAnimation(headerContainer, isSmallForAnimation);
+
+        // 4. Ensure the animation time is updated immediately after recreation to match current scroll state
+        this.updateTransitionProgress();
       });
   }
 
-  // NEW: Helper method extracted from the original createMotionAnimation
+  // Helper method to create the tagline animation control
+  private createTaglineAnimation(taglineElement: HTMLElement) {
+    if (this.taglineAnimation) {
+      this.taglineAnimation.stop();
+    }
+
+    // Define the animation (taken from the original scroll(animate(...)) wrapper)
+    this.taglineAnimation = animate(
+      taglineElement,
+      { x: [0, -100], opacity: [1, 0] },
+      { duration: 1, autoplay: false } // Set autoplay to false so we can control it via .time
+    );
+  }
+
+  // Helper method extracted from the original createMotionAnimation
   private createHeaderAnimation(headerContainer: HTMLDivElement, isSmall: boolean) {
     if (this.headerAnimation) {
       this.headerAnimation.stop();
@@ -586,18 +546,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
         // Use the heights defined in the original component
         isSmall ? '9.5rem' : '6.7rem' // Final height (9.5rem allows space for the wrapped search bar)
       ]
-    }, { ease: "easeIn", duration: 1, autoplay: false });
+    }, { ease: "easeIn", duration: 1, autoplay: false }); // Ensure autoplay is false
 
-    // Link the animation progress to the scroll offset (only setup once)
-    if (!this.headerScrollCleanup) {
-      this.headerScrollCleanup = scroll((p: number) => {
-        if (this.headerAnimation) {
-          this.headerAnimation.time = p; // Use motion's progress 'p' to drive this animation
-        }
-      }, {
-        target: headerContainer,
-        offset: ['start start', '300px 100px'], // Use the same offset
-      });
-    }
   }
 }
