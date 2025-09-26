@@ -108,6 +108,7 @@
   font-weight: 500;
   font-family: Montserrat, sans-serif;
   text-wrap: nowrap;
+  overflow: hidden;
   /*width: max-content !important;*/
 }
 
@@ -129,7 +130,7 @@
 }
 
 .compact-logo {
-  height: 2.625rem;
+  height: 2.625rem; /* Desktop height (42px) */
 }
 
 .searchbar-placeholder {
@@ -138,23 +139,24 @@
   /*height: 2.625rem;*/
 }
 
-@media (max-width: 426px) {
+/* Aligning CSS with the 'sm' breakpoint (640px) used for layout switching */
+@media (width < 40rem) {
   .compact-logo {
-    height: 2.4rem;
+    height: 1.25rem; /* 20px Mobile height */
   }
   .searchbar-placeholder {
     min-width: unset; /* 285px */
   }
 }
 
-@media (max-width: 795px) {
-  .provider {
-    order: 2;
-  }
+@media (max-width: 426px) {
 
-  .searchbar-empty-space {
-    order: 3
-  }
+}
+
+@media (max-width: 795px) {
+  /*.provider {*/
+  /*  order: 2;*/
+  /*}*/
 }
 
 .logo {

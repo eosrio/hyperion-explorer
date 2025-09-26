@@ -1,0 +1,19 @@
+.transition-wrapper {
+  position: fixed;
+  z-index: 99;
+  /* Start with opacity 0 for fade-in */
+  opacity: 0;
+  /* Efficient CSS Fade-in transition */
+  transition: opacity 0.2s ease-in-out;
+  /* Prevent interactions with the wrapper itself, but allow content interaction */
+  pointer-events: none;
+}
+
+.transition-wrapper.ready {
+  opacity: 1;
+}
+
+/* Ensure content inside can receive pointer events */
+:host ::ng-deep > * {
+  pointer-events: auto;
+}
