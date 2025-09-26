@@ -82,7 +82,8 @@
 }
 
 .search-btn {
-  width: 113px;
+  /*width: 113px;*/
+  width: fit-content;
   text-wrap: nowrap;
 }
 

@@ -35,24 +35,28 @@ export class LayoutTransitionComponent {
   progress = input(0);
 
   // The source and target divs
-  sourceDiv = input.required<HTMLDivElement>();
-  targetDiv = input.required<HTMLDivElement>();
+  sourceDiv = input<HTMLDivElement | undefined>(undefined);
+  targetDiv = input<HTMLDivElement | undefined>(undefined);
 
-  sourceDOMRect = linkedSignal(() => {
-    if (isPlatformBrowser(this.platformId)) {
-      return this.sourceDiv().getBoundingClientRect();
+  private getDOMRect(element: HTMLDivElement | undefined): DOMRect | {top: number, left: number, width: number, height: number} {
+    if (isPlatformBrowser(this.platformId) && element) {
+      return element.getBoundingClientRect();
     } else {
       return {top: 0, left: 0, width: 0, height: 0};
     }
-  });
+  };
 
-  targetDOMRect = linkedSignal(() => {
-    if (isPlatformBrowser(this.platformId)) {
-      return this.targetDiv().getBoundingClientRect();
-    } else {
-      return {top: 0, left: 0, width: 0, height: 0};
-    }
-  });
+  // Helper functions for client dimensions
+  private getClientWidth(element: HTMLDivElement | undefined): number {
+    return element?.clientWidth || 0;
+  }
+
+  private getClientHeight(element: HTMLDivElement | undefined): number {
+    return element?.clientHeight || 0;
+  }
+
+  sourceDOMRect = linkedSignal(() => this.getDOMRect(this.sourceDiv()));
+  targetDOMRect = linkedSignal(() => this.getDOMRect(this.targetDiv()));
 
   // The deltas between the source and target divs
   topDelta = linkedSignal(() => {
@@ -64,11 +68,11 @@ export class LayoutTransitionComponent {
   });
 
   widthDelta = linkedSignal(() => {
-    return this.targetDiv().clientWidth - this.sourceDiv().clientWidth;
+    return this.getClientWidth(this.targetDiv()) - this.getClientWidth(this.sourceDiv());
   });
 
   heightDelta = linkedSignal(() => {
-    return this.targetDiv().clientHeight - this.sourceDiv().clientHeight;
+    return this.getClientHeight(this.targetDiv()) - this.getClientHeight(this.sourceDiv());
   });
 
   // The computed styles for the transition
@@ -81,11 +85,11 @@ export class LayoutTransitionComponent {
   });
 
   width = computed(() => {
-    return (this.progress() * this.widthDelta() + this.sourceDiv().clientWidth) + "px";
+    return (this.progress() * this.widthDelta() + this.getClientWidth(this.sourceDiv())) + "px";
   });
 
   height = computed(() => {
-    return (this.progress() * this.heightDelta() + this.sourceDiv().clientHeight) + "px";
+    return (this.progress() * this.heightDelta() + this.getClientHeight(this.sourceDiv()) - 8) + "px";
   });
 
   opacity = signal(0);
@@ -97,10 +101,24 @@ export class LayoutTransitionComponent {
       this.fadeIn();
       this.observeMutations();
     });
+
+    // CRUCIAL: Add an effect to refresh when the targetDiv or sourceDiv input signal changes dynamically.
+    effect(() => {
+      // Access the signals to register the dependency
+      this.targetDiv();
+      this.sourceDiv();
+
+      // Ensure we only run the DOM-dependent refresh logic on the browser
+      if (isPlatformBrowser(this.platformId)) {
+        // Use setTimeout to allow the DOM/CSS (e.g., display properties toggled by responsive classes)
+        // to settle before measuring the new target's bounding box.
+        setTimeout(() => this.refresh(), 0);
+      }
+    });
   }
 
   observeMutations() {
-
+    // ... (Existing implementation remains the same)
     this.resize$.subscribe(() => {
       this.refresh();
     });
@@ -110,8 +128,7 @@ export class LayoutTransitionComponent {
         this.refresh();
       }
     });
-    // this.sourceDiv().id = 'source-' + Math.random().toString(16).substring(2,8);
-    // console.log(observer, this.sourceDiv());
+
     for (const id of this.observedIds()) {
       const element = document.getElementById(id);
       if (element) {
@@ -125,15 +142,17 @@ export class LayoutTransitionComponent {
   }
 
   refresh() {
-    this.targetDOMRect.set(this.targetDiv().getBoundingClientRect());
-    this.sourceDOMRect.set(this.sourceDiv().getBoundingClientRect());
+    // Recalculate all dimensions and positions based on the current inputs
+    this.targetDOMRect.set(this.getDOMRect(this.targetDiv()));
+    this.sourceDOMRect.set(this.getDOMRect(this.sourceDiv()));
     this.topDelta.set(this.targetDOMRect().top - this.sourceDOMRect().top);
     this.leftDelta.set(this.targetDOMRect().left - this.sourceDOMRect().left);
-    this.widthDelta.set(this.targetDiv().clientWidth - this.sourceDiv().clientWidth);
-    this.heightDelta.set(this.targetDiv().clientHeight - this.sourceDiv().clientHeight);
+    this.widthDelta.set(this.getClientWidth(this.targetDiv()) - this.getClientWidth(this.sourceDiv()));
+    this.heightDelta.set(this.getClientHeight(this.targetDiv()) - this.getClientHeight(this.sourceDiv()));
   }
 
   fadeIn() {
+    // ... (Existing implementation remains the same)
     requestAnimationFrame(() => {
       const opacity = this.opacity();
       if (opacity < 1) {

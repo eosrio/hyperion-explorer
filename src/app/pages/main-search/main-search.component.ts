@@ -9,7 +9,7 @@ import {
   viewChild,
   afterNextRender,
   OnDestroy, // Added import
-  linkedSignal
+  linkedSignal, computed
 } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from "@angular/forms";
 import { CommonModule, isPlatformBrowser, NgOptimizedImage } from "@angular/common";
@@ -76,6 +76,29 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
       telegram: faTelegram
     }
   }
+
+    // Define the breakpoint for 'sm' (640px / 40rem) - matches Tailwind 'sm'
+  private readonly LAYOUT_BREAKPOINT = '(width < 40rem)';
+
+  // ViewChild references for the target divs (optional, as they might not be immediately available)
+  logoTargetDivMobileRef = viewChild<ElementRef<HTMLDivElement>>('logoTargetDivMobile');
+  logoTargetDivDesktopRef = viewChild<ElementRef<HTMLDivElement>>('logoTargetDivDesktop');
+
+  // Signal to track mobile state for layout
+  isMobileLayout = signal<boolean>(false);
+
+  // Computed signal to determine the current active target div (HTMLDivElement | undefined)
+  currentTargetDiv = computed<HTMLDivElement | undefined>(() => {
+    const mobileDiv = this.logoTargetDivMobileRef()?.nativeElement;
+    const desktopDiv = this.logoTargetDivDesktopRef()?.nativeElement;
+
+    // Prioritize the visible div based on the layout state, with fallbacks if elements aren't ready.
+    if (this.isMobileLayout()) {
+      return mobileDiv || desktopDiv;
+    } else {
+      return desktopDiv || mobileDiv;
+    }
+  });
 
   chainData = linkedSignal<ExplorerMetadata>(() => {
     const data = this.dataService.explorerMetadata();
@@ -177,13 +200,13 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     if (isPlatformBrowser(this.platformId)) {
       afterNextRender(() => {
         this.updateTransitionProgress(); // Initial call
+        this.initObserversAndAnimations(); // Initialize combined observers and animations
       });
     }
   }
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
-      this.createMotionAnimation(); // Keep other setup animations
       this.startPlaceholderAnimation(); // Start placeholder animation
     }
     if (this.dataService.routeError) {
@@ -196,7 +219,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
 
     // Reset to the first placeholder to ensure we start from the beginning
     this.currentPlaceholder = 0;
-    
+
     // Set both the full placeholder and the dynamic part
     this.dynamicPlaceholder.set(this.placeholders[0]);
     this.searchPlaceholder.set(this.staticPlaceholderText + this.placeholders[0]);
@@ -513,7 +536,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   }
 
 
-  private createMotionAnimation() {
+  private initObserversAndAnimations() {
     const headerContainer = document.querySelector('#header-container') as HTMLDivElement;
     const contentContainer = document.querySelector('#content-container') as HTMLDivElement;
 
@@ -528,44 +551,53 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
       }],
     ]);
 
-    // REMOVED: Scroll animation for tagline width/padding (now handled in updateTransitionProgress)
-    // REMOVED: Scroll animation for tagline x/opacity (now handled in updateTransitionProgress)
-
-    // Keep the header height animation logic
-    // Removed local declaration: let headerAnimation: any | null = null;
-    let scrollConfigured = false; // Keep this local as it only matters during setup
-
-    // Store subscription to unsubscribe in ngOnDestroy
+    // --- Combined Breakpoint Observers ---
+    // We observe the layout breakpoint AND the animation breakpoints (XSmall/Small).
     this.breakpointSubscription = this.breakpointObserver
-      .observe([Breakpoints.XSmall, Breakpoints.Small])
-      .pipe(map((result) => result.matches))
-      .subscribe((isSmall) => {
+      .observe([
+        this.LAYOUT_BREAKPOINT, // For layout switching (sm)
+        Breakpoints.XSmall,
+        Breakpoints.Small // For animation height
+      ])
+      .subscribe(state => {
+        // 1. Update Layout Switching State (isMobileLayout)
+        const isMobile = state.breakpoints[this.LAYOUT_BREAKPOINT];
+        this.isMobileLayout.set(!!isMobile);
+        // currentTargetDiv will automatically update.
 
-        if (this.headerAnimation) {
-          this.headerAnimation.stop(); // Use this.headerAnimation
-        }
+        // 2. Determine if animation height needs adjustment
+        // We use XSmall/Small for the animation height logic as defined in the original code.
+        const isSmallForAnimation = state.breakpoints[Breakpoints.XSmall] || state.breakpoints[Breakpoints.Small];
 
-        // Use this.headerAnimation
-        this.headerAnimation = animate(headerContainer, {
-          height: [
-            '20.875rem', // Initial height
-            isSmall ? '9.5rem' : '6.7rem' // Final height
-          ]
-        }, { ease: "easeIn", duration: 1, autoplay: false });
-
-        // Link the header height animation progress to the scroll offset defined by motion
-        if (!scrollConfigured) {
-          scrollConfigured = true;
-          // Store the cleanup function returned by scroll
-          this.headerScrollCleanup = scroll((p: number) => {
-            if (this.headerAnimation) {
-              this.headerAnimation.time = p; // Use motion's progress 'p' to drive this animation
-            }
-          }, {
-            target: headerContainer,
-            offset: ['start start', '300px 100px'], // Use the same offset
-          });
-        }
+        // 3. Recreate animation (This handles both initial creation and updates)
+        this.createHeaderAnimation(headerContainer, isSmallForAnimation);
       });
+  }
+
+  // NEW: Helper method extracted from the original createMotionAnimation
+  private createHeaderAnimation(headerContainer: HTMLDivElement, isSmall: boolean) {
+    if (this.headerAnimation) {
+      this.headerAnimation.stop();
+    }
+
+    this.headerAnimation = animate(headerContainer, {
+      height: [
+        '20.875rem', // Initial height
+        // Use the heights defined in the original component
+        isSmall ? '9.5rem' : '6.7rem' // Final height (9.5rem allows space for the wrapped search bar)
+      ]
+    }, { ease: "easeIn", duration: 1, autoplay: false });
+
+    // Link the animation progress to the scroll offset (only setup once)
+    if (!this.headerScrollCleanup) {
+      this.headerScrollCleanup = scroll((p: number) => {
+        if (this.headerAnimation) {
+          this.headerAnimation.time = p; // Use motion's progress 'p' to drive this animation
+        }
+      }, {
+        target: headerContainer,
+        offset: ['start start', '300px 100px'], // Use the same offset
+      });
+    }
   }
 }
