@@ -8,22 +8,22 @@
                        [sourceDiv]="searchbarSourceDiv"
                        [targetDiv]="searchbarTargetDiv"
                        [progress]="transitionProgress()">
-  <div>
+  <div class="w-full">
     <form [formGroup]="searchForm" (ngSubmit)="submit()" class="flex flex-col">
-      <div class="custom-input-group grow w-full flex flex-row rounded-full">
-        <div class="relative grow">
+      <div class="custom-input-group grow w-full flex flex-row rounded-full pr-2">
+        <div class="relative grow min-w-0">
           <!-- Custom placeholder with static and animated parts -->
           <div *ngIf="!searchForm.get('search_field')?.value" class="custom-placeholder absolute left-5 top-0 flex items-center h-full pointer-events-none">
             <span class="static-placeholder">Search by&nbsp;</span>
             <span class="dynamic-placeholder"> {{ dynamicPlaceholder() }}</span>
           </div>
           <input #searchField formControlName="search_field" placeholder=""
-                 class="custom-input grow outline-hidden pl-5 rounded-l-full w-full sm:w-96 max-w-full"
+                 class="custom-input grow outline-hidden pl-5 rounded-l-full w-full max-w-full"
                  [style.padding-top]="searchInputPadding() +  'rem'"
                  [style.padding-bottom]="searchInputPadding() +  'rem'"
                  [matAutocomplete]="auto">
         </div>
-        <button mat-raised-button class="search-btn mr-2 place-self-center" [class.primary-btn]="validSearch()">
+        <button mat-raised-button class="search-btn place-self-center" [class.primary-btn]="validSearch()">
           <fa-icon [icon]="icons.solid.search"></fa-icon>
           @if (validSearch()) {
             Search {{ searchService.searchType() }}
@@ -101,7 +101,7 @@
       <div #logoSourceDiv id="logo-element" class="h-[4.375rem] opacity-0">
         <img (load)="logoLayoutTransition.refresh()" [src]="chainData().logo" id="main-logo" alt="logo" class="logo"/>
       </div>
-      <div #searchbarSourceDiv id="search-bar" class="flex flex-col bg-red-400 opacity-0 w-full md:w-[32.813rem]">
+      <div #searchbarSourceDiv id="search-bar" class="flex flex-col bg-red-400 opacity-0 w-full md:max-w-[46rem]">
         <div class="grow w-full  flex flex-row h-[3.188rem]"></div>
         <div class="flex flex-row justify-center w-full h-8 min-h-8"></div>
       </div>
