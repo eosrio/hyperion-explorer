@@ -7,7 +7,8 @@ import {
   input,
   linkedSignal,
   PLATFORM_ID,
-  signal
+  signal,
+  OnDestroy
 } from '@angular/core';
 import {isPlatformBrowser} from "@angular/common";
 import {Subject} from "rxjs";
@@ -26,7 +27,7 @@ import {Subject} from "rxjs";
     </div>
   `
 })
-export class LayoutTransitionComponent {
+export class LayoutTransitionComponent implements OnDestroy {
 
   observedIds = input<string[]>([]);
   platformId = inject(PLATFORM_ID);
@@ -38,6 +39,9 @@ export class LayoutTransitionComponent {
   sourceDiv = input<HTMLDivElement | undefined>(undefined);
   targetDiv = input<HTMLDivElement | undefined>(undefined);
 
+  // ⭐ Property to track pending animation frame for debouncing
+  private pendingRefreshFrame: number | null = null;
+
   private getDOMRect(element: HTMLDivElement | undefined): DOMRect | {top: number, left: number, width: number, height: number} {
     if (isPlatformBrowser(this.platformId) && element) {
       return element.getBoundingClientRect();
@@ -45,15 +49,6 @@ export class LayoutTransitionComponent {
       return {top: 0, left: 0, width: 0, height: 0};
     }
   };
-
-  // Helper functions for client dimensions
-  private getClientWidth(element: HTMLDivElement | undefined): number {
-    return element?.clientWidth || 0;
-  }
-
-  private getClientHeight(element: HTMLDivElement | undefined): number {
-    return element?.clientHeight || 0;
-  }
 
   sourceDOMRect = linkedSignal(() => this.getDOMRect(this.sourceDiv()));
   targetDOMRect = linkedSignal(() => this.getDOMRect(this.targetDiv()));
@@ -68,11 +63,11 @@ export class LayoutTransitionComponent {
   });
 
   widthDelta = linkedSignal(() => {
-    return this.getClientWidth(this.targetDiv()) - this.getClientWidth(this.sourceDiv());
+    return this.targetDOMRect().width - this.sourceDOMRect().width;
   });
 
   heightDelta = linkedSignal(() => {
-    return this.getClientHeight(this.targetDiv()) - this.getClientHeight(this.sourceDiv());
+    return this.targetDOMRect().height - this.sourceDOMRect().height;
   });
 
   // The computed styles for the transition
@@ -85,11 +80,12 @@ export class LayoutTransitionComponent {
   });
 
   width = computed(() => {
-    return (this.progress() * this.widthDelta() + this.getClientWidth(this.sourceDiv())) + "px";
+    return (this.progress() * this.widthDelta() + this.sourceDOMRect().width) + "px";
   });
 
   height = computed(() => {
-    return (this.progress() * this.heightDelta() + this.getClientHeight(this.sourceDiv()) - 8) + "px";
+    // The original "- 8" is kept, assuming it's intentional styling.
+    return (this.progress() * this.heightDelta() + this.sourceDOMRect().height - 8) + "px";
   });
 
   opacity = signal(0);
@@ -108,24 +104,41 @@ export class LayoutTransitionComponent {
       this.targetDiv();
       this.sourceDiv();
 
-      // Ensure we only run the DOM-dependent refresh logic on the browser
-      if (isPlatformBrowser(this.platformId)) {
-        // Use setTimeout to allow the DOM/CSS (e.g., display properties toggled by responsive classes)
-        // to settle before measuring the new target's bounding box.
-        setTimeout(() => this.refresh(), 0);
-      }
+      this.scheduleRefresh();
+    });
+  }
+
+  scheduleRefresh() {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    // Cancel any previously scheduled refresh (inner or outer rAF) to debounce.
+    if (this.pendingRefreshFrame !== null) {
+      cancelAnimationFrame(this.pendingRefreshFrame);
+    }
+
+    // Double rAF ensures that the browser layout engine AND Angular CD have stabilized
+    // before we measure the dimensions in refresh().
+    this.pendingRefreshFrame = requestAnimationFrame(() => {
+      // We are now in the first frame. Schedule the actual work in the subsequent frame.
+      // Crucially, update the pending frame handle to the inner rAF for correct cancellation if needed.
+      this.pendingRefreshFrame = requestAnimationFrame(() => {
+        this.refresh();
+        this.pendingRefreshFrame = null;
+      });
     });
   }
 
   observeMutations() {
     // ... (Existing implementation remains the same)
     this.resize$.subscribe(() => {
-      this.refresh();
+      this.scheduleRefresh();
     });
 
     const observer = new MutationObserver((list) => {
       if (list.length > 0) {
-        this.refresh();
+        this.scheduleRefresh();
       }
     });
 
@@ -142,13 +155,20 @@ export class LayoutTransitionComponent {
   }
 
   refresh() {
-    // Recalculate all dimensions and positions based on the current inputs
-    this.targetDOMRect.set(this.getDOMRect(this.targetDiv()));
-    this.sourceDOMRect.set(this.getDOMRect(this.sourceDiv()));
-    this.topDelta.set(this.targetDOMRect().top - this.sourceDOMRect().top);
-    this.leftDelta.set(this.targetDOMRect().left - this.sourceDOMRect().left);
-    this.widthDelta.set(this.getClientWidth(this.targetDiv()) - this.getClientWidth(this.sourceDiv()));
-    this.heightDelta.set(this.getClientHeight(this.targetDiv()) - this.getClientHeight(this.sourceDiv()));
+    // 1. Capture all measurements synchronously from the DOM.
+    const newTargetRect = this.getDOMRect(this.targetDiv());
+    const newSourceRect = this.getDOMRect(this.sourceDiv());
+
+    // 2. Update the base signals.
+    this.targetDOMRect.set(newTargetRect);
+    this.sourceDOMRect.set(newSourceRect);
+
+    // 3. Update delta signals based on the captured values (avoids reading signals immediately after setting them).
+    this.topDelta.set(newTargetRect.top - newSourceRect.top);
+    this.leftDelta.set(newTargetRect.left - newSourceRect.left);
+    // Use the standardized DOMRect measurements for width/height deltas
+    this.widthDelta.set(newTargetRect.width - newSourceRect.width);
+    this.heightDelta.set(newTargetRect.height - newSourceRect.height);
   }
 
   fadeIn() {
@@ -165,5 +185,13 @@ export class LayoutTransitionComponent {
   @HostListener('window:resize')
   onResize(): void {
     this.resize$.next();
+  }
+
+  ngOnDestroy() {
+    if (this.pendingRefreshFrame !== null && isPlatformBrowser(this.platformId)) {
+      cancelAnimationFrame(this.pendingRefreshFrame);
+      this.pendingRefreshFrame = null;
+    }
+    this.resize$.complete();
   }
 }

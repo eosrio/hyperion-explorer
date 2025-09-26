@@ -112,13 +112,13 @@
   /*width: max-content !important;*/
 }
 
-@media (max-width: 953px) {
+@media (width < 40rem) {
   .tagline {
     display: none;
   }
 }
 
-@media (min-width: 954px) {
+@media (width >= 40rem) {
   .tagline {
     display: inline;
   }
