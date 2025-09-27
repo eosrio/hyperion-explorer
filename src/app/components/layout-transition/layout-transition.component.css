@@ -5,7 +5,7 @@
   opacity: 0;
   /* Efficient CSS Fade-in transition */
   transition: opacity 0.2s ease-in-out;
-  /* Prevent interactions with the wrapper itself, but allow content interaction */
+  /* CRITICAL FIX: The moving container MUST ignore pointer events */
   pointer-events: none;
 }
 
@@ -13,7 +13,12 @@
   opacity: 1;
 }
 
-/* Ensure content inside can receive pointer events */
-:host ::ng-deep > * {
+/* CRITICAL FIX: The content inside the moving container MUST accept pointer events */
+.transition-content {
   pointer-events: auto;
+  /* Ensure the container fills the wrapper */
+  height: 100%;
+  width: 100%;
 }
+
+/* Ensure old unreliable ::ng-deep rules are removed */

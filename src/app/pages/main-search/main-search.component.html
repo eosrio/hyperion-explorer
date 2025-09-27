@@ -4,7 +4,7 @@
     <img [src]="chainData().logo" alt="logo" class="logo"/>
   </div>
 </app-layout-transition>
-<app-layout-transition [observedIds]="['header-container', 'tagline']"
+<app-layout-transition #searchbarLayoutTransition [observedIds]="['header-container', 'tagline']"
                        [sourceDiv]="searchbarSourceDiv"
                        [targetDiv]="searchbarTargetDiv"
                        [progress]="transitionProgress()">
@@ -12,7 +12,6 @@
     <form [formGroup]="searchForm" (ngSubmit)="submit()" class="flex flex-col">
       <div class="custom-input-group grow w-full flex flex-row rounded-full pr-2">
         <div class="relative grow min-w-0">
-          <!-- Custom placeholder with static and animated parts -->
           <div *ngIf="!searchForm.get('search_field')?.value" class="custom-placeholder absolute left-5 top-0 flex items-center h-full pointer-events-none">
             <span class="static-placeholder">Search by&nbsp;</span>
             <span class="dynamic-placeholder"> {{ dynamicPlaceholder() }}</span>
@@ -56,7 +55,7 @@
 
 <div id="layout-container" class="w-full h-full flex flex-col justify-between">
 
-  <div id="header-container"
+  <div #headerContainer id="header-container"
        class="header-card flex flex-col items-center fixed top-0 lg:rounded-b-2xl left-0 right-0 lg:left-3 lg:right-3 w-full lg:w-auto">
     <div class="w-full mt-7">
       <div class="hr-container flex flex-row flex-wrap justify-between items-center gap-5">
@@ -102,7 +101,7 @@
          class="flex flex-col justify-center items-center gap-5 pt-9 pb-10 w-full searchbar-container pointer-events-none">
 
       <div #logoSourceDiv id="logo-element" class="h-[4.375rem] opacity-0">
-        <img (load)="logoLayoutTransition.refresh()" [src]="chainData().logo" id="main-logo" alt="logo" class="logo"/>
+        <img (load)="logoLayoutTransitionRef()?.refreshSynchronously()" [src]="chainData().logo" id="main-logo" alt="logo" class="logo"/>
       </div>
       <div #searchbarSourceDiv id="search-bar" class="flex flex-col bg-red-400 opacity-0 w-full md:max-w-[46rem]">
         <div class="grow w-full  flex flex-row h-[3.188rem]"></div>
@@ -112,7 +111,7 @@
     </div>
   </div>
 
-  <div id="content-container" class="flex flex-col justify-between pb-10 w-full grow">
+  <div #contentContainer id="content-container" class="flex flex-col justify-between pb-10 w-full grow">
     <div>
       <router-outlet></router-outlet>
     </div>
@@ -137,4 +136,3 @@
     }
   </div>
 </div>
-<!--</div>-->

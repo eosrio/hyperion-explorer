@@ -10,40 +10,35 @@ import {
   signal,
   OnDestroy
 } from '@angular/core';
-import {isPlatformBrowser} from "@angular/common";
+import {isPlatformBrowser, CommonModule} from "@angular/common";
 import {Subject} from "rxjs";
 
 @Component({
   selector: 'app-layout-transition',
-  imports: [],
-  template: `
-    <div #wrapper class="fixed " style="z-index: 99"
-         [style.opacity]="opacity()"
-         [style.top]="top()"
-         [style.width]="width()"
-         [style.height]="height()"
-         [style.left]="left()">
-      <ng-content></ng-content>
-    </div>
-  `
+  standalone: true,
+  imports: [CommonModule],
+  templateUrl: './layout-transition.component.html',
+  styleUrl: './layout-transition.component.css'
 })
 export class LayoutTransitionComponent implements OnDestroy {
 
   observedIds = input<string[]>([]);
   platformId = inject(PLATFORM_ID);
 
-  // The progress of the transition
   progress = input(0);
 
-  // The source and target divs
   sourceDiv = input<HTMLDivElement | undefined>(undefined);
   targetDiv = input<HTMLDivElement | undefined>(undefined);
 
-  // ⭐ Property to track pending animation frame for debouncing
   private pendingRefreshFrame: number | null = null;
+
+  // FIX: Reference to the Visual Viewport API for mobile/iOS support
+  private visualViewport = (isPlatformBrowser(this.platformId) && window.visualViewport) || null;
+
 
   private getDOMRect(element: HTMLDivElement | undefined): DOMRect | {top: number, left: number, width: number, height: number} {
     if (isPlatformBrowser(this.platformId) && element) {
+      // getBoundingClientRect is relative to the visual viewport.
       return element.getBoundingClientRect();
     } else {
       return {top: 0, left: 0, width: 0, height: 0};
@@ -53,76 +48,108 @@ export class LayoutTransitionComponent implements OnDestroy {
   sourceDOMRect = linkedSignal(() => this.getDOMRect(this.sourceDiv()));
   targetDOMRect = linkedSignal(() => this.getDOMRect(this.targetDiv()));
 
-  // The deltas between the source and target divs
-  topDelta = linkedSignal(() => {
-    return this.targetDOMRect().top - this.sourceDOMRect().top;
+  topDelta = linkedSignal(() => this.targetDOMRect().top - this.sourceDOMRect().top);
+  leftDelta = linkedSignal(() => this.targetDOMRect().left - this.sourceDOMRect().left);
+  widthDelta = linkedSignal(() => this.targetDOMRect().width - this.sourceDOMRect().width);
+  heightDelta = linkedSignal(() => this.targetDOMRect().height - this.sourceDOMRect().height);
+
+  isReady = signal(false);
+
+  // Computed styles object
+  styles = computed(() => {
+    const progress = this.progress();
+    const source = this.sourceDOMRect();
+    const target = this.targetDOMRect();
+
+    // FIX: Defensive check against tracking invisible elements (e.g., display: none).
+    // If source or target measurements are zero, or the target div input is undefined, hide the element.
+    if (!this.targetDiv() || source.width === 0 || source.height === 0 || target.width === 0 || target.height === 0) {
+      // Return styles that hide the element safely
+      return { top: '0px', left: '0px', width: '0px', height: '0px', visibility: 'hidden' };
+    }
+
+    const top = (progress * this.topDelta() + source.top) + "px";
+    const left = (progress * this.leftDelta() + source.left) + "px";
+    const width = (progress * this.widthDelta() + source.width) + "px";
+    // The original "- 8" is kept.
+    const heightVal = progress * this.heightDelta() + source.height;
+    const height = (heightVal > 8 ? heightVal - 8 : Math.max(0, heightVal)) + "px";
+
+    return { top, left, width, height, visibility: 'visible' };
   });
 
-  leftDelta = linkedSignal(() => {
-    return this.targetDOMRect().left - this.sourceDOMRect().left;
-  });
-
-  widthDelta = linkedSignal(() => {
-    return this.targetDOMRect().width - this.sourceDOMRect().width;
-  });
-
-  heightDelta = linkedSignal(() => {
-    return this.targetDOMRect().height - this.sourceDOMRect().height;
-  });
-
-  // The computed styles for the transition
-  top = computed(() => {
-    return (this.progress() * this.topDelta() + this.sourceDOMRect().top) + "px";
-  });
-
-  left = computed(() => {
-    return (this.progress() * this.leftDelta() + this.sourceDOMRect().left) + "px";
-  });
-
-  width = computed(() => {
-    return (this.progress() * this.widthDelta() + this.sourceDOMRect().width) + "px";
-  });
-
-  height = computed(() => {
-    // The original "- 8" is kept, assuming it's intentional styling.
-    return (this.progress() * this.heightDelta() + this.sourceDOMRect().height - 8) + "px";
-  });
-
-  opacity = signal(0);
 
   resize$ = new Subject<void>();
 
   constructor() {
     afterNextRender(() => {
-      this.fadeIn();
+      this.refresh(); // Initial refresh
+      this.makeReady();
       this.observeMutations();
+      this.setupViewportListeners(); // Setup VisualViewport listeners
     });
 
-    // CRUCIAL: Add an effect to refresh when the targetDiv or sourceDiv input signal changes dynamically.
     effect(() => {
-      // Access the signals to register the dependency
       this.targetDiv();
       this.sourceDiv();
-
+      // Use scheduleRefresh for async updates (like breakpoint changes)
       this.scheduleRefresh();
     });
   }
 
+  // FIX: Viewport Listener Implementation
+  private setupViewportListeners() {
+    if (this.visualViewport) {
+      // Crucial for mobile Safari: listen to resize and scroll on the visual viewport.
+      this.visualViewport.addEventListener('resize', this.onViewportChange);
+      this.visualViewport.addEventListener('scroll', this.onViewportChange);
+    }
+  }
+
+  private cleanupViewportListeners() {
+    if (this.visualViewport) {
+      this.visualViewport.removeEventListener('resize', this.onViewportChange);
+      this.visualViewport.removeEventListener('scroll', this.onViewportChange);
+    }
+  }
+
+  // CRITICAL FIX: Handle viewport changes SYNCHRONOUSLY.
+  // When the iOS toolbar minimizes/maximizes, we must update measurements immediately.
+  // Asynchronous updates (rAF) cause visible jumps on Safari.
+  private onViewportChange = () => {
+    this.refreshSynchronously();
+  }
+  // END FIX
+
+  // Public method for synchronous refresh.
+  public refreshSynchronously() {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    // Cancel any pending async refresh to avoid conflicts
+    if (this.pendingRefreshFrame !== null) {
+      cancelAnimationFrame(this.pendingRefreshFrame);
+      this.pendingRefreshFrame = null;
+    }
+
+    // Perform the refresh immediately
+    this.refresh();
+  }
+
+  // Asynchronous refresh (for standard resize, mutations)
   scheduleRefresh() {
     if (!isPlatformBrowser(this.platformId)) {
       return;
     }
 
-    // Cancel any previously scheduled refresh (inner or outer rAF) to debounce.
+    // Debounce using double requestAnimationFrame (rAF)
     if (this.pendingRefreshFrame !== null) {
       cancelAnimationFrame(this.pendingRefreshFrame);
     }
 
-    // Double rAF ensures that the browser layout engine AND Angular CD have stabilized
-    // before we measure the dimensions in refresh().
+    // Double rAF ensures stabilization before measurement for these events.
     this.pendingRefreshFrame = requestAnimationFrame(() => {
-      // We are now in the first frame. Schedule the actual work in the subsequent frame.
-      // Crucially, update the pending frame handle to the inner rAF for correct cancellation if needed.
       this.pendingRefreshFrame = requestAnimationFrame(() => {
         this.refresh();
         this.pendingRefreshFrame = null;
@@ -131,7 +158,6 @@ export class LayoutTransitionComponent implements OnDestroy {
   }
 
   observeMutations() {
-    // ... (Existing implementation remains the same)
     this.resize$.subscribe(() => {
       this.scheduleRefresh();
     });
@@ -154,36 +180,42 @@ export class LayoutTransitionComponent implements OnDestroy {
     }
   }
 
-  refresh() {
+  private refresh() {
     // 1. Capture all measurements synchronously from the DOM.
     const newTargetRect = this.getDOMRect(this.targetDiv());
     const newSourceRect = this.getDOMRect(this.sourceDiv());
 
-    // 2. Update the base signals.
-    this.targetDOMRect.set(newTargetRect);
-    this.sourceDOMRect.set(newSourceRect);
+    // Optimization: Only update if changed significantly
+    if (this.areRectsDifferent(this.targetDOMRect(), newTargetRect) || this.areRectsDifferent(this.sourceDOMRect(), newSourceRect)) {
+      // 2. Update the base signals.
+      this.targetDOMRect.set(newTargetRect);
+      this.sourceDOMRect.set(newSourceRect);
 
-    // 3. Update delta signals based on the captured values (avoids reading signals immediately after setting them).
-    this.topDelta.set(newTargetRect.top - newSourceRect.top);
-    this.leftDelta.set(newTargetRect.left - newSourceRect.left);
-    // Use the standardized DOMRect measurements for width/height deltas
-    this.widthDelta.set(newTargetRect.width - newSourceRect.width);
-    this.heightDelta.set(newTargetRect.height - newSourceRect.height);
+      // 3. Update delta signals based on the captured values.
+      this.topDelta.set(newTargetRect.top - newSourceRect.top);
+      this.leftDelta.set(newTargetRect.left - newSourceRect.left);
+      this.widthDelta.set(newTargetRect.width - newSourceRect.width);
+      this.heightDelta.set(newTargetRect.height - newSourceRect.height);
+    }
   }
 
-  fadeIn() {
-    // ... (Existing implementation remains the same)
-    requestAnimationFrame(() => {
-      const opacity = this.opacity();
-      if (opacity < 1) {
-        this.opacity.set(opacity + 0.05);
-        this.fadeIn();
-      }
-    });
+  // Helper to prevent tiny subpixel differences from triggering updates
+  private areRectsDifferent(rect1: any, rect2: any): boolean {
+    const threshold = 0.1; // pixels
+    return Math.abs(rect1.top - rect2.top) > threshold ||
+      Math.abs(rect1.left - rect2.left) > threshold ||
+      Math.abs(rect1.width - rect2.width) > threshold ||
+      Math.abs(rect1.height - rect2.height) > threshold;
+  }
+
+  makeReady() {
+    // Trigger the CSS fade-in transition shortly after render.
+    setTimeout(() => this.isReady.set(true), 50);
   }
 
   @HostListener('window:resize')
   onResize(): void {
+    // Keep window:resize as a fallback and for desktop.
     this.resize$.next();
   }
 
@@ -193,5 +225,6 @@ export class LayoutTransitionComponent implements OnDestroy {
       this.pendingRefreshFrame = null;
     }
     this.resize$.complete();
+    this.cleanupViewportListeners(); // Cleanup listeners
   }
 }

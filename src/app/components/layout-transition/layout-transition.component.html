@@ -3,6 +3,9 @@
      [style.top]="styles().top"
      [style.left]="styles().left"
      [style.width]="styles().width"
-     [style.height]="styles().height">
-  <ng-content></ng-content>
+     [style.height]="styles().height"
+     [style.visibility]="styles().visibility">
+  <div class="transition-content">
+    <ng-content></ng-content>
+  </div>
 </div>

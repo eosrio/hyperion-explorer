@@ -84,20 +84,55 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   logoTargetDivMobileRef = viewChild<ElementRef<HTMLDivElement>>('logoTargetDivMobile');
   logoTargetDivDesktopRef = viewChild<ElementRef<HTMLDivElement>>('logoTargetDivDesktop');
 
+  // ViewChild references for LayoutTransitionComponents
+  logoLayoutTransitionRef = viewChild<LayoutTransitionComponent>('logoLayoutTransition');
+  searchbarLayoutTransition = viewChild<LayoutTransitionComponent>('searchbarLayoutTransition');
+
+  // FIX: ViewChild references for containers (required for synchronous padding updates)
+  headerContainerRef = viewChild<ElementRef<HTMLDivElement>>('headerContainer');
+  contentContainerRef = viewChild<ElementRef<HTMLDivElement>>('contentContainer');
+
   // Signal to track mobile state for layout
   isMobileLayout = signal<boolean>(false);
 
-  // Computed signal to determine the current active target div (HTMLDivElement | undefined)
+  // FIX: Helper Function to check if an element is actually visible (has dimensions)
+  private isElementVisible(el: HTMLElement | undefined): boolean {
+    if (!el || !isPlatformBrowser(this.platformId)) return false;
+    // Check if getBoundingClientRect has non-zero dimensions. This accounts for display: none.
+    const rect = el.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
+  }
+
+  // FIX: Computed signal to determine the current active target div robustly
   currentTargetDiv = computed<HTMLDivElement | undefined>(() => {
     const mobileDiv = this.logoTargetDivMobileRef()?.nativeElement;
     const desktopDiv = this.logoTargetDivDesktopRef()?.nativeElement;
 
-    // Prioritize the visible div based on the layout state, with fallbacks if elements aren't ready.
-    if (this.isMobileLayout()) {
-      return mobileDiv || desktopDiv;
+    // Prioritize based on the expected layout state (isMobileLayout)
+    const expectedMobile = this.isMobileLayout();
+
+    if (expectedMobile) {
+        // Verify the mobile div is actually rendered and visible.
+        if (this.isElementVisible(mobileDiv)) {
+            return mobileDiv;
+        }
+        // Fallback: If mobile isn't ready, perhaps desktop is still visible during a transition.
+        if (this.isElementVisible(desktopDiv)) {
+            return desktopDiv;
+        }
     } else {
-      return desktopDiv || mobileDiv;
+        // Verify the desktop div is rendered and visible.
+        if (this.isElementVisible(desktopDiv)) {
+            return desktopDiv;
+        }
+        // Fallback: If desktop isn't ready, perhaps mobile is still visible.
+        if (this.isElementVisible(mobileDiv)) {
+            return mobileDiv;
+        }
     }
+
+    // If neither is visible, return undefined. This prevents tracking a zero-sized element.
+    return undefined;
   });
 
   chainData = linkedSignal<ExplorerMetadata>(() => {
@@ -371,6 +406,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     this.breakpointSubscription?.unsubscribe();
     this.breakpointSubscription = null;
 
+
     if (isPlatformBrowser(this.platformId)) {
       if (this.pendingScrollUpdate !== null) {
         cancelAnimationFrame(this.pendingScrollUpdate);
@@ -456,61 +492,74 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
 
   private updateTransitionProgress(): void {
     if (isPlatformBrowser(this.platformId)) {
-      const availableScrollDistance = document.documentElement.scrollHeight - window.innerHeight;
+      // Use visualViewport height if available for accuracy on mobile (respects dynamic UI)
+      const viewportHeight = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
+      const availableScrollDistance = document.documentElement.scrollHeight - viewportHeight;
       const currentScrollY = window.scrollY;
 
-      // Determine if motion animations should run
-      const canAnimateMotion = availableScrollDistance >= this.requiredScrollDistance;
-
+      // Calculate progress
       let progress = 0;
-
-      if (canAnimateMotion) {
-        // Calculate progress based on the required scroll distance (e.g., 100px)
+      if (availableScrollDistance >= this.requiredScrollDistance || this.requiredScrollDistance > 0) {
         progress = Math.min(1, Math.max(0, currentScrollY / this.requiredScrollDistance));
-      } else {
-        // If not enough scroll distance, remain in the initial state (progress 0)
-        progress = 0;
       }
 
-      // Update the main progress signal (used by LayoutTransitionComponent)
-      this.transitionProgress.set(progress);
+      const headerContainer = this.headerContainerRef()?.nativeElement;
+      const contentContainer = this.contentContainerRef()?.nativeElement;
 
-      // Manually drive all animations and style changes using the calculated progress.
+      // --- THE SYNCHRONIZATION LOOP ---
+      // This specific order (Write -> Write -> Read -> Write) is crucial for stability on Safari.
 
-      // 1. Header Height Animation
+      // --- Step 1: Update Header Layout (WRITE) ---
+
+      // 1a. Header Height & Tagline Animations (via Motion library - synchronous style updates)
       if (this.headerAnimation) {
         this.headerAnimation.time = progress;
       }
-
-      // 2. Tagline Opacity/X Animation
       if (this.taglineAnimation) {
         this.taglineAnimation.time = progress;
       }
 
-      // 3. Tagline Width & Search Input Padding (Direct style updates)
+      // 1b. Tagline Width & Search Input Padding (Direct style updates via signals)
       this.taglineWidth.set(this.taglineMax - (progress * this.taglineMax));
-      // Calculates padding transition from paddingMax (e.g., 1rem) down to 0.75rem
       this.searchInputPadding.set((this.paddingMax * (1 - progress)) + (0.75 * progress));
+
+
+      // --- Step 2: Update Content Layout (WRITE) & Layout Flush ---
+      // FIX: Update the content padding synchronously right after the header height changes.
+      if (headerContainer && contentContainer) {
+         // CRITICAL: Reading clientHeight forces the browser (including Safari) to apply the height change from Step 1 immediately (Forced Layout Flush).
+         const newHeight = headerContainer.clientHeight;
+         // Apply the new padding synchronously.
+         contentContainer.style.paddingTop = `${newHeight + 30}px`;
+      }
+
+      // --- Step 3: Synchronize Measurements (READ) ---
+      // Now that ALL layout changes for this frame are applied and flushed, we measure the source/target positions.
+      this.logoLayoutTransitionRef()?.refreshSynchronously();
+      this.searchbarLayoutTransition()?.refreshSynchronously();
+
+
+      // --- Step 4: Update Position (WRITE) ---
+      // Update the main progress signal based on the refreshed measurements.
+      this.transitionProgress.set(progress);
 
     }
   }
 
 
   private initObserversAndAnimations() {
-    const headerContainer = document.querySelector('#header-container') as HTMLDivElement;
-    const contentContainer = document.querySelector('#content-container') as HTMLDivElement;
-    const taglineElement = document.querySelector('.tagline') as HTMLElement; // ⭐ Get tagline element
+    // We use ViewChild references now.
+    const headerContainer = this.headerContainerRef()?.nativeElement;
+    const contentContainer = this.contentContainerRef()?.nativeElement;
+    const taglineElement = document.querySelector('.tagline') as HTMLElement; // Tagline still needs querySelector
 
     if (!headerContainer || !contentContainer) {
       return;
     }
 
-    // Initial padding setup (keep this)
-    animate([
-      [contentContainer, {
-        paddingTop: `${headerContainer.clientHeight + 30}px`,
-      }],
-    ]);
+    // FIX: Initial padding setup (Manual synchronous setup).
+    contentContainer.style.paddingTop = `${headerContainer.clientHeight + 30}px`;
+
 
     // Initialize Tagline Animation (if element exists)
     if (taglineElement) {
@@ -518,7 +567,6 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     }
 
     // --- Combined Breakpoint Observers ---
-    // We observe the layout breakpoint AND the animation breakpoints (XSmall/Small).
     this.breakpointSubscription = this.breakpointObserver
       .observe([
         this.LAYOUT_BREAKPOINT, // For layout switching (sm)
@@ -529,16 +577,18 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
         // 1. Update Layout Switching State (isMobileLayout)
         const isMobile = state.breakpoints[this.LAYOUT_BREAKPOINT];
         this.isMobileLayout.set(!!isMobile);
-        // currentTargetDiv will automatically update.
+        // currentTargetDiv will automatically update robustly.
 
         // 2. Determine if animation height needs adjustment
-        // We use XSmall/Small for the animation height logic as defined in the original code.
         const isSmallForAnimation = state.breakpoints[Breakpoints.XSmall] || state.breakpoints[Breakpoints.Small];
 
-        // 3. Recreate animation (This handles both initial creation and updates)
+        // 3. Recreate animation
         this.createHeaderAnimation(headerContainer, isSmallForAnimation);
 
-        // 4. Ensure the animation time is updated immediately after recreation to match current scroll state
+        // 4. Ensure synchronization immediately after layout/target changes
+        // We must refresh synchronously as the target div might have changed
+        this.logoLayoutTransitionRef()?.refreshSynchronously();
+        this.searchbarLayoutTransition()?.refreshSynchronously();
         this.updateTransitionProgress();
       });
   }
