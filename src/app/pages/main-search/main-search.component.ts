@@ -163,6 +163,8 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   private taglineAnimation: any | null = null;
   private breakpointSubscription: Subscription | null = null; // To store breakpoint observer subscription
 
+  private pendingScrollUpdate: number | null = null; // For rAF throttling
+
   constructor() {
 
     this.searchForm = this.formBuilder.group({
@@ -368,6 +370,13 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     // Unsubscribe from breakpoint observer
     this.breakpointSubscription?.unsubscribe();
     this.breakpointSubscription = null;
+
+    if (isPlatformBrowser(this.platformId)) {
+      if (this.pendingScrollUpdate !== null) {
+        cancelAnimationFrame(this.pendingScrollUpdate);
+        this.pendingScrollUpdate = null;
+      }
+    }
   }
 
 
@@ -384,8 +393,22 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   // Update transition progress on scroll
   @HostListener('window:scroll', [])
   onWindowScroll(): void {
-    this.updateTransitionProgress();
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    // Throttling: If an update is already scheduled, do nothing.
+    if (this.pendingScrollUpdate !== null) {
+      return;
+    }
+
+    // Schedule the update in the next animation frame.
+    // This ensures we only update signals (and thus trigger Angular updates) once per frame.
+    this.pendingScrollUpdate = requestAnimationFrame(() => {
+      this.updateTransitionProgress();
+      // Clear the flag so the next scroll event can schedule a new update.
+      this.pendingScrollUpdate = null;
+    });
   }
+
 
   // If the user focuses the input while scrambling, stop immediately
   @HostListener('window:focusin', ['$event'])
