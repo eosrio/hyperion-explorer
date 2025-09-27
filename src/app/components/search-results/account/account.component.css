@@ -558,3 +558,46 @@ input[type="checkbox"]:checked::after {
     font-size: 0.875rem !important;
   }
 }
+
+/* Responsive font-size improvements for account component */
+@media (max-width: 1024px) {
+  #account-content .title { font-size: 1.125rem; }
+  #account-content .token { font-size: 1.125rem; }
+  #account-content .monospace { font-size: 0.9375rem; }
+  #account-content .actions-table th.mat-mdc-header-cell,
+  #account-content .actions-table td.mat-mdc-cell { font-size: 0.9375rem; }
+  #account-content .acc-title { font-size: 1.375rem !important; }
+  #account-content .small-info { font-size: 0.8125rem; }
+  #account-content .lib { font-size: 0.875rem; }
+  #account-content [class~="text-2xl"] { font-size: 1.375rem !important; }
+}
+
+@media (max-width: 700px) {
+  #account-content .acc-title,
+  #account-content [class~="text-2xl"] { font-size: 1.25rem !important; }
+
+  #account-content #totalBalance { font-size: 0.875rem !important; }
+  #account-content .total-balance strong,
+  #account-content .total-balance span { font-size: 0.875rem !important; }
+  #account-content [class*="text-[0.938rem]"] { font-size: 0.875rem !important; }
+
+  #account-content .actions-table th.mat-mdc-header-cell,
+  #account-content .actions-table td.mat-mdc-cell { font-size: 0.875rem; }
+
+  #account-content .title { font-size: 1rem; }
+  #account-content .token { font-size: 1rem; }
+  #account-content .monospace { font-size: 0.875rem; }
+  #account-content .lib { font-size: 0.8125rem; }
+}
+
+@media (max-width: 480px) {
+  #account-content #totalBalance { font-size: 0.8125rem !important; }
+  #account-content [class*="text-[0.938rem]"] { font-size: 0.8125rem !important; }
+
+  #account-content .actions-table th.mat-mdc-header-cell,
+  #account-content .actions-table td.mat-mdc-cell { font-size: 0.8125rem; }
+
+  #account-content .title { font-size: 0.9375rem; }
+  #account-content .token { font-size: 0.9375rem; }
+  #account-content .monospace { font-size: 0.8125rem; }
+}
