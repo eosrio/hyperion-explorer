@@ -13,6 +13,9 @@ import {
 import {isPlatformBrowser, CommonModule} from "@angular/common";
 import {Subject} from "rxjs";
 
+// Define a type for the required measurements. This simplifies the coordinate adjustment logic.
+type RectMeasurements = { top: number, left: number, width: number, height: number };
+
 @Component({
   selector: 'app-layout-transition',
   standalone: true,
@@ -36,10 +39,28 @@ export class LayoutTransitionComponent implements OnDestroy {
   private visualViewport = (isPlatformBrowser(this.platformId) && window.visualViewport) || null;
 
 
-  private getDOMRect(element: HTMLDivElement | undefined): DOMRect | {top: number, left: number, width: number, height: number} {
+  private getDOMRect(element: HTMLDivElement | undefined): RectMeasurements {
     if (isPlatformBrowser(this.platformId) && element) {
       // getBoundingClientRect is relative to the visual viewport.
-      return element.getBoundingClientRect();
+      const rect = element.getBoundingClientRect();
+
+      // Adjust coordinates for iOS Safari's handling of position: fixed.
+      // Inconsistencies in Safari regarding whether `position: fixed` anchors to the Layout or Visual Viewport
+      // during toolbar transitions cause misalignment. We use the Visual Viewport API's offsets
+      // (the distance between the Layout and Visual viewports) to stabilize the coordinates
+      // relative to the Layout Viewport.
+      if (this.visualViewport) {
+        return {
+          top: rect.top + this.visualViewport.offsetTop,
+          left: rect.left + this.visualViewport.offsetLeft,
+          width: rect.width,
+          height: rect.height,
+        };
+      }
+
+      // Fallback for other browsers.
+      return { top: rect.top, left: rect.left, width: rect.width, height: rect.height };
+
     } else {
       return {top: 0, left: 0, width: 0, height: 0};
     }
@@ -86,7 +107,6 @@ export class LayoutTransitionComponent implements OnDestroy {
       this.refresh(); // Initial refresh
       this.makeReady();
       this.observeMutations();
-      this.setupViewportListeners(); // Setup VisualViewport listeners
     });
 
     effect(() => {
@@ -95,15 +115,6 @@ export class LayoutTransitionComponent implements OnDestroy {
       // Use scheduleRefresh for async updates (like breakpoint changes)
       this.scheduleRefresh();
     });
-  }
-
-  // FIX: Viewport Listener Implementation
-  private setupViewportListeners() {
-    if (this.visualViewport) {
-      // Crucial for mobile Safari: listen to resize and scroll on the visual viewport.
-      this.visualViewport.addEventListener('resize', this.onViewportChange);
-      this.visualViewport.addEventListener('scroll', this.onViewportChange);
-    }
   }
 
   private cleanupViewportListeners() {
@@ -182,6 +193,7 @@ export class LayoutTransitionComponent implements OnDestroy {
 
   private refresh() {
     // 1. Capture all measurements synchronously from the DOM.
+    // This now captures the adjusted coordinates.
     const newTargetRect = this.getDOMRect(this.targetDiv());
     const newSourceRect = this.getDOMRect(this.sourceDiv());
 
@@ -216,6 +228,7 @@ export class LayoutTransitionComponent implements OnDestroy {
   @HostListener('window:resize')
   onResize(): void {
     // Keep window:resize as a fallback and for desktop.
+    // ⭐ Note: The parent component now handles resize synchronously, but this acts as a secondary trigger if needed.
     this.resize$.next();
   }
 
@@ -225,6 +238,5 @@ export class LayoutTransitionComponent implements OnDestroy {
       this.pendingRefreshFrame = null;
     }
     this.resize$.complete();
-    this.cleanupViewportListeners(); // Cleanup listeners
   }
 }

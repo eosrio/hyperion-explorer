@@ -7,6 +7,14 @@
   transition: opacity 0.2s ease-in-out;
   /* CRITICAL FIX: The moving container MUST ignore pointer events */
   pointer-events: none;
+
+  /* Added: Inform the browser that position/size will change frequently */
+  will-change: top, left, width, height;
+  /* Added: Promote to its own layer for smoother animation and stability on Safari */
+  transform: translateZ(0);
+  /* Added: Further stabilize rendering in WebKit/Safari */
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
 }
 
 .transition-wrapper.ready {

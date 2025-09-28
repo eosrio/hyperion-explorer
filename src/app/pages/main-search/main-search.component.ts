@@ -11,25 +11,25 @@ import {
   OnDestroy, // Added import
   linkedSignal, computed
 } from '@angular/core';
-import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from "@angular/forms";
-import { CommonModule, isPlatformBrowser, NgOptimizedImage } from "@angular/common";
-import { SearchService } from "../../services/search.service";
-import { DataService } from "../../services/data.service";
-import { faHeart, faSearch } from "@fortawesome/free-solid-svg-icons";
-import { ExplorerMetadata } from "../../interfaces";
-import { MatAutocomplete, MatAutocompleteTrigger, MatOption } from "@angular/material/autocomplete";
-import { Router, RouterLink, RouterOutlet } from "@angular/router";
-import { debounceTime, map, Subscription } from "rxjs"; // Added Subscription import
-import { MatButton } from "@angular/material/button";
+import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
+import {CommonModule, isPlatformBrowser, NgOptimizedImage} from "@angular/common";
+import {SearchService} from "../../services/search.service";
+import {DataService} from "../../services/data.service";
+import {faHeart, faSearch} from "@fortawesome/free-solid-svg-icons";
+import {ExplorerMetadata} from "../../interfaces";
+import {MatAutocomplete, MatAutocompleteTrigger, MatOption} from "@angular/material/autocomplete";
+import {Router, RouterLink, RouterOutlet} from "@angular/router";
+import {debounceTime, map, Subscription} from "rxjs"; // Added Subscription import
+import {MatButton} from "@angular/material/button";
 
-import { version as PackageVersion } from '../../../../package.json';
-import { FaIconComponent } from "@fortawesome/angular-fontawesome";
-import { LayoutTransitionComponent } from "../../components/layout-transition/layout-transition.component";
+import {version as PackageVersion} from '../../../../package.json';
+import {FaIconComponent} from "@fortawesome/angular-fontawesome";
+import {LayoutTransitionComponent} from "../../components/layout-transition/layout-transition.component";
 // Import AnimationControls and ensure animate/scroll are imported
-import { animate } from "motion"; // Removed AnimationControls import
-import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
-import { ThemeSelectorComponent } from "../../components/theme-selector/theme-selector.component";
-import { faGithub, faTelegram } from "@fortawesome/free-brands-svg-icons";
+import {animate} from "motion"; // Removed AnimationControls import
+import {BreakpointObserver, Breakpoints} from "@angular/cdk/layout";
+import {ThemeSelectorComponent} from "../../components/theme-selector/theme-selector.component";
+import {faGithub, faTelegram} from "@fortawesome/free-brands-svg-icons";
 
 
 @Component({
@@ -77,7 +77,10 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     }
   }
 
-    // Define the breakpoint for 'sm' (640px / 40rem) - matches Tailwind 'sm'
+  private visualViewport = (isPlatformBrowser(this.platformId) && window.visualViewport) || null;
+
+
+  // Define the breakpoint for 'sm' (640px / 40rem) - matches Tailwind 'sm'
   private readonly LAYOUT_BREAKPOINT = '(width < 40rem)';
 
   // ViewChild references for the target divs (optional, as they might not be immediately available)
@@ -112,23 +115,23 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     const expectedMobile = this.isMobileLayout();
 
     if (expectedMobile) {
-        // Verify the mobile div is actually rendered and visible.
-        if (this.isElementVisible(mobileDiv)) {
-            return mobileDiv;
-        }
-        // Fallback: If mobile isn't ready, perhaps desktop is still visible during a transition.
-        if (this.isElementVisible(desktopDiv)) {
-            return desktopDiv;
-        }
+      // Verify the mobile div is actually rendered and visible.
+      if (this.isElementVisible(mobileDiv)) {
+        return mobileDiv;
+      }
+      // Fallback: If mobile isn't ready, perhaps desktop is still visible during a transition.
+      if (this.isElementVisible(desktopDiv)) {
+        return desktopDiv;
+      }
     } else {
-        // Verify the desktop div is rendered and visible.
-        if (this.isElementVisible(desktopDiv)) {
-            return desktopDiv;
-        }
-        // Fallback: If desktop isn't ready, perhaps mobile is still visible.
-        if (this.isElementVisible(mobileDiv)) {
-            return mobileDiv;
-        }
+      // Verify the desktop div is rendered and visible.
+      if (this.isElementVisible(desktopDiv)) {
+        return desktopDiv;
+      }
+      // Fallback: If desktop isn't ready, perhaps mobile is still visible.
+      if (this.isElementVisible(mobileDiv)) {
+        return mobileDiv;
+      }
     }
 
     // If neither is visible, return undefined. This prevents tracking a zero-sized element.
@@ -236,6 +239,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
       afterNextRender(() => {
         this.updateTransitionProgress(); // Initial call
         this.initObserversAndAnimations(); // Initialize combined observers and animations
+        this.setupViewportListeners();
       });
     }
   }
@@ -248,6 +252,38 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
       this.err.set(this.dataService.routeError);
       this.dataService.routeError = '';
     }
+  }
+
+  // FIX: Centralized Viewport Listener Implementation (Hybrid Synchronization)
+  private setupViewportListeners() {
+    if (this.visualViewport) {
+      // When the viewport changes (iOS UI resize/scroll), trigger the synchronous handler.
+      this.visualViewport.addEventListener('resize', this.onViewportChange);
+      this.visualViewport.addEventListener('scroll', this.onViewportChange);
+    }
+  }
+
+  private cleanupViewportListeners() {
+    if (this.visualViewport) {
+      // We must use the exact same function reference (onViewportChange) for removal.
+      this.visualViewport.removeEventListener('resize', this.onViewportChange);
+      this.visualViewport.removeEventListener('scroll', this.onViewportChange);
+    }
+  }
+
+  // CRITICAL FIX: Synchronous handler for viewport changes (iOS UI/Resize).
+  // Defined as arrow function for automatic 'this' binding when used as event listener.
+  private onViewportChange = (): void => {
+    if (!isPlatformBrowser(this.platformId)) return;
+
+    // Cancel any pending rAF scroll update as we are updating synchronously now.
+    // This preempts the standard scroll handler to prevent race conditions.
+    if (this.pendingScrollUpdate !== null) {
+      cancelAnimationFrame(this.pendingScrollUpdate);
+      this.pendingScrollUpdate = null;
+    }
+    // Update immediately to prevent jumps on Safari during viewport changes.
+    this.updateTransitionProgress();
   }
 
   private startPlaceholderAnimation(): void {
@@ -315,13 +351,13 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
 
       if (same || !isAlnum) {
         // No scramble for identical or non-alphanumeric targets (spaces, punctuation)
-        this.scrambleQueue.push({ from: fromCh, to: toCh, start: 0, end: 0 });
+        this.scrambleQueue.push({from: fromCh, to: toCh, start: 0, end: 0});
       } else {
         // Left-to-right stagger with a bit more emphasis and jitter for a clearer wave
         const progress = maxLen > 1 ? i / (maxLen - 1) : 0;
         const start = progress * (this.scrambleDuration * 0.7) + Math.random() * (this.scrambleDuration * 0.08);
         const end = start + (this.scrambleDuration * (0.28 + Math.random() * 0.18)); // keep window similar
-        this.scrambleQueue.push({ from: fromCh, to: toCh, start, end });
+        this.scrambleQueue.push({from: fromCh, to: toCh, start, end});
       }
     }
 
@@ -393,6 +429,8 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     this.headerAnimation?.stop();
     this.headerAnimation = null;
 
+    this.cleanupViewportListeners();
+
     // Clear the placeholder animation interval
     if (this.placeholderInterval) {
       clearInterval(this.placeholderInterval);
@@ -437,7 +475,6 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     }
 
     // Schedule the update in the next animation frame.
-    // This ensures we only update signals (and thus trigger Angular updates) once per frame.
     this.pendingScrollUpdate = requestAnimationFrame(() => {
       this.updateTransitionProgress();
       // Clear the flag so the next scroll event can schedule a new update.
@@ -461,7 +498,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   // Update transition progress and header animation on resize
   @HostListener('window:resize', [])
   onWindowResize(): void {
-    this.updateTransitionProgress();
+    this.onViewportChange();
   }
 
   closeAutoComplete() {
@@ -493,7 +530,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   private updateTransitionProgress(): void {
     if (isPlatformBrowser(this.platformId)) {
       // Use visualViewport height if available for accuracy on mobile (respects dynamic UI)
-      const viewportHeight = (window.visualViewport ? window.visualViewport.height : window.innerHeight);
+      const viewportHeight = (this.visualViewport ? this.visualViewport.height : window.innerHeight);
       const availableScrollDistance = document.documentElement.scrollHeight - viewportHeight;
       const currentScrollY = window.scrollY;
 
@@ -527,14 +564,15 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
       // --- Step 2: Update Content Layout (WRITE) & Layout Flush ---
       // FIX: Update the content padding synchronously right after the header height changes.
       if (headerContainer && contentContainer) {
-         // CRITICAL: Reading clientHeight forces the browser (including Safari) to apply the height change from Step 1 immediately (Forced Layout Flush).
-         const newHeight = headerContainer.clientHeight;
-         // Apply the new padding synchronously.
-         contentContainer.style.paddingTop = `${newHeight + 30}px`;
+        // CRITICAL: Reading clientHeight forces the browser (including Safari) to apply the height change from Step 1 immediately (Forced Layout Flush).
+        const newHeight = headerContainer.clientHeight;
+        // Apply the new padding synchronously.
+        contentContainer.style.paddingTop = `${newHeight + 30}px`;
       }
 
       // --- Step 3: Synchronize Measurements (READ) ---
       // Now that ALL layout changes for this frame are applied and flushed, we measure the source/target positions.
+      // ⭐ This now uses the corrected coordinates from the modified LayoutTransitionComponent.
       this.logoLayoutTransitionRef()?.refreshSynchronously();
       this.searchbarLayoutTransition()?.refreshSynchronously();
 
@@ -602,8 +640,8 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     // Define the animation (taken from the original scroll(animate(...)) wrapper)
     this.taglineAnimation = animate(
       taglineElement,
-      { x: [0, -100], opacity: [1, 0] },
-      { duration: 1, autoplay: false } // Set autoplay to false so we can control it via .time
+      {x: [0, -100], opacity: [1, 0]},
+      {duration: 1, autoplay: false} // Set autoplay to false so we can control it via .time
     );
   }
 
@@ -619,7 +657,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
         // Use the heights defined in the original component
         isSmall ? '9.5rem' : '6.7rem' // Final height (9.5rem allows space for the wrapped search bar)
       ]
-    }, { ease: "easeIn", duration: 1, autoplay: false }); // Ensure autoplay is false
+    }, {ease: "easeIn", duration: 1, autoplay: false}); // Ensure autoplay is false
 
   }
 }

@@ -192,6 +192,13 @@
   /* Promote to a separate layer (Hardware Acceleration).
      This often resolves jitter/misalignment in Safari during scroll-linked animations. */
   transform: translateZ(0);
+  -webkit-backface-visibility: hidden;
+  contain: paint layout;
+}
+
+#logo-element, #search-bar, .compact-logo, .searchbar-placeholder {
+  will-change: transform;
+  transform: translateZ(0);
 }
 
 /* END FIXES */
