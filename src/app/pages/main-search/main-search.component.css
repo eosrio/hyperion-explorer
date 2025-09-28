@@ -193,6 +193,7 @@
      This often resolves jitter/misalignment in Safari during scroll-linked animations. */
   transform: translateZ(0);
   -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
   contain: paint layout;
 }
 
@@ -202,3 +203,13 @@
 }
 
 /* END FIXES */
+
+
+/* Optimization: Simplify expensive styles during animation to reduce paint cost and improve smoothness. */
+.is-animating .header-card {
+  box-shadow: none !important;
+}
+
+.is-animating .custom-input-group {
+  box-shadow: none !important;
+}

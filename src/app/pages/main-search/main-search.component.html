@@ -16,10 +16,8 @@
             <span class="static-placeholder">Search by&nbsp;</span>
             <span class="dynamic-placeholder"> {{ dynamicPlaceholder() }}</span>
           </div>
-          <input #searchField formControlName="search_field" placeholder=""
+          <input #searchFieldRef formControlName="search_field" placeholder=""
                  class="custom-input grow outline-hidden pl-5 rounded-l-full w-full max-w-full"
-                 [style.padding-top]="searchInputPadding() +  'rem'"
-                 [style.padding-bottom]="searchInputPadding() +  'rem'"
                  [matAutocomplete]="auto">
         </div>
         <button mat-raised-button class="search-btn place-self-center" [class.primary-btn]="validSearch()">
@@ -53,7 +51,7 @@
   </div>
 </app-layout-transition>
 
-<div id="layout-container" class="w-full h-full flex flex-col justify-between">
+<div id="layout-container" class="w-full h-full flex flex-col justify-between" [class.is-animating]="isAnimating()">
 
   <div #headerContainer id="header-container"
        class="header-card flex flex-col items-center fixed top-0 lg:rounded-b-2xl left-0 right-0 lg:left-3 lg:right-3 w-full lg:w-auto">
@@ -72,7 +70,7 @@
             />
 
             <div class="logo-name hidden sm:block">HYPERION</div>
-            <div id="tagline" [style.width]="taglineWidth() +  'px'" class="tagline faded">Lightweight Explorer</div>
+            <div id="tagline" class="tagline faded">Lightweight Explorer</div>
           </div>
 
           <div #logoTargetDivMobile class="compact-logo opacity-0 block sm:hidden">

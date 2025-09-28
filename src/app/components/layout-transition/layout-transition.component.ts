@@ -1,16 +1,17 @@
 import {
   afterNextRender,
   Component,
-  computed, effect,
+  computed,
+  effect,
   HostListener,
   inject,
   input,
   linkedSignal,
+  OnDestroy,
   PLATFORM_ID,
-  signal,
-  OnDestroy
+  signal
 } from '@angular/core';
-import {isPlatformBrowser, CommonModule} from "@angular/common";
+import {CommonModule, isPlatformBrowser} from "@angular/common";
 import {Subject} from "rxjs";
 
 // Define a type for the required measurements. This simplifies the coordinate adjustment logic.
@@ -59,7 +60,7 @@ export class LayoutTransitionComponent implements OnDestroy {
       }
 
       // Fallback for other browsers.
-      return { top: rect.top, left: rect.left, width: rect.width, height: rect.height };
+      return {top: rect.top, left: rect.left, width: rect.width, height: rect.height};
 
     } else {
       return {top: 0, left: 0, width: 0, height: 0};
@@ -86,17 +87,18 @@ export class LayoutTransitionComponent implements OnDestroy {
     // If source or target measurements are zero, or the target div input is undefined, hide the element.
     if (!this.targetDiv() || source.width === 0 || source.height === 0 || target.width === 0 || target.height === 0) {
       // Return styles that hide the element safely
-      return { top: '0px', left: '0px', width: '0px', height: '0px', visibility: 'hidden' };
+      return {top: '0px', left: '0px', width: '0px', height: '0px', visibility: 'hidden'};
     }
 
-    const top = (progress * this.topDelta() + source.top) + "px";
-    const left = (progress * this.leftDelta() + source.left) + "px";
-    const width = (progress * this.widthDelta() + source.width) + "px";
+    const top = Math.round(progress * this.topDelta() + source.top) + "px";
+    const left = Math.round(progress * this.leftDelta() + source.left) + "px";
+    const width = Math.round(progress * this.widthDelta() + source.width) + "px";
     // The original "- 8" is kept.
     const heightVal = progress * this.heightDelta() + source.height;
-    const height = (heightVal > 8 ? heightVal - 8 : Math.max(0, heightVal)) + "px";
+    const heightCalc = (heightVal > 8 ? heightVal - 8 : Math.max(0, heightVal));
+    const height = Math.round(heightCalc) + "px";
 
-    return { top, left, width, height, visibility: 'visible' };
+    return {top, left, width, height, visibility: 'visible'};
   });
 
 
@@ -117,20 +119,6 @@ export class LayoutTransitionComponent implements OnDestroy {
     });
   }
 
-  private cleanupViewportListeners() {
-    if (this.visualViewport) {
-      this.visualViewport.removeEventListener('resize', this.onViewportChange);
-      this.visualViewport.removeEventListener('scroll', this.onViewportChange);
-    }
-  }
-
-  // CRITICAL FIX: Handle viewport changes SYNCHRONOUSLY.
-  // When the iOS toolbar minimizes/maximizes, we must update measurements immediately.
-  // Asynchronous updates (rAF) cause visible jumps on Safari.
-  private onViewportChange = () => {
-    this.refreshSynchronously();
-  }
-  // END FIX
 
   // Public method for synchronous refresh.
   public refreshSynchronously() {
@@ -228,7 +216,7 @@ export class LayoutTransitionComponent implements OnDestroy {
   @HostListener('window:resize')
   onResize(): void {
     // Keep window:resize as a fallback and for desktop.
-    // ⭐ Note: The parent component now handles resize synchronously, but this acts as a secondary trigger if needed.
+    // Note: The parent component now handles resize synchronously, but this acts as a secondary trigger if needed.
     this.resize$.next();
   }
 

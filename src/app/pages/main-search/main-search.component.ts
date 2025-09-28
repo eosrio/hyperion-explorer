@@ -9,7 +9,7 @@ import {
   viewChild,
   afterNextRender,
   OnDestroy, // Added import
-  linkedSignal, computed
+  linkedSignal, computed, ChangeDetectorRef
 } from '@angular/core';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
 import {CommonModule, isPlatformBrowser, NgOptimizedImage} from "@angular/common";
@@ -61,6 +61,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   formBuilder = inject(FormBuilder);
   platformId = inject(PLATFORM_ID);
   router = inject(Router);
+  cdr = inject(ChangeDetectorRef);
 
   // get version from package.json
   version = PackageVersion;
@@ -97,6 +98,8 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
 
   // Signal to track mobile state for layout
   isMobileLayout = signal<boolean>(false);
+  // Signal to track animation state for CSS performance optimization
+  isAnimating = signal<boolean>(false);
 
   // FIX: Helper Function to check if an element is actually visible (has dimensions)
   private isElementVisible(el: HTMLElement | undefined): boolean {
@@ -146,7 +149,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
       return {} as ExplorerMetadata;
     }
   });
-  searchField = viewChild<ElementRef<HTMLInputElement>>('searchField');
+  searchFieldRef = viewChild<ElementRef<HTMLInputElement>>('searchFieldRef');
   validSearch = signal<boolean>(false);
   filteredAccounts = signal<string[]>([]);
 
@@ -188,8 +191,8 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   taglineMax = 145;
   paddingMax = 1;
   transitionProgress = signal<number>(0);
-  taglineWidth = signal(this.taglineMax);
-  searchInputPadding = signal(this.paddingMax);
+  // taglineWidth = signal(this.taglineMax);
+  // searchInputPadding = signal(this.paddingMax);
 
   showThemeSelector = signal(false);
 
@@ -236,11 +239,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
 
     // Initialize transition progress after view renders (browser only)
     if (isPlatformBrowser(this.platformId)) {
-      afterNextRender(() => {
-        this.updateTransitionProgress(); // Initial call
-        this.initObserversAndAnimations(); // Initialize combined observers and animations
-        this.setupViewportListeners();
-      });
+      this.initializeLayoutAndListeners();
     }
   }
 
@@ -309,7 +308,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   private animatePlaceholder(): void {
     if (!isPlatformBrowser(this.platformId)) return;
 
-    const inputElement = this.searchField()?.nativeElement;
+    const inputElement = this.searchFieldRef()?.nativeElement;
     if (!inputElement) return;
 
     // Fixed sequence so all placeholders are shown
@@ -458,9 +457,9 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   onKeyPressed(event: KeyboardEvent) {
     // detect Ctrl+Shift+F
     if (event.ctrlKey && event.shiftKey && event.key === 'F') {
-      console.log('Focus on search field', this.searchField());
+      console.log('Focus on search field', this.searchFieldRef());
       // focus on the search_field of this.searchForm
-      this.searchField()?.nativeElement.focus();
+      this.searchFieldRef()?.nativeElement.focus();
     }
   }
 
@@ -486,7 +485,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   // If the user focuses the input while scrambling, stop immediately
   @HostListener('window:focusin', ['$event'])
   onFocusIn(event: FocusEvent): void {
-    const inputEl = this.searchField()?.nativeElement;
+    const inputEl = this.searchFieldRef()?.nativeElement;
     if (inputEl && event.target === inputEl) {
       this.cancelScramble();
       const targetText = this.placeholders[this.currentPlaceholder] ?? '';
@@ -540,15 +539,24 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
         progress = Math.min(1, Math.max(0, currentScrollY / this.requiredScrollDistance));
       }
 
+      // Update animation state for CSS optimization
+      const animating = progress > 0.01 && progress < 0.99;
+      if (this.isAnimating() !== animating) {
+        this.isAnimating.set(animating);
+      }
+
       const headerContainer = this.headerContainerRef()?.nativeElement;
       const contentContainer = this.contentContainerRef()?.nativeElement;
+      // Get references for direct manipulation
+      const taglineElement = document.getElementById('tagline');
+      const searchInputElement = this.searchFieldRef()?.nativeElement;
 
-      // --- THE SYNCHRONIZATION LOOP ---
-      // This specific order (Write -> Write -> Read -> Write) is crucial for stability on Safari.
+      // --- THE OPTIMIZED SYNCHRONIZATION LOOP (Zoneless + Anti-Thrashing) ---
+      // Strict WRITE -> READ -> WRITE pattern to ensure a single layout flush per frame.
 
-      // --- Step 1: Update Header Layout (WRITE) ---
+      // --- Phase 1: Apply Layout Changes (WRITE - ALL Synchronous) ---
 
-      // 1a. Header Height & Tagline Animations (via Motion library - synchronous style updates)
+      // 1a. Header Height & Tagline Position/Opacity (Motion library - synchronous)
       if (this.headerAnimation) {
         this.headerAnimation.time = progress;
       }
@@ -556,31 +564,40 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
         this.taglineAnimation.time = progress;
       }
 
-      // 1b. Tagline Width & Search Input Padding (Direct style updates via signals)
-      this.taglineWidth.set(this.taglineMax - (progress * this.taglineMax));
-      this.searchInputPadding.set((this.paddingMax * (1 - progress)) + (0.75 * progress));
-
-
-      // --- Step 2: Update Content Layout (WRITE) & Layout Flush ---
-      // FIX: Update the content padding synchronously right after the header height changes.
-      if (headerContainer && contentContainer) {
-        // CRITICAL: Reading clientHeight forces the browser (including Safari) to apply the height change from Step 1 immediately (Forced Layout Flush).
-        const newHeight = headerContainer.clientHeight;
-        // Apply the new padding synchronously.
-        contentContainer.style.paddingTop = `${newHeight + 30}px`;
+      // 1b. Tagline Width & Search Input Padding (Direct DOM manipulation - synchronous)
+      if (taglineElement) {
+        const newTaglineWidth = this.taglineMax - (progress * this.taglineMax);
+        taglineElement.style.width = `${newTaglineWidth}px`;
       }
 
-      // --- Step 3: Synchronize Measurements (READ) ---
-      // Now that ALL layout changes for this frame are applied and flushed, we measure the source/target positions.
-      // ⭐ This now uses the corrected coordinates from the modified LayoutTransitionComponent.
+      if (searchInputElement) {
+        const newPadding = (this.paddingMax * (1 - progress)) + (0.75 * progress);
+        searchInputElement.style.paddingTop = `${newPadding}rem`;
+        searchInputElement.style.paddingBottom = `${newPadding}rem`;
+      }
+
+      // --- Phase 2: Measure Layout (READ + Forced Flush) ---
+      let newHeight = 0;
+      if (headerContainer) {
+        // Forced layout flush ensures accurate measurement after Phase 1 writes
+        newHeight = headerContainer.clientHeight;
+      }
+
+      // Measure the source/target positions now that the layout is stable. (READ)
       this.logoLayoutTransitionRef()?.refreshSynchronously();
       this.searchbarLayoutTransition()?.refreshSynchronously();
 
+      // --- Phase 3: Apply Dependent Updates (WRITE + CD) ---
+      // 3a. Update Content Padding (Direct DOM manipulation - synchronous)
+      if (contentContainer && newHeight > 0) {
+        contentContainer.style.paddingTop = `${newHeight + 30}px`;
+      }
 
-      // --- Step 4: Update Position (WRITE) ---
-      // Update the main progress signal based on the refreshed measurements.
+      // 3b. Update Position (via Signal)
       this.transitionProgress.set(progress);
 
+      // 3c. FIX for Zoneless: Manually trigger change detection to apply style changes in this frame.
+      this.cdr.markForCheck();
     }
   }
 
@@ -588,16 +605,11 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   private initObserversAndAnimations() {
     // We use ViewChild references now.
     const headerContainer = this.headerContainerRef()?.nativeElement;
-    const contentContainer = this.contentContainerRef()?.nativeElement;
     const taglineElement = document.querySelector('.tagline') as HTMLElement; // Tagline still needs querySelector
 
-    if (!headerContainer || !contentContainer) {
+    if (!headerContainer) {
       return;
     }
-
-    // FIX: Initial padding setup (Manual synchronous setup).
-    contentContainer.style.paddingTop = `${headerContainer.clientHeight + 30}px`;
-
 
     // Initialize Tagline Animation (if element exists)
     if (taglineElement) {
@@ -624,10 +636,8 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
         this.createHeaderAnimation(headerContainer, isSmallForAnimation);
 
         // 4. Ensure synchronization immediately after layout/target changes
-        // We must refresh synchronously as the target div might have changed
-        this.logoLayoutTransitionRef()?.refreshSynchronously();
-        this.searchbarLayoutTransition()?.refreshSynchronously();
-        this.updateTransitionProgress();
+        // Trigger the main update loop synchronously to handle the synchronization.
+        this.onViewportChange();
       });
   }
 
@@ -659,5 +669,49 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
       ]
     }, {ease: "easeIn", duration: 1, autoplay: false}); // Ensure autoplay is false
 
+  }
+
+  // Initialization using afterNextRender phases to avoid layout thrash
+  private initializeLayoutAndListeners() {
+    afterNextRender({
+      // Phase 1: Read initial dimensions before any writes occur.
+      earlyRead: () => {
+        const headerContainer = this.headerContainerRef()?.nativeElement;
+        const initialHeight = headerContainer ? headerContainer.clientHeight : 0;
+        return { initialHeight };
+      },
+      // Phase 2: Initialize animations, observers, and apply initial layout based on readings.
+      write: ({ initialHeight }) => {
+        // Apply initial padding based on the value read in earlyRead.
+        const contentContainer = this.contentContainerRef()?.nativeElement;
+        if (contentContainer && initialHeight > 0) {
+          contentContainer.style.paddingTop = `${initialHeight + 30}px`;
+        }
+
+        // Initialize observers and animations (now optimized)
+        this.setInitialStyles();
+        this.initObserversAndAnimations();
+        this.setupViewportListeners();
+      },
+      // Phase 3: Read finalized positions after all writes are flushed.
+      read: () => {
+        this.updateTransitionProgress();
+      }
+    });
+  }
+
+  // Helper to set initial styles synchronously for direct manipulation
+  private setInitialStyles() {
+    const taglineElement = document.getElementById('tagline');
+    const searchInputElement = this.searchFieldRef()?.nativeElement;
+
+    // Apply initial state (progress = 0) if styles haven't been set yet.
+    if (taglineElement && taglineElement.style.width === '') {
+      taglineElement.style.width = `${this.taglineMax}px`;
+    }
+    if (searchInputElement && searchInputElement.style.paddingTop === '') {
+      searchInputElement.style.paddingTop = `${this.paddingMax}rem`;
+      searchInputElement.style.paddingBottom = `${this.paddingMax}rem`;
+    }
   }
 }
