@@ -9,7 +9,7 @@ import {
   viewChild,
   afterNextRender,
   OnDestroy, // Added import
-  linkedSignal, computed, ChangeDetectorRef
+  linkedSignal, computed
 } from '@angular/core';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
 import {CommonModule, isPlatformBrowser, NgOptimizedImage} from "@angular/common";
@@ -19,7 +19,7 @@ import {faHeart, faSearch} from "@fortawesome/free-solid-svg-icons";
 import {ExplorerMetadata} from "../../interfaces";
 import {MatAutocomplete, MatAutocompleteTrigger, MatOption} from "@angular/material/autocomplete";
 import {Router, RouterLink, RouterOutlet} from "@angular/router";
-import {debounceTime, map, Subscription} from "rxjs"; // Added Subscription import
+import {debounceTime, Subscription} from "rxjs"; // Added Subscription import
 import {MatButton} from "@angular/material/button";
 
 import {version as PackageVersion} from '../../../../package.json';
@@ -61,7 +61,6 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   formBuilder = inject(FormBuilder);
   platformId = inject(PLATFORM_ID);
   router = inject(Router);
-  cdr = inject(ChangeDetectorRef);
 
   // get version from package.json
   version = PackageVersion;
@@ -205,6 +204,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   private breakpointSubscription: Subscription | null = null; // To store breakpoint observer subscription
 
   private pendingScrollUpdate: number | null = null; // For rAF throttling
+  private manualAnimationFrame: number | null = null;
 
   constructor() {
 
@@ -450,6 +450,8 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
         this.pendingScrollUpdate = null;
       }
     }
+
+    this.stopManualAnimation();
   }
 
 
@@ -527,78 +529,118 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   }
 
   private updateTransitionProgress(): void {
-    if (isPlatformBrowser(this.platformId)) {
-      // Use visualViewport height if available for accuracy on mobile (respects dynamic UI)
-      const viewportHeight = (this.visualViewport ? this.visualViewport.height : window.innerHeight);
-      const availableScrollDistance = document.documentElement.scrollHeight - viewportHeight;
-      const currentScrollY = window.scrollY;
-
-      // Calculate progress
-      let progress = 0;
-      if (availableScrollDistance >= this.requiredScrollDistance || this.requiredScrollDistance > 0) {
-        progress = Math.min(1, Math.max(0, currentScrollY / this.requiredScrollDistance));
-      }
-
-      // Update animation state for CSS optimization
-      const animating = progress > 0.01 && progress < 0.99;
-      if (this.isAnimating() !== animating) {
-        this.isAnimating.set(animating);
-      }
-
-      const headerContainer = this.headerContainerRef()?.nativeElement;
-      const contentContainer = this.contentContainerRef()?.nativeElement;
-      // Get references for direct manipulation
-      const taglineElement = document.getElementById('tagline');
-      const searchInputElement = this.searchFieldRef()?.nativeElement;
-
-      // --- THE OPTIMIZED SYNCHRONIZATION LOOP (Zoneless + Anti-Thrashing) ---
-      // Strict WRITE -> READ -> WRITE pattern to ensure a single layout flush per frame.
-
-      // --- Phase 1: Apply Layout Changes (WRITE - ALL Synchronous) ---
-
-      // 1a. Header Height & Tagline Position/Opacity (Motion library - synchronous)
-      if (this.headerAnimation) {
-        this.headerAnimation.time = progress;
-      }
-      if (this.taglineAnimation) {
-        this.taglineAnimation.time = progress;
-      }
-
-      // 1b. Tagline Width & Search Input Padding (Direct DOM manipulation - synchronous)
-      if (taglineElement) {
-        const newTaglineWidth = this.taglineMax - (progress * this.taglineMax);
-        taglineElement.style.width = `${newTaglineWidth}px`;
-      }
-
-      if (searchInputElement) {
-        const newPadding = (this.paddingMax * (1 - progress)) + (0.75 * progress);
-        searchInputElement.style.paddingTop = `${newPadding}rem`;
-        searchInputElement.style.paddingBottom = `${newPadding}rem`;
-      }
-
-      // --- Phase 2: Measure Layout (READ + Forced Flush) ---
-      let newHeight = 0;
-      if (headerContainer) {
-        // Forced layout flush ensures accurate measurement after Phase 1 writes
-        newHeight = headerContainer.clientHeight;
-      }
-
-      // Measure the source/target positions now that the layout is stable. (READ)
-      this.logoLayoutTransitionRef()?.refreshSynchronously();
-      this.searchbarLayoutTransition()?.refreshSynchronously();
-
-      // --- Phase 3: Apply Dependent Updates (WRITE + CD) ---
-      // 3a. Update Content Padding (Direct DOM manipulation - synchronous)
-      if (contentContainer && newHeight > 0) {
-        contentContainer.style.paddingTop = `${newHeight + 30}px`;
-      }
-
-      // 3b. Update Position (via Signal)
-      this.transitionProgress.set(progress);
-
-      // 3c. FIX for Zoneless: Manually trigger change detection to apply style changes in this frame.
-      this.cdr.markForCheck();
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
     }
+
+    this.stopManualAnimation();
+
+    const viewportHeight = (this.visualViewport ? this.visualViewport.height : window.innerHeight);
+    const availableScrollDistance = document.documentElement.scrollHeight - viewportHeight;
+    const currentScrollY = window.scrollY;
+
+    let progress = 0;
+    if (availableScrollDistance >= this.requiredScrollDistance || this.requiredScrollDistance > 0) {
+      progress = Math.min(1, Math.max(0, currentScrollY / this.requiredScrollDistance));
+    }
+
+    this.applyTransitionProgress(progress);
+  }
+
+  toggleDevCollapse(): void {
+    const target = this.transitionProgress() >= 0.95 ? 0 : 1;
+    this.animateProgressTo(target);
+  }
+
+  private animateProgressTo(target: number, duration = 400): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      this.applyTransitionProgress(target);
+      return;
+    }
+
+    const clampedTarget = Math.min(1, Math.max(0, target));
+    this.stopManualAnimation();
+
+    const start = this.transitionProgress();
+    const startTime = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+
+    const step = (now: number) => {
+      const elapsed = now - startTime;
+      const t = Math.min(1, Math.max(0, elapsed / duration));
+      const eased = start + (clampedTarget - start) * this.easeInOut(t);
+      this.applyTransitionProgress(eased);
+
+      if (t < 1) {
+        this.manualAnimationFrame = requestAnimationFrame(step);
+      } else {
+        this.manualAnimationFrame = null;
+        this.applyTransitionProgress(clampedTarget);
+      }
+    };
+
+    this.manualAnimationFrame = requestAnimationFrame(step);
+  }
+
+  private easeInOut(t: number): number {
+    return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+  }
+
+  private stopManualAnimation(): void {
+    if (this.manualAnimationFrame !== null) {
+      cancelAnimationFrame(this.manualAnimationFrame);
+      this.manualAnimationFrame = null;
+    }
+  }
+
+  private applyTransitionProgress(progress: number): void {
+    const clampedProgress = Math.min(1, Math.max(0, progress));
+
+    if (!isPlatformBrowser(this.platformId)) {
+      this.transitionProgress.set(clampedProgress);
+      return;
+    }
+
+    const animating = clampedProgress > 0.01 && clampedProgress < 0.99;
+    if (this.isAnimating() !== animating) {
+      this.isAnimating.set(animating);
+    }
+
+    const headerContainer = this.headerContainerRef()?.nativeElement;
+    const contentContainer = this.contentContainerRef()?.nativeElement;
+    const taglineElement = document.getElementById('tagline');
+    const searchInputElement = this.searchFieldRef()?.nativeElement;
+
+    if (this.headerAnimation) {
+      this.headerAnimation.time = clampedProgress;
+    }
+    if (this.taglineAnimation) {
+      this.taglineAnimation.time = clampedProgress;
+    }
+
+    if (taglineElement) {
+      const newTaglineWidth = this.taglineMax - (clampedProgress * this.taglineMax);
+      taglineElement.style.width = `${newTaglineWidth}px`;
+    }
+
+    if (searchInputElement) {
+      const newPadding = (this.paddingMax * (1 - clampedProgress)) + (0.75 * clampedProgress);
+      searchInputElement.style.paddingTop = `${newPadding}rem`;
+      searchInputElement.style.paddingBottom = `${newPadding}rem`;
+    }
+
+    let newHeight = 0;
+    if (headerContainer) {
+      newHeight = headerContainer.clientHeight;
+    }
+
+    this.logoLayoutTransitionRef()?.refreshSynchronously();
+    this.searchbarLayoutTransition()?.refreshSynchronously();
+
+    if (contentContainer && newHeight > 0) {
+      contentContainer.style.paddingTop = `${newHeight + 30}px`;
+    }
+
+    this.transitionProgress.set(clampedProgress);
   }
 
 

@@ -1,0 +1,123 @@
+<section class="demo-page">
+  <header class="demo-controls">
+    <h1>Layout Transition Playground</h1>
+    <p>Use the controls below to test the <code>app-layout-transition</code> component without live data.</p>
+    <div class="control-bar">
+      <button type="button" (click)="toggleCompact()">
+        {{ isCompact() ? 'Expand Header' : 'Collapse Header' }}
+      </button>
+      <button type="button" class="secondary" (click)="reset()">Reset</button>
+      <label class="slider">
+        <span>Progress: {{ (transitionProgress() * 100) | number:'1.0-0' }}%</span>
+        <input type="range"
+               min="0"
+               max="1"
+               step="0.01"
+               [value]="transitionProgress()"
+               (input)="onProgressInput($event)" />
+      </label>
+    </div>
+  </header>
+
+  <div class="demo-stage">
+    <app-layout-transition #logoLayoutTransition
+                            [observedIds]="observedIds"
+                            [sourceDiv]="logoSourceDiv"
+                            [targetDiv]="currentLogoTarget()"
+                            [progress]="transitionProgress()">
+      <div class="h-[4.375rem]" style="z-index: 100">
+        <img [src]="logoUrl" alt="logo" class="logo" />
+      </div>
+    </app-layout-transition>
+
+    <app-layout-transition #searchbarLayoutTransition
+                            [observedIds]="observedIds"
+                            [sourceDiv]="searchbarSourceDiv"
+                            [targetDiv]="currentSearchbarTarget()"
+                            [progress]="transitionProgress()">
+      <div class="w-full">
+        <div class="custom-input-group grow w-full flex flex-row rounded-full pr-2">
+          <div class="relative grow min-w-0">
+            <div class="custom-placeholder absolute left-5 top-0 flex items-center h-full pointer-events-none">
+              <span class="static-placeholder">Search by&nbsp;</span>
+              <span class="dynamic-placeholder"> transaction id...</span>
+            </div>
+            <input placeholder="" class="custom-input grow outline-hidden pl-5 rounded-l-full w-full max-w-full" disabled>
+          </div>
+          <button type="button" class="search-btn">
+            <span class="hidden sm:inline sm:pl-1">Search</span>
+            <span class="pl-1 sm:pl-0">Blocks</span>
+          </button>
+        </div>
+        <div class="flex flex-row justify-center w-full min-h-8"></div>
+      </div>
+    </app-layout-transition>
+
+    <div id="demo-layout-container" class="layout-root flex flex-col" [class.is-animating]="isAnimating()">
+      <div #headerContainer id="header-container"
+           class="header-card flex flex-col items-center fixed top-0 left-0 right-0 lg:left-3 lg:right-3 w-full lg:w-auto lg:rounded-b-2xl">
+        <div class="w-full mt-7">
+          <div class="hr-container flex flex-row flex-wrap justify-between items-center gap-5">
+            <div class="flex flex-row items-center gap-1.5 xs:gap-1.5">
+              <div class="flex flex-row flex-wrap justify-start items-center gap-1.5 xs:gap-1.5">
+                <img src="assets/hyperion-pulse.svg" alt="logo" class="logo" style="height: 19px" width="26.85" height="19" />
+                <div class="logo-name hidden sm:block">HYPERION</div>
+                <div id="tagline" #taglineRef class="tagline faded">Lightweight Explorer</div>
+              </div>
+              <div #logoTargetDivMobile class="compact-logo opacity-0 block sm:hidden">
+                <img [src]="logoUrl"
+                     alt="logo"
+                     class="logo" />
+              </div>
+            </div>
+
+            <div class="searchbar-empty-space grow-0 sm:grow flex flex-row items-center gap-2 md:gap-5 w-full sm:w-auto min-w-0 max-w-full sm:max-w-[46rem] order-3 lg:order-none">
+              <div #logoTargetDivDesktop class="compact-logo opacity-0 hidden sm:block">
+                <img [src]="logoUrl"
+                     alt="logo"
+                     class="logo" />
+              </div>
+              <div #searchbarTargetDiv class="searchbar-placeholder bg-red-400 w-full opacity-0"></div>
+            </div>
+
+            <div class="faded provider hidden sm:inline">
+              Data provider:
+              <a href="https://eosrio.io" target="_blank" rel="noreferrer">EOS Rio</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="searchbar-container flex flex-col justify-center items-center gap-5 pt-9 pb-10 w-full pointer-events-none">
+          <div #logoSourceDiv id="logo-element" class="h-[4.375rem] opacity-0">
+            <img [src]="logoUrl" alt="logo" class="logo" />
+          </div>
+          <div #searchbarSourceDiv id="search-bar" class="flex flex-col bg-red-400 opacity-0 w-full md:max-w-[46rem]">
+            <div class="grow w-full flex flex-row h-[3.188rem]"></div>
+            <div class="flex flex-row justify-center w-full h-8 min-h-8"></div>
+          </div>
+        </div>
+      </div>
+
+      <div #contentContainer id="demo-content-container" class="flex flex-col justify-between pb-10 w-full grow">
+        <main class="demo-content">
+          <article>
+            <h2>How to test</h2>
+            <ol>
+              <li>Toggle between expanded and compact states with the button.</li>
+              <li>Scrub the progress slider to inspect intermediate frames.</li>
+              <li>Resize the viewport or rotate a device to trigger refresh logic.</li>
+            </ol>
+          </article>
+          <article>
+            <h2>Why this route exists</h2>
+            <p>
+              The production main search view depends on API data and user scrolling.
+              This sandbox uses only static content so you can profile performance,
+              experiment with the layout transition code, and iterate on Safari-specific fixes.
+            </p>
+          </article>
+        </main>
+      </div>
+    </div>
+  </div>
+</section>

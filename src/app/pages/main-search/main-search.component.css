@@ -40,12 +40,6 @@
   display: inline-block;
 }
 
-@media screen and (max-width: 959px) {
-  .custom-input {
-    /*font-size: max(1.1rem, 16px);*/
-  }
-}
-
 .custom-input-group:focus-within {
   outline: none;
   box-shadow: var(--box-shadow-bg-sharp-inset);
@@ -212,4 +206,33 @@
 
 .is-animating .custom-input-group {
   box-shadow: none !important;
+}
+
+.dev-collapse-toggle {
+  position: fixed;
+  bottom: 1.25rem;
+  right: 1.25rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(15, 23, 42, 0.65);
+  color: rgba(226, 232, 240, 0.6);
+  font-size: 0.65rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  opacity: 0.15;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+  z-index: 200;
+}
+
+.dev-collapse-toggle:hover,
+.dev-collapse-toggle:focus-visible {
+  opacity: 0.9;
+  transform: translateY(-1px);
+  color: rgba(226, 232, 240, 0.95);
+  outline: none;
+}
+
+.dev-collapse-toggle:focus-visible {
+  box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.5);
 }

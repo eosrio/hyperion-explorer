@@ -13,10 +13,19 @@ async function loadContractComponent() {
   return m.ContractComponent;
 }
 
+async function loadLayoutTransitionTestComponent() {
+  let m = await import("./pages/layout-transition-test/layout-transition-test.component");
+  return m.LayoutTransitionTestComponent;
+}
+
 export const routes: Routes = [
   {
     path: "top-holders/:contract/:symbol",
     component: TopHoldersChartComponent
+  },
+  {
+    path: "layout-transition-test",
+    loadComponent: loadLayoutTransitionTestComponent
   },
   {
     path: "",
