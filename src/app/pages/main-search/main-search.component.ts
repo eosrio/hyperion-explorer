@@ -100,6 +100,13 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   // Signal to track animation state for CSS performance optimization
   isAnimating = signal<boolean>(false);
 
+  // ⭐ Added: Signals and variables to store animation endpoints (pixels) for mathematical calculation
+  private headerHeightStart = signal(0);
+  private headerHeightEndSmall = 0;
+  private headerHeightEndLarge = 0;
+  private currentHeaderHeightEnd = signal(0);
+
+
   // FIX: Helper Function to check if an element is actually visible (has dimensions)
   private isElementVisible(el: HTMLElement | undefined): boolean {
     if (!el || !isPlatformBrowser(this.platformId)) return false;
@@ -199,7 +206,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   private readonly requiredScrollDistance = 100;
 
   // Store animation controls
-  private headerAnimation: any | null = null; // Promoted to class property
+  // private headerAnimation: any | null = null; // ⭐ Removed: Header animation is now manually controlled
   private taglineAnimation: any | null = null;
   private breakpointSubscription: Subscription | null = null; // To store breakpoint observer subscription
 
@@ -262,6 +269,14 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     }
   }
 
+  // ⭐ Added: Manually setup passive scroll listener for better performance
+  private setupScrollListener() {
+    if (isPlatformBrowser(this.platformId)) {
+      // Use passive: true to tell the browser we won't call preventDefault(), improving scroll smoothness.
+      window.addEventListener('scroll', this.onWindowScroll, { passive: true });
+    }
+  }
+
   private cleanupViewportListeners() {
     if (this.visualViewport) {
       // We must use the exact same function reference (onViewportChange) for removal.
@@ -269,6 +284,15 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
       this.visualViewport.removeEventListener('scroll', this.onViewportChange);
     }
   }
+
+  // ⭐ Added: Cleanup scroll listener
+  private cleanupScrollListener() {
+    if (isPlatformBrowser(this.platformId)) {
+      // Must use the same function reference for removal.
+      window.removeEventListener('scroll', this.onWindowScroll);
+    }
+  }
+
 
   // CRITICAL FIX: Synchronous handler for viewport changes (iOS UI/Resize).
   // Defined as arrow function for automatic 'this' binding when used as event listener.
@@ -425,10 +449,11 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     this.taglineAnimation = null;
 
     // Stop and clear header animation
-    this.headerAnimation?.stop();
-    this.headerAnimation = null;
+    // this.headerAnimation?.stop(); // ⭐ Removed
+    // this.headerAnimation = null; // ⭐ Removed
 
     this.cleanupViewportListeners();
+    this.cleanupScrollListener(); // ⭐ Added: Cleanup passive scroll listener
 
     // Clear the placeholder animation interval
     if (this.placeholderInterval) {
@@ -466,8 +491,9 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   }
 
   // Update transition progress on scroll
-  @HostListener('window:scroll', [])
-  onWindowScroll(): void {
+  // @HostListener('window:scroll', []) // ⭐ Removed: Replaced with manual passive listener
+  // ⭐ Refactored to arrow function for 'this' binding and passive listening
+  private onWindowScroll = (): void => {
     if (!isPlatformBrowser(this.platformId)) return;
 
     // Throttling: If an update is already scheduled, do nothing.
@@ -477,6 +503,9 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
 
     // Schedule the update in the next animation frame.
     this.pendingScrollUpdate = requestAnimationFrame(() => {
+      // ⭐ Check if onViewportChange ran synchronously and cleared the pending update.
+      if (this.pendingScrollUpdate === null) return;
+
       this.updateTransitionProgress();
       // Clear the flag so the next scroll event can schedule a new update.
       this.pendingScrollUpdate = null;
@@ -499,6 +528,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   // Update transition progress and header animation on resize
   @HostListener('window:resize', [])
   onWindowResize(): void {
+    // Keep window:resize as a fallback and for desktop.
     this.onViewportChange();
   }
 
@@ -540,7 +570,8 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     const currentScrollY = window.scrollY;
 
     let progress = 0;
-    if (availableScrollDistance >= this.requiredScrollDistance || this.requiredScrollDistance > 0) {
+    // ⭐ Ensure calculation only starts if scrolling is possible or required distance is set.
+    if (this.requiredScrollDistance > 0 && (availableScrollDistance >= this.requiredScrollDistance || currentScrollY > 0)) {
       progress = Math.min(1, Math.max(0, currentScrollY / this.requiredScrollDistance));
     }
 
@@ -581,6 +612,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     this.manualAnimationFrame = requestAnimationFrame(step);
   }
 
+  // ⭐ Optimization: Use a consistent easing function for both manual and scroll animations for smoothness.
   private easeInOut(t: number): number {
     return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
   }
@@ -592,6 +624,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     }
   }
 
+  // ⭐ CRITICAL Optimization: Refactored to eliminate layout thrashing caused by reading clientHeight.
   private applyTransitionProgress(progress: number): void {
     const clampedProgress = Math.min(1, Math.max(0, progress));
 
@@ -607,38 +640,79 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
 
     const headerContainer = this.headerContainerRef()?.nativeElement;
     const contentContainer = this.contentContainerRef()?.nativeElement;
+    // Use getElementById for reliability.
     const taglineElement = document.getElementById('tagline');
     const searchInputElement = this.searchFieldRef()?.nativeElement;
 
+    // --- BATCHED WRITE PHASE START ---
+
+    // ⭐ 1. Calculate Height Mathematically (Avoids DOM Read)
+    let calculatedHeight = 0;
+    if (headerContainer) {
+      const startHeight = this.headerHeightStart();
+      const endHeight = this.currentHeaderHeightEnd();
+
+      // Apply easing to the progress for smoother height transition.
+      const easedProgress = this.easeInOut(clampedProgress);
+
+      calculatedHeight = startHeight + (endHeight - startHeight) * easedProgress;
+
+      // WRITE 1A: Apply calculated height to the header.
+      headerContainer.style.height = `${calculatedHeight}px`;
+    }
+
+    /* ⭐ Removed: Replaced Motion One header animation with manual control.
     if (this.headerAnimation) {
       this.headerAnimation.time = clampedProgress;
     }
+    */
+
+    // WRITE 2: Tagline Animation (Motion One - uses transforms/opacity)
     if (this.taglineAnimation) {
+      // Tagline animation progress remains linear relative to scroll.
       this.taglineAnimation.time = clampedProgress;
     }
 
+    // WRITE 3: Tagline Width
     if (taglineElement) {
       const newTaglineWidth = this.taglineMax - (clampedProgress * this.taglineMax);
       taglineElement.style.width = `${newTaglineWidth}px`;
     }
 
+    // WRITE 4: Search Input Padding
     if (searchInputElement) {
       const newPadding = (this.paddingMax * (1 - clampedProgress)) + (0.75 * clampedProgress);
       searchInputElement.style.paddingTop = `${newPadding}rem`;
       searchInputElement.style.paddingBottom = `${newPadding}rem`;
     }
 
+    // ⭐ WRITE 1B: Apply calculated height to content padding.
+    // CRITICAL Optimization: This avoids the expensive headerContainer.clientHeight read, significantly reducing layout thrash.
+    /* ⭐ Removed: Original code causing thrash
     let newHeight = 0;
     if (headerContainer) {
-      newHeight = headerContainer.clientHeight;
+      newHeight = headerContainer.clientHeight; // LAYOUT THRASHING POINT
     }
-
-    this.logoLayoutTransitionRef()?.refreshSynchronously();
-    this.searchbarLayoutTransition()?.refreshSynchronously();
-
+    ...
     if (contentContainer && newHeight > 0) {
       contentContainer.style.paddingTop = `${newHeight + 30}px`;
     }
+    */
+    if (contentContainer && calculatedHeight > 0) {
+      contentContainer.style.paddingTop = `${calculatedHeight + 30}px`;
+    }
+
+
+    // --- BATCHED WRITE PHASE END ---
+
+    // --- READ PHASE START (Layout Thrash Inevitable Here) ---
+    // We must refresh the LayoutTransitionComponents because the writes above changed the positions
+    // of the source/target elements. This forces synchronous DOM reads (getBoundingClientRect).
+    // While unavoidable in this architecture, the overall thrashing is significantly reduced.
+    this.logoLayoutTransitionRef()?.refreshSynchronously();
+    this.searchbarLayoutTransition()?.refreshSynchronously();
+
+    // --- READ PHASE END ---
 
     this.transitionProgress.set(clampedProgress);
   }
@@ -647,7 +721,8 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   private initObserversAndAnimations() {
     // We use ViewChild references now.
     const headerContainer = this.headerContainerRef()?.nativeElement;
-    const taglineElement = document.querySelector('.tagline') as HTMLElement; // Tagline still needs querySelector
+    // const taglineElement = document.querySelector('.tagline') as HTMLElement; // Original
+    const taglineElement = document.getElementById('tagline'); // ⭐ Standardized selector
 
     if (!headerContainer) {
       return;
@@ -674,8 +749,14 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
         // 2. Determine if animation height needs adjustment
         const isSmallForAnimation = state.breakpoints[Breakpoints.XSmall] || state.breakpoints[Breakpoints.Small];
 
+        // ⭐ 3. Update the current animation endpoint signal based on breakpoint
+        const newEndpoint = isSmallForAnimation ? this.headerHeightEndSmall : this.headerHeightEndLarge;
+        this.currentHeaderHeightEnd.set(newEndpoint);
+
+        /* ⭐ Removed: We no longer use Motion One for the header animation.
         // 3. Recreate animation
         this.createHeaderAnimation(headerContainer, isSmallForAnimation);
+        */
 
         // 4. Ensure synchronization immediately after layout/target changes
         // Trigger the main update loop synchronously to handle the synchronization.
@@ -697,6 +778,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     );
   }
 
+  /* ⭐ Removed: Function is no longer used as header animation is manually controlled.
   // Helper method extracted from the original createMotionAnimation
   private createHeaderAnimation(headerContainer: HTMLDivElement, isSmall: boolean) {
     if (this.headerAnimation) {
@@ -712,6 +794,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     }, {ease: "easeIn", duration: 1, autoplay: false}); // Ensure autoplay is false
 
   }
+  */
 
   // Initialization using afterNextRender phases to avoid layout thrash
   private initializeLayoutAndListeners() {
@@ -720,10 +803,36 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
       earlyRead: () => {
         const headerContainer = this.headerContainerRef()?.nativeElement;
         const initialHeight = headerContainer ? headerContainer.clientHeight : 0;
-        return { initialHeight };
+
+        // ⭐ Optimization: Read font size to convert rem animation targets to pixels
+        const computedStyle = window.getComputedStyle(document.documentElement);
+        const fontSize = parseFloat(computedStyle.fontSize);
+
+        // Define the CSS targets in rem (from the original CSS/animation definition)
+        const heightStartRem = 20.875;
+        const heightEndSmallRem = 9.5;
+        const heightEndLargeRem = 6.7;
+
+        return {
+          initialHeight,
+          // ⭐ Pass calculated pixel values to the write phase
+          heightStartPx: heightStartRem * fontSize,
+          heightEndSmallPx: heightEndSmallRem * fontSize,
+          heightEndLargePx: heightEndLargeRem * fontSize,
+        };
       },
       // Phase 2: Initialize animations, observers, and apply initial layout based on readings.
-      write: ({ initialHeight }) => {
+      // write: ({ initialHeight }) => { // Original
+      write: (readings) => { // ⭐ Updated signature
+        const { initialHeight, heightStartPx, heightEndSmallPx, heightEndLargePx } = readings;
+
+        // ⭐ Store the calculated pixel values for animation endpoints
+        // Use the actual measured initial height if available, otherwise fallback to the calculated start height.
+        this.headerHeightStart.set(initialHeight > 0 ? initialHeight : heightStartPx);
+        this.headerHeightEndSmall = heightEndSmallPx;
+        this.headerHeightEndLarge = heightEndLargePx;
+
+
         // Apply initial padding based on the value read in earlyRead.
         const contentContainer = this.contentContainerRef()?.nativeElement;
         if (contentContainer && initialHeight > 0) {
@@ -734,6 +843,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
         this.setInitialStyles();
         this.initObserversAndAnimations();
         this.setupViewportListeners();
+        this.setupScrollListener(); // ⭐ Added: Setup passive scroll listener
       },
       // Phase 3: Read finalized positions after all writes are flushed.
       read: () => {
