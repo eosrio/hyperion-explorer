@@ -1,8 +1,8 @@
 <app-layout-transition #logoLayoutTransition
-                       animationMode="transform"
+                       animationMode="hybrid"
                        [observedIds]="['header-container', 'tagline']"
                        [sourceDiv]="logoSourceDiv" [targetDiv]="currentTargetDiv()" [progress]="transitionProgress()">
-  <div class="h-[4.375rem]" style="z-index: 100">
+  <div style="z-index: 100; display: flex; align-items: center; justify-content: center; height: 100%; width: 100%;">
     <img [src]="chainData().logo" alt="logo" class="logo"/>
   </div>
 </app-layout-transition>

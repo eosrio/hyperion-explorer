@@ -101,6 +101,14 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   // Signal to track animation state for CSS performance optimization
   isAnimating = signal<boolean>(false);
 
+  // ⭐ Define animation parameters for synchronized height calculation (must match CSS)
+  private readonly INITIAL_HEADER_HEIGHT = '20.875rem';
+  private readonly FINAL_HEADER_HEIGHT_SM = '9.5rem';
+  private readonly FINAL_HEADER_HEIGHT_LG = '6.7rem';
+
+  // ⭐ Store current animation targets (start/end heights in pixels) for calculations
+  private currentAnimationHeights = { startPx: 0, endPx: 0 };
+
   // FIX: Helper Function to check if an element is actually visible (has dimensions)
   private isElementVisible(el: HTMLElement | undefined): boolean {
     if (!el || !isPlatformBrowser(this.platformId)) return false;
@@ -526,6 +534,21 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     }
   }
 
+  // ⭐ Helper method to convert CSS units (rem/em/etc.) to pixels (necessary for precise calculations)
+  private getPixelValue(element: HTMLElement, value: string): number {
+    if (!isPlatformBrowser(this.platformId)) return 0;
+    // Create a temporary element within the context of the target element to calculate the computed style robustly.
+    const temp = document.createElement('div');
+    temp.style.visibility = 'hidden';
+    temp.style.position = 'absolute';
+    temp.style.height = value;
+    // Append to the specific element to respect local CSS variables or contextual sizing (like root font size changes).
+    element.appendChild(temp);
+    const pixelValue = parseFloat(getComputedStyle(temp).height);
+    element.removeChild(temp);
+    return pixelValue;
+  }
+
   private updateTransitionProgress(): void {
     if (isPlatformBrowser(this.platformId)) {
       // Use visualViewport height if available for accuracy on mobile (respects dynamic UI)
@@ -545,30 +568,34 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
         this.isAnimating.set(animating);
       }
 
-      const headerContainer = this.headerContainerRef()?.nativeElement;
+      // const headerContainer = this.headerContainerRef()?.nativeElement; // ⭐ No longer needed
       const contentContainer = this.contentContainerRef()?.nativeElement;
       // Get references for direct manipulation
-      const taglineElement = document.getElementById('tagline');
+      // const taglineElement = document.getElementById('tagline'); // ⭐ No longer needed for direct manipulation
       const searchInputElement = this.searchFieldRef()?.nativeElement;
 
       // --- THE OPTIMIZED SYNCHRONIZATION LOOP (Zoneless + Anti-Thrashing) ---
-      // Strict WRITE -> READ -> WRITE pattern to ensure a single layout flush per frame.
+      // ⭐ Strict WRITE -> CALCULATE -> WRITE -> READ pattern. DOM reads (like clientHeight) are eliminated.
 
-      // --- Phase 1: Apply Layout Changes (WRITE - ALL Synchronous) ---
+      // --- Phase 1: Apply Visual Changes (WRITE - ALL Synchronous) ---
 
-      // 1a. Header Height & Tagline Position/Opacity (Motion library - synchronous)
+      // 1a. Header Clip-path & Tagline Transform/Opacity (Motion library - synchronous)
       if (this.headerAnimation) {
+        // ⭐ This now controls the clip-path animation (GPU accelerated).
         this.headerAnimation.time = progress;
       }
       if (this.taglineAnimation) {
+        // ⭐ This now controls the optimized tagline animation (GPU accelerated).
         this.taglineAnimation.time = progress;
       }
 
-      // 1b. Tagline Width & Search Input Padding (Direct DOM manipulation - synchronous)
+      // 1b. Search Input Padding (Direct DOM manipulation - synchronous)
+      /* ⭐ Removed manual tagline width animation.
       if (taglineElement) {
         const newTaglineWidth = this.taglineMax - (progress * this.taglineMax);
         taglineElement.style.width = `${newTaglineWidth}px`;
       }
+      */
 
       if (searchInputElement) {
         const newPadding = (this.paddingMax * (1 - progress)) + (0.75 * progress);
@@ -576,27 +603,39 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
         searchInputElement.style.paddingBottom = `${newPadding}rem`;
       }
 
-      // --- Phase 2: Measure Layout (READ + Forced Flush) ---
-      let newHeight = 0;
-      if (headerContainer) {
-        // Forced layout flush ensures accurate measurement after Phase 1 writes
-        newHeight = headerContainer.clientHeight;
+      // ⭐ --- Phase 2: Calculate Layout (CALCULATE - No DOM interaction) ---
+
+      // Calculate the intended visual height. We do NOT read clientHeight, preventing layout thrash.
+      const { startPx, endPx } = this.currentAnimationHeights;
+      let calculatedHeight = startPx;
+
+      // ⭐ CRITICAL: The motion animation applies easing (easeIn) to the clip-path.
+      // We must apply the same easing to the padding calculation for perfect synchronization.
+      // A simple approximation of easeIn (Quadratic): progress^2
+      const easedProgress = progress * progress;
+
+      if (startPx > 0 && endPx > 0) {
+        calculatedHeight = startPx + (endPx - startPx) * easedProgress;
       }
 
-      // Measure the source/target positions now that the layout is stable. (READ)
+      // --- Phase 3: Apply Dependent Layout Updates (WRITE) ---
+      // 3a. Update Content Padding (Direct DOM manipulation - synchronous)
+      // ⭐ Apply the calculated height, ensuring synchronization with the clip-path animation.
+      if (contentContainer && calculatedHeight > 0) {
+        contentContainer.style.paddingTop = `${calculatedHeight + 30}px`;
+      }
+
+      // --- Phase 4: Measure Transition Targets (READ + Forced Flush) ---
+      // Measure the source/target positions. (READ + Forced Flush)
+      // This still forces a flush, but the overall layout cost is minimized because the header height and tagline width are fixed.
       this.logoLayoutTransitionRef()?.refreshSynchronously();
       this.searchbarLayoutTransition()?.refreshSynchronously();
 
-      // --- Phase 3: Apply Dependent Updates (WRITE + CD) ---
-      // 3a. Update Content Padding (Direct DOM manipulation - synchronous)
-      if (contentContainer && newHeight > 0) {
-        contentContainer.style.paddingTop = `${newHeight + 30}px`;
-      }
-
-      // 3b. Update Position (via Signal)
+      // --- Phase 5: Update Position Signal (WRITE + CD) ---
+      // 5a. Update Position (via Signal)
       this.transitionProgress.set(progress);
 
-      // 3c. FIX for Zoneless: Manually trigger change detection to apply style changes in this frame.
+      // 5b. FIX for Zoneless: Manually trigger change detection to apply style changes in this frame.
       this.cdr.markForCheck();
     }
   }
@@ -647,10 +686,16 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
       this.taglineAnimation.stop();
     }
 
-    // Define the animation (taken from the original scroll(animate(...)) wrapper)
+    // ⭐ Optimized Tagline Animation: Use transforms (translateX and scaleX) instead of layout properties (width).
+    // We must combine them in the transform property keyframes. This is highly performant.
     this.taglineAnimation = animate(
       taglineElement,
-      {x: [0, -100], opacity: [1, 0]},
+      {
+        // Define the combined transform explicitly.
+        transform: ['translateX(0px) scaleX(1)', 'translateX(-100px) scaleX(0)'],
+        opacity: [1, 0]
+      },
+      // {x: [0, -100], opacity: [1, 0]}, // OLD
       {duration: 1, autoplay: false} // Set autoplay to false so we can control it via .time
     );
   }
@@ -661,12 +706,26 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
       this.headerAnimation.stop();
     }
 
+    const startHeight = this.INITIAL_HEADER_HEIGHT;
+    const endHeight = isSmall ? this.FINAL_HEADER_HEIGHT_SM : this.FINAL_HEADER_HEIGHT_LG;
+
+    // ⭐ Convert the CSS units (rem) to pixels synchronously for accurate synchronization calculations.
+    const startPx = this.getPixelValue(headerContainer, startHeight);
+    const endPx = this.getPixelValue(headerContainer, endHeight);
+
+    // ⭐ Store the parameters for use in updateTransitionProgress
+    this.currentAnimationHeights = { startPx, endPx };
+
+    // ⭐ CRITICAL CHANGE: Stop animating 'height'. Animate 'clip-path' instead.
+    // This prevents layout recalculations and significantly boosts performance, especially on Safari.
     this.headerAnimation = animate(headerContainer, {
-      height: [
-        '20.875rem', // Initial height
-        // Use the heights defined in the original component
-        isSmall ? '9.5rem' : '6.7rem' // Final height (9.5rem allows space for the wrapped search bar)
+      // height: [ ... ] // OLD
+      // Define the clipping rectangle from top-left (0px 0px) to bottom-right (100% Ypx).
+      clipPath: [
+        `polygon(0px 0px, 100% 0px, 100% ${startPx}px, 0px ${startPx}px)`,
+        `polygon(0px 0px, 100% 0px, 100% ${endPx}px, 0px ${endPx}px)`
       ]
+      // ⭐ We must use the same easing here ("easeIn") that we use in the mathematical calculation in updateTransitionProgress.
     }, {ease: "easeIn", duration: 1, autoplay: false}); // Ensure autoplay is false
 
   }
@@ -677,7 +736,12 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
       // Phase 1: Read initial dimensions before any writes occur.
       earlyRead: () => {
         const headerContainer = this.headerContainerRef()?.nativeElement;
-        const initialHeight = headerContainer ? headerContainer.clientHeight : 0;
+        // ⭐ We now calculate the initial height based on the CSS definition, as the actual height is fixed.
+        let initialHeight = 0;
+        if (headerContainer) {
+          initialHeight = this.getPixelValue(headerContainer, this.INITIAL_HEADER_HEIGHT);
+        }
+        // const initialHeight = headerContainer ? headerContainer.clientHeight : 0; // OLD
         return { initialHeight };
       },
       // Phase 2: Initialize animations, observers, and apply initial layout based on readings.
@@ -685,6 +749,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
         // Apply initial padding based on the value read in earlyRead.
         const contentContainer = this.contentContainerRef()?.nativeElement;
         if (contentContainer && initialHeight > 0) {
+          // ⭐ Ensure the initial padding matches the defined start height.
           contentContainer.style.paddingTop = `${initialHeight + 30}px`;
         }
 
@@ -702,13 +767,15 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
 
   // Helper to set initial styles synchronously for direct manipulation
   private setInitialStyles() {
-    const taglineElement = document.getElementById('tagline');
+    // const taglineElement = document.getElementById('tagline'); // ⭐ No longer needed
     const searchInputElement = this.searchFieldRef()?.nativeElement;
 
     // Apply initial state (progress = 0) if styles haven't been set yet.
+    /* ⭐ Tagline width is now fixed via CSS.
     if (taglineElement && taglineElement.style.width === '') {
       taglineElement.style.width = `${this.taglineMax}px`;
     }
+    */
     if (searchInputElement && searchInputElement.style.paddingTop === '') {
       searchInputElement.style.paddingTop = `${this.paddingMax}rem`;
       searchInputElement.style.paddingBottom = `${this.paddingMax}rem`;
