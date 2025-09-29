@@ -1,10 +1,14 @@
-<app-layout-transition #logoLayoutTransition [observedIds]="['header-container', 'tagline']"
+<app-layout-transition #logoLayoutTransition
+                       animationMode="transform"
+                       [observedIds]="['header-container', 'tagline']"
                        [sourceDiv]="logoSourceDiv" [targetDiv]="currentTargetDiv()" [progress]="transitionProgress()">
   <div class="h-[4.375rem]" style="z-index: 100">
     <img [src]="chainData().logo" alt="logo" class="logo"/>
   </div>
 </app-layout-transition>
-<app-layout-transition #searchbarLayoutTransition [observedIds]="['header-container', 'tagline']"
+<app-layout-transition #searchbarLayoutTransition
+                       animationMode="hybrid"
+                       [observedIds]="['header-container', 'tagline']"
                        [sourceDiv]="searchbarSourceDiv"
                        [targetDiv]="searchbarTargetDiv"
                        [progress]="transitionProgress()">

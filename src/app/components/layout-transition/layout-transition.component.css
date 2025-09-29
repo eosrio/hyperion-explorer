@@ -9,12 +9,19 @@
   pointer-events: none;
 
   /* Added: Inform the browser that position/size will change frequently */
-  will-change: top, left, width, height;
+  /* OLD: will-change: top, left, width, height; */
+  /* ⭐ NEW: Include 'transform' as it is now the primary driver for optimized modes. */
+  will-change: top, left, width, height, transform;
   /* Added: Promote to its own layer for smoother animation and stability on Safari */
-  transform: translateZ(0);
+  /* OLD: transform: translateZ(0); */
+  /* ⭐ Removed: Layer promotion is now handled dynamically via translate3d/translateZ in the component TS. */
+
   /* Added: Further stabilize rendering in WebKit/Safari */
   -webkit-backface-visibility: hidden;
   backface-visibility: hidden;
+
+  /* ⭐ CRITICAL FIX: Ensure transforms (scale/translate) are calculated from the top-left corner to match the FLIP calculation logic. */
+  transform-origin: top left;
 }
 
 .transition-wrapper.ready {

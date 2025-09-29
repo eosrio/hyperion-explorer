@@ -17,6 +17,9 @@ import {Subject} from "rxjs";
 // Define a type for the required measurements. This simplifies the coordinate adjustment logic.
 type RectMeasurements = { top: number, left: number, width: number, height: number };
 
+// ⭐ Define the animation mode type
+export type AnimationMode = 'layout' | 'transform' | 'hybrid';
+
 @Component({
   selector: 'app-layout-transition',
   standalone: true,
@@ -27,6 +30,9 @@ type RectMeasurements = { top: number, left: number, width: number, height: numb
 export class LayoutTransitionComponent implements OnDestroy {
 
   observedIds = input<string[]>([]);
+  // ⭐ Input to select the animation strategy. Defaults to 'layout' for backward compatibility if not specified.
+  animationMode = input<AnimationMode>('layout');
+
   platformId = inject(PLATFORM_ID);
 
   progress = input(0);
@@ -82,23 +88,79 @@ export class LayoutTransitionComponent implements OnDestroy {
     const progress = this.progress();
     const source = this.sourceDOMRect();
     const target = this.targetDOMRect();
+    const mode = this.animationMode(); // ⭐
 
     // FIX: Defensive check against tracking invisible elements (e.g., display: none).
     // If source or target measurements are zero, or the target div input is undefined, hide the element.
     if (!this.targetDiv() || source.width === 0 || source.height === 0 || target.width === 0 || target.height === 0) {
       // Return styles that hide the element safely
-      return {top: '0px', left: '0px', width: '0px', height: '0px', visibility: 'hidden'};
+      // ⭐ Add transform: none for safety and consistency
+      return {top: '0px', left: '0px', width: '0px', height: '0px', visibility: 'hidden', transform: 'none'};
     }
 
-    const top = Math.round(progress * this.topDelta() + source.top) + "px";
-    const left = Math.round(progress * this.leftDelta() + source.left) + "px";
-    const width = Math.round(progress * this.widthDelta() + source.width) + "px";
-    // The original "- 8" is kept.
+    // ⭐ Calculate the intermediate state (interpolated values). This represents the desired visual appearance.
+    const currentTop = progress * this.topDelta() + source.top;
+    const currentLeft = progress * this.leftDelta() + source.left;
+    const currentWidth = progress * this.widthDelta() + source.width;
+
+    // The original "- 8" height logic must be preserved exactly.
     const heightVal = progress * this.heightDelta() + source.height;
     const heightCalc = (heightVal > 8 ? heightVal - 8 : Math.max(0, heightVal));
-    const height = Math.round(heightCalc) + "px";
+    const currentHeight = heightCalc;
 
-    return {top, left, width, height, visibility: 'visible'};
+    let top, left, width, height, transform;
+
+    if (mode === 'transform' || mode === 'hybrid') {
+      // ⭐ Optimized Modes (FLIP technique implementation)
+
+      // 1. Anchor the element at the source position (First). Layout properties are typically rounded.
+      top = Math.round(source.top) + 'px';
+      left = Math.round(source.left) + 'px';
+
+      // 2. Calculate the translation needed (Invert position).
+      // How far to move from the source anchor to the current interpolated position?
+      // We use raw values (no rounding) for smoother sub-pixel animation via transform.
+      const translateX = currentLeft - source.left;
+      const translateY = currentTop - source.top;
+
+      if (mode === 'transform') {
+        // ⭐ Mode: Transform (Translate + Scale). Best performance (e.g., Logo).
+
+        // Set wrapper size to the source size.
+        width = Math.round(source.width) + 'px';
+        // We use the raw source height as the basis for the wrapper size.
+        height = Math.round(source.height) + 'px';
+
+        // Calculate scaling needed (Invert size). Ratio of current size to source size.
+        const scaleX = currentWidth / source.width;
+        // The scaleY calculation correctly maps the raw source height to the adjusted current height.
+        const scaleY = currentHeight / source.height;
+
+        // Apply transform (Play). Use translate3d for robust GPU acceleration (replaces translateZ(0)).
+        transform = `translate3d(${translateX}px, ${translateY}px, 0) scale(${scaleX}, ${scaleY})`;
+
+      } else {
+        // ⭐ Mode: Hybrid (Translate + Layout Size). Prevents distortion (e.g., Search Bar).
+
+        // Set wrapper size to the interpolated size (This triggers layout, but is necessary for inputs).
+        width = Math.round(currentWidth) + 'px';
+        height = Math.round(currentHeight) + 'px';
+
+        // Apply transform (Play). Only translation is used, optimized via GPU.
+        transform = `translate3d(${translateX}px, ${translateY}px, 0)`;
+      }
+
+    } else {
+      // Mode: Layout (Original implementation, less performant)
+      top = Math.round(currentTop) + "px";
+      left = Math.round(currentLeft) + "px";
+      width = Math.round(currentWidth) + "px";
+      height = Math.round(currentHeight) + "px";
+      // Apply minimal transform for layer promotion, though less effective here.
+      transform = 'translateZ(0)';
+    }
+
+    return {top, left, width, height, visibility: 'visible', transform};
   });
 
 
