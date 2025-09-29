@@ -208,6 +208,7 @@
 /* Optimization: Simplify expensive styles during animation to reduce paint cost and improve smoothness. */
 .is-animating .header-card {
   box-shadow: none !important;
+  background: var(--card-bg) !important;
 }
 
 .is-animating .custom-input-group {
