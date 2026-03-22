@@ -1,20 +1,18 @@
-import {Component, inject} from '@angular/core';
-import { trigger, state, style, animate, transition } from '@angular/animations'; // Import animation functions
+import {Component, inject, signal} from '@angular/core';
 import { MatTab, MatTabContent, MatTabGroup, MatTabLabel } from "@angular/material/tabs";
 import { StatsComponent } from "./stats/stats.component";
 import { ProducersComponent } from "./producers/producers.component";
 import { PriceHistoryComponent } from "./price-history/price-history.component";
-import { MatButtonModule } from "@angular/material/button"; // For MatIconButton
+import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
-import { MatRippleModule } from '@angular/material/core'; // Import MatRippleModule for ripple effect
-import { CommonModule } from "@angular/common";
+import { MatRippleModule } from '@angular/material/core';
 import {DataService} from "../../../services/data.service";
+import {NgClass} from "@angular/common";
 
 @Component({
   selector: 'app-home-tabs',
-  standalone: true, // Ensure component is standalone
   imports: [
-    CommonModule,
+    NgClass,
     MatTabGroup,
     MatTab,
     MatTabLabel,
@@ -22,46 +20,21 @@ import {DataService} from "../../../services/data.service";
     StatsComponent,
     ProducersComponent,
     PriceHistoryComponent,
-    MatButtonModule, // Keep MatButtonModule (provides MatIconButton)
+    MatButtonModule,
     MatIconModule,
-    MatRippleModule // Add MatRippleModule
+    MatRippleModule
   ],
   templateUrl: './home-tabs.component.html',
-  styleUrl: './home-tabs.component.css',
-  animations: [
-    trigger('expandCollapse', [
-      state('collapsed', style({
-        height: '0px',
-        minHeight: '0', // Ensure min-height doesn't interfere
-        opacity: 0,
-        overflow: 'hidden',
-        // Ensure padding/margin don't add height when collapsed
-        paddingTop: '0',
-        paddingBottom: '0',
-        marginTop: '0',
-        marginBottom: '0'
-      })),
-      state('expanded', style({
-        height: '*', // Let content determine height
-        opacity: 1,
-        overflow: 'visible' // Allow content overflow (like dropdowns) when fully expanded
-      })),
-      // Use standard cubic-bezier for both transitions
-      transition('collapsed <=> expanded', [
-        style({ overflow: 'hidden' }), // Keep hidden during animation
-        animate('300ms cubic-bezier(0.4, 0.0, 0.2, 1)')
-      ]),
-    ])
-  ]
+  styleUrl: './home-tabs.component.css'
 })
 export class HomeTabsComponent {
 
   ds = inject(DataService);
 
-  isExpanded = false; // State variable for expansion
+  isExpanded = signal(false);
 
   toggleExpansion(event?: MouseEvent): void {
     event?.stopPropagation();
-    this.isExpanded = !this.isExpanded;
+    this.isExpanded.update(v => !v);
   }
 }

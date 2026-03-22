@@ -12,7 +12,7 @@ import {
   linkedSignal, computed, ChangeDetectorRef
 } from '@angular/core';
 import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
-import {CommonModule, isPlatformBrowser, NgOptimizedImage} from "@angular/common";
+import {isPlatformBrowser, NgOptimizedImage} from "@angular/common";
 import {SearchService} from "../../services/search.service";
 import {DataService} from "../../services/data.service";
 import {faHeart, faSearch} from "@fortawesome/free-solid-svg-icons";
@@ -33,8 +33,7 @@ import {faGithub, faTelegram} from "@fortawesome/free-brands-svg-icons";
 
 
 @Component({
-  selector: 'app-layout-animation-test', // Note: Selector might be better as 'app-main-search'
-  standalone: true, // Assuming standalone based on modern practices
+  selector: 'app-layout-animation-test',
   imports: [
     FormsModule,
     NgOptimizedImage,
@@ -47,8 +46,7 @@ import {faGithub, faTelegram} from "@fortawesome/free-brands-svg-icons";
     FaIconComponent,
     LayoutTransitionComponent,
     RouterLink,
-    ThemeSelectorComponent,
-    CommonModule
+    ThemeSelectorComponent
   ],
   templateUrl: './main-search.component.html',
   styleUrl: './main-search.component.css'

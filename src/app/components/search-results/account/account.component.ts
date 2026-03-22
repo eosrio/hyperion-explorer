@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, OnInit, PLATFORM_ID, signal, viewChild } from '@angular/core';
+import { Component, effect, ElementRef, inject, OnInit, PLATFORM_ID, signal, viewChild } from '@angular/core';
 import { SearchService } from "../../../services/search.service";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
@@ -43,7 +43,6 @@ import { MatChipsModule } from "@angular/material/chips";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { ActionDetailsComponent } from "../../action-details/action-details.component";
 import { ContractDialogComponent } from "../../contract-dialog/contract-dialog.component";
-import { toObservable } from "@angular/core/rxjs-interop";
 import { animate, scroll } from "motion";
 import { ActDataViewComponent } from "../../act-data-view/act-data-view.component";
 import { MatRipple } from "@angular/material/core";
@@ -215,22 +214,27 @@ export class AccountComponent implements OnInit {
       }
     });
 
-    toObservable(this.balanceCard).subscribe((value) => {
-      if (value && isPlatformBrowser(this.platformId)) {
+    // When the balance card element is available, apply scroll animation
+    effect(() => {
+      const card = this.balanceCard();
+      if (card && isPlatformBrowser(this.platformId)) {
         setTimeout(() => {
           this.accountStickyMotion(this.balanceCard());
         }, 1000);
       }
     });
 
-    toObservable(this.actionsTable).subscribe((value) => {
-      if (value && isPlatformBrowser(this.platformId)) {
+    // When the actions table element is available, apply scroll animation
+    effect(() => {
+      const table = this.actionsTable();
+      if (table && isPlatformBrowser(this.platformId)) {
         this.tableStickyMotion(this.actionsTable());
       }
     });
 
     // Re-apply table sticky motion when filter changes
-    toObservable(this.acServ.filter).subscribe(() => {
+    effect(() => {
+      this.acServ.filter(); // track the signal
       if (this.actionsTable() && isPlatformBrowser(this.platformId)) {
         setTimeout(() => {
           this.tableStickyMotion(this.actionsTable());
@@ -238,7 +242,9 @@ export class AccountComponent implements OnInit {
       }
     });
 
-    toObservable(this.acServ.accountDataRes.value).subscribe((value) => {
+    // Update page title when account data changes
+    effect(() => {
+      const _value = this.acServ.accountDataRes.value();
 
       if (!this.dataService.explorerMetadata) {
         return;

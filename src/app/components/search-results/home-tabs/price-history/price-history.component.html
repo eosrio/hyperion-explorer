@@ -6,7 +6,7 @@
       <!-- Pair Selector -->
       <div class="flex items-center gap-2">
         <label for="pair-select" class="text-sm faded">Pair:</label>
-        <select id="pair-select" [(ngModel)]="selectedPair" (ngModelChange)="onPairChange()"
+        <select id="pair-select" [ngModel]="selectedPair()" (ngModelChange)="selectedPair.set($event); onPairChange()"
           class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
           @for (pair of availablePairs(); track pair.name) {
           <option [value]="pair.name">{{ pair.name.toUpperCase() }}</option>
@@ -17,7 +17,7 @@
       <!-- Interval Selector -->
       <div class="flex items-center gap-2">
         <label for="interval-select" class="text-sm faded">Interval:</label>
-        <select id="interval-select" [(ngModel)]="selectedInterval" (ngModelChange)="onIntervalChange()"
+        <select id="interval-select" [ngModel]="selectedInterval()" (ngModelChange)="selectedInterval.set($event); onIntervalChange()"
           class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
           <option value="1m">1 Minute</option>
           <option value="5m">5 Minutes</option>
@@ -32,32 +32,38 @@
     </div>
   </div>
 
-  <div *ngIf="loading" class="text-center py-8 text-gray-500">Loading price history...</div>
-  <div *ngIf="error" class="text-center py-8 text-red-500">{{ error() }}</div>
+  @if (loading()) {
+    <div class="text-center py-8 text-gray-500">Loading price history...</div>
+  }
+  @if (error()) {
+    <div class="text-center py-8 text-red-500">{{ error() }}</div>
+  }
 
-  <div class="flex flex-row justify-center gap-4" *ngIf="!loading && !error && chain.systemSymbol.value()">
-    <div class="stat-card">
-      <div class="stat-icon">
-        <fa-icon [icon]="icons.solid.tag" class="opacity-70"></fa-icon>
+  @if (!loading() && !error() && chain.systemSymbol.value()) {
+    <div class="flex flex-row justify-center gap-4">
+      <div class="stat-card">
+        <div class="stat-icon">
+          <fa-icon [icon]="icons.solid.tag" class="opacity-70"></fa-icon>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label faded">{{ selectedPair().toUpperCase() }} Current Price</div>
+          <div class="stat-value"> {{ formatPriceForDisplay(currentPairPrice() || 0) }} </div>
+        </div>
       </div>
-      <div class="stat-content">
-        <div class="stat-label faded">{{ selectedPair().toUpperCase() }} Current Price</div>
-        <div class="stat-value"> {{ formatPriceForDisplay(currentPairPrice || 0) }} </div>
+      <div class="stat-card">
+        <div class="stat-icon">
+          <fa-icon [icon]="icons.solid.tags" class="opacity-70"></fa-icon>
+        </div>
+        <div class="stat-content">
+          <div class="stat-label faded">Data Points</div>
+          <div class="stat-value"> {{ dataPointsCount() || 0 }} </div>
+        </div>
       </div>
     </div>
-    <div class="stat-card">
-      <div class="stat-icon">
-        <fa-icon [icon]="icons.solid.tags" class="opacity-70"></fa-icon>
-      </div>
-      <div class="stat-content">
-        <div class="stat-label faded">Data Points</div>
-        <div class="stat-value"> {{ dataPointsCount || 0 }} </div>
-      </div>
-    </div>
-  </div>
+  }
 
   <!-- Add the echarts container -->
-  <div class="w-full" *ngIf="!loading && !error && chartOptions.series">
-    <div echarts [options]="chartOptions" class="w-full h-80"></div>
-  </div>
+  @if (!loading() && !error() && chartOptions().series) {
+    <div echarts [options]="chartOptions()" class="w-full h-80"></div>
+  }
 </div>

@@ -1,5 +1,5 @@
 import { CommonModule, isPlatformBrowser } from "@angular/common"; // Import isPlatformBrowser
-import { ChangeDetectorRef, Component, effect, ElementRef, inject, PLATFORM_ID, signal } from "@angular/core"; // Added ChangeDetectorRef
+import { Component, effect, ElementRef, inject, PLATFORM_ID, signal } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { FaIconComponent } from "@fortawesome/angular-fontawesome";
 import { faHandHoldingDollar, faTag, faTags } from "@fortawesome/free-solid-svg-icons";
@@ -11,16 +11,14 @@ import { OracleHistogramResponse, OraclePair, OracleService } from "../../../../
 
 @Component({
   selector: "app-price-history",
-  standalone: true,
-  imports: [CommonModule, NgxEchartsModule, FaIconComponent, FormsModule],
+  imports: [NgxEchartsModule, FaIconComponent, FormsModule],
   templateUrl: "./price-history.component.html",
   styleUrl: "./price-history.component.css"
 })
 export class PriceHistoryComponent {
   platformId = inject(PLATFORM_ID);
   elementRef = inject(ElementRef);
-  cdr = inject(ChangeDetectorRef);
-  chartOptions: EChartsOption = {};
+  chartOptions = signal<EChartsOption>({});
 
   chain = inject(ChainService);
   data = inject(DataService);
@@ -31,9 +29,9 @@ export class PriceHistoryComponent {
   selectedInterval = signal<string>("1h");
   selectedPair = signal<string>("-");
   availablePairs = signal<OraclePair[]>([]);
-  selectedPairPrecision = 4; // Current pair precision
-  dataPointsCount = 0; // Track number of data points
-  currentPairPrice: number | null = null;
+  selectedPairPrecision = signal(4);
+  dataPointsCount = signal(0);
+  currentPairPrice = signal<number | null>(null);
 
   icons = {
     solid: {
@@ -93,7 +91,7 @@ export class PriceHistoryComponent {
       // Update precision when pair changes
       const pairData = this.availablePairs().find(p => p.name === this.selectedPair());
       if (pairData) {
-        this.selectedPairPrecision = pairData.precision;
+        this.selectedPairPrecision.set(pairData.precision);
       }
 
       // Use setTimeout to prevent ExpressionChangedAfterItHasBeenCheckedError
@@ -118,23 +116,22 @@ export class PriceHistoryComponent {
       const usdPair = this.availablePairs().find(pair => pair.name.toLowerCase().includes("usd"));
       if (usdPair) {
         this.selectedPair.set(usdPair.name);
-        this.selectedPairPrecision = usdPair.precision;
+        this.selectedPairPrecision.set(usdPair.precision);
         console.log("Selected USD pair:", usdPair);
       } else if (this.availablePairs().length > 0) {
         this.selectedPair.set(this.availablePairs()[0].name);
-        this.selectedPairPrecision = this.availablePairs()[0].precision;
+        this.selectedPairPrecision.set(this.availablePairs()[0].precision);
         console.log("Selected first available pair:", this.availablePairs()[0]);
       }
 
-      // Trigger change detection to update template
-      this.cdr.detectChanges();
+
     } catch (error) {
       console.error("Error loading available pairs:", error);
       // Provide fallback pairs to prevent template errors
       this.availablePairs.set([{ name: "-", precision: 4 }]);
       this.selectedPair.set("-");
-      this.selectedPairPrecision = 4;
-      this.cdr.detectChanges();
+      this.selectedPairPrecision.set(4);
+
     }
   }
 
@@ -143,8 +140,7 @@ export class PriceHistoryComponent {
       this.loading.set(true);
       this.error.set('');
 
-      // Trigger change detection after updating loading state
-      this.cdr.detectChanges();
+
 
       // Get theme colors from CSS variables
       const computedStyle = getComputedStyle(this.elementRef.nativeElement);
@@ -175,14 +171,14 @@ export class PriceHistoryComponent {
       }
 
       // Store data points count
-      this.dataPointsCount = response.histogram.length;
+      this.dataPointsCount.set(response.histogram.length);
 
       // Get current price from the most recent data point
       if (response.histogram.length > 0) {
         const latestData = response.histogram[response.histogram.length - 1];
-        this.currentPairPrice = this.oracleService.convertPrice(latestData.average_price, this.selectedPairPrecision);
+        this.currentPairPrice.set(this.oracleService.convertPrice(latestData.average_price, this.selectedPairPrecision()));
       } else {
-        this.currentPairPrice = null;
+        this.currentPairPrice.set(null);
       }
 
       // Format dates for better display
@@ -209,7 +205,7 @@ export class PriceHistoryComponent {
 
       const dates = response.histogram.map(b => formatDate(b.timestamp));
       // Convert raw prices to real prices using precision
-      const prices = response.histogram.map(b => this.oracleService.convertPrice(b.average_price, this.selectedPairPrecision));
+      const prices = response.histogram.map(b => this.oracleService.convertPrice(b.average_price, this.selectedPairPrecision()));
 
       // Determine if we should show symbols (for few data points)
       const showSymbols = response.histogram.length <= 10;
@@ -230,7 +226,7 @@ export class PriceHistoryComponent {
         : prices;
 
       // Define chart options
-      this.chartOptions = {
+      this.chartOptions.set({
         tooltip: {
           trigger: "axis",
           position: function (pt: number[]) {
@@ -239,10 +235,10 @@ export class PriceHistoryComponent {
           formatter: (params: any) => {
             const param = Array.isArray(params) ? params[0] : params;
             const bucket = response.histogram[param.dataIndex]; // Convert raw prices to real prices using precision
-            const avgPrice = this.oracleService.convertPrice(bucket.average_price, this.selectedPairPrecision);
-            const minPrice = this.oracleService.convertPrice(bucket.min_price, this.selectedPairPrecision);
-            const maxPrice = this.oracleService.convertPrice(bucket.max_price, this.selectedPairPrecision);
-            const medianPrice = this.oracleService.convertPrice(bucket.median_price, this.selectedPairPrecision);
+            const avgPrice = this.oracleService.convertPrice(bucket.average_price, this.selectedPairPrecision());
+            const minPrice = this.oracleService.convertPrice(bucket.min_price, this.selectedPairPrecision());
+            const maxPrice = this.oracleService.convertPrice(bucket.max_price, this.selectedPairPrecision());
+            const medianPrice = this.oracleService.convertPrice(bucket.median_price, this.selectedPairPrecision());
 
             // Smart formatting based on value size
             const formatPrice = (price: number): string => {
@@ -255,7 +251,7 @@ export class PriceHistoryComponent {
               } else if (Math.abs(price) < 1) {
                 return `$${price.toFixed(8)}`;
               } else {
-                return `$${price.toFixed(Math.min(this.selectedPairPrecision, 4))}`;
+                return `$${price.toFixed(Math.min(this.selectedPairPrecision(), 4))}`;
               }
             };
 
@@ -263,7 +259,7 @@ export class PriceHistoryComponent {
             let changeInfo = "";
             if (param.dataIndex > 0 && response.histogram.length > 1) {
               const currentPrice = avgPrice;
-              const firstPrice = this.oracleService.convertPrice(response.histogram[0].average_price, this.selectedPairPrecision);
+              const firstPrice = this.oracleService.convertPrice(response.histogram[0].average_price, this.selectedPairPrecision());
               const changePercent = ((currentPrice - firstPrice) / firstPrice) * 100;
               const changeSymbol = changePercent >= 0 ? "↗" : "↘";
               const changeColor = changePercent >= 0 ? "#10b981" : "#ef4444";
@@ -425,15 +421,13 @@ export class PriceHistoryComponent {
             smooth: isVerySmallRange ? 0.3 : false
           }
         ]
-      };
+      });
     } catch (e: any) {
       console.error("Error loading price history:", e);
       this.error.set(e?.message || "Failed to load price history.");
     } finally {
       this.loading.set(false);
 
-      // Trigger change detection after updating loading and error states
-      this.cdr.detectChanges();
     }
   }
 }

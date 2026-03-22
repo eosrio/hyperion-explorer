@@ -19,8 +19,7 @@ type RectMeasurements = { top: number, left: number, width: number, height: numb
 
 @Component({
   selector: 'app-layout-transition',
-  standalone: true,
-  imports: [CommonModule],
+  imports: [],
   templateUrl: './layout-transition.component.html',
   styleUrl: './layout-transition.component.css'
 })

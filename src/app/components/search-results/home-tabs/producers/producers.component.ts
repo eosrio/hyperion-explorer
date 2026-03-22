@@ -1,23 +1,22 @@
-import { Component, inject, ViewChild, effect } from '@angular/core'; // Import inject, ViewChild, effect
+import { Component, inject, viewChild, effect } from '@angular/core';
 import { MatSort, MatSortModule } from "@angular/material/sort"; // Import MatSortModule
 import { MatTableDataSource, MatTable, MatColumnDef, MatHeaderCellDef, MatHeaderCell, MatCellDef, MatCell, MatRowDef, MatHeaderRowDef, MatRow, MatTableModule } from "@angular/material/table"; // Import more table modules & MatTableModule
 import { FaIconComponent } from "@fortawesome/angular-fontawesome";
 import { MatRipple } from "@angular/material/core";
 import { MatTooltip } from "@angular/material/tooltip";
 import { ChainService } from "../../../../services/chain.service"; // Import ChainService
-import { CommonModule } from "@angular/common"; // Import CommonModule for pipes
+import { DecimalPipe } from "@angular/common";
 import { RouterModule } from "@angular/router"; // Import RouterModule for links
 import { MatProgressSpinner } from "@angular/material/progress-spinner"; // Import MatProgressSpinner
 import { countries } from './countries';
 
 @Component({
   selector: 'app-producers',
-  standalone: true, // Make standalone
   imports: [
-    CommonModule, // Add CommonModule
-    RouterModule, // Add RouterModule
-    MatTableModule, // Add MatTableModule
-    MatSortModule, // Add MatSortModule
+    DecimalPipe,
+    RouterModule,
+    MatTableModule,
+    MatSortModule,
     MatSort,
     MatTable,
     MatColumnDef,
@@ -79,7 +78,7 @@ export class ProducersComponent {
   }
 
   // Set up sorting
-  @ViewChild(MatSort) sort!: MatSort;
+  sort = viewChild(MatSort);
 
   ngAfterViewInit() {
     this.dataSource.sortingDataAccessor = (row: any, columnId: string): string | number => {
@@ -100,6 +99,6 @@ export class ProducersComponent {
           return value ?? '';
       }
     };
-    this.dataSource.sort = this.sort;
+    this.dataSource.sort = this.sort() ?? null;
   }
 }

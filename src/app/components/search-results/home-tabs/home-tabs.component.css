@@ -128,12 +128,30 @@
 /* Removed hover styles for the card itself, hover is now on the header element in HTML */
 /* .tabs-card.is-collapsed:hover { ... } */
 
-/* Wrapper for animation */
+/* Wrapper for animation — CSS-based expand/collapse */
 .expanded-content-wrapper {
   width: 100%;
   background: var(--card-bg-gradient), var(--main-background);
   box-shadow: var(--card-box-shadow);
   border-radius: var(--card-border-radius);
+  transition: max-height 300ms cubic-bezier(0.4, 0.0, 0.2, 1),
+              opacity 300ms cubic-bezier(0.4, 0.0, 0.2, 1);
+  overflow: hidden;
+}
+
+.expanded-content-wrapper.wrapper-collapsed {
+  max-height: 0;
+  opacity: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.expanded-content-wrapper.wrapper-expanded {
+  max-height: 800px; /* generous max for content */
+  opacity: 1;
+  overflow: visible;
 }
 
 /* Ensure expanded content takes up space */

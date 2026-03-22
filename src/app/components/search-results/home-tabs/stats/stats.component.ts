@@ -1,21 +1,21 @@
-import { Component, inject } from '@angular/core'; // Import inject
+import { Component, inject } from '@angular/core';
 import {faClock, faCube, faLink, faServer, faSync} from "@fortawesome/free-solid-svg-icons";
 import { FaIconComponent } from "@fortawesome/angular-fontawesome";
-import { ChainService } from "../../../../services/chain.service"; // Import ChainService
-import { CommonModule } from "@angular/common";
+import { ChainService } from "../../../../services/chain.service";
+import { DecimalPipe, DatePipe } from "@angular/common";
 import {RouterLink} from "@angular/router";
-import {MatButtonModule} from "@angular/material/button"; // Import for mat-raised-button
-import {MatTooltipModule} from "@angular/material/tooltip"; // Import for matTooltip
+import {MatButtonModule} from "@angular/material/button";
+import {MatTooltipModule} from "@angular/material/tooltip";
 
 @Component({
   selector: 'app-stats',
-  standalone: true, // Make component standalone
   imports: [
-    CommonModule, // Add CommonModule for pipes (number, date)
+    DecimalPipe,
+    DatePipe,
     FaIconComponent,
     RouterLink,
-    MatButtonModule, // Add MatButtonModule for mat-raised-button
-    MatTooltipModule // Add MatTooltipModule for matTooltip directive
+    MatButtonModule,
+    MatTooltipModule
   ],
   templateUrl: './stats.component.html',
   styleUrl: './stats.component.css'

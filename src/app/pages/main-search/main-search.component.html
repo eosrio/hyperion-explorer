@@ -12,10 +12,12 @@
     <form [formGroup]="searchForm" (ngSubmit)="submit()" class="flex flex-col">
       <div class="custom-input-group grow w-full flex flex-row rounded-full pr-2">
         <div class="relative grow min-w-0">
-          <div *ngIf="!searchForm.get('search_field')?.value" class="custom-placeholder absolute left-5 top-0 flex items-center h-full pointer-events-none">
+          @if (!searchForm.get('search_field')?.value) {
+          <div class="custom-placeholder absolute left-5 top-0 flex items-center h-full pointer-events-none">
             <span class="static-placeholder">Search by&nbsp;</span>
             <span class="dynamic-placeholder"> {{ dynamicPlaceholder() }}</span>
           </div>
+          }
           <input #searchFieldRef formControlName="search_field" placeholder=""
                  class="custom-input grow outline-hidden pl-5 rounded-l-full w-full max-w-full"
                  [matAutocomplete]="auto">
