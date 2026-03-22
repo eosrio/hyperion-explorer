@@ -63,6 +63,16 @@
               "extractLicenses": false,
               "sourceMap": true,
               "baseHref": "/"
+            },
+            "e2e": {
+              "define": {
+                "DEV_MODE": "true",
+                "HYP_API_URL": "'http://127.0.0.1:17000'"
+              },
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true,
+              "baseHref": "/"
             }
           },
           "defaultConfiguration": "production"
