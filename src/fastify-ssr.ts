@@ -28,7 +28,10 @@ export class FastifyAngularSSR {
 
   baseHref = '/explorer';
   fastify: FastifyInstance = fastify();
-  angularApp = new AngularNodeAppEngine();
+  // Allow all hosts — the Hyperion API reverse proxy handles the security boundary.
+  // Without this, Angular v21+ blocks requests to 127.0.0.1 and other private IPs
+  // (CVE-2026-27739 SSRF protection), causing SSR to fall back to CSR.
+  angularApp = new AngularNodeAppEngine({allowedHosts: ['*']});
 
   constructor(private options: FastifyAngularSSROptions) {
     if (this.options.baseHref) {
