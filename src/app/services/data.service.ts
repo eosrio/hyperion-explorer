@@ -116,7 +116,7 @@ export class DataServiceBrowser extends DataService {
     this.explorerMetadata.set(this.state.get(this.metadataKey, null));
     console.log("Loaded metadata from state:", this.explorerMetadata);
     this.initError = this.state.get(this.initErrorKey, null);
-    if (this.explorerMetadata) {
+    if (this.explorerMetadata()) {
       const savedTheme = localStorage.getItem("theme-override");
       if (savedTheme) {
         this.explorerMetadata.update(data => {
