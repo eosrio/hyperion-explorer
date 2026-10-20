@@ -1,3 +1,5 @@
+import { HistoryAction } from "./sequences";
+
 export interface ExplorerMetadata {
   logo: string;
   provider: string;
@@ -64,14 +66,14 @@ export interface AccountData {
 
 export interface GetAccountResponse {
   account: AccountData;
-  actions: any[];
+  actions: HistoryAction[];
   tokens: any[];
   total_actions: number;
   links: any[];
 }
 
 export interface GetActionsResponse {
-  actions: any[];
+  actions: HistoryAction[];
   lib: number;
   cached: boolean;
   last_indexed_block: number;

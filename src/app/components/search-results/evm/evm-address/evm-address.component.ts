@@ -1,11 +1,10 @@
-import { Component } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from "@angular/core";
 
 @Component({
-  selector: 'app-evm-address',
+  selector: "app-evm-address",
   imports: [],
-  templateUrl: './evm-address.component.html',
-  styleUrl: './evm-address.component.css'
+  templateUrl: "./evm-address.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
+  styleUrl: "./evm-address.component.css"
 })
-export class EvmAddressComponent {
-
-}
+export class EvmAddressComponent {}

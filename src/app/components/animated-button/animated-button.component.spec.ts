@@ -1,23 +1,25 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from "@angular/core/testing";
 
-import { AnimatedButtonComponent } from './animated-button.component';
+import { AnimatedButtonComponent } from "./animated-button.component";
 
-describe('AnimatedButtonComponent', () => {
+describe("AnimatedButtonComponent", () => {
   let component: AnimatedButtonComponent;
   let fixture: ComponentFixture<AnimatedButtonComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AnimatedButtonComponent]
-    })
-    .compileComponents();
-    
+    }).compileComponents();
+
     fixture = TestBed.createComponent(AnimatedButtonComponent);
+    fixture.componentRef.setInput("duration", 100);
+    fixture.componentRef.setInput("buttonText", "Search");
+    fixture.componentRef.setInput("buttonColor", "primary");
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
-  it('should create', () => {
+  it("should create", () => {
     expect(component).toBeTruthy();
   });
 });

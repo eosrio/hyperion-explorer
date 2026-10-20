@@ -1,7 +1,7 @@
-import { effect, inject, Injectable, makeStateKey, signal, TransferState, WritableSignal } from "@angular/core";
-import { ExplorerMetadata } from "../interfaces";
+import { inject, Injectable, makeStateKey, signal, TransferState } from "@angular/core";
 import { Title } from "@angular/platform-browser";
-import { log } from "console";
+import { ExplorerMetadata } from "../interfaces";
+import { describeApiError } from "../api-errors";
 
 export abstract class DataService {
   env = {
@@ -11,161 +11,104 @@ export abstract class DataService {
     userResourcesTable: "userres",
     defaultTicker: ""
   };
-
   metadataKey = makeStateKey<ExplorerMetadata>("chain_data");
   initErrorKey = makeStateKey<string>("init_error");
   themesKey = makeStateKey<string[]>("available_themes");
-
-  url = () => {
-    return this.env.hyperionApiUrl + "/v2/explorer_metadata";
-  };
-
-  abstract explorerMetadata: WritableSignal<ExplorerMetadata | null>;
-  abstract initError: string | null;
-
-  customTheme?: Record<string, any>;
+  explorerMetadata = signal<ExplorerMetadata | null>(null);
+  initError: string | null = null;
+  customTheme?: Record<string, string>;
   routeError?: string = "";
   availableThemes: string[] = [];
+  ready = signal(false);
+  url = () => this.env.hyperionApiUrl + "/v2/explorer_metadata";
 
   abstract load(): Promise<void>;
   abstract activateTheme(): Promise<void>;
 
-  ready = signal(false);
+  setOrigin(hyperionServer: string): void {
+    const url = new URL(hyperionServer);
+    if (url.protocol !== "https:" && url.protocol !== "http:") {
+      throw new Error("The Hyperion API URL must use HTTP or HTTPS.");
+    }
+    this.env.hyperionApiUrl = url.origin;
+  }
 
-  setOrigin(hyperionServer: string, platform?: string): void {
+  async loadChainData(): Promise<void> {
+    this.initError = null;
+    this.explorerMetadata.set(null);
     try {
-      const url = new URL(hyperionServer);
-      this.env.hyperionApiUrl = url.origin;
-      // console.log(`(${platform}) Setting origin to:`, this.env.hyperionApiUrl);
-    } catch (e) {
-      console.log(hyperionServer);
-      console.log("Error setting origin:", e);
+      const response = await fetch(this.url(), { signal: AbortSignal.timeout(10_000) });
+      if (!response.ok) throw new Error(describeApiError({ status: response.status }));
+      const data = (await response.json()) as ExplorerMetadata;
+      // Indexing progress is independent of chain identity and may be absent at startup.
+      if (!data || typeof data.chain_id !== "string" || !data.chain_id || typeof data.chain_name !== "string" || !data.chain_name) {
+        throw new Error("The Hyperion API returned invalid explorer metadata.");
+      }
+      this.explorerMetadata.set({
+        ...data,
+        logo: this.env.hyperionApiUrl + "/v2/explorer_logo",
+        theme: this.customTheme ?? data.theme ?? {},
+        last_indexed_block: data.last_indexed_block ?? 0,
+        last_indexed_block_time: data.last_indexed_block_time ?? ""
+      });
+    } catch (error) {
+      this.initError = describeApiError(error);
     }
   }
 }
 
 @Injectable({ providedIn: "root" })
 export class DataServiceServer extends DataService {
-  override async activateTheme(): Promise<void> {
-    console.log("activateTheme not implemented on server");
-  }
+  private state = inject(TransferState);
+  async activateTheme(): Promise<void> {}
 
-  state = inject(TransferState);
-  explorerMetadata = signal<ExplorerMetadata | null>(null);
-  initError: string | null = null;
-
-  async load() {
-    // fetch explorer metadata on server
-    if (this.env.hyperionApiUrl) {
-      await this.loadChainData();
-    }
+  async load(): Promise<void> {
+    this.state.remove(this.metadataKey);
+    this.state.remove(this.initErrorKey);
+    await this.loadChainData();
+    const data = this.explorerMetadata();
+    if (data) this.state.set(this.metadataKey, data);
+    if (this.initError) this.state.set(this.initErrorKey, this.initError);
     this.state.set(this.themesKey, this.availableThemes);
-  }
-
-  async loadChainData(): Promise<void> {
-    try {
-      const response = await fetch(this.url());
-      if (response.ok) {
-        const data: ExplorerMetadata = await response.json();
-        if (data && data.last_indexed_block && data.last_indexed_block > 1) {
-          data.logo = this.env.hyperionApiUrl + "/v2/explorer_logo";
-          if (this.customTheme) {
-            data.theme = this.customTheme;
-          }
-          this.state.set(this.metadataKey, data);
-          this.explorerMetadata.set(data);
-        } else {
-          if (data && (!data.last_indexed_block || data.last_indexed_block <= 1)) {
-            console.warn(`Invalid last_indexed_block in response from ${this.url()}`);
-            this.initError = `Error fetching ${this.url()}: Invalid last_indexed_block`;
-          } else {
-            console.warn(`Invalid response from ${this.url()}`);
-            this.initError = `Error fetching ${this.url()}: Invalid response`;
-          }
-          this.state.set(this.initErrorKey, this.initError);
-        }
-      } else {
-        this.initError = `Error fetching ${this.url()}: ${response.statusText}`;
-        this.state.set(this.initErrorKey, this.initError);
-      }
-    } catch (error: any) {
-      this.initError = `Error fetching ${this.url()}: ${error.message}`;
-      this.state.set(this.initErrorKey, this.initError);
-    }
   }
 }
 
 @Injectable({ providedIn: "root" })
 export class DataServiceBrowser extends DataService {
   private title = inject(Title);
+  private state = inject(TransferState);
 
-  state = inject(TransferState);
-  initError: string | null = null;
-  explorerMetadata = signal<ExplorerMetadata | null>(null);
-
-  constructor() {
-    super();
-    effect(() => {
-      const data = this.explorerMetadata();
-      console.log("Explorer Metadata updated:", data);
-    });
-  }
-
-  async load() {
-    // load metadata from state on browser
+  async load(): Promise<void> {
     this.explorerMetadata.set(this.state.get(this.metadataKey, null));
-    console.log("Loaded metadata from state:", this.explorerMetadata);
     this.initError = this.state.get(this.initErrorKey, null);
-    if (this.explorerMetadata()) {
-      const savedTheme = localStorage.getItem("theme-override");
-      if (savedTheme) {
-        this.explorerMetadata.update(data => {
-          if (data) {
-            data.theme = JSON.parse(savedTheme);
-          }
-          return data;
-        });
-      }
-      this.title.setTitle(`${this.explorerMetadata()?.chain_name} Hyperion Explorer`);
-    } else {
-      await this.loadChainData();
-    }
     this.availableThemes = this.state.get(this.themesKey, []);
-  }
-
-  async loadChainData(): Promise<void> {
-    try {
-      const response = await fetch(this.url());
-      console.log(`Fetching chain data from: ${this.url()}`);
-      if (response.ok) {
-        const data: ExplorerMetadata = await response.json();
-        if (data && data.last_indexed_block && data.last_indexed_block > 1) {
-          data.logo = this.env.hyperionApiUrl + "/v2/explorer_logo";
-          if (this.customTheme) {
-            data.theme = this.customTheme;
-          }
-
-          const savedTheme = localStorage.getItem("theme-override");
-          if (savedTheme) {
-            data.theme = JSON.parse(savedTheme);
-          }
-
-          this.explorerMetadata.set(data);
-        } else {
-          this.initError = `Error fetching ${this.url()}: Invalid response`;
-        }
-      } else {
-        this.initError = `Error fetching ${this.url()}: ${response.statusText}`;
-      }
-    } catch (error: any) {
-      this.initError = `Error fetching ${this.url()}: ${error.message}`;
-    }
-  }
-
-  override async activateTheme(): Promise<void> {
+    if (!this.explorerMetadata()) await this.loadChainData();
     const data = this.explorerMetadata();
-    if (data && data.theme) {
-      for (const [key, value] of Object.entries(data.theme)) {
+    if (data) {
+      // Browser storage may be disabled or contain an override from an older build.
+      try {
+        const saved = localStorage.getItem("theme-override");
+        const theme: unknown = saved ? JSON.parse(saved) : null;
+        if (
+          theme &&
+          typeof theme === "object" &&
+          !Array.isArray(theme) &&
+          Object.entries(theme).every(([key, value]) => key.startsWith("--") && typeof value === "string")
+        ) {
+          this.explorerMetadata.set({ ...data, theme: { ...data.theme, ...theme } });
+        }
+      } catch {
+        /* Keep the deployment theme when browser storage is unavailable. */
+      }
+      this.title.setTitle(`${data.chain_name} Hyperion Explorer`);
+    }
+    this.state.remove(this.metadataKey);
+    this.state.remove(this.initErrorKey);
+  }
+
+  async activateTheme(): Promise<void> {
+    for (const [key, value] of Object.entries(this.explorerMetadata()?.theme ?? {})) {
+      if (key.startsWith("--") && typeof value === "string") {
         document.documentElement.style.setProperty(key, value);
       }
     }

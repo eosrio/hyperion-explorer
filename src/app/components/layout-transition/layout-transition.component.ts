@@ -9,22 +9,23 @@ import {
   linkedSignal,
   OnDestroy,
   PLATFORM_ID,
-  signal
-} from '@angular/core';
-import {CommonModule, isPlatformBrowser} from "@angular/common";
-import {Subject} from "rxjs";
+  signal,
+  ChangeDetectionStrategy
+} from "@angular/core";
+import { CommonModule, isPlatformBrowser } from "@angular/common";
+import { Subject } from "rxjs";
 
 // Define a type for the required measurements. This simplifies the coordinate adjustment logic.
-type RectMeasurements = { top: number, left: number, width: number, height: number };
+type RectMeasurements = { top: number; left: number; width: number; height: number };
 
 @Component({
-  selector: 'app-layout-transition',
+  selector: "app-layout-transition",
   imports: [],
-  templateUrl: './layout-transition.component.html',
-  styleUrl: './layout-transition.component.css'
+  templateUrl: "./layout-transition.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
+  styleUrl: "./layout-transition.component.css"
 })
 export class LayoutTransitionComponent implements OnDestroy {
-
   observedIds = input<string[]>([]);
   platformId = inject(PLATFORM_ID);
 
@@ -37,7 +38,6 @@ export class LayoutTransitionComponent implements OnDestroy {
 
   // FIX: Reference to the Visual Viewport API for mobile/iOS support
   private visualViewport = (isPlatformBrowser(this.platformId) && window.visualViewport) || null;
-
 
   private getDOMRect(element: HTMLDivElement | undefined): RectMeasurements {
     if (isPlatformBrowser(this.platformId) && element) {
@@ -54,17 +54,16 @@ export class LayoutTransitionComponent implements OnDestroy {
           top: rect.top + this.visualViewport.offsetTop,
           left: rect.left + this.visualViewport.offsetLeft,
           width: rect.width,
-          height: rect.height,
+          height: rect.height
         };
       }
 
       // Fallback for other browsers.
-      return {top: rect.top, left: rect.left, width: rect.width, height: rect.height};
-
+      return { top: rect.top, left: rect.left, width: rect.width, height: rect.height };
     } else {
-      return {top: 0, left: 0, width: 0, height: 0};
+      return { top: 0, left: 0, width: 0, height: 0 };
     }
-  };
+  }
 
   sourceDOMRect = linkedSignal(() => this.getDOMRect(this.sourceDiv()));
   targetDOMRect = linkedSignal(() => this.getDOMRect(this.targetDiv()));
@@ -86,7 +85,7 @@ export class LayoutTransitionComponent implements OnDestroy {
     // If source or target measurements are zero, or the target div input is undefined, hide the element.
     if (!this.targetDiv() || source.width === 0 || source.height === 0 || target.width === 0 || target.height === 0) {
       // Return styles that hide the element safely
-      return {top: '0px', left: '0px', width: '0px', height: '0px', visibility: 'hidden'};
+      return { top: "0px", left: "0px", width: "0px", height: "0px", visibility: "hidden" };
     }
 
     const top = Math.round(progress * this.topDelta() + source.top) + "px";
@@ -94,12 +93,11 @@ export class LayoutTransitionComponent implements OnDestroy {
     const width = Math.round(progress * this.widthDelta() + source.width) + "px";
     // The original "- 8" is kept.
     const heightVal = progress * this.heightDelta() + source.height;
-    const heightCalc = (heightVal > 8 ? heightVal - 8 : Math.max(0, heightVal));
+    const heightCalc = heightVal > 8 ? heightVal - 8 : Math.max(0, heightVal);
     const height = Math.round(heightCalc) + "px";
 
-    return {top, left, width, height, visibility: 'visible'};
+    return { top, left, width, height, visibility: "visible" };
   });
-
 
   resize$ = new Subject<void>();
 
@@ -117,7 +115,6 @@ export class LayoutTransitionComponent implements OnDestroy {
       this.scheduleRefresh();
     });
   }
-
 
   // Public method for synchronous refresh.
   public refreshSynchronously() {
@@ -160,7 +157,7 @@ export class LayoutTransitionComponent implements OnDestroy {
       this.scheduleRefresh();
     });
 
-    const observer = new MutationObserver((list) => {
+    const observer = new MutationObserver(list => {
       if (list.length > 0) {
         this.scheduleRefresh();
       }
@@ -201,10 +198,12 @@ export class LayoutTransitionComponent implements OnDestroy {
   // Helper to prevent tiny subpixel differences from triggering updates
   private areRectsDifferent(rect1: any, rect2: any): boolean {
     const threshold = 0.1; // pixels
-    return Math.abs(rect1.top - rect2.top) > threshold ||
+    return (
+      Math.abs(rect1.top - rect2.top) > threshold ||
       Math.abs(rect1.left - rect2.left) > threshold ||
       Math.abs(rect1.width - rect2.width) > threshold ||
-      Math.abs(rect1.height - rect2.height) > threshold;
+      Math.abs(rect1.height - rect2.height) > threshold
+    );
   }
 
   makeReady() {
@@ -212,7 +211,7 @@ export class LayoutTransitionComponent implements OnDestroy {
     setTimeout(() => this.isReady.set(true), 50);
   }
 
-  @HostListener('window:resize')
+  @HostListener("window:resize")
   onResize(): void {
     // Keep window:resize as a fallback and for desktop.
     // Note: The parent component now handles resize synchronously, but this acts as a secondary trigger if needed.

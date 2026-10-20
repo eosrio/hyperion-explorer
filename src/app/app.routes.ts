@@ -1,7 +1,6 @@
 import { Routes } from "@angular/router";
 import { RenderMode, ServerRoute } from "@angular/ssr";
 import { accountNameGuard } from "./guards/account-name.guard";
-import { TopHoldersChartComponent } from "./components/top-holders-chart/top-holders-chart.component";
 
 async function loadMainSearchComponent() {
   let m = await import("./pages/main-search/main-search.component");
@@ -16,7 +15,7 @@ async function loadContractComponent() {
 export const routes: Routes = [
   {
     path: "top-holders/:contract/:symbol",
-    component: TopHoldersChartComponent
+    loadComponent: () => import("./components/top-holders-chart/top-holders-chart.component").then(m => m.TopHoldersChartComponent)
   },
   {
     path: "",

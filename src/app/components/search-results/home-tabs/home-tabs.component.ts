@@ -1,16 +1,16 @@
-import {Component, inject, signal} from '@angular/core';
+import { Component, inject, signal, ChangeDetectionStrategy } from "@angular/core";
 import { MatTab, MatTabContent, MatTabGroup, MatTabLabel } from "@angular/material/tabs";
 import { StatsComponent } from "./stats/stats.component";
 import { ProducersComponent } from "./producers/producers.component";
 import { PriceHistoryComponent } from "./price-history/price-history.component";
 import { MatButtonModule } from "@angular/material/button";
 import { MatIconModule } from "@angular/material/icon";
-import { MatRippleModule } from '@angular/material/core';
-import {DataService} from "../../../services/data.service";
-import {NgClass} from "@angular/common";
+import { MatRippleModule } from "@angular/material/core";
+import { DataService } from "../../../services/data.service";
+import { NgClass } from "@angular/common";
 
 @Component({
-  selector: 'app-home-tabs',
+  selector: "app-home-tabs",
   imports: [
     NgClass,
     MatTabGroup,
@@ -24,11 +24,11 @@ import {NgClass} from "@angular/common";
     MatIconModule,
     MatRippleModule
   ],
-  templateUrl: './home-tabs.component.html',
-  styleUrl: './home-tabs.component.css'
+  templateUrl: "./home-tabs.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
+  styleUrl: "./home-tabs.component.css"
 })
 export class HomeTabsComponent {
-
   ds = inject(DataService);
 
   isExpanded = signal(false);

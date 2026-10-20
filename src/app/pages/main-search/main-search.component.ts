@@ -9,31 +9,33 @@ import {
   viewChild,
   afterNextRender,
   OnDestroy, // Added import
-  linkedSignal, computed, ChangeDetectorRef
-} from '@angular/core';
-import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
-import {isPlatformBrowser, NgOptimizedImage} from "@angular/common";
-import {SearchService} from "../../services/search.service";
-import {DataService} from "../../services/data.service";
-import {faHeart, faSearch} from "@fortawesome/free-solid-svg-icons";
-import {ExplorerMetadata} from "../../interfaces";
-import {MatAutocomplete, MatAutocompleteTrigger, MatOption} from "@angular/material/autocomplete";
-import {Router, RouterLink, RouterOutlet} from "@angular/router";
-import {debounceTime, map, Subscription} from "rxjs"; // Added Subscription import
-import {MatButton} from "@angular/material/button";
+  linkedSignal,
+  computed,
+  ChangeDetectorRef,
+  ChangeDetectionStrategy
+} from "@angular/core";
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from "@angular/forms";
+import { isPlatformBrowser, NgOptimizedImage } from "@angular/common";
+import { SearchService } from "../../services/search.service";
+import { DataService } from "../../services/data.service";
+import { faHeart, faSearch } from "@fortawesome/free-solid-svg-icons";
+import { ExplorerMetadata } from "../../interfaces";
+import { MatAutocomplete, MatAutocompleteTrigger, MatOption } from "@angular/material/autocomplete";
+import { Router, RouterLink, RouterOutlet } from "@angular/router";
+import { debounceTime, map, Subscription } from "rxjs"; // Added Subscription import
+import { MatButton } from "@angular/material/button";
 
-import {version as PackageVersion} from '../../../../package.json';
-import {FaIconComponent} from "@fortawesome/angular-fontawesome";
-import {LayoutTransitionComponent} from "../../components/layout-transition/layout-transition.component";
+import { version as PackageVersion } from "../../../../package.json";
+import { FaIconComponent } from "@fortawesome/angular-fontawesome";
+import { LayoutTransitionComponent } from "../../components/layout-transition/layout-transition.component";
 // Import AnimationControls and ensure animate/scroll are imported
-import {animate} from "motion"; // Removed AnimationControls import
-import {BreakpointObserver, Breakpoints} from "@angular/cdk/layout";
-import {ThemeSelectorComponent} from "../../components/theme-selector/theme-selector.component";
-import {faGithub, faTelegram} from "@fortawesome/free-brands-svg-icons";
-
+import { animate } from "motion"; // Removed AnimationControls import
+import { BreakpointObserver, Breakpoints } from "@angular/cdk/layout";
+import { ThemeSelectorComponent } from "../../components/theme-selector/theme-selector.component";
+import { faGithub, faTelegram } from "@fortawesome/free-brands-svg-icons";
 
 @Component({
-  selector: 'app-layout-animation-test',
+  selector: "app-layout-animation-test",
   imports: [
     FormsModule,
     NgOptimizedImage,
@@ -48,10 +50,12 @@ import {faGithub, faTelegram} from "@fortawesome/free-brands-svg-icons";
     RouterLink,
     ThemeSelectorComponent
   ],
-  templateUrl: './main-search.component.html',
-  styleUrl: './main-search.component.css'
+  templateUrl: "./main-search.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
+  styleUrl: "./main-search.component.css"
 })
-export class MainSearchComponent implements OnInit, OnDestroy { // Implemented OnDestroy
+export class MainSearchComponent implements OnInit, OnDestroy {
+  // Implemented OnDestroy
   // injected services
   breakpointObserver = inject(BreakpointObserver);
   searchService = inject(SearchService);
@@ -74,25 +78,24 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
       github: faGithub,
       telegram: faTelegram
     }
-  }
+  };
 
   private visualViewport = (isPlatformBrowser(this.platformId) && window.visualViewport) || null;
 
-
   // Define the breakpoint for 'sm' (640px / 40rem) - matches Tailwind 'sm'
-  private readonly LAYOUT_BREAKPOINT = '(width < 40rem)';
+  private readonly LAYOUT_BREAKPOINT = "(width < 40rem)";
 
   // ViewChild references for the target divs (optional, as they might not be immediately available)
-  logoTargetDivMobileRef = viewChild<ElementRef<HTMLDivElement>>('logoTargetDivMobile');
-  logoTargetDivDesktopRef = viewChild<ElementRef<HTMLDivElement>>('logoTargetDivDesktop');
+  logoTargetDivMobileRef = viewChild<ElementRef<HTMLDivElement>>("logoTargetDivMobile");
+  logoTargetDivDesktopRef = viewChild<ElementRef<HTMLDivElement>>("logoTargetDivDesktop");
 
   // ViewChild references for LayoutTransitionComponents
-  logoLayoutTransitionRef = viewChild<LayoutTransitionComponent>('logoLayoutTransition');
-  searchbarLayoutTransition = viewChild<LayoutTransitionComponent>('searchbarLayoutTransition');
+  logoLayoutTransitionRef = viewChild<LayoutTransitionComponent>("logoLayoutTransition");
+  searchbarLayoutTransition = viewChild<LayoutTransitionComponent>("searchbarLayoutTransition");
 
   // FIX: ViewChild references for containers (required for synchronous padding updates)
-  headerContainerRef = viewChild<ElementRef<HTMLDivElement>>('headerContainer');
-  contentContainerRef = viewChild<ElementRef<HTMLDivElement>>('contentContainer');
+  headerContainerRef = viewChild<ElementRef<HTMLDivElement>>("headerContainer");
+  contentContainerRef = viewChild<ElementRef<HTMLDivElement>>("contentContainer");
 
   // Signal to track mobile state for layout
   isMobileLayout = signal<boolean>(false);
@@ -147,7 +150,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
       return {} as ExplorerMetadata;
     }
   });
-  searchFieldRef = viewChild<ElementRef<HTMLInputElement>>('searchFieldRef');
+  searchFieldRef = viewChild<ElementRef<HTMLInputElement>>("searchFieldRef");
   validSearch = signal<boolean>(false);
   filteredAccounts = signal<string[]>([]);
 
@@ -164,15 +167,15 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   private currentPlaceholder = 0;
 
   // Static part of the placeholder
-  private staticPlaceholderText = 'Search by';
+  private staticPlaceholderText = "Search by";
 
   // Dynamic parts of the placeholder (without the static part)
   placeholders = [
-    ' account name...',
-    ' block number...',
-    ' transaction id...',
+    " account name...",
+    " block number...",
+    " transaction id...",
     // 'EVM hash...',
-    ' public key...'
+    " public key..."
   ];
 
   private placeholderInterval: any = null;
@@ -182,7 +185,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   private scrambleStartTime = 0;
   private readonly scrambleDuration = 600; // ms (faster)
   // Restrict to lowercase alpha to match placeholder style
-  private readonly scrambleChars = 'abcdefghijklmnopqrstuvwxyz';
+  private readonly scrambleChars = "abcdefghijklmnopqrstuvwxyz";
 
   err = signal("");
 
@@ -205,35 +208,37 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   private pendingScrollUpdate: number | null = null; // For rAF throttling
 
   constructor() {
-
     this.searchForm = this.formBuilder.group({
-      search_field: ['', Validators.required]
+      search_field: ["", Validators.required]
     });
 
     // Set both the full placeholder and the dynamic part
     this.dynamicPlaceholder.set(this.placeholders[0]);
     this.searchPlaceholder.set(this.staticPlaceholderText + this.placeholders[0]);
 
-    this.searchForm.get('search_field')?.valueChanges?.pipe(debounceTime(300))?.subscribe((value) => {
-      if (value && value.length > 2) {
-        this.validSearch.set(this.searchService.submitSearch(value, []));
+    this.searchForm
+      .get("search_field")
+      ?.valueChanges?.pipe(debounceTime(300))
+      ?.subscribe(value => {
+        if (value && value.length > 2) {
+          this.validSearch.set(this.searchService.submitSearch(value, []));
 
-        if (this.validSearch()) {
-          console.log(`Searching by ${this.searchService.searchType()}... (${this.searchService.searchQuery()})`);
-        }
-
-        this.searchService.filterAccountNames(value).then((filteredAccounts: string[]) => {
-          if (filteredAccounts.length === 0) {
-            this.filteredAccounts.set(this.systemAccounts.filter(acct => acct.startsWith(value)));
-          } else {
-            this.filteredAccounts.set(filteredAccounts);
+          if (this.validSearch()) {
+            console.log(`Searching by ${this.searchService.searchType()}... (${this.searchService.searchQuery()})`);
           }
-        });
-      } else {
-        this.validSearch.set(false);
-        this.closeAutoComplete();
-      }
-    });
+
+          this.searchService.filterAccountNames(value).then((filteredAccounts: string[]) => {
+            if (filteredAccounts.length === 0) {
+              this.filteredAccounts.set(this.systemAccounts.filter(acct => acct.startsWith(value)));
+            } else {
+              this.filteredAccounts.set(filteredAccounts);
+            }
+          });
+        } else {
+          this.validSearch.set(false);
+          this.closeAutoComplete();
+        }
+      });
 
     // Initialize transition progress after view renders (browser only)
     if (isPlatformBrowser(this.platformId)) {
@@ -243,11 +248,11 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
 
   ngOnInit(): void {
     if (isPlatformBrowser(this.platformId)) {
-      this.startPlaceholderAnimation(); // Start placeholder animation
+      if (!window.matchMedia("(prefers-reduced-motion: reduce)").matches) this.startPlaceholderAnimation();
     }
     if (this.dataService.routeError) {
       this.err.set(this.dataService.routeError);
-      this.dataService.routeError = '';
+      this.dataService.routeError = "";
     }
   }
 
@@ -255,16 +260,16 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   private setupViewportListeners() {
     if (this.visualViewport) {
       // When the viewport changes (iOS UI resize/scroll), trigger the synchronous handler.
-      this.visualViewport.addEventListener('resize', this.onViewportChange);
-      this.visualViewport.addEventListener('scroll', this.onViewportChange);
+      this.visualViewport.addEventListener("resize", this.onViewportChange);
+      this.visualViewport.addEventListener("scroll", this.onViewportChange);
     }
   }
 
   private cleanupViewportListeners() {
     if (this.visualViewport) {
       // We must use the exact same function reference (onViewportChange) for removal.
-      this.visualViewport.removeEventListener('resize', this.onViewportChange);
-      this.visualViewport.removeEventListener('scroll', this.onViewportChange);
+      this.visualViewport.removeEventListener("resize", this.onViewportChange);
+      this.visualViewport.removeEventListener("scroll", this.onViewportChange);
     }
   }
 
@@ -281,10 +286,9 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     }
     // Update immediately to prevent jumps on Safari during viewport changes.
     this.updateTransitionProgress();
-  }
+  };
 
   private startPlaceholderAnimation(): void {
-
     // Reset to the first placeholder to ensure we start from the beginning
     this.currentPlaceholder = 0;
 
@@ -337,30 +341,30 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     this.cancelScramble();
     const maxLen = Math.max(fromText.length, toText.length);
     this.scrambleQueue = [];
-    const now = (typeof performance !== 'undefined' ? performance.now() : Date.now());
+    const now = typeof performance !== "undefined" ? performance.now() : Date.now();
     this.scrambleStartTime = now;
 
     for (let i = 0; i < maxLen; i++) {
-      const fromCh = fromText[i] ?? ' ';
-      const toCh = toText[i] ?? ' ';
+      const fromCh = fromText[i] ?? " ";
+      const toCh = toText[i] ?? " ";
       const same = fromCh === toCh;
       const isAlnum = /[A-Za-z0-9]/.test(toCh);
 
       if (same || !isAlnum) {
         // No scramble for identical or non-alphanumeric targets (spaces, punctuation)
-        this.scrambleQueue.push({from: fromCh, to: toCh, start: 0, end: 0});
+        this.scrambleQueue.push({ from: fromCh, to: toCh, start: 0, end: 0 });
       } else {
         // Left-to-right stagger with a bit more emphasis and jitter for a clearer wave
         const progress = maxLen > 1 ? i / (maxLen - 1) : 0;
         const start = progress * (this.scrambleDuration * 0.7) + Math.random() * (this.scrambleDuration * 0.08);
-        const end = start + (this.scrambleDuration * (0.28 + Math.random() * 0.18)); // keep window similar
-        this.scrambleQueue.push({from: fromCh, to: toCh, start, end});
+        const end = start + this.scrambleDuration * (0.28 + Math.random() * 0.18); // keep window similar
+        this.scrambleQueue.push({ from: fromCh, to: toCh, start, end });
       }
     }
 
     const frame = () => {
-      const t = (typeof performance !== 'undefined' ? performance.now() : Date.now()) - this.scrambleStartTime;
-      let output = '';
+      const t = (typeof performance !== "undefined" ? performance.now() : Date.now()) - this.scrambleStartTime;
+      let output = "";
       let complete = 0;
       for (let i = 0; i < this.scrambleQueue.length; i++) {
         const item = this.scrambleQueue[i];
@@ -441,7 +445,6 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     this.breakpointSubscription?.unsubscribe();
     this.breakpointSubscription = null;
 
-
     if (isPlatformBrowser(this.platformId)) {
       if (this.pendingScrollUpdate !== null) {
         cancelAnimationFrame(this.pendingScrollUpdate);
@@ -450,19 +453,18 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     }
   }
 
-
-  @HostListener('window:keydown', ['$event'])
+  @HostListener("window:keydown", ["$event"])
   onKeyPressed(event: KeyboardEvent) {
     // detect Ctrl+Shift+F
-    if (event.ctrlKey && event.shiftKey && event.key === 'F') {
-      console.log('Focus on search field', this.searchFieldRef());
+    if (event.ctrlKey && event.shiftKey && event.key === "F") {
+      console.log("Focus on search field", this.searchFieldRef());
       // focus on the search_field of this.searchForm
       this.searchFieldRef()?.nativeElement.focus();
     }
   }
 
   // Update transition progress on scroll
-  @HostListener('window:scroll', [])
+  @HostListener("window:scroll", [])
   onWindowScroll(): void {
     if (!isPlatformBrowser(this.platformId)) return;
 
@@ -479,27 +481,26 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     });
   }
 
-
   // If the user focuses the input while scrambling, stop immediately
-  @HostListener('window:focusin', ['$event'])
+  @HostListener("window:focusin", ["$event"])
   onFocusIn(event: FocusEvent): void {
     const inputEl = this.searchFieldRef()?.nativeElement;
     if (inputEl && event.target === inputEl) {
       this.cancelScramble();
-      const targetText = this.placeholders[this.currentPlaceholder] ?? '';
+      const targetText = this.placeholders[this.currentPlaceholder] ?? "";
       this.dynamicPlaceholder.set(targetText);
       this.searchPlaceholder.set(this.staticPlaceholderText + targetText);
     }
   }
 
   // Update transition progress and header animation on resize
-  @HostListener('window:resize', [])
+  @HostListener("window:resize", [])
   onWindowResize(): void {
     this.onViewportChange();
   }
 
   closeAutoComplete() {
-    console.log('Closing autocomplete...');
+    console.log("Closing autocomplete...");
     this.filteredAccounts.set([]);
     this.autocomplete()?.closePanel();
   }
@@ -509,14 +510,14 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
       this.err.set("Please input something above!");
       return;
     }
-    const searchText = this.searchForm.get('search_field')?.value;
+    const searchText = this.searchForm.get("search_field")?.value;
     if (searchText) {
       const trimmedText = searchText.trim();
       this.searchForm.reset();
       this.closeAutoComplete();
       const status = this.searchService.submitSearch(trimmedText, this.filteredAccounts());
       if (!status) {
-        this.err.set('no results for ' + trimmedText);
+        this.err.set("no results for " + trimmedText);
       } else {
         this.err.set("");
         await this.router.navigateByUrl(`/${this.searchService.searchType()}/${this.searchService.searchQuery()}`);
@@ -527,7 +528,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
   private updateTransitionProgress(): void {
     if (isPlatformBrowser(this.platformId)) {
       // Use visualViewport height if available for accuracy on mobile (respects dynamic UI)
-      const viewportHeight = (this.visualViewport ? this.visualViewport.height : window.innerHeight);
+      const viewportHeight = this.visualViewport ? this.visualViewport.height : window.innerHeight;
       const availableScrollDistance = document.documentElement.scrollHeight - viewportHeight;
       const currentScrollY = window.scrollY;
 
@@ -546,7 +547,7 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
       const headerContainer = this.headerContainerRef()?.nativeElement;
       const contentContainer = this.contentContainerRef()?.nativeElement;
       // Get references for direct manipulation
-      const taglineElement = document.getElementById('tagline');
+      const taglineElement = document.getElementById("tagline");
       const searchInputElement = this.searchFieldRef()?.nativeElement;
 
       // --- THE OPTIMIZED SYNCHRONIZATION LOOP (Zoneless + Anti-Thrashing) ---
@@ -564,12 +565,12 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
 
       // 1b. Tagline Width & Search Input Padding (Direct DOM manipulation - synchronous)
       if (taglineElement) {
-        const newTaglineWidth = this.taglineMax - (progress * this.taglineMax);
+        const newTaglineWidth = this.taglineMax - progress * this.taglineMax;
         taglineElement.style.width = `${newTaglineWidth}px`;
       }
 
       if (searchInputElement) {
-        const newPadding = (this.paddingMax * (1 - progress)) + (0.75 * progress);
+        const newPadding = this.paddingMax * (1 - progress) + 0.75 * progress;
         searchInputElement.style.paddingTop = `${newPadding}rem`;
         searchInputElement.style.paddingBottom = `${newPadding}rem`;
       }
@@ -599,11 +600,10 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     }
   }
 
-
   private initObserversAndAnimations() {
     // We use ViewChild references now.
     const headerContainer = this.headerContainerRef()?.nativeElement;
-    const taglineElement = document.querySelector('.tagline') as HTMLElement; // Tagline still needs querySelector
+    const taglineElement = document.querySelector(".tagline") as HTMLElement; // Tagline still needs querySelector
 
     if (!headerContainer) {
       return;
@@ -648,8 +648,8 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
     // Define the animation (taken from the original scroll(animate(...)) wrapper)
     this.taglineAnimation = animate(
       taglineElement,
-      {x: [0, -100], opacity: [1, 0]},
-      {duration: 1, autoplay: false} // Set autoplay to false so we can control it via .time
+      { x: [0, -100], opacity: [1, 0] },
+      { duration: 1, autoplay: false } // Set autoplay to false so we can control it via .time
     );
   }
 
@@ -659,14 +659,17 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
       this.headerAnimation.stop();
     }
 
-    this.headerAnimation = animate(headerContainer, {
-      height: [
-        '20.875rem', // Initial height
-        // Use the heights defined in the original component
-        isSmall ? '9.5rem' : '6.7rem' // Final height (9.5rem allows space for the wrapped search bar)
-      ]
-    }, {ease: "easeIn", duration: 1, autoplay: false}); // Ensure autoplay is false
-
+    this.headerAnimation = animate(
+      headerContainer,
+      {
+        height: [
+          "20.875rem", // Initial height
+          // Use the heights defined in the original component
+          isSmall ? "9.5rem" : "6.7rem" // Final height (9.5rem allows space for the wrapped search bar)
+        ]
+      },
+      { ease: "easeIn", duration: 1, autoplay: false }
+    ); // Ensure autoplay is false
   }
 
   // Initialization using afterNextRender phases to avoid layout thrash
@@ -700,14 +703,14 @@ export class MainSearchComponent implements OnInit, OnDestroy { // Implemented O
 
   // Helper to set initial styles synchronously for direct manipulation
   private setInitialStyles() {
-    const taglineElement = document.getElementById('tagline');
+    const taglineElement = document.getElementById("tagline");
     const searchInputElement = this.searchFieldRef()?.nativeElement;
 
     // Apply initial state (progress = 0) if styles haven't been set yet.
-    if (taglineElement && taglineElement.style.width === '') {
+    if (taglineElement && taglineElement.style.width === "") {
       taglineElement.style.width = `${this.taglineMax}px`;
     }
-    if (searchInputElement && searchInputElement.style.paddingTop === '') {
+    if (searchInputElement && searchInputElement.style.paddingTop === "") {
       searchInputElement.style.paddingTop = `${this.paddingMax}rem`;
       searchInputElement.style.paddingBottom = `${this.paddingMax}rem`;
     }

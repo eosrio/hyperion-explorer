@@ -1,30 +1,22 @@
-import {Component, ElementRef, inject, OnDestroy, OnInit, PLATFORM_ID, signal, viewChild} from '@angular/core';
-import {ActivatedRoute, RouterLink} from '@angular/router';
-import {
-  faCircle,
-  faExchangeAlt,
-  faHistory,
-  faHourglassStart,
-  faLock,
-  faSadTear,
-  faSpinner
-} from '@fortawesome/free-solid-svg-icons';
-import {Title} from '@angular/platform-browser';
-import {AccountService} from "../../../services/account.service";
-import {DataService} from "../../../services/data.service";
-import {SearchService} from "../../../services/search.service";
-import {MatProgressSpinner} from "@angular/material/progress-spinner";
-import {FaIconComponent, FaLayersComponent} from "@fortawesome/angular-fontawesome";
-import {MatChipListbox, MatChipOption} from "@angular/material/chips";
-import {MatTableModule} from "@angular/material/table";
-import {isPlatformBrowser, KeyValuePipe} from "@angular/common";
-import {animate, scroll} from "motion";
-import {toObservable} from "@angular/core/rxjs-interop";
-import {ActDataViewComponent} from "../../act-data-view/act-data-view.component";
-import {ChainService} from "../../../services/chain.service";
+import { Component, ElementRef, inject, OnDestroy, OnInit, PLATFORM_ID, signal, viewChild, ChangeDetectionStrategy } from "@angular/core";
+import { ActivatedRoute, RouterLink } from "@angular/router";
+import { faCircle, faExchangeAlt, faHistory, faHourglassStart, faLock, faSadTear, faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { Title } from "@angular/platform-browser";
+import { AccountService } from "../../../services/account.service";
+import { DataService } from "../../../services/data.service";
+import { SearchService } from "../../../services/search.service";
+import { MatProgressSpinner } from "@angular/material/progress-spinner";
+import { FaIconComponent, FaLayersComponent } from "@fortawesome/angular-fontawesome";
+import { MatChipListbox, MatChipOption } from "@angular/material/chips";
+import { MatTableModule } from "@angular/material/table";
+import { isPlatformBrowser, KeyValuePipe } from "@angular/common";
+import { animate, scroll } from "motion";
+import { toObservable } from "@angular/core/rxjs-interop";
+import { ActDataViewComponent } from "../../act-data-view/act-data-view.component";
+import { ChainService } from "../../../services/chain.service";
 
 @Component({
-  selector: 'app-transaction',
+  selector: "app-transaction",
   imports: [
     MatProgressSpinner,
     FaIconComponent,
@@ -36,10 +28,14 @@ import {ChainService} from "../../../services/chain.service";
     KeyValuePipe,
     ActDataViewComponent
   ],
-  templateUrl: './transaction.component.html',
-  styleUrls: ['./transaction.component.css']
+  templateUrl: "./transaction.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
+  styleUrls: ["./transaction.component.css"]
 })
 export class TransactionComponent implements OnInit, OnDestroy {
+  async retry(): Promise<void> {
+    this.tx.set(await this.accountService.loadTxData(this.txID()));
+  }
   private route = inject(ActivatedRoute);
   searchService = inject(SearchService);
   accountService = inject(AccountService);
@@ -47,8 +43,7 @@ export class TransactionComponent implements OnInit, OnDestroy {
   data = inject(DataService);
   private title = inject(Title);
 
-
-  columnsToDisplay: string[] = ['contract', 'action', 'data', 'auth'];
+  columnsToDisplay: string[] = ["contract", "action", "data", "auth"];
 
   tx = signal<any>({
     actions: null
@@ -64,13 +59,13 @@ export class TransactionComponent implements OnInit, OnDestroy {
       faSadTear: faSadTear,
       faSpinner: faSpinner
     }
-  }
+  };
 
   txID = this.searchService.searchQuery.asReadonly();
 
   countdownLoop: any;
   countdownTimer = 0;
-  actionsTable = viewChild<ElementRef<HTMLDivElement>>('actionsTable');
+  actionsTable = viewChild<ElementRef<HTMLDivElement>>("actionsTable");
   platformId = inject(PLATFORM_ID);
 
   objectKeyCount(obj: any): number {
@@ -82,8 +77,7 @@ export class TransactionComponent implements OnInit, OnDestroy {
   }
 
   constructor() {
-
-    toObservable(this.actionsTable).subscribe((value) => {
+    toObservable(this.actionsTable).subscribe(value => {
       if (value && isPlatformBrowser(this.platformId)) {
         this.tableStickyMotion(this.actionsTable());
       }
@@ -91,12 +85,10 @@ export class TransactionComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
+    this.searchService.searchType.set("transaction");
 
-    this.searchService.searchType.set('transaction');
-
-    this.route.paramMap.subscribe(async (value) => {
-
-      this.searchService.searchQuery.set(value.get('transaction_id') ?? "");
+    this.route.paramMap.subscribe(async value => {
+      this.searchService.searchQuery.set(value.get("transaction_id") ?? "");
 
       const trxId = this.txID();
       this.tx.set(await this.accountService.loadTxData(trxId));
@@ -126,13 +118,12 @@ export class TransactionComponent implements OnInit, OnDestroy {
       //     }, 1000);
       //   }
       // }
-
     });
   }
 
   ngOnDestroy(): void {
     if (this.countdownLoop) {
-      console.log('Clearing countdown loop');
+      console.log("Clearing countdown loop");
       clearInterval(this.countdownLoop);
     }
   }
@@ -151,11 +142,16 @@ export class TransactionComponent implements OnInit, OnDestroy {
   // }
 
   private tableStickyMotion(tableSticky?: ElementRef<HTMLDivElement>) {
-    scroll(animate('.mat-mdc-header-row', {
-        boxShadow: 'rgba(78 104 192, 0.25) 0px 4px 19px 0px, rgba(17, 12, 46, 0.15) 0px 20px 100px 0px',
-        background: 'var(--table-top-bg-gradient)'
-      }, {duration: 1}),
-      {target: tableSticky?.nativeElement, offset: ['end 250px', '200px 250px']}
+    scroll(
+      animate(
+        ".mat-mdc-header-row",
+        {
+          boxShadow: "rgba(78 104 192, 0.25) 0px 4px 19px 0px, rgba(17, 12, 46, 0.15) 0px 20px 100px 0px",
+          background: "var(--table-top-bg-gradient)"
+        },
+        { duration: 1 }
+      ),
+      { target: tableSticky?.nativeElement, offset: ["end 250px", "200px 250px"] }
     );
   }
 }

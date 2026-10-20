@@ -1,21 +1,16 @@
-import { Component, signal, inject } from '@angular/core';
-import {
-  MAT_DIALOG_DATA,
-  MatDialogClose,
-  MatDialogContent,
-  MatDialogRef,
-  MatDialogTitle
-} from "@angular/material/dialog";
+import { Component, signal, inject, ChangeDetectionStrategy } from "@angular/core";
+import { MAT_DIALOG_DATA, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from "@angular/material/dialog";
 import {
   MatNestedTreeNode,
   MatTree,
-  MatTreeNestedDataSource, MatTreeNodeDef,
+  MatTreeNestedDataSource,
+  MatTreeNodeDef,
   MatTreeNodeOutlet,
   MatTreeNodeToggle
 } from "@angular/material/tree";
-import {NestedTreeControl} from "@angular/cdk/tree";
-import {MatIcon} from "@angular/material/icon";
-import {MatIconButton} from "@angular/material/button";
+import { NestedTreeControl } from "@angular/cdk/tree";
+import { MatIcon } from "@angular/material/icon";
+import { MatIconButton } from "@angular/material/button";
 
 interface KeyValueNode {
   name: string;
@@ -25,7 +20,7 @@ interface KeyValueNode {
 }
 
 @Component({
-  selector: 'app-action-details',
+  selector: "app-action-details",
   imports: [
     MatTree,
     MatTreeNodeToggle,
@@ -38,13 +33,13 @@ interface KeyValueNode {
     MatDialogClose,
     MatTreeNodeDef
   ],
-  templateUrl: './action-details.component.html',
-  styleUrl: './action-details.component.css'
+  templateUrl: "./action-details.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
+  styleUrl: "./action-details.component.css"
 })
 export class ActionDetailsComponent {
   dialogRef = inject<MatDialogRef<ActionDetailsComponent>>(MatDialogRef);
   data = inject(MAT_DIALOG_DATA);
-
 
   action = signal<any>(null);
 
@@ -57,7 +52,6 @@ export class ActionDetailsComponent {
       this.action.set(this.data.action);
 
       this.buildTreeData();
-
     }
   }
 
@@ -78,14 +72,13 @@ export class ActionDetailsComponent {
   private objectToTree(root: any): KeyValueNode[] {
     const children: KeyValueNode[] = [];
     for (let rootKey in root) {
-
-      if (rootKey === '@timestamp') continue;
+      if (rootKey === "@timestamp") continue;
 
       if (!root.hasOwnProperty(rootKey)) continue;
 
       const value = root[rootKey];
       const arrayItem = Array.isArray(root);
-      if (typeof value === 'object') {
+      if (typeof value === "object") {
         children.push({
           name: rootKey,
           arrayItem,

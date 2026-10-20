@@ -1,7 +1,8 @@
 <div class="flex flex-row">
 
   @if (children().length > 0) {
-    <button mat-icon-button (click)="toggleExpansion()">
+    <button mat-icon-button (click)="toggleExpansion()" [attr.aria-expanded]="expanded()"
+            [attr.aria-label]="'Toggle ' + node().perm_name + ' permissions'">
       <fa-icon [ngClass]="expanded() ? 'arrowDown' : 'arrowRight'"
                [icon]="icons.solid.faChevronRight"
                class="arrowSize faded"></fa-icon>
@@ -10,7 +11,7 @@
     <div class="w-[3rem] min-w-[3rem]" style="width: 3rem"></div>
   }
 
-  <div @reveal class="permission-cell flex flex-col gap-1.5">
+  <div animate.enter="permission-enter" class="permission-cell flex flex-col gap-1.5">
 
     <div>
       <h3 class="primary" style="display: inline; letter-spacing: 0.7px">

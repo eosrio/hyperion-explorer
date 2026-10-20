@@ -1,19 +1,20 @@
-import {ComponentFixture, TestBed} from '@angular/core/testing';
+import { ComponentFixture, TestBed } from "@angular/core/testing";
 
-import {PermissionTreeComponent} from './permission-tree.component';
+import { PermissionTreeComponent } from "./permission-tree.component";
 
-describe('PermissionTreeComponent', () => {
+describe("PermissionTreeComponent", () => {
   let component: PermissionTreeComponent;
   let fixture: ComponentFixture<PermissionTreeComponent>;
 
   beforeEach(async () => {
-    await TestBed.configureTestingModule({imports: [PermissionTreeComponent]}).compileComponents();
+    await TestBed.configureTestingModule({ imports: [PermissionTreeComponent] }).compileComponents();
     fixture = TestBed.createComponent(PermissionTreeComponent);
+    fixture.componentRef.setInput("permissions", []);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
-  it('should create', () => {
+  it("should create", () => {
     expect(component).toBeTruthy();
   });
 });

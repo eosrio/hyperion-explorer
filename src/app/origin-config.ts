@@ -1,15 +1,18 @@
-import {DataService} from "./services/data.service";
-import {isPlatformBrowser} from "@angular/common";
+import { DataService } from "./services/data.service";
+import { isPlatformBrowser } from "@angular/common";
 
 declare const DEV_MODE: boolean;
 declare const HYP_API_URL: string;
 
 export async function defineOrigin(ds: DataService, request: Request | null, platform: Object): Promise<void> {
-  let apiUrl = '';
+  let apiUrl = "";
   // replace API URL with dev environment or build time env
   if (DEV_MODE) {
-    if (HYP_API_URL === 'devEnv') {
-      apiUrl = (await import('./dev.env')).devEnv.hyperionApiUrl;
+    if (HYP_API_URL === "devEnv") {
+      const { devEnv } = await import("./dev.env");
+      apiUrl = devEnv.hyperionApiUrl;
+      ds.env.streamApiUrl = devEnv.streamApiUrl;
+      ds.env.defaultTicker = devEnv.defaultTicker;
     } else {
       console.log(`[dev::${platform}] Using HYP_API_URL:`, HYP_API_URL, typeof HYP_API_URL);
       apiUrl = HYP_API_URL;
@@ -22,7 +25,7 @@ export async function defineOrigin(ds: DataService, request: Request | null, pla
     } else {
       // if there is a request object it means its being executed on the server
       if (request) {
-        const hyperionServer = request.headers.get('x-hyperion-server');
+        const hyperionServer = request.headers.get("x-hyperion-server");
         if (hyperionServer) {
           // this means its being served by hyperion
           // console.log(`[${platform}] Using Hyperion server:`, hyperionServer);
@@ -30,8 +33,8 @@ export async function defineOrigin(ds: DataService, request: Request | null, pla
           apiUrl = hyperionServer;
         } else {
           // this means its being server standalone
-          console.log(`[${platform}] Using referer:`, request.headers.get('referer'));
-          apiUrl = request.headers.get('referer') ?? request.url;
+          console.log(`[${platform}] Using referer:`, request.headers.get("referer"));
+          apiUrl = request.headers.get("referer") ?? request.url;
         }
       } else {
         if (isPlatformBrowser(platform)) {
@@ -41,6 +44,6 @@ export async function defineOrigin(ds: DataService, request: Request | null, pla
     }
   }
   if (apiUrl) {
-    ds.setOrigin(apiUrl, platform.toString());
+    ds.setOrigin(apiUrl);
   }
 }
