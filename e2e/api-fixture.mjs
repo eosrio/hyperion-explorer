@@ -12,7 +12,7 @@ const action = {
   block_num: 100,
   block_id: "b".repeat(64),
   trx_id: txId,
-  global_sequence: 100,
+  global_sequence: "100",
   receiver: "eosio.token",
   act: {
     account: "eosio.token",
@@ -38,6 +38,20 @@ const account = {
   self_delegated_bandwidth: { cpu_weight: "1.0000 SYS", net_weight: "1.0000 SYS" },
   voter_info: { producers: [], proxy: "" }
 };
+
+function history() {
+  if (!state.sequences) return [{ ...action, global_sequence: state.unsafeSequence ? 2 ** 53 : action.global_sequence }];
+  return state.sequences.map(global_sequence => ({
+    ...action,
+    global_sequence,
+    recv_sequence: "9223372036854775808",
+    auth_sequence: [{ account: "eosio", sequence: "9007199254740993" }],
+    receipts: [
+      { receiver: "eosio.token", global_sequence, recv_sequence: "9223372036854775808", auth_sequence: [["eosio", "9007199254740993"]] }
+    ],
+    act: { ...action.act, data: { ...action.act.data, memo: `Sequence ${global_sequence}` } }
+  }));
+}
 
 createServer(async (req, res) => {
   const url = new URL(req.url, "http://127.0.0.1:17000");
@@ -75,7 +89,7 @@ createServer(async (req, res) => {
     return send(state);
   }
   if (url.pathname === "/__fixture/requests") return send(requests);
-  requests.push({ method: req.method, path: url.pathname });
+  requests.push({ method: req.method, path: url.pathname, query: Object.fromEntries(url.searchParams) });
   if (url.pathname === "/v2/explorer_logo") {
     res.setHeader("Content-Type", "image/svg+xml");
     return res.end(await readFile(new URL("../src/assets/logo-hyperion-horz.svg", import.meta.url)));
@@ -104,15 +118,26 @@ createServer(async (req, res) => {
     });
   if (url.pathname === "/v2/state/get_account") {
     if (state.accountUnavailable) return send({ message: "Projection recovering" }, 503);
-    return send({ account, actions: [action], tokens: [], total_actions: 1, links: [] });
+    const actions = history();
+    return send({ account, actions: actions.slice(0, state.initialActions ?? 20), tokens: [], total_actions: actions.length, links: [] });
   }
   if (url.pathname === "/v2/history/get_actions") {
     if (state.actionsUnavailable) return send({ message: "History unavailable" }, 503);
-    return send({ actions: [action], total: { value: 1, relation: "eq" }, lib: 101 });
+    let actions = history();
+    const range = url.searchParams.get("global_sequence");
+    if (range) {
+      const [lower, upper] = range.split("-").map(BigInt);
+      actions = actions.filter(action => BigInt(action.global_sequence) >= lower && BigInt(action.global_sequence) <= upper);
+    }
+    if (url.searchParams.get("sort") === "asc") actions.reverse();
+    const total = actions.length;
+    const skip = Number(url.searchParams.get("skip") || 0);
+    const limit = Number(url.searchParams.get("limit") || 20);
+    return send({ actions: actions.slice(skip, skip + limit), total: { value: total, relation: "eq" }, lib: 101 });
   }
   if (url.pathname === "/v2/history/get_transaction") {
     if (state.transactionUnavailable) return send({ message: "History unavailable" }, 503);
-    return send({ actions: [action], lib: 101, executed: true });
+    return send({ actions: history(), lib: 101, executed: true });
   }
   if (url.pathname === "/v2/state/get_key_accounts") return send({ account_names: ["eosio"], permissions: [] });
   if (url.pathname === "/v2/history/get_creator") return send({ creator: "eosio", timestamp: time });

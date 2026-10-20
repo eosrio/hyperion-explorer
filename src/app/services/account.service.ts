@@ -25,6 +25,16 @@ import { isPlatformBrowser } from "@angular/common";
 import { SortDirection } from "@angular/material/sort";
 import { describeApiError } from "../api-errors";
 import { ChainService } from "./chain.service";
+import {
+  Sequence,
+  HistoryAction,
+  historyAction,
+  historyResponse,
+  previousSequence,
+  nextSequence,
+  compareSequences,
+  mergeHistory
+} from "../sequences";
 
 interface HealthResponse {
   features: {
@@ -56,8 +66,7 @@ export class AccountService {
     net_limit: { used: 1, max: 1 }
   };
 
-  actions: any[] = [];
-  public tableDataSource: Observable<any[]>;
+  public tableDataSource: Observable<HistoryAction[]>;
   streamClient?: HyperionStreamClient;
   public streamClientStatus = signal(false);
   public libNum = signal<number>(0);
@@ -67,7 +76,9 @@ export class AccountService {
   // signals
   public loaded = signal(false);
   public requestError = signal<string | null>(null);
+  public loadingMoreActions = signal(false);
   public accountName = signal("");
+  public historyError = linkedSignal<string, string | null>({ source: this.accountName, computation: () => null });
   public customParams = signal<Record<string, string> | undefined>(undefined);
 
   // pagination signals
@@ -149,16 +160,18 @@ export class AccountService {
   // actions Resource
   public actionRes = resource<
     GetActionsResponse,
-    {
-      accountName: string;
-      customParams?: Record<string, string>;
-      limit: number;
-      skip: number;
-      first: number;
-      sort: string;
-    }
+    | {
+        accountName: string;
+        customParams?: Record<string, string>;
+        limit: number;
+        skip: number;
+        first: Sequence | null;
+        sort: string;
+      }
+    | undefined
   >({
     params: () => {
+      if (!this.accountName() || !this.accountDataRes.hasValue()) return undefined;
       return {
         accountName: this.accountName(),
         customParams: this.customParams(),
@@ -169,7 +182,7 @@ export class AccountService {
       };
     },
     loader: async ({ params }) => {
-      let firstGS = params.first;
+      const firstGS = params.first;
 
       // stop streaming if enabled
       if (this.streamClientStatus() && this.streamClient?.online && this.actionStream) {
@@ -181,7 +194,7 @@ export class AccountService {
 
       const cp = params.customParams;
       const { limit, skip, sort } = params;
-      if (cp || skip > 0 || sort === "asc") {
+      if ((cp || skip > 0 || sort === "asc" || limit !== 20) && firstGS !== null) {
         const query = new URLSearchParams();
         query.set("account", params.accountName);
         query.set("limit", limit.toString());
@@ -201,7 +214,7 @@ export class AccountService {
           return this.queryCache.get(key);
         } else {
           const url = this.data.env.hyperionApiUrl + "/v2/history/get_actions?" + key;
-          const res = (await lastValueFrom(this.httpClient.get(url))) as GetActionsResponse;
+          const res = historyResponse(await lastValueFrom(this.httpClient.get<GetActionsResponse>(url)));
           // console.log("Query Time", res.query_time_ms);
           this.queryCache.set(key, res);
           return res;
@@ -229,7 +242,7 @@ export class AccountService {
         const account = loaderParams.params.accountName;
         if (account) {
           const url = this.data.env.hyperionApiUrl + "/v2/state/get_account?account=" + account;
-          return (await lastValueFrom(this.httpClient.get(url))) as GetAccountResponse;
+          return historyResponse(await lastValueFrom(this.httpClient.get<GetAccountResponse>(url)));
         } else {
           return null;
         }
@@ -242,8 +255,8 @@ export class AccountService {
   private accountResponse = computed(() => (this.accountDataRes.hasValue() ? this.accountDataRes.value() : undefined));
   private actionResponse = computed(() => (this.actionRes.hasValue() ? this.actionRes.value() : undefined));
 
-  public firstGlobalSequence = computed<number>(() => {
-    return this.accountResponse()?.actions[0]?.global_sequence ?? 0;
+  public firstGlobalSequence = computed<Sequence | null>(() => {
+    return this.accountResponse()?.actions[0]?.global_sequence ?? null;
   });
 
   public totalActionCounter = computed(() => {
@@ -282,35 +295,40 @@ export class AccountService {
     }
   });
 
-  public actionsComputed = linkedSignal<any, any[]>({
+  public actionsComputed = linkedSignal<any, HistoryAction[]>({
     source: () => {
       return {
+        accountName: this.accountName(),
         accountActions: this.accountResponse()?.actions ?? [],
         filteredActions: this.actionResponse()?.actions ?? [],
         streamingActions: this.streamingActions() ?? [],
         activeFilter: this.filter(),
         pageIndex: this.pageIndex(),
+        pageSize: this.pageSize(),
         sortDirection: this.sortDirection()
       };
     },
     computation: (source, previous) => {
       // if we are on filtered action or on a different page, replace the filtered actions with the account actions
-      if (source.filteredActions && (source.activeFilter || source.pageIndex > 0 || source.sortDirection === "asc")) {
+      if (
+        source.filteredActions &&
+        (source.activeFilter || source.pageIndex > 0 || source.sortDirection === "asc" || source.pageSize !== 20)
+      ) {
         if (source.filteredActions.length > 0) {
           return source.filteredActions;
         } else {
           if (this.actionRes.hasValue()) {
             return [];
           } else {
-            return previous?.value ?? [];
+            return previous && previous.source.accountName === source.accountName ? previous.value : [];
           }
         }
       } else {
         if (source.accountActions.length > 0) {
-          return [...source.streamingActions, ...source.accountActions].slice(0, 20);
+          return mergeHistory(source.streamingActions, source.accountActions).slice(0, source.pageSize);
         } else {
           if (source.activeFilter) {
-            return previous?.value ?? [];
+            return previous && previous.source.accountName === source.accountName ? previous.value : [];
           } else {
             return [];
           }
@@ -437,7 +455,7 @@ export class AccountService {
     return cpuRefund + netRefund;
   });
   private platformId = inject(PLATFORM_ID);
-  private streamingActions = signal<any[]>([]);
+  private streamingActions = linkedSignal<string, HistoryAction[]>({ source: this.accountName, computation: () => [] });
 
   // Computed signal to expose the size of streamingActions
   public streamingActionsSize = computed(() => {
@@ -509,19 +527,56 @@ export class AccountService {
   });
 
   async loadMoreActions(): Promise<void> {
-    const accountName = this.accountName();
-    const firstAction = this.actions[this.actions.length - 1];
-    const maxGs = firstAction.global_sequence - 1;
+    if (this.loadingMoreActions()) return;
+    const lastAction = this.actionsComputed().at(-1);
+    if (!lastAction) return;
+    const sort = this.sortDirection() || "desc";
+    const anchor = this.firstGlobalSequence();
+    const boundary = sort === "asc" ? nextSequence(lastAction.global_sequence) : previousSequence(lastAction.global_sequence);
+    if (boundary === null || (sort === "asc" && (anchor === null || compareSequences(boundary, anchor) > 0))) return;
+    const context = this.historyContext();
+    this.loadingMoreActions.set(true);
+    this.historyError.set(null);
     try {
-      const q = `${this.data.env.hyperionApiUrl}/v2/history/get_actions?account=${accountName}&global_sequence=0-${maxGs}&limit=50`;
-      const results = (await lastValueFrom(this.httpClient.get(q))) as any;
-      if (results.actions && results.actions.length > 0) {
-        this.actions.push(...results.actions);
-        // this.tableDataSource.data = this.actions;
+      const query = new URLSearchParams({
+        ...this.customParams(),
+        account: this.accountName(),
+        sort,
+        limit: "50",
+        global_sequence: sort === "asc" ? `${boundary}-${anchor}` : `0-${boundary}`
+      });
+      const response = await lastValueFrom(
+        this.httpClient.get<GetActionsResponse>(`${this.data.env.hyperionApiUrl}/v2/history/get_actions?${query}`)
+      );
+      if (context === this.historyContext()) {
+        const results = historyResponse(response);
+        this.actionsComputed.update(actions => {
+          const merged = mergeHistory(actions, results.actions);
+          return sort === "asc" ? merged.reverse() : merged;
+        });
       }
     } catch (e) {
-      console.log(e);
+      if (context === this.historyContext()) this.historyError.set(describeApiError(e));
+    } finally {
+      this.loadingMoreActions.set(false);
     }
+  }
+
+  private historyContext(): string {
+    return JSON.stringify([
+      this.accountName(),
+      this.customParams(),
+      this.pageIndex(),
+      this.pageSize(),
+      this.sortDirection(),
+      this.firstGlobalSequence()
+    ]);
+  }
+
+  retryHistory(): void {
+    this.historyError.set(null);
+    this.accountDataRes.reload();
+    this.actionRes.reload();
   }
 
   async loadTxData(txId: string): Promise<any> {
@@ -529,7 +584,7 @@ export class AccountService {
     this.requestError.set(null);
     try {
       const url = this.data.env.hyperionApiUrl + "/v2/history/get_transaction?id=" + txId;
-      const data = await lastValueFrom(this.httpClient.get(url));
+      const data = historyResponse(await lastValueFrom(this.httpClient.get<{ actions: unknown[] }>(url)));
       this.loaded.set(true);
       return data;
     } catch (error) {
@@ -589,8 +644,12 @@ export class AccountService {
     } else {
       // Start Streaming from the last received block
       this.pageIndex.set(0);
-      await this.startActionStream();
-      this.streamClientStatus.set(true);
+      try {
+        this.streamClientStatus.set(await this.startActionStream());
+      } catch (error) {
+        this.historyError.set(describeApiError(error));
+        this.streamClientStatus.set(false);
+      }
     }
   }
 
@@ -636,6 +695,7 @@ export class AccountService {
   }
 
   async startActionStream() {
+    this.historyError.set(null);
     if (!this.streamClient) {
       this.streamClient = new HyperionStreamClient({
         endpoint: this.data.env.streamApiUrl || this.data.env.hyperionApiUrl,
@@ -670,13 +730,23 @@ export class AccountService {
         `Streaming actions from block ${lastReceivedBlock + 1} for account ${this.accountName()}, hash: ${this.actionStream.requestHash}`
       );
 
-      this.actionStream.on("message", (data: any) => {
-        const action = data.content;
-        this.streamingActions.update(value => {
-          // Add the new action to the beginning of the array and limit to 500 items
-          return [action, ...value].slice(0, 500);
-        });
+      const stream = this.actionStream;
+      const accountName = this.accountName();
+      let invalidMetadata = false;
+      this.actionStream.on("message", data => {
+        if (invalidMetadata || this.actionStream !== stream || this.accountName() !== accountName) return;
+        try {
+          // The published client's types still declare numeric sequences; validate the wire value.
+          const action = historyAction(data.content);
+          this.streamingActions.update(value => mergeHistory([action], value).slice(0, 500));
+        } catch (error) {
+          invalidMetadata = true;
+          stream.stop();
+          this.streamClientStatus.set(false);
+          this.historyError.set(describeApiError(error));
+        }
       });
     }
+    return this.streamClient?.online === true && this.historyError() === null;
   }
 }

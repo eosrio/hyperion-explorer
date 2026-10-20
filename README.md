@@ -150,6 +150,8 @@ bun run test:e2e                   # tests the production build, after building
 bun audit
 ```
 
-The browser suite starts a local API fixture on `127.0.0.1:17000` and the built SSR server on `127.0.0.1:17001`. It exercises the actual `/explorer` proxy, hydration, account search, block/transaction rendering, and recovery from unavailable metadata, account projections, and delta history. Both desktop and mobile configurations use Chromium; mobile emulation does not establish Safari or physical-device compatibility.
+The browser suite starts a local API fixture on `127.0.0.1:17000` and the built SSR server on `127.0.0.1:17001`. It exercises the actual `/explorer` proxy, hydration, account search, block/transaction rendering, lossless uint64 history cursors and metadata, and recovery from unavailable metadata, account projections, and delta history. Both desktop and mobile configurations use Chromium; mobile emulation does not establish Safari or physical-device compatibility.
 
-The [modernization notes](docs/modernization.md) record dependency constraints, completed work, and remaining Hyperion 4.5 qualification. The CI workflow runs type checking, unit tests, and production builds on Windows and Linux, with the browser suite on Linux.
+Hyperion 4.5 sequence metadata is stored as decimal strings. Safe integer values from older APIs remain supported; unsafe numeric sequences are rejected because their exact identity has already been lost. Upgrade APIs returning those numbers to the lossless string contract.
+
+The [modernization notes](docs/modernization.md) record dependency constraints, completed work, and remaining Hyperion 4.5 qualification. The CI workflow runs type checking, unit tests, and production builds on Windows and Linux with Node 22/24, with the browser suite on Linux/Node 24.

@@ -31,9 +31,21 @@ This branch starts the modernization effort. It preserves the existing explorer 
 
 The local 4.5 architecture keeps Elasticsearch history independent of state projection readiness and requires affected queries to report retryable unavailability. These tests exercise HTTP 503 behavior without inventing a release-specific error payload or completeness-header names.
 
+## Lossless sequences
+
+The explorer follows [ADR 0053](https://github.com/eosrio/hyperion-tools/blob/main/docs/adr/0053-use-lossless-sequence-strings-on-all-chains.md): uint64 sequence metadata is canonical decimal text on every chain. Account snapshots, history pages, transaction actions, and incoming stream messages normalize `global_sequence`, receiver aliases, and receipt/authorization sequences at the boundary. Contract ABI payloads are left intact; block numbers, action ordinals, and code/ABI counters remain numbers.
+
+Safe nonnegative integer values from older APIs are converted to exact strings. Unsafe numbers, noncanonical strings, values above uint64, and zero committed-action global sequences produce a visible request error. An already rounded JSON number cannot be repaired by converting it to a string; deployments returning those numbers must upgrade their API.
+
+Pagination and filter snapshot bounds retain the full sequence text. Continuation uses `bigint` only for checked increment/decrement, with no bigint stored in application state or serialized JSON. Cache keys, receipt display, numeric ordering, and replay deduplication preserve neighboring IDs across 2^53, 2^63, and uint64 maximum. Load-more requests append to the displayed history, preserve filters and direction, and discard responses after the history context changes.
+
+The published stream client's declarations still describe numeric sequences. The explorer validates its runtime output, and tests feed exact strings through that package's real batch, JSON, and binary decoders. This establishes local wire-decoding compatibility; it does not qualify the live 4.5 streaming server or fork recovery.
+
 ## Remaining qualification
 
-Local acceptance on 2026-10-20 (Windows, Node 26.4.0): production build and type checking passed; 49 unit tests across 35 files passed on Vitest 5.0.5; all 12 desktop/mobile Chromium scenarios passed; `bun audit` reported no advisories. The initial browser bundle is 452.59 kB (estimated transfer 121.84 kB). The only newer direct dependency excluded is TypeScript 7, because it is outside Angular 22's supported range.
+Local acceptance on 2026-10-20 (Windows, Node 26.4.0): production build and type checking passed; 110 unit tests across 37 files passed on Vitest 5.0.5; all 18 desktop/mobile Chromium scenarios passed; `bun audit` reported no advisories. The initial browser bundle is approximately 453 kB (estimated transfer 122 kB). The only newer direct dependency excluded is TypeScript 7, because it is outside Angular 22's supported range.
+
+The local Font Awesome registry lacks an audit endpoint, so Bun skips that scope. A separate query of the public npm bulk advisory endpoint covered all 497 package names/versions in the lockfile, including Font Awesome, and returned no advisories.
 
 1. Run the explorer against pinned 4.5 API, SDK, backend adapter, and plugin artifacts on a real chain. The current fixture tests do not qualify live streaming, finality/fork recovery, or MongoDB/WormDB behavior.
 2. Add completeness and last-valid-state presentation when the shared response-header contract is finalized; do not infer state readiness from history progress.
@@ -41,4 +53,4 @@ Local acceptance on 2026-10-20 (Windows, Node 26.4.0): production build and type
 4. Continue frontend work on deprecated Material tree APIs, incremental OnPush conversion, component lifecycles, loading/empty states, and consistency across custom themes. EVM components remain placeholders and are not newly qualified by this work.
 5. Validate Safari, Firefox, physical mobile devices, production compression/cache behavior, and the actual public proxy configuration.
 
-CI is configured for Windows and Linux but has not run until this branch is pushed. Local validation uses Windows and Node 26. The account component retains a small existing stylesheet budget warning (10.24 kB against a 10 kB warning threshold); the error threshold is unchanged.
+CI runs on Windows and Linux with Node 22 and 24, with the browser suite on Linux/Node 24. Local validation uses Windows and Node 26. The account component retains a small existing stylesheet budget warning (10.24 kB against a 10 kB warning threshold); the error threshold is unchanged.

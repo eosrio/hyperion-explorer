@@ -88,3 +88,47 @@ test("recovers the bootstrap screen after metadata becomes available", async ({ 
   await page.getByRole("button", { name: "Try again", exact: true }).click();
   await expect(page.getByRole("combobox", { name: "Account name, block number, transaction ID, or public key" })).toBeVisible();
 });
+
+test("preserves uint64 metadata and exact continuation cursors after SSR hydration", async ({ page, request }) => {
+  const sequences = ["18446744073709551615", "9223372036854775808", "9007199254740993", "9007199254740992"];
+  await request.post("/__fixture/state", { data: { sequences, initialActions: 2 } });
+  await page.goto("/explorer/account/eosio");
+  await expect(page.getByText(`Sequence ${sequences[0]}`, { exact: true })).toBeVisible();
+  const continuation = page.waitForRequest(request => {
+    const url = new URL(request.url());
+    return url.pathname === "/v2/history/get_actions" && url.searchParams.get("limit") === "50";
+  });
+  await page.getByRole("button", { name: "Load more actions", exact: true }).click();
+  expect(new URL((await continuation).url()).searchParams.get("global_sequence")).toBe("0-9223372036854775807");
+  for (const sequence of sequences) await expect(page.getByText(`Sequence ${sequence}`, { exact: true })).toBeVisible();
+  const row = page.locator("tr", { hasText: `Sequence ${sequences[0]}` });
+  await row.getByText("Expand details", { exact: false }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByText(sequences[0], { exact: true }).first()).toBeVisible();
+  await expect(dialog.getByText("9223372036854775808", { exact: true }).first()).toBeVisible();
+  await dialog.getByRole("button", { name: "Toggle auth_sequence", exact: true }).click();
+  await dialog.getByRole("button", { name: "Toggle 0", exact: true }).first().click();
+  await expect(dialog.getByText("9007199254740993", { exact: true }).first()).toBeVisible();
+});
+
+test("uses the unrounded snapshot bound for filtered history", async ({ page, request }) => {
+  await request.post("/__fixture/state", { data: { sequences: ["18446744073709551615", "9007199254740993"] } });
+  await page.goto("/explorer/account/eosio");
+  const filtered = page.waitForRequest(request => {
+    const url = new URL(request.url());
+    return url.pathname === "/v2/history/get_actions" && url.searchParams.get("act.name") === "transfer";
+  });
+  await page.getByRole("button", { name: "Native Transfers", exact: false }).click();
+  expect(new URL((await filtered).url()).searchParams.get("global_sequence")).toBe("0-18446744073709551615");
+  await expect(page.getByText("Sequence 9007199254740993", { exact: true })).toBeVisible();
+});
+
+test("reports unsafe legacy sequence numbers and recovers with exact strings", async ({ page, request }) => {
+  await request.post("/__fixture/state", { data: { unsafeSequence: true } });
+  await page.goto("/explorer/account/eosio");
+  await expect(page.getByRole("alert")).toContainText("unsafe numeric values cannot be recovered");
+  await request.post("/__fixture/state", { data: { sequences: ["9007199254740993"] } });
+  await page.getByRole("button", { name: "Try again", exact: true }).click();
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(page.getByText("Sequence 9007199254740993", { exact: true })).toBeVisible();
+});
