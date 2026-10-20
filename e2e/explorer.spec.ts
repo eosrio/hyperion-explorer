@@ -48,7 +48,12 @@ test("searches an account and retains block navigation", async ({ page }, testIn
 
 test("keeps an unavailable projection isolated and allows explicit recovery", async ({ page, request }) => {
   await request.post("/__fixture/state", { data: { accountUnavailable: true } });
+  // HTTP errors aren't transferred from SSR. Observe the browser's own failure before restoring the API.
+  const unavailable = page.waitForResponse(
+    response => new URL(response.url()).pathname === "/v2/state/get_account" && response.status() === 503
+  );
   await page.goto("/explorer/account/eosio");
+  await unavailable;
   await expect(page.getByRole("alert")).toContainText("temporarily unavailable");
   await request.post("/__fixture/state", { data: {} });
   await page.getByRole("button", { name: "Try again", exact: true }).click();
@@ -59,7 +64,11 @@ test("keeps an unavailable projection isolated and allows explicit recovery", as
 
 test("reports a transaction outage without turning it into not found", async ({ page, request }) => {
   await request.post("/__fixture/state", { data: { transactionUnavailable: true } });
+  const unavailable = page.waitForResponse(
+    response => new URL(response.url()).pathname === "/v2/history/get_transaction" && response.status() === 503
+  );
   await page.goto("/explorer/transaction/" + "f".repeat(64));
+  await unavailable;
   await expect(page.getByRole("alert")).toContainText("temporarily unavailable");
   await expect(page.getByText("Transaction not found", { exact: true })).toHaveCount(0);
   await request.post("/__fixture/state", { data: {} });
@@ -70,7 +79,11 @@ test("reports a transaction outage without turning it into not found", async ({ 
 
 test("keeps block history usable while delta history is unavailable", async ({ page, request }) => {
   await request.post("/__fixture/state", { data: { deltasUnavailable: true } });
+  const unavailable = page.waitForResponse(
+    response => new URL(response.url()).pathname === "/v2/history/get_deltas" && response.status() === 503
+  );
   await page.goto("/explorer/block/100");
+  await unavailable;
   await expect(page.getByText("Block ID:", { exact: true })).toBeVisible();
   await expect(page.getByRole("alert")).toContainText("temporarily unavailable");
   await request.post("/__fixture/state", { data: {} });
@@ -81,7 +94,11 @@ test("keeps block history usable while delta history is unavailable", async ({ p
 test("recovers the bootstrap screen after metadata becomes available", async ({ page, request }) => {
   test.setTimeout(15_000);
   await request.post("/__fixture/state", { data: { metadataUnavailable: true } });
+  const unavailable = page.waitForResponse(
+    response => new URL(response.url()).pathname === "/v2/explorer_metadata" && response.status() === 503
+  );
   await page.goto("/explorer/");
+  await unavailable;
   await expect(page.getByRole("heading", { name: "Unable to load the explorer" })).toBeVisible();
   await expect(page.getByText(/temporarily unavailable/)).toBeVisible();
   await request.post("/__fixture/state", { data: {} });
