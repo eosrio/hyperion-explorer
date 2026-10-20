@@ -1,5 +1,12 @@
 <!--LOADER-->
-@if (acServ.accountDataRes.isLoading()) {
+@if (acServ.accountDataRes.error(); as error) {
+  <div class="hr-container">
+    <section class="api-error" role="alert">
+      <p>{{ describeApiError(error) }}</p>
+      <button type="button" (click)="acServ.accountDataRes.reload()">Try again</button>
+    </section>
+  </div>
+} @else if (acServ.accountDataRes.isLoading()) {
   <div class="hr-container flex flex-row items-center justify-center">
     <mat-progress-spinner [diameter]="45" mode="indeterminate" color="primary"></mat-progress-spinner>
   </div>
@@ -488,8 +495,14 @@
               }
             </div>
 
-            @let filteredActions = acServ.actionRes.value()?.actions;
-            @let totalFilteredActions = acServ.actionRes.value()?.total?.value;
+            @if (acServ.actionRes.error(); as error) {
+              <section class="api-error" role="alert">
+                <p>{{ describeApiError(error) }}</p>
+                <button type="button" (click)="acServ.actionRes.reload()">Try again</button>
+              </section>
+            }
+            @let filteredActions = acServ.actionRes.hasValue() ? acServ.actionRes.value()?.actions : undefined;
+            @let totalFilteredActions = acServ.actionRes.hasValue() ? acServ.actionRes.value()?.total?.value : undefined;
             @if (!(acServ.filter() && acServ.totalActionCounter() === 0)) {
               <mat-expansion-panel #filterExpansionPanel hideToggle class="filter-panel">
                 <mat-expansion-panel-header>

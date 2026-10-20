@@ -1,12 +1,12 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
-import {ActivatedRoute, RouterLink} from "@angular/router";
-import {AccountService} from "../../../services/account.service";
-import {DataService} from '../../../services/data.service';
-import {faCircle, faKey, faSadTear, faSpinner} from '@fortawesome/free-solid-svg-icons';
-import {Title} from "@angular/platform-browser";
-import {SearchService} from "../../../services/search.service";
-import {MatProgressSpinner} from "@angular/material/progress-spinner";
-import {FaIconComponent, FaLayersComponent} from "@fortawesome/angular-fontawesome";
+import { Component, OnInit, signal, inject, ChangeDetectionStrategy } from "@angular/core";
+import { ActivatedRoute, RouterLink } from "@angular/router";
+import { AccountService } from "../../../services/account.service";
+import { DataService } from "../../../services/data.service";
+import { faCircle, faKey, faSadTear, faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { Title } from "@angular/platform-browser";
+import { SearchService } from "../../../services/search.service";
+import { MatProgressSpinner } from "@angular/material/progress-spinner";
+import { FaIconComponent, FaLayersComponent } from "@fortawesome/angular-fontawesome";
 
 interface KeyResponse {
   account_names: string[];
@@ -14,23 +14,21 @@ interface KeyResponse {
 }
 
 @Component({
-  selector: 'app-key',
-  imports: [
-    RouterLink,
-    MatProgressSpinner,
-    FaIconComponent,
-    FaLayersComponent
-  ],
-  templateUrl: './key.component.html',
-  styleUrl: './key.component.css'
+  selector: "app-key",
+  imports: [RouterLink, MatProgressSpinner, FaIconComponent, FaLayersComponent],
+  templateUrl: "./key.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
+  styleUrl: "./key.component.css"
 })
 export class KeyComponent implements OnInit {
+  async retry(): Promise<void> {
+    this.key.set(await this.accountService.loadPubKey(this.pubKey()));
+  }
   private route = inject(ActivatedRoute);
   accountService = inject(AccountService);
   private searchService = inject(SearchService);
   data = inject(DataService);
   private title = inject(Title);
-
 
   key = signal<KeyResponse>({} as KeyResponse);
 
@@ -43,17 +41,15 @@ export class KeyComponent implements OnInit {
       faSadTear: faSadTear,
       faSpinner: faSpinner
     }
-  }
+  };
 
   ngOnInit(): void {
-
-    this.searchService.searchType.set('key');
+    this.searchService.searchType.set("key");
 
     this.route.paramMap.subscribe(async value => {
+      this.searchService.searchQuery.set(value.get("pub_key") ?? "");
 
-      this.searchService.searchQuery.set(value.get('pub_key') ?? "");
-
-      this.key.set(await this.accountService.loadPubKey(this.pubKey()) as KeyResponse);
+      this.key.set((await this.accountService.loadPubKey(this.pubKey())) as KeyResponse);
 
       const chainData = this.data.explorerMetadata();
 
@@ -62,8 +58,6 @@ export class KeyComponent implements OnInit {
       } else {
         this.title.setTitle(`🔑 ${this.pubKey().slice(0, 12)} • Hyperion Explorer`);
       }
-
     });
   }
-
 }

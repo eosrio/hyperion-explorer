@@ -34,7 +34,8 @@ table {
 }
 
 /* Add alternating row colors for better readability */
-.deltas-table tr.mat-mdc-row:nth-child(even), .transactions-table tr.mat-mdc-row:nth-child(even) {
+.deltas-table tr.mat-mdc-row:nth-child(even),
+.transactions-table tr.mat-mdc-row:nth-child(even) {
   background-color: rgba(0, 0, 0, 0.007);
 }
 
@@ -69,11 +70,19 @@ tr.element-row:not(.expanded-row):active {
 }
 
 .element-detail {
-  overflow: visible;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 225ms ease-out;
   width: 100%;
   max-width: 100%;
+}
+
+.element-detail.is-expanded {
+  grid-template-rows: 1fr;
+}
+.detail-content {
+  min-height: 0;
+  overflow: hidden;
 }
 
 .element-diagram {
@@ -116,15 +125,16 @@ tr.element-row:not(.expanded-row):active {
   /*::ng-deep .actions-table > thead > .mat-mdc-header-row {*/
   /*  top: 7.625rem;*/
   /*}*/
-  ::ng-deep .transactions-table > thead >.mat-mdc-header-row {
+  ::ng-deep .transactions-table > thead > .mat-mdc-header-row {
     top: 7.625rem;
   }
-  ::ng-deep .deltas-table > thead >.mat-mdc-header-row {
+  ::ng-deep .deltas-table > thead > .mat-mdc-header-row {
     top: 7.625rem;
   }
 }
 
-.transactions-table th.mat-mdc-header-cell, .deltas-table th.mat-mdc-header-cell {
+.transactions-table th.mat-mdc-header-cell,
+.deltas-table th.mat-mdc-header-cell {
   font-weight: 600;
   color: var(--primary);
   padding: 1rem 0.75rem;
@@ -138,13 +148,13 @@ tr.element-row:not(.expanded-row):active {
     z-index: 1 !important;
   }
 
-  ::ng-deep .transactions-table > thead >  .mat-mdc-header-row {
+  ::ng-deep .transactions-table > thead > .mat-mdc-header-row {
     background: transparent;
     position: sticky;
     z-index: 49;
   }
 
-  ::ng-deep .deltas-table > thead >  .mat-mdc-header-row {
+  ::ng-deep .deltas-table > thead > .mat-mdc-header-row {
     background: transparent;
     position: sticky;
     z-index: 100;
@@ -154,19 +164,20 @@ tr.element-row:not(.expanded-row):active {
     background: transparent !important;
   }
 
-  [mat-header-row], [mat-row] {
+  [mat-header-row],
+  [mat-row] {
     border-radius: var(--card-border-radius) !important;
   }
 
   /*tr.element-row:not(.expanded-row) .mat-column-icon, [mat-header-cell].mat-column-icon, */
   .mat-mdc-header-cell:first-of-type {
-    border-radius:  var(--card-border-radius) 0 0  var(--card-border-radius);
+    border-radius: var(--card-border-radius) 0 0 var(--card-border-radius);
     z-index: 0;
   }
 
   /*.transactions-table [mat-header-cell].mat-column-action,*/
   .mat-mdc-header-cell:last-of-type {
-    border-radius: 0  var(--card-border-radius)  var(--card-border-radius) 0;
+    border-radius: 0 var(--card-border-radius) var(--card-border-radius) 0;
   }
 
   /*tr.element-row:not(.expanded-row) .mat-column-action {*/
@@ -176,7 +187,6 @@ tr.element-row:not(.expanded-row):active {
   .mat-column-location {
     justify-items: center;
   }
-
 }
 
 /*table responsive*/
@@ -195,7 +205,9 @@ tr.element-row:not(.expanded-row):active {
     z-index: 2;
   }
 
-  ::ng-deep .mat-mdc-table tbody, ::ng-deep .mat-mdc-table tfoot, ::ng-deep .mat-mdc-table thead {
+  ::ng-deep .mat-mdc-table tbody,
+  ::ng-deep .mat-mdc-table tfoot,
+  ::ng-deep .mat-mdc-table thead {
     display: flex;
     flex-direction: column;
   }
@@ -209,13 +221,13 @@ tr.element-row:not(.expanded-row):active {
     /*display: none;*/
   }
 
-  [mat-table] [mat-header-row] th[mat-header-cell]>.mat-sort-header-container {
+  [mat-table] [mat-header-row] th[mat-header-cell] > .mat-sort-header-container {
     padding-left: 0.938rem;
   }
 
   [mat-table] [mat-header-row] th[mat-header-cell]:not([mat-sort-header]),
-  [mat-table] [mat-header-row] th[mat-header-cell]>.mat-sort-header-container.mat-sort-header-disabled,
-  [mat-table] [mat-header-row] th[mat-header-cell]>.mat-sort-header-container.mat-column-actions {
+  [mat-table] [mat-header-row] th[mat-header-cell] > .mat-sort-header-container.mat-sort-header-disabled,
+  [mat-table] [mat-header-row] th[mat-header-cell] > .mat-sort-header-container.mat-column-actions {
     display: none;
   }
 
@@ -266,7 +278,7 @@ tr.element-row:not(.expanded-row):active {
     padding: 0 0.5rem;
   }
 
-  [mat-table] [mat-row] td.mat-column-actions>button {
+  [mat-table] [mat-row] td.mat-column-actions > button {
     margin: 0.5rem 0;
   }
 
@@ -282,7 +294,7 @@ tr.element-row:not(.expanded-row):active {
   }
 
   [mat-table] [mat-row]:not(:last-of-type):not(.detail-row) td:last-of-type {
-  /*[mat-table] [mat-row]:not(:last-of-type):has(+ [mat-row].detail-row:not(:last-of-type)) td:last-of-type {*/
+    /*[mat-table] [mat-row]:not(:last-of-type):has(+ [mat-row].detail-row:not(:last-of-type)) td:last-of-type {*/
     border-bottom: 0.5rem solid #e5e5e5;
     padding-bottom: 1.25rem !important;
   }
@@ -308,12 +320,12 @@ tr.element-row:not(.expanded-row):active {
 /*chevron animation start*/
 ::ng-deep .arrowRight .svg-inline--fa {
   transform: rotate(0deg);
-  animation: arrowRightAnimation 225ms cubic-bezier(0.4,0.0,0.2,1);
+  animation: arrowRightAnimation 225ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-::ng-deep  .arrowDown .svg-inline--fa {
+::ng-deep .arrowDown .svg-inline--fa {
   transform: rotate(90deg);
-  animation: arrowDownAnimation 225ms cubic-bezier(0.4,0.0,0.2,1);
+  animation: arrowDownAnimation 225ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes arrowRightAnimation {

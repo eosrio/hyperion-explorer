@@ -9,20 +9,22 @@
                        [targetDiv]="searchbarTargetDiv"
                        [progress]="transitionProgress()">
   <div class="w-full">
-    <form [formGroup]="searchForm" (ngSubmit)="submit()" class="flex flex-col">
+    <form [formGroup]="searchForm" (ngSubmit)="submit()" class="flex flex-col" role="search" aria-label="Blockchain search">
       <div class="custom-input-group grow w-full flex flex-row rounded-full pr-2">
         <div class="relative grow min-w-0">
           @if (!searchForm.get('search_field')?.value) {
-          <div class="custom-placeholder absolute left-5 top-0 flex items-center h-full pointer-events-none">
+          <div aria-hidden="true" class="custom-placeholder absolute left-5 top-0 flex items-center h-full pointer-events-none">
             <span class="static-placeholder">Search by&nbsp;</span>
             <span class="dynamic-placeholder"> {{ dynamicPlaceholder() }}</span>
           </div>
           }
-          <input #searchFieldRef formControlName="search_field" placeholder=""
+          <input #searchFieldRef formControlName="search_field" placeholder="" type="search"
+                 aria-label="Account name, block number, transaction ID, or public key"
+                 aria-describedby="search-error" autocomplete="off" autocapitalize="off" spellcheck="false"
                  class="custom-input grow outline-hidden pl-5 rounded-l-full w-full max-w-full"
                  [matAutocomplete]="auto">
         </div>
-        <button mat-raised-button class="search-btn place-self-center" [class.primary-btn]="validSearch()">
+        <button type="submit" aria-label="Search blockchain" mat-raised-button class="search-btn place-self-center" [class.primary-btn]="validSearch()">
           <fa-icon [icon]="icons.solid.search"></fa-icon>
           @if (validSearch()) {
             <span class="hidden sm:inline sm:pl-1">Search </span><span class="pl-1 sm:pl-0">{{ searchService.searchType() }}</span>
@@ -35,7 +37,7 @@
         @if (err()) {
 
           <div class="w-full max-w-full pl-5">
-            <div class="justify-start text-red-600 pt-2 animate fast fadeInDown">{{ err() }}</div>
+            <div id="search-error" role="alert" class="justify-start text-red-600 pt-2 animate fast fadeInDown">{{ err() }}</div>
           </div>
 
         }
@@ -61,7 +63,7 @@
       <div class="hr-container flex flex-row flex-wrap justify-between items-center gap-5">
 
         <div class="flex flex-row items-center gap-1.5 xs:gap-1.5">
-          <div routerLink="/" style="cursor: pointer"
+          <a routerLink="/" aria-label="Hyperion Explorer home"
                class="flex flex-row flex-wrap justify-start items-center gap-1.5 xs:gap-1.5">
             <img
               ngSrc="assets/hyperion-pulse.svg"
@@ -73,7 +75,7 @@
 
             <div class="logo-name hidden sm:block">HYPERION</div>
             <div id="tagline" class="tagline faded">Lightweight Explorer</div>
-          </div>
+          </a>
 
           <div #logoTargetDivMobile class="compact-logo opacity-0 block sm:hidden">
             <img [src]="chainData().logo" id="compact-logo-mobile" alt="logo" class="logo"/>
@@ -90,7 +92,7 @@
         @if (chainData()) {
           <div class="faded provider hidden sm:inline">
             Data provider:
-            <a [href]="chainData().provider_url" target="_blank">{{ chainData().provider }}</a>
+            <a [href]="chainData().provider_url" target="_blank" rel="noopener noreferrer">{{ chainData().provider }}</a>
           </div>
         }
       </div>
@@ -112,20 +114,23 @@
   </div>
 
   <div #contentContainer id="content-container" class="flex flex-col justify-between pb-10 w-full grow">
-    <div>
+    <main id="main-content" tabindex="-1">
       <router-outlet></router-outlet>
-    </div>
+    </main>
     <div class="flex md:flex-row flex-col justify-between items-center hr-container w-full pt-4 gap-4">
       <div class="w-[4.383rem]"></div>
       <div class="footer-color justify-self-center">v{{ version }} | Made with
-        <fa-icon (click)="showThemeSelector.set(!showThemeSelector())" [icon]="icons.solid.heart"></fa-icon>
+        <button type="button" aria-label="Choose explorer theme" [attr.aria-expanded]="showThemeSelector()"
+                (click)="showThemeSelector.set(!showThemeSelector())" class="theme-toggle">
+          <fa-icon [icon]="icons.solid.heart"></fa-icon>
+        </button>
         by RioBlocks
       </div>
       <div class="flex flex-row items-center gap-3">
-        <a class="icon-link" href="https://github.com/eosrio/hyperion-explorer" target="_blank">
+        <a class="icon-link" aria-label="Hyperion Explorer on GitHub" href="https://github.com/eosrio/hyperion-explorer" target="_blank" rel="noopener noreferrer">
           <fa-icon [icon]="icons.brand.github" class="text-xl " size="xl"></fa-icon>
         </a>
-        <a class="icon-link" href="https://t.me/EOSHyperion" target="_blank">
+        <a class="icon-link" aria-label="Hyperion community on Telegram" href="https://t.me/EOSHyperion" target="_blank" rel="noopener noreferrer">
           <fa-icon [icon]="icons.brand.telegram" class="text-xl" size="xl"></fa-icon>
         </a>
       </div>

@@ -23,8 +23,8 @@ import { faComputer, faFilter, faMoneyBill, faRightFromBracket, faRightToBracket
 import { IconDefinition } from "@fortawesome/angular-fontawesome";
 import { isPlatformBrowser } from "@angular/common";
 import { SortDirection } from "@angular/material/sort";
+import { describeApiError } from "../api-errors";
 import { ChainService } from "./chain.service";
-import { devEnv } from "../dev.env";
 
 interface HealthResponse {
   features: {
@@ -66,6 +66,7 @@ export class AccountService {
 
   // signals
   public loaded = signal(false);
+  public requestError = signal<string | null>(null);
   public accountName = signal("");
   public customParams = signal<Record<string, string> | undefined>(undefined);
 
@@ -238,15 +239,18 @@ export class AccountService {
     }
   });
 
+  private accountResponse = computed(() => (this.accountDataRes.hasValue() ? this.accountDataRes.value() : undefined));
+  private actionResponse = computed(() => (this.actionRes.hasValue() ? this.actionRes.value() : undefined));
+
   public firstGlobalSequence = computed<number>(() => {
-    return this.accountDataRes.value()?.actions[0]?.global_sequence ?? 0;
+    return this.accountResponse()?.actions[0]?.global_sequence ?? 0;
   });
 
   public totalActionCounter = computed(() => {
     if (this.filter()) {
-      return this.actionRes.value()?.total.value ?? 0;
+      return this.actionResponse()?.total?.value ?? 0;
     } else {
-      const total = this.accountDataRes.value()?.total_actions ?? 0;
+      const total = this.accountResponse()?.total_actions ?? 0;
       if (total > MAX_ES_SKIP) {
         return MAX_ES_SKIP;
       } else {
@@ -257,15 +261,15 @@ export class AccountService {
 
   // computed signals
   public tokensComputed = computed<TokenData[]>(() => {
-    return this.accountDataRes.value()?.tokens ?? [];
+    return this.accountResponse()?.tokens ?? [];
   });
 
   public accountComputed = computed<AccountData>(() => {
-    return this.accountDataRes.value()?.account ?? this.emptyAccount;
+    return this.accountResponse()?.account ?? this.emptyAccount;
   });
 
   public hasContract = computed(() => {
-    const account = this.accountDataRes.value()?.account;
+    const account = this.accountResponse()?.account;
     if (account) {
       const last_code_update = account.last_code_update;
       if (!last_code_update) {
@@ -281,8 +285,8 @@ export class AccountService {
   public actionsComputed = linkedSignal<any, any[]>({
     source: () => {
       return {
-        accountActions: this.accountDataRes.value()?.actions ?? [],
-        filteredActions: this.actionRes.value()?.actions ?? [],
+        accountActions: this.accountResponse()?.actions ?? [],
+        filteredActions: this.actionResponse()?.actions ?? [],
         streamingActions: this.streamingActions() ?? [],
         activeFilter: this.filter(),
         pageIndex: this.pageIndex(),
@@ -522,13 +526,14 @@ export class AccountService {
 
   async loadTxData(txId: string): Promise<any> {
     this.loaded.set(false);
+    this.requestError.set(null);
     try {
       const url = this.data.env.hyperionApiUrl + "/v2/history/get_transaction?id=" + txId;
       const data = await lastValueFrom(this.httpClient.get(url));
       this.loaded.set(true);
       return data;
     } catch (error) {
-      console.log(error);
+      this.requestError.set(describeApiError(error));
       this.loaded.set(true);
       return null;
     }
@@ -551,13 +556,14 @@ export class AccountService {
   async loadPubKey(key: string): Promise<any> {
     console.log("Loading key data for: " + key);
     this.loaded.set(false);
+    this.requestError.set(null);
     try {
-      const url = this.data.env.hyperionApiUrl + "/v2/state/get_key_accounts?public_key=" + key + "&details=true";
+      const url = this.data.env.hyperionApiUrl + "/v2/state/get_key_accounts?public_key=" + encodeURIComponent(key) + "&details=true";
       const data = await lastValueFrom(this.httpClient.get(url));
       this.loaded.set(true);
       return data;
     } catch (error) {
-      console.log(error);
+      this.requestError.set(describeApiError(error));
       this.loaded.set(true);
       return null;
     }
@@ -632,9 +638,9 @@ export class AccountService {
   async startActionStream() {
     if (!this.streamClient) {
       this.streamClient = new HyperionStreamClient({
-        endpoint: devEnv.streamApiUrl ?? this.data.env.hyperionApiUrl,
+        endpoint: this.data.env.streamApiUrl || this.data.env.hyperionApiUrl,
         libMonitor: true,
-        debug: true
+        debug: false
       });
       await this.streamClient.connect();
       this.streamClient.on("libUpdate", data => {

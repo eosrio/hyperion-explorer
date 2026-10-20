@@ -1,4 +1,4 @@
-import { Component, effect, ElementRef, inject, OnInit, PLATFORM_ID, signal, viewChild } from '@angular/core';
+import { Component, effect, ElementRef, inject, OnInit, PLATFORM_ID, signal, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { SearchService } from "../../../services/search.service";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
@@ -33,7 +33,7 @@ import {
   faUser,
   faUserCircle,
   faVoteYea
-} from '@fortawesome/free-solid-svg-icons';
+} from "@fortawesome/free-solid-svg-icons";
 import { MatSort, MatSortModule, Sort } from "@angular/material/sort";
 import { AccountCreationData } from "../../../interfaces";
 import { DataService } from "../../../services/data.service";
@@ -50,7 +50,8 @@ import { PermissionTreeComponent } from "../../permission-tree/permission-tree.c
 import { FormsModule } from "@angular/forms";
 import { MatInput } from "@angular/material/input";
 import { ChainService } from "../../../services/chain.service";
-import { faTowerBroadcast } from "@fortawesome/free-solid-svg-icons/faTowerBroadcast";
+import { faTowerBroadcast } from "@fortawesome/free-solid-svg-icons";
+import { describeApiError } from "../../../api-errors";
 
 interface Permission {
   perm_name: string;
@@ -94,7 +95,7 @@ interface FlatNode {
 }
 
 @Component({
-  selector: 'app-account',
+  selector: "app-account",
   imports: [
     MatButton,
     MatProgressSpinner,
@@ -126,15 +127,12 @@ interface FlatNode {
     MatInput,
     MatChipsModule
   ],
-  templateUrl: './account.component.html',
-  styleUrls: [
-    './account.component.css',
-    './action-table.css',
-    './permissions-card.css'
-  ]
+  templateUrl: "./account.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
+  styleUrls: ["./account.component.css", "./action-table.css", "./permissions-card.css"]
 })
 export class AccountComponent implements OnInit {
-
+  describeApiError = describeApiError;
   dataService = inject(DataService);
   acServ = inject(AccountService);
   chain = inject(ChainService);
@@ -146,14 +144,14 @@ export class AccountComponent implements OnInit {
   router = inject(Router);
 
   sort = viewChild<MatSort>(MatSort);
-  balanceCard = viewChild<ElementRef<HTMLDivElement>>('balanceCard');
-  actionsTable = viewChild<ElementRef<HTMLDivElement>>('actionsTable');
+  balanceCard = viewChild<ElementRef<HTMLDivElement>>("balanceCard");
+  actionsTable = viewChild<ElementRef<HTMLDivElement>>("actionsTable");
 
   useUTC = signal(false);
   compactMode = signal(false);
 
-  contractFilterInput = signal<string>('');
-  actionFilterInput = signal<string>('');
+  contractFilterInput = signal<string>("");
+  actionFilterInput = signal<string>("");
   saveCustomFilter = signal<boolean>(false);
 
   icons = {
@@ -182,34 +180,33 @@ export class AccountComponent implements OnInit {
     regular: {
       faQuestionCircle: faQuestionCircle
     }
-  }
+  };
 
-  displayedColumns: string[] = ['trx_id', 'action', 'data', 'block_num'];
+  displayedColumns: string[] = ["trx_id", "action", "data", "block_num"];
 
-  systemSymbol = '';
+  systemSymbol = "";
 
   creationData = signal<AccountCreationData>({
     creator: undefined,
     timestamp: undefined
   });
-  systemTokenContract = 'eosio.token';
+  systemTokenContract = "eosio.token";
   private contractDialogRef?: MatDialogRef<ContractDialogComponent, any>;
   // Expansion panel states
   tokensExpanded = signal<boolean>(true);
   permissionsExpanded = signal<boolean>(true);
 
   constructor() {
-
-    this.searchService.searchType.set('account');
+    this.searchService.searchType.set("account");
 
     this.route.paramMap.subscribe(value => {
-      this.searchService.searchQuery.set(value.get('account_name') ?? "");
+      this.searchService.searchQuery.set(value.get("account_name") ?? "");
     });
 
     this.route.queryParamMap.subscribe(value => {
-      if (value.has('table') || (value.has('table') && value.has('scope'))) {
+      if (value.has("table") || (value.has("table") && value.has("scope"))) {
         if (!this.contractDialogRef) {
-          this.openContractsDialog(value.get('table'), value.get('scope'));
+          this.openContractsDialog(value.get("table"), value.get("scope"));
         }
       }
     });
@@ -244,12 +241,6 @@ export class AccountComponent implements OnInit {
 
     // Update page title when account data changes
     effect(() => {
-      const _value = this.acServ.accountDataRes.value();
-
-      if (!this.dataService.explorerMetadata) {
-        return;
-      }
-
       const accountName = this.acServ.accountName();
       const chainData = this.dataService.explorerMetadata();
 
@@ -262,35 +253,47 @@ export class AccountComponent implements OnInit {
   }
 
   private accountStickyMotion(accountNameSticky?: ElementRef<HTMLDivElement>) {
-    scroll(
-      animate('#totalBalance', { x: [-100, 0], opacity: [0, 1] }, { duration: 1 }),
-      { target: accountNameSticky?.nativeElement, offset: ['start 200px', 'start 100px'] }
-    );
+    scroll(animate("#totalBalance", { x: [-100, 0], opacity: [0, 1] }, { duration: 1 }), {
+      target: accountNameSticky?.nativeElement,
+      offset: ["start 200px", "start 100px"]
+    });
   }
 
   private tableStickyMotion(tableSticky?: ElementRef<HTMLDivElement>) {
     // Apply animation to the header row
     scroll(
-      animate('.mat-mdc-header-row', {
-        boxShadow: 'rgba(78 104 192, 0.25) 0px 4px 19px 0px, rgba(17, 12, 46, 0.15) 0px 20px 100px 0px',
-        background: 'var(--table-top-bg-gradient)'
-      }, { duration: 1 }),
-      { target: tableSticky?.nativeElement, offset: ['end 250px', '200px 250px'] }
+      animate(
+        ".mat-mdc-header-row",
+        {
+          boxShadow: "rgba(78 104 192, 0.25) 0px 4px 19px 0px, rgba(17, 12, 46, 0.15) 0px 20px 100px 0px",
+          background: "var(--table-top-bg-gradient)"
+        },
+        { duration: 1 }
+      ),
+      { target: tableSticky?.nativeElement, offset: ["end 250px", "200px 250px"] }
     );
 
     // Apply border radius animation to the trx_id column and column-block_num separately
     scroll(
-      animate('[mat-header-cell].mat-column-trx_id', {
-        borderRadius: '1rem 0 0  1rem'
-      }, { duration: 1 }),
-      { target: tableSticky?.nativeElement, offset: ['end 250px', '200px 250px'] }
+      animate(
+        "[mat-header-cell].mat-column-trx_id",
+        {
+          borderRadius: "1rem 0 0  1rem"
+        },
+        { duration: 1 }
+      ),
+      { target: tableSticky?.nativeElement, offset: ["end 250px", "200px 250px"] }
     );
 
     scroll(
-      animate('[mat-header-cell].mat-column-block_num', {
-        borderRadius: '0  1rem 1rem 0'
-      }, { duration: 1 }),
-      { target: tableSticky?.nativeElement, offset: ['end 250px', '200px 250px'] }
+      animate(
+        "[mat-header-cell].mat-column-block_num",
+        {
+          borderRadius: "0  1rem 1rem 0"
+        },
+        { duration: 1 }
+      ),
+      { target: tableSticky?.nativeElement, offset: ["end 250px", "200px 250px"] }
     );
   }
 
@@ -304,7 +307,6 @@ export class AccountComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.params.subscribe(async (routeParams: any) => {
-
       // if (this.accountService.streamClientStatus) {
       //   this.accountService.disconnectStream();
       // }
@@ -351,14 +353,13 @@ export class AccountComponent implements OnInit {
       //   // }
       //
       // }
-
     });
   }
 
   getSymbol(asset: string): string | null {
     if (asset) {
       try {
-        return asset.split(' ')[1];
+        return asset.split(" ")[1];
       } catch (e) {
         return null;
       }
@@ -372,30 +373,31 @@ export class AccountComponent implements OnInit {
   }
 
   getChildren(arr: Permission[], parent: string): Permission[] {
-    return arr.filter(value => value.parent === parent).map((value) => {
-      const children = this.getChildren(arr, value.perm_name);
-      if (children.length > 0) {
-        value.children = children;
-      }
-      return value;
-    });
+    return arr
+      .filter(value => value.parent === parent)
+      .map(value => {
+        const children = this.getChildren(arr, value.perm_name);
+        if (children.length > 0) {
+          value.children = children;
+        }
+        return value;
+      });
   }
 
   convertBytes(bytes: number): string {
-    if (bytes > (1024 ** 3)) {
-      return (bytes / (1024 ** 3)).toFixed(2) + ' GB';
+    if (bytes > 1024 ** 3) {
+      return (bytes / 1024 ** 3).toFixed(2) + " GB";
     }
-    if (bytes > (1024 ** 2)) {
-      return (bytes / (1024 ** 2)).toFixed(2) + ' MB';
+    if (bytes > 1024 ** 2) {
+      return (bytes / 1024 ** 2).toFixed(2) + " MB";
     }
     if (bytes > 1024) {
-      return (bytes / (1024)).toFixed(2) + ' KB';
+      return (bytes / 1024).toFixed(2) + " KB";
     }
-    return bytes + ' bytes';
+    return bytes + " bytes";
   }
 
   changePage(event: PageEvent): void {
-
     const skip = event.pageIndex * event.pageSize;
     if (skip < MAX_ES_SKIP) {
       this.acServ.pageIndex.set(event.pageIndex);
@@ -417,17 +419,16 @@ export class AccountComponent implements OnInit {
     // } catch (e) {
     //   console.log(e);
     // }
-
   }
 
   openContractsDialog(table: string | null, scope: string | null): void {
-    console.log('Opening contract dialog');
+    console.log("Opening contract dialog");
     if (this.searchService.searchQuery()) {
       this.contractDialogRef = this.dialog.open<ContractDialogComponent>(ContractDialogComponent, {
-        width: '1235px',
-        height: 'auto',
-        minHeight: '90dvh',
-        maxHeight: '90dvh',
+        width: "1235px",
+        height: "auto",
+        minHeight: "90dvh",
+        maxHeight: "90dvh",
         restoreFocus: true,
         data: {
           account: this.searchService.searchQuery(),
@@ -435,27 +436,32 @@ export class AccountComponent implements OnInit {
           scope: scope
         },
         autoFocus: false,
-        panelClass: ['responsive-modal', 'contract-dialog-panel'],
+        panelClass: ["responsive-modal", "contract-dialog-panel"]
       });
 
       this.contractDialogRef.afterClosed().subscribe(() => {
         this.contractDialogRef = undefined;
-        console.log('Contract Dialog closed');
+        console.log("Contract Dialog closed");
         // clear query params
-        this.router.navigate([], {
-          queryParams: {}
-        }).catch(console.log);
+        this.router
+          .navigate([], {
+            queryParams: {}
+          })
+          .catch(console.log);
       });
-
     }
   }
 
   formatEVMValue(value: any) {
-    return Number(((value as bigint) / 1000000000000000000n)).toFixed(4);
+    return Number((value as bigint) / 1000000000000000000n).toFixed(4);
   }
 
   checkKey(action: any, key: any) {
-    return action['act']['account'] === 'eosio.evm' && action['act']['name'] === 'raw' && ['to', 'from', 'hash', 'value', 'block'].includes(key as string);
+    return (
+      action["act"]["account"] === "eosio.evm" &&
+      action["act"]["name"] === "raw" &&
+      ["to", "from", "hash", "value", "block"].includes(key as string)
+    );
   }
 
   asArray(value: any): any[] {
@@ -464,17 +470,17 @@ export class AccountComponent implements OnInit {
 
   onRowClick(row: any) {
     const dialogRef = this.dialog.open(ActionDetailsComponent, {
-      width: '1024px',
-      height: 'auto',
+      width: "1024px",
+      height: "auto",
       autoFocus: false,
-      panelClass: ['responsive-modal'],
+      panelClass: ["responsive-modal"],
       data: {
         action: row
       }
     });
 
     dialogRef.afterClosed().subscribe(value => {
-      console.log('Action Detail dialog closed!');
+      console.log("Action Detail dialog closed!");
       console.log(value);
     });
   }
@@ -488,20 +494,20 @@ export class AccountComponent implements OnInit {
     const action = this.actionFilterInput();
     const saveFilter = this.saveCustomFilter();
     const filterSpec: ActionFilterSpec = {
-      name: (contract || '*') + '::' + (action || '*'),
+      name: (contract || "*") + "::" + (action || "*"),
       icon: faFilter,
       userFilter: this.saveCustomFilter(),
       exec: params => {
         const conf = {} as Record<string, string>;
         if (contract) {
-          conf['act.account'] = contract;
+          conf["act.account"] = contract;
         }
         if (action) {
-          conf['act.name'] = action;
+          conf["act.name"] = action;
         }
         params.set(conf);
       }
-    }
+    };
     if (saveFilter) {
       // check if the filter is already added
       const existing = this.acServ.commonFilters.find(f => f.name === filterSpec.name);
@@ -520,14 +526,14 @@ export class AccountComponent implements OnInit {
   setFilter(filter: ActionFilterSpec) {
     if (this.acServ.filter()?.name !== filter.name) {
       if (filter.userFilter) {
-        const [contract, action] = filter.name.split('::');
+        const [contract, action] = filter.name.split("::");
         this.contractFilterInput.set(contract);
         this.actionFilterInput.set(action);
       }
       this.acServ.setFilter(filter);
     } else {
-      this.contractFilterInput.set('');
-      this.actionFilterInput.set('');
+      this.contractFilterInput.set("");
+      this.actionFilterInput.set("");
       this.acServ.filter.set(null);
     }
   }

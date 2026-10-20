@@ -1,12 +1,12 @@
-import {Component, ElementRef, inject, OnDestroy, OnInit, PLATFORM_ID, viewChild} from '@angular/core';
-import {animate, state, style, transition, trigger} from "@angular/animations";
-import {MatProgressSpinner} from "@angular/material/progress-spinner";
-import {FontAwesomeModule} from "@fortawesome/angular-fontawesome";
-import {MatChipsModule} from "@angular/material/chips";
-import {MatTableModule} from "@angular/material/table";
-import {MatButton, MatIconButton} from "@angular/material/button";
-import {ActivatedRoute, RouterModule} from "@angular/router";
-import {isPlatformBrowser, KeyValuePipe, NgClass} from "@angular/common";
+import { describeApiError } from "../../../api-errors";
+import { Component, ElementRef, inject, OnDestroy, OnInit, PLATFORM_ID, viewChild, ChangeDetectionStrategy } from "@angular/core";
+import { MatProgressSpinner } from "@angular/material/progress-spinner";
+import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
+import { MatChipsModule } from "@angular/material/chips";
+import { MatTableModule } from "@angular/material/table";
+import { MatButton, MatIconButton } from "@angular/material/button";
+import { ActivatedRoute, RouterModule } from "@angular/router";
+import { isPlatformBrowser, KeyValuePipe, NgClass } from "@angular/common";
 import {
   faArrowLeft,
   faArrowRight,
@@ -20,19 +20,19 @@ import {
   faSadTear,
   faSpinner
 } from "@fortawesome/free-solid-svg-icons";
-import {Title} from "@angular/platform-browser";
-import {SearchService} from "../../../services/search.service";
-import {DataService} from "../../../services/data.service";
-import {animate as motionAnimate, scroll} from "motion";
-import {toObservable} from "@angular/core/rxjs-interop";
-import {ActDataViewComponent} from "../../act-data-view/act-data-view.component";
-import {BlockService} from "../../../services/block.service";
-import {ChainService} from "../../../services/chain.service";
-import {DeltaService} from "../../../services/delta.service";
-import {MatTooltip} from "@angular/material/tooltip";
+import { Title } from "@angular/platform-browser";
+import { SearchService } from "../../../services/search.service";
+import { DataService } from "../../../services/data.service";
+import { animate as motionAnimate, scroll } from "motion";
+import { toObservable } from "@angular/core/rxjs-interop";
+import { ActDataViewComponent } from "../../act-data-view/act-data-view.component";
+import { BlockService } from "../../../services/block.service";
+import { ChainService } from "../../../services/chain.service";
+import { DeltaService } from "../../../services/delta.service";
+import { MatTooltip } from "@angular/material/tooltip";
 
 @Component({
-  selector: 'app-block',
+  selector: "app-block",
   imports: [
     RouterModule,
     MatChipsModule,
@@ -46,17 +46,12 @@ import {MatTooltip} from "@angular/material/tooltip";
     MatTooltip,
     MatButton
   ],
-  templateUrl: './block.component.html',
-  styleUrl: './block.component.css',
-  animations: [
-    trigger('detailExpand', [
-      state('collapsed', style({height: '0px', minHeight: '0'})),
-      state('expanded', style({height: '*'})),
-      transition('expanded <=> collapsed', animate('225ms cubic-bezier(0.4, 0.0, 0.2, 1)')),
-    ]),
-  ]
+  templateUrl: "./block.component.html",
+  styleUrl: "./block.component.css",
+  changeDetection: ChangeDetectionStrategy.Eager
 })
 export class BlockComponent implements OnInit, OnDestroy {
+  describeApiError = describeApiError;
   private route = inject(ActivatedRoute);
   private dataService = inject(DataService);
   private searchService = inject(SearchService);
@@ -67,11 +62,11 @@ export class BlockComponent implements OnInit, OnDestroy {
   deltaService = inject(DeltaService);
   chain = inject(ChainService);
 
-  txColumnsToDisplay: string[] = ['icon', 'id', 'root', 'action'];
-  txColumnsInside: string[] = ['action', 'data', 'auth'];
+  txColumnsToDisplay: string[] = ["icon", "id", "root", "action"];
+  txColumnsInside: string[] = ["action", "data", "auth"];
   txExpandedElement: any | null;
 
-  deltasColumnsToDisplay: string[] = ['present', 'location', 'payer', 'data'];
+  deltasColumnsToDisplay: string[] = ["present", "location", "payer", "data"];
 
   icons = {
     solid: {
@@ -87,13 +82,13 @@ export class BlockComponent implements OnInit, OnDestroy {
       arrowRight: faArrowRight,
       arrowLeft: faArrowLeft
     }
-  }
+  };
 
   countdownLoop: any;
   countdownTimer = 0;
-  transactionsTable = viewChild<ElementRef<HTMLDivElement>>('transactionsTable');
-  actionsTable = viewChild<ElementRef<HTMLDivElement>>('actionsTable');
-  deltasTable = viewChild<ElementRef<HTMLDivElement>>('deltasTable');
+  transactionsTable = viewChild<ElementRef<HTMLDivElement>>("transactionsTable");
+  actionsTable = viewChild<ElementRef<HTMLDivElement>>("actionsTable");
+  deltasTable = viewChild<ElementRef<HTMLDivElement>>("deltasTable");
   platformId = inject(PLATFORM_ID);
 
   objectKeyCount(obj: any): number {
@@ -105,10 +100,9 @@ export class BlockComponent implements OnInit, OnDestroy {
   }
 
   constructor() {
-
-    toObservable(this.transactionsTable).subscribe((value) => {
+    toObservable(this.transactionsTable).subscribe(value => {
       if (value && isPlatformBrowser(this.platformId)) {
-        this.tableStickyMotion('.transactions-table-header', value);
+        this.tableStickyMotion(".transactions-table-header", value);
       }
     });
 
@@ -118,18 +112,18 @@ export class BlockComponent implements OnInit, OnDestroy {
     //   }
     // });
 
-    toObservable(this.deltasTable).subscribe((value) => {
+    toObservable(this.deltasTable).subscribe(value => {
       if (value && isPlatformBrowser(this.platformId)) {
-        this.tableStickyMotion('.deltas-table-header', value);
+        this.tableStickyMotion(".deltas-table-header", value);
       }
     });
   }
 
   ngOnInit(): void {
-    this.searchService.searchType.set('block');
+    this.searchService.searchType.set("block");
 
     this.route.paramMap.subscribe(async value => {
-      const block_num_or_id = value.get('block_num_or_id')?.trim();
+      const block_num_or_id = value.get("block_num_or_id")?.trim();
 
       // console.log('block_num_or_id', block_num_or_id);
 
@@ -150,7 +144,7 @@ export class BlockComponent implements OnInit, OnDestroy {
         }
       }
 
-      this.searchService.searchQuery.set(value.get('block_num_or_id') ?? "");
+      this.searchService.searchQuery.set(value.get("block_num_or_id") ?? "");
       if (!this.dataService.explorerMetadata()?.chain_name) {
         this.title.setTitle(`Block ${this.blockService.blockNum()} • Hyperion Explorer`);
       } else {
@@ -169,7 +163,6 @@ export class BlockComponent implements OnInit, OnDestroy {
       //     }
       //   }, 1000);
       // }
-
     });
   }
 
@@ -192,12 +185,16 @@ export class BlockComponent implements OnInit, OnDestroy {
   }
 
   private tableStickyMotion(target: string, tableSticky?: ElementRef<HTMLDivElement>) {
-    scroll(motionAnimate(target, {
-        boxShadow: 'rgba(78 104 192, 0.25) 0px 4px 19px 0px, rgba(17, 12, 46, 0.15) 0px 20px 100px 0px',
-        background: 'var(--table-top-bg-gradient)'
-      }, {duration: 1}),
-      {target: tableSticky?.nativeElement, offset: ['end 250px', '200px 250px']}
+    scroll(
+      motionAnimate(
+        target,
+        {
+          boxShadow: "rgba(78 104 192, 0.25) 0px 4px 19px 0px, rgba(17, 12, 46, 0.15) 0px 20px 100px 0px",
+          background: "var(--table-top-bg-gradient)"
+        },
+        { duration: 1 }
+      ),
+      { target: tableSticky?.nativeElement, offset: ["end 250px", "200px 250px"] }
     );
   }
-
 }

@@ -6,20 +6,18 @@ import {
   provideAppInitializer,
   provideZonelessChangeDetection,
   REQUEST
-} from '@angular/core';
-import {provideRouter, Router} from '@angular/router';
+} from "@angular/core";
+import { provideRouter, Router } from "@angular/router";
 
-import {routes} from './app.routes';
-import {provideClientHydration, withIncrementalHydration} from '@angular/platform-browser';
-import {provideAnimationsAsync} from '@angular/platform-browser/animations/async';
-import {provideHttpClient, withFetch} from "@angular/common/http";
-import {DataService, DataServiceBrowser} from "./services/data.service";
-import {isPlatformBrowser} from "@angular/common";
-import {defineOrigin} from "./origin-config";
-import { NgxEchartsModule } from 'ngx-echarts'; // Import NgxEchartsModule
+import { routes } from "./app.routes";
+import { provideClientHydration, withIncrementalHydration } from "@angular/platform-browser";
+import { provideHttpClient, withFetch } from "@angular/common/http";
+import { DataService, DataServiceBrowser } from "./services/data.service";
+import { isPlatformBrowser } from "@angular/common";
+import { defineOrigin } from "./origin-config";
+import { NgxEchartsModule } from "ngx-echarts"; // Import NgxEchartsModule
 
 // Removed global echarts.use() - NgxEchartsModule.forRoot handles it
-
 
 async function initApp(): Promise<void> {
   const ds = inject(DataService);
@@ -30,10 +28,10 @@ async function initApp(): Promise<void> {
   await defineOrigin(ds, request, platformId);
   await ds.load();
 
-  if (!ds.explorerMetadata && ds.env.hyperionApiUrl) {
+  if (!ds.explorerMetadata() && ds.env.hyperionApiUrl) {
     console.error(`[${platformId}] Error loading explorer metadata:`, ds.initError);
     ds.ready.set(true);
-    await router.navigate(['/error']);
+    await router.navigate(["/error"]);
   } else {
     if (isPlatformBrowser(platformId)) {
       await ds.activateTheme();
@@ -48,13 +46,14 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     provideZonelessChangeDetection(),
     provideClientHydration(withIncrementalHydration()),
-    {provide: DataService, useClass: DataServiceBrowser},
+    { provide: DataService, useClass: DataServiceBrowser },
     provideAppInitializer(initApp),
-    provideAnimationsAsync(),
     provideHttpClient(withFetch()),
     // Provide NgxEchartsModule globally
-    importProvidersFrom(NgxEchartsModule.forRoot({
-      echarts: () => import('echarts')
-    }))
+    importProvidersFrom(
+      NgxEchartsModule.forRoot({
+        echarts: () => import("echarts")
+      })
+    )
   ]
 };

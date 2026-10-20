@@ -8,24 +8,25 @@ import {
   model,
   PLATFORM_ID,
   resource,
-  signal
-} from '@angular/core';
-import {Router} from "@angular/router";
-import {rxResource} from "@angular/core/rxjs-interop";
-import {HttpClient} from "@angular/common/http";
-import {lastValueFrom, map, of} from "rxjs";
-import {MatButton, MatIconButton} from "@angular/material/button";
-import {MatCell, MatColumnDef, MatHeaderCell, MatHeaderRow, MatRow, MatTableModule} from "@angular/material/table";
-import {MatSort, MatSortHeader, Sort} from "@angular/material/sort";
-import {MatTooltip} from "@angular/material/tooltip";
-import {AbiStructField, AbiTable, GetAbiResponse} from "../../interfaces";
-import {FormsModule} from '@angular/forms';
-import {MatDialogContent} from "@angular/material/dialog";
-import {isPlatformBrowser, NgClass} from "@angular/common";
-import {MatInput} from "@angular/material/input";
-import {MatIcon} from "@angular/material/icon";
-import {ActDataViewComponent} from "../act-data-view/act-data-view.component";
-import {DataService} from "../../services/data.service";
+  signal,
+  ChangeDetectionStrategy
+} from "@angular/core";
+import { Router } from "@angular/router";
+import { rxResource } from "@angular/core/rxjs-interop";
+import { HttpClient } from "@angular/common/http";
+import { lastValueFrom, map, of } from "rxjs";
+import { MatButton, MatIconButton } from "@angular/material/button";
+import { MatCell, MatColumnDef, MatHeaderCell, MatHeaderRow, MatRow, MatTableModule } from "@angular/material/table";
+import { MatSort, MatSortHeader, Sort } from "@angular/material/sort";
+import { MatTooltip } from "@angular/material/tooltip";
+import { AbiStructField, AbiTable, GetAbiResponse } from "../../interfaces";
+import { FormsModule } from "@angular/forms";
+import { MatDialogContent } from "@angular/material/dialog";
+import { isPlatformBrowser, NgClass } from "@angular/common";
+import { MatInput } from "@angular/material/input";
+import { MatIcon } from "@angular/material/icon";
+import { ActDataViewComponent } from "../act-data-view/act-data-view.component";
+import { DataService } from "../../services/data.service";
 
 function buildFieldArray(structs: any[], array: AbiStructField[], type: string): void {
   if (array && type) {
@@ -38,7 +39,7 @@ function buildFieldArray(structs: any[], array: AbiStructField[], type: string):
 }
 
 @Component({
-  selector: 'app-contract-explorer',
+  selector: "app-contract-explorer",
   imports: [
     FormsModule,
     MatButton,
@@ -56,13 +57,13 @@ function buildFieldArray(structs: any[], array: AbiStructField[], type: string):
     MatInput,
     MatIconButton,
     MatIcon,
-    ActDataViewComponent,
+    ActDataViewComponent
   ],
-  templateUrl: './contract-explorer.component.html',
-  styleUrl: './contract-explorer.component.css'
+  templateUrl: "./contract-explorer.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
+  styleUrl: "./contract-explorer.component.css"
 })
 export class ContractExplorerComponent {
-
   http = inject(HttpClient);
   router = inject(Router);
   data = inject(DataService);
@@ -88,7 +89,7 @@ export class ContractExplorerComponent {
   // request new abi when the code signal changes
   abiRes = rxResource({
     params: () => this.code(),
-    stream: ({params: code}) => {
+    stream: ({ params: code }) => {
       if (code) {
         return this.http.post<GetAbiResponse>(this.endpoints.getAbi, {
           account_name: code,
@@ -101,22 +102,25 @@ export class ContractExplorerComponent {
   });
 
   // request new table scopes when the table signal changes
-  tableScopesRes = rxResource<{
-    rows: any[],
-    more: string
-  } | null, {
-    table: string | null | undefined,
-    limit: number,
-    lb: string
-  }>({
+  tableScopesRes = rxResource<
+    {
+      rows: any[];
+      more: string;
+    } | null,
+    {
+      table: string | null | undefined;
+      limit: number;
+      lb: string;
+    }
+  >({
     params: () => {
       return {
         table: this.table(),
         limit: this.getTableByScopeLimit() ?? 30,
         lb: this.scopeLb()
-      }
+      };
     },
-    stream: ({params: data}) => {
+    stream: ({ params: data }) => {
       if (data.table) {
         // request table scopes
         return this.http.post<any>(this.endpoints.getTableByScope, {
@@ -135,16 +139,18 @@ export class ContractExplorerComponent {
 
   tableRowRes = rxResource({
     params: () => this.scope(),
-    stream: ({params: scope}) => {
+    stream: ({ params: scope }) => {
       if (scope) {
         // request table scopes
-        return this.http.post<any>(this.endpoints.getTableRows, {
-          code: this.code(),
-          table: this.table(),
-          scope: scope,
-          limit: this.getTableByScopeLimit,
-          json: true
-        }).pipe(map(d => d.rows));
+        return this.http
+          .post<any>(this.endpoints.getTableRows, {
+            code: this.code(),
+            table: this.table(),
+            scope: scope,
+            limit: this.getTableByScopeLimit,
+            json: true
+          })
+          .pipe(map(d => d.rows));
       } else {
         // return empty array if no table is selected
         return of([]);
@@ -157,16 +163,20 @@ export class ContractExplorerComponent {
       return {
         next: this.tableScopesRes.value()?.more,
         table: this.table()
-      }
+      };
     },
-    loader: async ({params: data}) => {
+    loader: async ({ params: data }) => {
       if (data.next && data.table) {
-        const entry = await lastValueFrom(this.http.post<any>(this.endpoints.getTableRows, {
-          code: this.code(),
-          table: data.table,
-          scope: data.next,
-          limit: 1
-        }).pipe(map(d => d.rows)));
+        const entry = await lastValueFrom(
+          this.http
+            .post<any>(this.endpoints.getTableRows, {
+              code: this.code(),
+              table: data.table,
+              scope: data.next,
+              limit: 1
+            })
+            .pipe(map(d => d.rows))
+        );
         return !!(entry && entry.length === 1);
       } else {
         return false;
@@ -179,7 +189,7 @@ export class ContractExplorerComponent {
       return {
         value: this.nextScopePresentRes.value(),
         nextScope: this.nextScope()
-      }
+      };
     },
     computation: (source, previous): boolean => {
       if (source.value !== undefined && source.nextScope) {
@@ -189,7 +199,6 @@ export class ContractExplorerComponent {
       }
     }
   });
-
 
   abiTableNames = computed<string[]>(() => {
     const data = this.abiRes.value();
@@ -205,7 +214,7 @@ export class ContractExplorerComponent {
       return {
         scopes: this.tableScopesRes.value(),
         nextPresent: this.nextScopePresentRes.value()
-      }
+      };
     },
     computation: (source, previous): string[] => {
       if (source.scopes && source.nextPresent !== undefined) {
@@ -228,7 +237,6 @@ export class ContractExplorerComponent {
       }
     }
   });
-
 
   nextScope = linkedSignal<any, string>({
     source: () => this.tableScopesRes.value(),
@@ -282,11 +290,11 @@ export class ContractExplorerComponent {
     },
     computation: (source, previous): any[] => {
       if (source.rows && source.rows.length > 0) {
-        if (source.dir === '') {
+        if (source.dir === "") {
           return source.rows;
         } else {
           return [...source.rows].sort((a: any, b: any) => {
-            if (source.dir === 'desc') {
+            if (source.dir === "desc") {
               return a[source.sort] > b[source.sort] ? 1 : -1;
             } else {
               return a[source.sort] > b[source.sort] ? -1 : 1;
@@ -323,13 +331,13 @@ export class ContractExplorerComponent {
     this.expandedItems.set(new Set<number>());
     this.autoExpanded.set(false);
     this.table.set(name);
-    if (this.navMode() === 'dialog') {
+    if (this.navMode() === "dialog") {
       // append scope as a query parameter
-      await this.router.navigate([], {queryParams: {table: name}});
-      this.scrollElementIntoView('scope-section');
+      await this.router.navigate([], { queryParams: { table: name } });
+      this.scrollElementIntoView("scope-section");
       // this.scrollToBottom();
     } else {
-      await this.router.navigate(['contract', this.code(), name]);
+      await this.router.navigate(["contract", this.code(), name]);
     }
   }
 
@@ -337,12 +345,12 @@ export class ContractExplorerComponent {
     this.scope.set(name);
     this.expandedItems.set(new Set<number>());
     this.autoExpanded.set(false);
-    if (this.navMode() === 'dialog') {
+    if (this.navMode() === "dialog") {
       // append scope as a query parameter
-      await this.router.navigate([], {queryParams: {table: this.table(), scope: name}});
-      this.scrollElementIntoView('data-section');
+      await this.router.navigate([], { queryParams: { table: this.table(), scope: name } });
+      this.scrollElementIntoView("data-section");
     } else {
-      await this.router.navigate(['contract', this.code(), this.table(), name]);
+      await this.router.navigate(["contract", this.code(), this.table(), name]);
     }
   }
 
@@ -370,7 +378,7 @@ export class ContractExplorerComponent {
         if (!element) {
           return;
         }
-        element.scrollIntoView({behavior: "smooth", block: "start", inline: "nearest"});
+        element.scrollIntoView({ behavior: "smooth", block: "start", inline: "nearest" });
       }, 100);
     }
   }
@@ -394,7 +402,7 @@ export class ContractExplorerComponent {
       const rows = this.tableData();
       const expanded = this.expandedItems();
       const alreadyAuto = this.autoExpanded();
-      if (mode === 'expanded' && rows && rows.length > 0 && expanded.size === 0 && !alreadyAuto) {
+      if (mode === "expanded" && rows && rows.length > 0 && expanded.size === 0 && !alreadyAuto) {
         this.expandedItems.set(new Set<number>([0]));
         this.autoExpanded.set(true);
       }

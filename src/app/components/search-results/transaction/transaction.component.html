@@ -1,4 +1,11 @@
-@if (!accountService.loaded()) {
+@if (accountService.requestError(); as error) {
+  <div class="hr-container">
+    <section class="api-error" role="alert">
+      <p>{{ error }}</p>
+      <button type="button" (click)="retry()">Try again</button>
+    </section>
+  </div>
+} @else if (!accountService.loaded()) {
   <div class="hr-container flex flex-row justify-center items-center">
     <mat-progress-spinner
       [diameter]="45"

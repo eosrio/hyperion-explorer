@@ -2,7 +2,6 @@ import { Injectable, inject } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { DataService } from "./data.service";
 import { lastValueFrom } from "rxjs";
-import { devEnv } from "../dev.env";
 
 export interface OraclePair {
   name: string;
@@ -33,7 +32,7 @@ export interface OracleHistogramResponse {
 export class OracleService {
   data = inject(DataService);
   httpClient = inject(HttpClient);
-  mainPair = ''
+  mainPair = "";
 
   async getPriceHistory(scope = "tlosusd", interval = "1h", after?: string, before?: string): Promise<OracleHistogramResponse> {
     try {
@@ -41,7 +40,7 @@ export class OracleService {
       if (after) params.after = after;
       if (before) params.before = before;
       const query = new URLSearchParams(params).toString();
-      const url = `${devEnv.hyperionApiUrl}/v2/oracle/get_datapoints_histogram?${query}`;
+      const url = `${this.data.env.hyperionApiUrl}/v2/oracle/get_datapoints_histogram?${query}`;
       console.log("Fetching price history from:", url);
       return await lastValueFrom(this.httpClient.get<OracleHistogramResponse>(url));
     } catch (error) {
@@ -51,11 +50,9 @@ export class OracleService {
   }
 
   async getPairs(): Promise<OraclePair[]> {
-
-
-    this.mainPair = devEnv.defaultTicker.toLowerCase() || "-"
+    this.mainPair = this.data.explorerMetadata()?.oracle?.pair || this.data.env.defaultTicker.toLowerCase() || "-";
     try {
-      const url = `${devEnv.hyperionApiUrl}/v2/oracle/pairs`;
+      const url = `${this.data.env.hyperionApiUrl}/v2/oracle/pairs`;
       console.log("Fetching oracle pairs from:", url);
       const response = await lastValueFrom(this.httpClient.get<any[]>(url));
 
@@ -89,4 +86,3 @@ export class OracleService {
     return rawPrice / Math.pow(10, precision);
   }
 }
-

@@ -6,8 +6,22 @@
   width: 100%;
 }
 
+.permission-enter {
+  animation: permission-reveal 100ms ease-out;
+}
+@keyframes permission-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-0.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .monospace {
-  font-family: 'Courier Prime', monospace;
+  font-family: "Courier Prime", monospace;
   font-size: 1rem; /*16px*/
 }
 

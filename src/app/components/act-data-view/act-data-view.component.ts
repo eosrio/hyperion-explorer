@@ -1,14 +1,14 @@
-import {Component, computed, input} from '@angular/core';
-import {KeyValuePipe, NgClass, SlicePipe} from "@angular/common";
-import {RouterLink} from "@angular/router";
-import {MatTooltip} from "@angular/material/tooltip";
+import { Component, computed, input, ChangeDetectionStrategy } from "@angular/core";
+import { KeyValuePipe, NgClass, SlicePipe } from "@angular/common";
+import { RouterLink } from "@angular/router";
+import { MatTooltip } from "@angular/material/tooltip";
 
 function charToSymbol(c: number) {
-  if (c >= 'a'.charCodeAt(0) && c <= 'z'.charCodeAt(0)) {
-    return c - 'a'.charCodeAt(0) + 6;
+  if (c >= "a".charCodeAt(0) && c <= "z".charCodeAt(0)) {
+    return c - "a".charCodeAt(0) + 6;
   }
-  if (c >= '1'.charCodeAt(0) && c <= '5'.charCodeAt(0)) {
-    return c - '1'.charCodeAt(0) + 1;
+  if (c >= "1".charCodeAt(0) && c <= "5".charCodeAt(0)) {
+    return c - "1".charCodeAt(0) + 1;
   }
   return 0;
 }
@@ -26,7 +26,7 @@ function stringToName(s: string) {
     }
     for (let j = 4; j >= 0; --j) {
       if (bit >= 0) {
-        a[Math.floor(bit / 8)] |= ((c >> j) & 1) << bit % 8;
+        a[Math.floor(bit / 8)] |= ((c >> j) & 1) << (bit % 8);
         --bit;
       }
     }
@@ -35,16 +35,11 @@ function stringToName(s: string) {
 }
 
 @Component({
-  selector: 'app-act-data-view',
-  imports: [
-    KeyValuePipe,
-    NgClass,
-    RouterLink,
-    SlicePipe,
-    MatTooltip
-  ],
-  templateUrl: './act-data-view.component.html',
-  styleUrl: './act-data-view.component.css'
+  selector: "app-act-data-view",
+  imports: [KeyValuePipe, NgClass, RouterLink, SlicePipe, MatTooltip],
+  templateUrl: "./act-data-view.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
+  styleUrl: "./act-data-view.component.css"
 })
 export class ActDataViewComponent {
   data = input<any>(null);

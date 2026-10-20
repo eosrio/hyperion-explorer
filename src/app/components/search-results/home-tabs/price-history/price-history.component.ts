@@ -1,5 +1,5 @@
 import { CommonModule, isPlatformBrowser } from "@angular/common"; // Import isPlatformBrowser
-import { Component, effect, ElementRef, inject, PLATFORM_ID, signal } from "@angular/core";
+import { Component, effect, ElementRef, inject, PLATFORM_ID, signal, ChangeDetectionStrategy } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { FaIconComponent } from "@fortawesome/angular-fontawesome";
 import { faHandHoldingDollar, faTag, faTags } from "@fortawesome/free-solid-svg-icons";
@@ -13,6 +13,7 @@ import { OracleHistogramResponse, OraclePair, OracleService } from "../../../../
   selector: "app-price-history",
   imports: [NgxEchartsModule, FaIconComponent, FormsModule],
   templateUrl: "./price-history.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./price-history.component.css"
 })
 export class PriceHistoryComponent {
@@ -25,7 +26,7 @@ export class PriceHistoryComponent {
   oracleService = inject(OracleService);
 
   loading = signal(false);
-  error = signal<string>('');
+  error = signal<string>("");
   selectedInterval = signal<string>("1h");
   selectedPair = signal<string>("-");
   availablePairs = signal<OraclePair[]>([]);
@@ -48,14 +49,16 @@ export class PriceHistoryComponent {
         const systemSymbol = this.chain.systemSymbol.value();
         if (explorerMetadata && explorerMetadata.oracle && systemSymbol) {
           this.loading.set(true);
-          this.loadAvailablePairs().then(async () => {
-            await this.loadPriceHistory();
-            this.loading.set(false);
-          }).catch((e) => {
-            console.error("Error loading oracle data:", e);
-            this.error.set("Failed to load oracle data");
-            this.loading.set(false);
-          });
+          this.loadAvailablePairs()
+            .then(async () => {
+              await this.loadPriceHistory();
+              this.loading.set(false);
+            })
+            .catch(e => {
+              console.error("Error loading oracle data:", e);
+              this.error.set("Failed to load oracle data");
+              this.loading.set(false);
+            });
         }
       });
     }
@@ -123,24 +126,19 @@ export class PriceHistoryComponent {
         this.selectedPairPrecision.set(this.availablePairs()[0].precision);
         console.log("Selected first available pair:", this.availablePairs()[0]);
       }
-
-
     } catch (error) {
       console.error("Error loading available pairs:", error);
       // Provide fallback pairs to prevent template errors
       this.availablePairs.set([{ name: "-", precision: 4 }]);
       this.selectedPair.set("-");
       this.selectedPairPrecision.set(4);
-
     }
   }
 
   private async loadPriceHistory(): Promise<void> {
     try {
       this.loading.set(true);
-      this.error.set('');
-
-
+      this.error.set("");
 
       // Get theme colors from CSS variables
       const computedStyle = getComputedStyle(this.elementRef.nativeElement);
@@ -218,11 +216,11 @@ export class PriceHistoryComponent {
       // For very small ranges, enhance visual contrast
       const enhancedPrices = isVerySmallRange
         ? prices.map(price => {
-          // Amplify the relative differences for better visualization
-          const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
-          const deviation = price - avgPrice;
-          return avgPrice + deviation * 3; // Amplify by 3x
-        })
+            // Amplify the relative differences for better visualization
+            const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
+            const deviation = price - avgPrice;
+            return avgPrice + deviation * 3; // Amplify by 3x
+          })
         : prices;
 
       // Define chart options
@@ -407,8 +405,8 @@ export class PriceHistoryComponent {
             areaStyle:
               response.histogram.length > 1
                 ? {
-                  color: areaColor
-                }
+                    color: areaColor
+                  }
                 : undefined, // Only show area for multiple points
             data: enhancedPrices, // Use enhanced prices for better visualization
             emphasis: {
@@ -427,8 +425,6 @@ export class PriceHistoryComponent {
       this.error.set(e?.message || "Failed to load price history.");
     } finally {
       this.loading.set(false);
-
     }
   }
 }
-

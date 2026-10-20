@@ -1,4 +1,4 @@
-import { Component, effect, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal, ChangeDetectionStrategy } from "@angular/core";
 import { DataService } from "../../services/data.service";
 import { MatFormField, MatLabel } from "@angular/material/form-field";
 import { MatOption, MatSelect } from "@angular/material/select";
@@ -7,35 +7,31 @@ import { HttpClient } from "@angular/common/http";
 import { Observable, of } from "rxjs";
 
 @Component({
-  selector: 'app-theme-selector',
-  imports: [
-    MatFormField,
-    MatSelect,
-    MatOption,
-    MatLabel
-  ],
-  templateUrl: './theme-selector.component.html',
-  styleUrl: './theme-selector.component.css'
+  selector: "app-theme-selector",
+  imports: [MatFormField, MatSelect, MatOption, MatLabel],
+  templateUrl: "./theme-selector.component.html",
+  changeDetection: ChangeDetectionStrategy.Eager,
+  styleUrl: "./theme-selector.component.css"
 })
 export class ThemeSelectorComponent {
   ds = inject(DataService);
   http = inject(HttpClient);
 
-  selectedTheme = signal('');
+  selectedTheme = signal("");
 
   themeData = rxResource<any, { theme: string }>({
     params: () => {
-      return { theme: this.selectedTheme() }
+      return { theme: this.selectedTheme() };
     },
     stream: ({ params }) => {
-      if (params.theme === 'UNSET_THEME') {
-        window.location.href = window ? window.location.origin : '/';
+      if (params.theme === "UNSET_THEME") {
+        window.location.href = window ? window.location.origin : "/";
         return of({} as any);
       }
       if (!params.theme) {
         return of({} as any);
       } else {
-        return this.http.get('/.internal/read_theme/' + params.theme) as Observable<any>;
+        return this.http.get("/.internal/read_theme/" + params.theme) as Observable<any>;
       }
     }
   });
@@ -46,9 +42,12 @@ export class ThemeSelectorComponent {
       const ready = this.ds.ready();
       if (data && ready) {
         data.theme = this.themeData.value();
-        this.ds.activateTheme().then(() => {
-          localStorage.setItem('theme-override', JSON.stringify(data.theme || {}));
-        }).catch(console.error);
+        this.ds
+          .activateTheme()
+          .then(() => {
+            localStorage.setItem("theme-override", JSON.stringify(data.theme || {}));
+          })
+          .catch(console.error);
       }
     });
   }

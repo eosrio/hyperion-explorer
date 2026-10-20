@@ -1,4 +1,4 @@
-import { Component, inject, PLATFORM_ID } from "@angular/core";
+import { Component, inject, PLATFORM_ID, ChangeDetectionStrategy } from "@angular/core";
 import { RouterOutlet } from "@angular/router";
 import { DataService } from "./services/data.service";
 import { toObservable } from "@angular/core/rxjs-interop";
@@ -7,7 +7,8 @@ import { isPlatformBrowser } from "@angular/common";
 @Component({
   selector: "app-root",
   imports: [RouterOutlet],
-  template: ` <router-outlet></router-outlet> `,
+  changeDetection: ChangeDetectionStrategy.Eager,
+  template: ` <router-outlet></router-outlet> `
 })
 export class AppComponent {
   ds = inject(DataService);
