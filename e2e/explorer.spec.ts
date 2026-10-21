@@ -143,7 +143,12 @@ test("uses the unrounded snapshot bound for filtered history", async ({ page, re
 
 test("reports unsafe legacy sequence numbers and recovers with exact strings", async ({ page, request }) => {
   await request.post("/__fixture/state", { data: { unsafeSequence: true } });
+  // Wait for the browser's load: SSR may show the error before hydration fetches it.
+  const browserAccount = page.waitForResponse(
+    response => new URL(response.url()).pathname === "/v2/state/get_account" && response.status() === 200
+  );
   await page.goto("/explorer/account/eosio");
+  await browserAccount;
   await expect(page.getByRole("alert")).toContainText("unsafe numeric values cannot be recovered");
   await request.post("/__fixture/state", { data: { sequences: ["9007199254740993"] } });
   await page.getByRole("button", { name: "Try again", exact: true }).click();
