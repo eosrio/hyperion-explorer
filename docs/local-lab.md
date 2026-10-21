@@ -58,6 +58,14 @@ The footer's Theme control exposes the shipped appearance presets. Opening it le
 the chain theme intact; selecting Chain default restores the deployment palette. Local
 appearance overrides are scoped by chain ID in browser storage.
 
+The bundled `assets/logo-hyperion-horz.svg` uses the Control Plane's crystal and
+heartbeat geometry with the explorer's outlined wordmark. It draws once, sends
+one heartbeat, then rests after three seconds. Reduced motion shows the complete
+static mark immediately. The SVG has no script, font or external asset request.
+The default fixture and unavailable-logo fallback use this asset; configured chain
+logos keep their own image. To use this Hyperion mark on a deployment, point the
+API's `chain_logo_url` at the hosted `/explorer/assets/logo-hyperion-horz.svg`.
+
 Use an unknown account such as `/account/zzzz` to exercise the named not-found state.
 The history toolbar retains category filters, saved custom filters, UTC/compact display
 options and page sizes. Contract scope options support paged discovery, a request limit

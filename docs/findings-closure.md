@@ -72,7 +72,7 @@ and `closure-contract-dark.png`. The automated browser suite produces route scre
 for both viewport classes.
 
 Validation: typecheck, 123 unit tests in 38 files, five mock/published-client test results,
-production browser/SSR build, and 60 Chromium desktop/mobile cases. The fixture covers
+production browser/SSR build, and 62 Chromium desktop/mobile cases. The fixture covers
 all route types, three chain identities and nine shipped appearance presets. Live chain,
 consensus/reorganization, production backpressure, Safari and physical-device acceptance
 remain separate release work, as documented in [local-lab.md](local-lab.md).
