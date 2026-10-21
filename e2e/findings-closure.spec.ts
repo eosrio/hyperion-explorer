@@ -153,6 +153,7 @@ test("contract controls retain readable contrast in every shipped palette", asyn
     const loaded = page.waitForResponse(response => response.url().endsWith("/.internal/read_theme/" + name) && response.ok());
     await select.click();
     await page.getByRole("option", { name, exact: true }).click();
+    await expect(page.getByRole("listbox")).toHaveCount(0);
     const palette = await (await loaded).json();
     await expect
       .poll(() => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--primary").trim()))
