@@ -1,13 +1,13 @@
 <div class="p-4 w-full flex flex-col gap-6">
   <!-- Selectors -->
-  <div class="flex justify-between items-center">
+  <div class="price-controls">
     <h3 class="text-lg font-semibold">Price History</h3>
-    <div class="flex items-center gap-4">
+    <div class="price-selectors">
       <!-- Pair Selector -->
       <div class="flex items-center gap-2">
         <label for="pair-select" class="text-sm faded">Pair:</label>
         <select id="pair-select" [ngModel]="selectedPair()" (ngModelChange)="selectedPair.set($event); onPairChange()"
-          class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          class="price-select">
           @for (pair of availablePairs(); track pair.name) {
           <option [value]="pair.name">{{ pair.name.toUpperCase() }}</option>
           }
@@ -18,7 +18,7 @@
       <div class="flex items-center gap-2">
         <label for="interval-select" class="text-sm faded">Interval:</label>
         <select id="interval-select" [ngModel]="selectedInterval()" (ngModelChange)="selectedInterval.set($event); onIntervalChange()"
-          class="px-3 py-1 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+          class="price-select">
           <option value="1m">1 Minute</option>
           <option value="5m">5 Minutes</option>
           <option value="15m">15 Minutes</option>
@@ -33,14 +33,14 @@
   </div>
 
   @if (loading()) {
-    <div class="text-center py-8 text-gray-500">Loading price history...</div>
+    <div class="text-center py-8 faded">Loading price history...</div>
   }
   @if (error()) {
-    <div class="text-center py-8 text-red-500">{{ error() }}</div>
+    <div class="api-error" role="alert"><p>{{ error() }}</p><button type="button" (click)="retry()">Try again</button></div>
   }
 
   @if (!loading() && !error() && chain.systemSymbol.value()) {
-    <div class="flex flex-row justify-center gap-4">
+    <div class="price-stats">
       <div class="stat-card">
         <div class="stat-icon">
           <fa-icon [icon]="icons.solid.tag" class="opacity-70"></fa-icon>

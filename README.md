@@ -112,15 +112,15 @@ bun run serve:ssr:watch
 
 ## Routes
 
-| Path                             | Component   | Description                             |
-| -------------------------------- | ----------- | --------------------------------------- |
-| `/`                              | Home        | Search bar + recent blocks/transactions |
-| `/account/:name`                 | Account     | Balances, resources, actions            |
-| `/block/:num_or_id`              | Block       | Block details and transactions          |
-| `/transaction/:id`               | Transaction | Transaction actions and data            |
-| `/key/:pub_key`                  | Key         | Accounts linked to a public key         |
-| `/contract/:code/:table/:scope`  | Contract    | Smart contract table browser            |
-| `/top-holders/:contract/:symbol` | Top Holders | Token holder distribution chart         |
+| Path                             | Component   | Description                               |
+| -------------------------------- | ----------- | ----------------------------------------- |
+| `/`                              | Home        | Search, chain stats, prices and producers |
+| `/account/:name`                 | Account     | Balances, resources, actions              |
+| `/block/:num_or_id`              | Block       | Block details and transactions            |
+| `/transaction/:id`               | Transaction | Transaction actions and data              |
+| `/key/:pub_key`                  | Key         | Accounts linked to a public key           |
+| `/contract/:code/:table/:scope`  | Contract    | Smart contract table browser              |
+| `/top-holders/:contract/:symbol` | Top Holders | Token holder distribution chart           |
 
 ## Architecture
 
@@ -150,8 +150,26 @@ bun run test:e2e                   # tests the production build, after building
 bun audit
 ```
 
-The browser suite starts a local API fixture on `127.0.0.1:17000` and the built SSR server on `127.0.0.1:17001`. It exercises the actual `/explorer` proxy, hydration, account search, block/transaction rendering, lossless uint64 history cursors and metadata, and recovery from unavailable metadata, account projections, and delta history. Both desktop and mobile configurations use Chromium; mobile emulation does not establish Safari or physical-device compatibility.
+The browser suite starts a local API fixture on `127.0.0.1:17200` and the built SSR server on `127.0.0.1:17201`. It exercises the actual `/explorer` proxy, hydration, account search, block/transaction rendering, lossless uint64 history cursors and metadata, and recovery from unavailable metadata, account projections, and delta history. Both desktop and mobile configurations use Chromium; mobile emulation does not establish Safari or physical-device compatibility.
 
 Hyperion 4.5 sequence metadata is stored as decimal strings. Safe integer values from older APIs remain supported; unsafe numeric sequences are rejected because their exact identity has already been lost. Upgrade APIs returning those numbers to the lossless string contract.
 
 The [modernization notes](docs/modernization.md) record dependency constraints, completed work, and remaining Hyperion 4.5 qualification. The CI workflow runs type checking, unit tests, and production builds on Windows and Linux with Node 22/24, with the browser suite on Linux/Node 24.
+
+## Offline frontend lab
+
+Run `bun install --frozen-lockfile`, then `bun run mock`. Open
+[http://127.0.0.1:17100/explorer/](http://127.0.0.1:17100/explorer/).
+This builds into `dist/mock` and starts a loopback API, Socket.IO stream, and the
+production SSR explorer. Ctrl+C stops the preview and its owned child server.
+Use `bun run mock:serve` to reuse that build. No chain, wallet, or API credentials
+are required. All balances, prices, names, votes, keys, and history are fictional.
+
+Useful routes and controls are documented in [the local lab guide](docs/local-lab.md).
+The lab has three chain identities (default pale blue, Canopy green, Nightfall dark),
+plus the shipped appearance presets. Theme overrides are saved separately per chain.
+
+Run `bun run test:mock` for API and published streaming-client integration checks.
+Run `bun run test:e2e` after a normal build; the browser suite owns ports 17200/17201,
+independently of the interactive preview. For the mock build, set
+`HYP_E2E_DIST=dist/mock` before running the browser suite.

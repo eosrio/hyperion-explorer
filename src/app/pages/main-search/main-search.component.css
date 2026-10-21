@@ -1,231 +1,259 @@
-.logo-name {
-  font-size: 15px;
-  font-weight: 800;
-  font-family: Montserrat, sans-serif;
-}
-
-.header-card {
-  background: var(--card-bg-gradient), var(--main-background);
-  box-shadow: var(--card-box-shadow) !important;
-  height: 20.875rem;
-  z-index: 50;
-}
-
-.custom-input-group {
-  box-shadow: var(--box-shadow-bg-sharp-inset-deep);
-}
-
-.custom-input {
-  background-color: transparent;
-}
-
-/* Custom placeholder styles */
-.custom-placeholder {
-  color: var(--placeholder-color, var(--faded));
-  font-size: inherit;
-  font-family: inherit;
-  opacity: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.static-placeholder {
-  /* Static part of the placeholder */
-  display: inline-block;
-}
-
-.dynamic-placeholder {
-  /* Animated part of the placeholder */
-  display: inline-block;
-}
-
-@media screen and (max-width: 959px) {
-  .custom-input {
-    /*font-size: max(1.1rem, 16px);*/
-  }
-}
-
-.custom-input-group:focus-within {
-  outline: none;
-  box-shadow: var(--box-shadow-bg-sharp-inset);
-  transition: var(--transition-btn-down);
-  color: var(--primary);
-}
-
-::ng-deep .custom-autocomplete {
-  background: var(--table-top-bg-gradient) !important;
-  /*background: linear-gradient(135deg, #e7eefb 0%, #F3F7FD 70%, #e2e8f1 100%) !important;*/
-  box-shadow:
-    5px 5px 7px 1px rgb(107 107 107 / 56%),
-    inset 1px 1px 2px 0px rgb(254 254 254) !important;
-  border-radius: 1rem !important;
-  margin-top: 11px;
-}
-
-::ng-deep .custom-autocomplete::-webkit-scrollbar-thumb {
-  border: 3px solid transparent;
-  background-clip: padding-box;
-  border-radius: 9999px;
-}
-
-::ng-deep .custom-autocomplete::-webkit-scrollbar {
-  width: 11px;
-  border-radius: 0 1rem 1rem 0;
-  background-color: var(--card-bg) !important;
-  background: linear-gradient(180deg, #f3f7fd 0%, #f3f7fd 70%, #e5eaf5 100%) !important;
-}
-
-::ng-deep .custom-autocomplete::-webkit-scrollbar-track {
-  border-radius: 0 1rem 1rem 0;
-  background-color: var(--card-bg) !important;
-  background: linear-gradient(180deg, #f3f7fd 0%, #f3f7fd 70%, #e5eaf5 100%) !important;
-}
-
-.search-btn {
-  /*width: 113px;*/
-  width: fit-content;
-  text-wrap: nowrap;
-}
-
-.search-btn.primary-btn {
-  min-width: 10.813rem; /*173px*/
-  width: auto;
-  text-wrap: nowrap;
-  padding-left: 0.438rem !important;
-  padding-right: 0.438rem !important;
-}
-
-/*PRE HEADER STYLES START*/
-.logo-name {
-  font-size: 15px;
-  font-weight: 800;
-  font-family: Montserrat, sans-serif;
-  color: #353535;
-}
-
-.tagline {
-  font-size: 13px;
-  font-weight: 500;
-  font-family: Montserrat, sans-serif;
-  text-wrap: nowrap;
-  overflow: hidden;
-  /*width: max-content !important;*/
-}
-
-@media (width < 40rem) {
-  .tagline {
-    display: none;
-  }
-}
-
-@media (width >= 40rem) {
-  .tagline {
-    display: inline;
-  }
-}
-
-.provider,
-.provider a {
-  font-size: 13px;
-  font-family: Montserrat, sans-serif;
-}
-
-.compact-logo {
-  height: 2.625rem; /* Desktop height (42px) */
-}
-
-.searchbar-placeholder {
-  min-width: 17.813rem; /* 285px */
-  height: 2.7rem;
-  /*height: 2.625rem;*/
-}
-
-/* Aligning CSS with the 'sm' breakpoint (640px) used for layout switching */
-@media (width < 40rem) {
-  .compact-logo {
-    height: 1.25rem; /* 20px Mobile height */
-  }
-  .searchbar-placeholder {
-    min-width: unset; /* 285px */
-  }
-}
-
-@media (max-width: 426px) {
-}
-
-@media (max-width: 795px) {
-  /*.provider {*/
-  /*  order: 2;*/
-  /*}*/
-}
-
-.logo {
+:host {
   display: block;
-  height: 100%;
-  width: auto;
-  max-width: 100%;
-  object-fit: contain;
 }
-
-.footer-color {
-  color: var(--footer-text);
-}
-
-.icon-link {
-  color: oklch(from var(--footer-text) calc(l + 0.05) c h);
-}
-
-.icon-link:hover {
-  color: var(--footer-text);
-  transition: color 0.3s ease;
-}
-
-/* FIXES FOR SAFARI/iOS STABILITY */
-
-/* Apply dynamic viewport height to the main container for stability when the browser UI changes */
-#layout-container {
-  /* Use 100dvh for modern browsers, fallback to 100vh */
-  /*min-height: 100vh;*/
+.explorer-layout {
+  --sticky-offset: 7rem;
   min-height: 100dvh;
 }
-
-/* Stabilize the fixed header during the height animation */
-#header-container {
-  /* Inform the browser that the height will change */
-  will-change: height;
-  /* Promote to a separate layer (Hardware Acceleration).
-     This often resolves jitter/misalignment in Safari during scroll-linked animations. */
-  transform: translateZ(0);
-  -webkit-backface-visibility: hidden;
-  backface-visibility: hidden;
-  contain: paint layout;
+.header-card {
+  position: fixed;
+  inset: 0 0.75rem auto;
+  height: calc(17rem - 11rem * var(--header-collapse));
+  z-index: 50;
+  background: var(--card-bg-gradient), var(--main-background);
+  box-shadow: var(--card-box-shadow);
+  border-radius: 0 0 1rem 1rem;
 }
-
-#logo-element,
-#search-bar,
-.compact-logo,
-.searchbar-placeholder {
-  will-change: transform;
-  transform: translateZ(0);
+.header-inner {
+  position: relative;
+  height: 100%;
+  width: min(calc(100% - 3rem), calc(var(--container-width) - 4rem));
+  margin-inline: auto;
 }
-
-/* END FIXES */
-
-/* Optimization: Simplify expensive styles during animation to reduce paint cost and improve smoothness. */
-.is-animating .header-card {
-  box-shadow: none !important;
-  background: var(--card-bg) !important;
+.chain-brand {
+  position: absolute;
+  top: calc(2rem - 0.7rem * var(--header-collapse));
+  left: calc(50% * (1 - var(--header-collapse)));
+  transform: translateX(calc(-50% * (1 - var(--header-collapse)))) scale(calc(1 - 0.36 * var(--header-collapse)));
+  transform-origin: left top;
+  width: 16.25rem;
+  height: 4.375rem;
+  display: flex;
+  align-items: center;
 }
-
-.is-animating .custom-input-group {
-  box-shadow: none !important;
+.chain-logo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: left center;
 }
-
-.custom-input-group:focus-within {
+.header-search {
+  position: absolute;
+  left: 50%;
+  top: calc(8.2rem - 6.7rem * var(--header-collapse));
+  transform: translateX(-50%);
+  width: min(46rem, calc(100% - 21rem * var(--header-collapse)));
+}
+.search-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem;
+  min-height: 3.25rem;
+  border-radius: 2rem;
+  background: color-mix(in srgb, var(--card-bg) 65%, var(--main-background));
+  box-shadow: var(--box-shadow-bg-sharp-inset);
+}
+.custom-input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  padding: 0.55rem 0.85rem;
+  font: inherit;
+  color: var(--main-text);
+}
+.custom-input::placeholder {
+  color: var(--faded);
+  opacity: 1;
+}
+.search-control:focus-within {
   outline: 2px solid var(--primary);
   outline-offset: 3px;
 }
-.custom-input:focus-visible {
-  outline: none;
+.search-btn {
+  min-height: 2.5rem;
+  padding-inline: 1rem !important;
+  flex-shrink: 0;
+  border-radius: 2rem;
+}
+.search-btn span {
+  margin-left: 0.5rem;
+}
+.search-message {
+  min-height: 1.5rem;
+  padding: 0.25rem 1rem 0;
+  color: var(--warn);
+  font-size: 0.8125rem;
+}
+.provider {
+  position: absolute;
+  right: 0;
+  top: calc(13.4rem - 11.45rem * var(--header-collapse));
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.1rem;
+  font-size: 0.75rem;
+}
+.provider-label {
+  color: var(--faded);
+}
+.provider a {
+  font-weight: 600;
+  text-decoration: none;
+}
+.provider a:hover {
+  text-decoration: underline;
+}
+.header-description {
+  position: absolute;
+  width: 100%;
+  top: 5.8rem;
+  text-align: center;
+  color: var(--faded);
+  font-size: 0.8125rem;
+  opacity: calc(1 - var(--header-collapse));
+  pointer-events: none;
+}
+.content-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  padding-top: 8rem;
+  padding-bottom: 1rem;
+}
+.is-home .content-container {
+  padding-top: 19rem;
+}
+#main-content {
+  flex: 1;
+  min-width: 0;
+}
+.explorer-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  padding-block: 2rem 1rem;
+  color: var(--footer-text);
+  font-size: 0.8125rem;
+}
+.footer-links {
+  display: flex;
+  gap: 0.5rem;
+}
+.icon-link,
+.theme-toggle {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  min-width: 2.75rem;
+  min-height: 2.75rem;
+  color: var(--footer-text);
+}
+.theme-toggle {
+  min-width: 1.5rem;
+  min-height: 1.5rem;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+.icon-link {
+  font-size: 1.25rem;
+  border-radius: 0.5rem;
+}
+.icon-link:hover {
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+}
+@media (max-width: 900px) {
+  .header-card {
+    height: calc(17rem - 7.25rem * var(--header-collapse));
+  }
+  .header-inner {
+    width: calc(100% - 2rem);
+  }
+  .chain-brand {
+    top: calc(2rem - 1.1rem * var(--header-collapse));
+    transform: translateX(calc(-50% * (1 - var(--header-collapse)))) scale(calc(1 - 0.42 * var(--header-collapse)));
+  }
+  .header-search {
+    top: calc(8.2rem - 3.45rem * var(--header-collapse));
+    width: min(46rem, 100%);
+  }
+  .provider {
+    top: calc(13.4rem - 12.1rem * var(--header-collapse));
+  }
+  .content-container {
+    padding-top: 11.25rem;
+  }
+  .explorer-layout {
+    --sticky-offset: 10.5rem;
+  }
+}
+@media (max-width: 640px) {
+  .header-card {
+    inset-inline: 0;
+    border-radius: 0 0 0.75rem 0.75rem;
+  }
+  .chain-brand {
+    width: 14rem;
+  }
+  .header-description {
+    top: 5.5rem;
+  }
+  .provider {
+    font-size: 0.6875rem;
+    max-width: 45%;
+  }
+  .provider-label {
+    display: none;
+  }
+  .search-btn {
+    min-width: 2.75rem;
+    padding-inline: 0.75rem !important;
+  }
+  .search-btn span {
+    display: none;
+  }
+  .custom-input {
+    font-size: 1rem;
+    padding-inline: 0.6rem;
+  }
+  .custom-input::placeholder {
+    font-size: 0.8125rem;
+  }
+  .explorer-footer {
+    flex-wrap: wrap;
+    justify-content: center;
+    text-align: center;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .header-card,
+  .chain-brand,
+  .header-search,
+  .provider {
+    transition: none;
+  }
+}
+.theme-toggle {
+  padding: 0.5rem;
+  min-height: 2.75rem;
+  font: inherit;
+  border-radius: 0.5rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  .is-home .content-container {
+    padding-top: 8rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) and (max-width: 900px) {
+  .is-home .content-container {
+    padding-top: 11.25rem;
+  }
 }

@@ -14,13 +14,21 @@ async function loadContractComponent() {
 
 export const routes: Routes = [
   {
-    path: "top-holders/:contract/:symbol",
-    loadComponent: () => import("./components/top-holders-chart/top-holders-chart.component").then(m => m.TopHoldersChartComponent)
-  },
-  {
     path: "",
     loadComponent: loadMainSearchComponent,
     children: [
+      {
+        path: "top-holders/:contract/:symbol",
+        loadComponent: () => import("./components/top-holders-chart/top-holders-chart.component").then(m => m.TopHoldersChartComponent)
+      },
+      {
+        path: "contract",
+        children: [
+          { path: ":code/:table/:scope", loadComponent: loadContractComponent },
+          { path: ":code/:table", loadComponent: loadContractComponent },
+          { path: ":code", loadComponent: loadContractComponent }
+        ]
+      },
       {
         path: "",
         children: [
@@ -86,14 +94,6 @@ export const routes: Routes = [
           }
         ]
       }
-    ]
-  },
-  {
-    path: "contract",
-    children: [
-      { path: ":code/:table/:scope", loadComponent: loadContractComponent },
-      { path: ":code/:table", loadComponent: loadContractComponent },
-      { path: ":code", loadComponent: loadContractComponent }
     ]
   },
   {

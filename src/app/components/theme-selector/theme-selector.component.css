@@ -1,0 +1,12 @@
+.theme-settings {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  padding-block: 1rem;
+  font-size: 0.8125rem;
+}
+.theme-settings p {
+  max-width: 40ch;
+}

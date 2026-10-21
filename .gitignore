@@ -45,3 +45,6 @@ testem.log
 Thumbs.db
 
 .npmrc
+
+# Local design review evidence
+/.impeccable/critique/

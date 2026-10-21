@@ -1,4 +1,15 @@
-import { Component, effect, ElementRef, inject, OnInit, PLATFORM_ID, signal, viewChild, ChangeDetectionStrategy } from "@angular/core";
+import {
+  Component,
+  effect,
+  ElementRef,
+  inject,
+  OnInit,
+  OnDestroy,
+  PLATFORM_ID,
+  signal,
+  viewChild,
+  ChangeDetectionStrategy
+} from "@angular/core";
 import { SearchService } from "../../../services/search.service";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
@@ -131,7 +142,10 @@ interface FlatNode {
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrls: ["./account.component.css", "./action-table.css", "./permissions-card.css"]
 })
-export class AccountComponent implements OnInit {
+export class AccountComponent implements OnInit, OnDestroy {
+  ngOnDestroy(): void {
+    this.acServ.stopActionStream();
+  }
   describeApiError = describeApiError;
   dataService = inject(DataService);
   acServ = inject(AccountService);
@@ -265,7 +279,7 @@ export class AccountComponent implements OnInit {
       animate(
         ".mat-mdc-header-row",
         {
-          boxShadow: "rgba(78 104 192, 0.25) 0px 4px 19px 0px, rgba(17, 12, 46, 0.15) 0px 20px 100px 0px",
+          boxShadow: "var(--card-box-shadow)",
           background: "var(--table-top-bg-gradient)"
         },
         { duration: 1 }

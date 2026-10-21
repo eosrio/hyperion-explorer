@@ -1,3 +1,54 @@
-.holder-chart-label {
-  background-color: var(--primary);
+.holders-content {
+  display: grid;
+  grid-template-columns: minmax(15rem, 0.8fr) minmax(0, 1.2fr);
+  gap: 2rem;
+  align-items: center;
+}
+.holder-chart {
+  height: 22rem;
+  width: 100%;
+  min-width: 0;
+}
+.holder-table-scroll {
+  overflow-x: auto;
+}
+.holder-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+}
+.holder-table th,
+.holder-table td {
+  text-align: right;
+  padding: 0.875rem 0.5rem;
+  border-bottom: 1px solid var(--line-divider);
+  white-space: nowrap;
+}
+.holder-table th:first-child {
+  text-align: left;
+}
+.holder-table thead th {
+  color: var(--faded);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.holder-table tbody th {
+  font-weight: 500;
+}
+.holder-loading {
+  min-height: 16rem;
+  display: grid;
+  place-items: center;
+  color: var(--faded);
+  background: color-mix(in srgb, var(--primary) 4%, transparent);
+  border-radius: 0.75rem;
+}
+@media (max-width: 800px) {
+  .holders-content {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+  }
+  .holder-chart {
+    height: 15rem;
+  }
 }

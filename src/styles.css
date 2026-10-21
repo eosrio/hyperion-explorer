@@ -51,14 +51,10 @@
   /*Neomorphism*/
   --colour-bg-shadow: rgb(200, 200, 220);
   --colour-bg-highlight: rgb(252, 252, 255);
-  --box-shadow-bg-sharp-inset-deep:
-    6px 6px 7px 1px inset var(--colour-bg-shadow), -1px -1px 1px 0px inset var(--colour-bg-highlight),
-    0px 0px 0px 0px var(--colour-bg-shadow), 0px 1px 0px 0px var(--colour-bg-highlight);
-  --box-shadow-bg-sharp-inset:
-    3px 3px 4px 1px inset var(--colour-bg-shadow), -1px -1px 1px 0px inset var(--colour-bg-highlight),
-    0px 0px 0px 0px var(--colour-bg-shadow), 0px 2px 0px 0px var(--colour-bg-highlight);
+  --box-shadow-bg-sharp-inset-deep: inset 0 1px 3px color-mix(in srgb, var(--colour-bg-shadow) 75%, transparent);
+  --box-shadow-bg-sharp-inset: inset 0 1px 3px color-mix(in srgb, var(--colour-bg-shadow) 65%, transparent);
   --transition-btn-down: 0.2s;
-  --transition-btn-up: 0.5s;
+  --transition-btn-up: 0.2s;
 
   /*card*/
   --card-bg: rgba(255, 255, 255, 1);
@@ -67,7 +63,7 @@
   --table-top-bg-gradient:
     linear-gradient(115deg, rgb(255 255 255 / 60%) 0%, rgb(255 255 255 / 90%) 87%, rgb(255 255 255 / 60%) 130%), var(--main-background);
   /*--card-bg-gradient: linear-gradient(115deg, blue 0%, red 70%, green 100%);*/
-  --card-box-shadow: rgba(104, 139, 255, 0.1) 0px 48px 100px 0px, rgba(17, 12, 46, 0.15) 0px 30px 100px 0px;
+  --card-box-shadow: 0 8px 24px color-mix(in srgb, var(--primary) 11%, transparent);
   --card-border-radius: 1rem;
   --line-divider: rgba(0, 0, 0, 0.1);
 }
@@ -123,7 +119,7 @@ body {
   background: var(--card-bg-gradient);
   box-shadow: var(--card-box-shadow);
   border-radius: var(--card-border-radius);
-  padding: 1.6rem;
+  padding: 1.5rem;
   box-sizing: border-box;
   color: var(--main-text);
 }
@@ -132,20 +128,18 @@ body {
   /*background-color: rgb(221,229,246) !important;*/
   background: var(--card-bg-gradient), var(--main-background) !important;
   /*background: linear-gradient(115deg, rgb(236 240 250) 0%, rgb(247 249 253) 70%, rgb(235 240 249) 100%) !important;*/
-  box-shadow:
-    rgb(78 104 192 / 25%) 0px 4px 19px 0px,
-    rgba(17, 12, 46, 0.15) 0px 20px 100px 0px !important;
+  box-shadow: var(--card-box-shadow) !important;
 }
 
 /*BUTTONS START*/
 .mat-mdc-raised-button:not(:disabled) {
-  box-shadow:
-    -3px -1px 1px 0px inset var(--colour-bg-shadow),
-    1px 1px 1px 0px inset var(--colour-bg-highlight),
-    2px 3px 5px 2px var(--colour-bg-shadow),
-    0px 0px 0px 0px var(--colour-bg-highlight);
-  background-color: transparent;
-  transition: all var(--transition-btn-down);
+  box-shadow: 0 2px 4px color-mix(in srgb, var(--colour-bg-shadow) 60%, transparent);
+  background-color: color-mix(in srgb, var(--card-bg) 75%, var(--main-background));
+  color: var(--main-text);
+  transition:
+    background-color var(--transition-btn-down),
+    color var(--transition-btn-down),
+    box-shadow var(--transition-btn-down);
 }
 
 .mat-mdc-raised-button:not(:disabled):hover,
@@ -338,38 +332,9 @@ body {
   width: 100%;
 }
 
-/*Appear animation START*/
+/* Keep data readable immediately; the header owns the page motion. */
 .appear {
-  animation: scaleAnimation 0.7s 1 ease;
-  -webkit-animation: scaleAnimation 0.7s 1 ease;
-  -moz-animation: scaleAnimation 0.7s 1 ease;
-  -o-animation: scaleAnimation 0.7s 1 ease;
-}
-
-@keyframes scaleAnimation {
-  from {
-    visibility: hidden;
-    opacity: 0;
-    transform: rotate(0deg) scale(0.955) skew(0deg) translate(0px);
-  }
-  to {
-    visibility: visible;
-    -webkit-transform: rotate(0deg) scale(1) skew(0deg) translate(0px);
-    opacity: 1;
-  }
-}
-
-@-webkit-keyframes scaleAnimation {
-  from {
-    visibility: hidden;
-    opacity: 0;
-    transform: rotate(0deg) scale(0.955) skew(0deg) translate(0px);
-  }
-  to {
-    visibility: visible;
-    -webkit-transform: rotate(0deg) scale(1) skew(0deg) translate(0px);
-    opacity: 1;
-  }
+  animation: none;
 }
 
 @keyframes fadeInDown {
@@ -494,5 +459,97 @@ input {
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* Shared surfaces inherit the active chain's palette. */
+body {
+  line-height: 1.5;
+}
+::selection {
+  background: color-mix(in srgb, var(--primary) 24%, transparent);
+  color: var(--main-text);
+}
+input,
+textarea {
+  caret-color: var(--primary);
+}
+a {
+  text-underline-offset: 0.2em;
+}
+table,
+.stat-value {
+  font-variant-numeric: tabular-nums;
+}
+.page-heading {
+  margin: 0 0 1rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.page-description {
+  margin: -0.25rem 0 1.5rem;
+  color: var(--faded);
+  font-size: 0.875rem;
+  max-width: 70ch;
+}
+.custom-card,
+.stat-card,
+.mat-mdc-cell,
+.mat-mdc-header-cell {
+  min-width: 0;
+}
+.mat-mdc-table {
+  --mat-table-background-color: transparent;
+  --mat-table-row-item-label-text-color: var(--main-text);
+  --mat-table-header-headline-color: var(--primary);
+}
+.mat-mdc-paginator {
+  --mat-paginator-container-background-color: transparent;
+  --mat-paginator-container-text-color: var(--faded);
+  --mat-paginator-enabled-icon-color: var(--primary);
+}
+.mat-expansion-panel,
+.mat-expansion-panel-header,
+.mat-tree,
+.mat-mdc-dialog-container {
+  color: var(--main-text);
+}
+.mat-expansion-panel {
+  --mat-expansion-header-text-color: var(--main-text);
+  --mat-expansion-header-description-color: var(--faded);
+  --mat-expansion-container-text-color: var(--main-text);
+}
+.mat-mdc-dialog-container {
+  --mat-dialog-container-color: var(--card-bg);
+  --mat-dialog-supporting-text-color: var(--main-text);
+  --mat-dialog-subhead-color: var(--main-text);
+}
+.mat-mdc-tab-group {
+  --mat-tab-header-inactive-label-text-color: var(--faded);
+  --mat-tab-header-active-label-text-color: var(--primary);
+  --mat-tab-header-active-indicator-color: var(--primary);
+}
+.mat-mdc-form-field {
+  --mdc-filled-text-field-container-color: var(--card-bg);
+  --mdc-filled-text-field-input-text-color: var(--main-text);
+  --mdc-filled-text-field-label-text-color: var(--faded);
+}
+.custom-card .mat-mdc-chip {
+  --mdc-chip-label-text-color: var(--main-text);
+}
+.card-top-sticky {
+  top: var(--sticky-offset, 7rem) !important;
+}
+@media (max-width: 640px) {
+  .custom-card {
+    padding: 1.125rem;
+  }
+  .card-top-sticky {
+    position: static !important;
+  }
+  .hr-container {
+    padding-inline: 1rem;
   }
 }

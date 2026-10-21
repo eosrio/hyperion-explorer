@@ -184,12 +184,17 @@ export class AccountService {
     loader: async ({ params }) => {
       const firstGS = params.first;
 
-      // stop streaming if enabled
-      if (this.streamClientStatus() && this.streamClient?.online && this.actionStream) {
+      // Applying queued rows advances the snapshot without ending the live subscription.
+      // Filtering or leaving the newest page still pauses it for historical inspection.
+      if (
+        (params.customParams || params.skip > 0 || params.sort === "asc") &&
+        this.streamClientStatus() &&
+        this.streamClient?.online &&
+        this.actionStream
+      ) {
         console.log("Stopping Stream Client");
-        this.actionStream.stop();
+        this.stopActionStream();
         this.streamingActions.set([]);
-        this.streamClientStatus.set(false);
       }
 
       const cp = params.customParams;
@@ -256,14 +261,21 @@ export class AccountService {
   private actionResponse = computed(() => (this.actionRes.hasValue() ? this.actionRes.value() : undefined));
 
   public firstGlobalSequence = computed<Sequence | null>(() => {
-    return this.accountResponse()?.actions[0]?.global_sequence ?? null;
+    const historical = this.accountResponse()?.actions[0]?.global_sequence;
+    const applied = this.appliedStreamingActions()[0]?.global_sequence;
+    if (!historical) return applied ?? null;
+    return applied && compareSequences(applied, historical) > 0 ? applied : historical;
   });
 
   public totalActionCounter = computed(() => {
     if (this.filter()) {
       return this.actionResponse()?.total?.value ?? 0;
     } else {
-      const total = this.accountResponse()?.total_actions ?? 0;
+      const historical = this.accountResponse()?.actions[0]?.global_sequence;
+      const added = this.appliedStreamingActions().filter(
+        action => !historical || compareSequences(action.global_sequence, historical) > 0
+      ).length;
+      const total = (this.accountResponse()?.total_actions ?? 0) + added;
       if (total > MAX_ES_SKIP) {
         return MAX_ES_SKIP;
       } else {
@@ -301,7 +313,7 @@ export class AccountService {
         accountName: this.accountName(),
         accountActions: this.accountResponse()?.actions ?? [],
         filteredActions: this.actionResponse()?.actions ?? [],
-        streamingActions: this.streamingActions() ?? [],
+        streamingActions: this.appliedStreamingActions(),
         activeFilter: this.filter(),
         pageIndex: this.pageIndex(),
         pageSize: this.pageSize(),
@@ -309,13 +321,16 @@ export class AccountService {
       };
     },
     computation: (source, previous) => {
+      const latestPage = !source.activeFilter && source.pageIndex === 0 && source.sortDirection !== "asc";
       // if we are on filtered action or on a different page, replace the filtered actions with the account actions
       if (
         source.filteredActions &&
         (source.activeFilter || source.pageIndex > 0 || source.sortDirection === "asc" || source.pageSize !== 20)
       ) {
-        if (source.filteredActions.length > 0) {
-          return source.filteredActions;
+        if (source.filteredActions.length > 0 || (latestPage && source.streamingActions.length)) {
+          return latestPage
+            ? mergeHistory(source.streamingActions, source.filteredActions).slice(0, source.pageSize)
+            : source.filteredActions;
         } else {
           if (this.actionRes.hasValue()) {
             return [];
@@ -324,7 +339,7 @@ export class AccountService {
           }
         }
       } else {
-        if (source.accountActions.length > 0) {
+        if (source.accountActions.length > 0 || source.streamingActions.length > 0) {
           return mergeHistory(source.streamingActions, source.accountActions).slice(0, source.pageSize);
         } else {
           if (source.activeFilter) {
@@ -456,6 +471,27 @@ export class AccountService {
   });
   private platformId = inject(PLATFORM_ID);
   private streamingActions = linkedSignal<string, HistoryAction[]>({ source: this.accountName, computation: () => [] });
+  private appliedStreamingActions = linkedSignal<string, HistoryAction[]>({ source: this.accountName, computation: () => [] });
+  private streamStartRevision = 0;
+  public pendingStreamCount = computed(() => {
+    const visible = new Set(this.actionsComputed().map(action => this.streamIdentity(action)));
+    return this.streamingActions().filter(action => !visible.has(this.streamIdentity(action))).length;
+  });
+  private streamIdentity(action: HistoryAction): string {
+    return JSON.stringify([action.global_sequence, action.trx_id, action.receiver, action.recv_sequence]);
+  }
+  showNewActions(): void {
+    this.clearFilter();
+    this.pageIndex.set(0);
+    this.sortDirection.set("desc");
+    this.appliedStreamingActions.set(this.streamingActions());
+  }
+  stopActionStream(): void {
+    ++this.streamStartRevision;
+    this.actionStream?.stop();
+    this.actionStream = undefined;
+    this.streamClientStatus.set(false);
+  }
 
   // Computed signal to expose the size of streamingActions
   public streamingActionsSize = computed(() => {
@@ -637,13 +673,12 @@ export class AccountService {
   async toggleStreaming(): Promise<void> {
     if (this.streamClientStatus()) {
       // Pause Streaming
-      if (this.streamClient && this.actionStream) {
-        this.actionStream.stop();
-      }
-      this.streamClientStatus.set(false);
+      this.stopActionStream();
     } else {
       // Start Streaming from the last received block
       this.pageIndex.set(0);
+      this.clearFilter();
+      this.sortDirection.set("desc");
       try {
         this.streamClientStatus.set(await this.startActionStream());
       } catch (error) {
@@ -695,6 +730,8 @@ export class AccountService {
   }
 
   async startActionStream() {
+    const revision = ++this.streamStartRevision;
+    const requestedAccount = this.accountName();
     this.historyError.set(null);
     if (!this.streamClient) {
       this.streamClient = new HyperionStreamClient({
@@ -715,23 +752,29 @@ export class AccountService {
     }
 
     if (this.streamClient && this.streamClient.online) {
+      if (revision !== this.streamStartRevision || requestedAccount !== this.accountName()) return false;
       const lastReceivedBlock = this.actionsComputed().length > 0 ? this.actionsComputed()[0].block_num : 0;
 
       console.log(`Last received block: ${lastReceivedBlock}`);
 
-      this.actionStream = await this.streamClient.streamActions({
-        account: this.accountName(),
+      const requestedStream = await this.streamClient.streamActions({
+        account: requestedAccount,
         filters: [],
         read_until: 0,
         start_from: lastReceivedBlock + 1
       });
+      if (revision !== this.streamStartRevision || requestedAccount !== this.accountName()) {
+        requestedStream.stop();
+        return false;
+      }
+      this.actionStream = requestedStream;
 
       console.log(
         `Streaming actions from block ${lastReceivedBlock + 1} for account ${this.accountName()}, hash: ${this.actionStream.requestHash}`
       );
 
       const stream = this.actionStream;
-      const accountName = this.accountName();
+      const accountName = requestedAccount;
       let invalidMetadata = false;
       this.actionStream.on("message", data => {
         if (invalidMetadata || this.actionStream !== stream || this.accountName() !== accountName) return;

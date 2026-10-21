@@ -237,11 +237,40 @@ describe("AccountService compatibility", () => {
     message()({ content: rawAction("9007199254740993") });
     message()({ content: rawAction("9007199254740992") });
     message()({ content: rawAction("9007199254740993") });
+    expect(service.actionsComputed().map(action => action.global_sequence)).toEqual(["9007199254740992"]);
+    expect(service.pendingStreamCount()).toBe(1);
+    service.showNewActions();
     expect(service.actionsComputed().map(action => action.global_sequence)).toEqual(["9007199254740993", "9007199254740992"]);
+    expect(service.firstGlobalSequence()).toBe("9007199254740993");
+    expect(service.totalActionCounter()).toBe(2);
+    expect(service.pendingStreamCount()).toBe(0);
     expect(service.streamingActionsSize()).toBe(2);
     service.accountName.set("bob");
     message()({ content: rawAction("18446744073709551615") });
     expect(service.streamingActionsSize()).toBe(0);
+  });
+
+  it.each([10, 50])("applies queued rows to a %s-row latest page", async pageSize => {
+    seed("9007199254740992");
+    service.pageSize.set(pageSize);
+    service.actionRes.set({ actions: rows("9007199254740992") } as any);
+    await service.startActionStream();
+    message()({ content: rawAction("9007199254740993") });
+    expect(service.actionsComputed()[0].global_sequence).toBe("9007199254740992");
+    service.showNewActions();
+    expect(service.actionsComputed()[0].global_sequence).toBe("9007199254740993");
+    expect(service.pageSize()).toBe(pageSize);
+    expect(service.pendingStreamCount()).toBe(0);
+  });
+
+  it("applies the first streamed action to an empty account history", async () => {
+    seed();
+    await service.startActionStream();
+    message()({ content: rawAction("9007199254740993") });
+    expect(service.actionsComputed()).toEqual([]);
+    service.showNewActions();
+    expect(service.actionsComputed()[0].global_sequence).toBe("9007199254740993");
+    expect(service.firstGlobalSequence()).toBe("9007199254740993");
   });
 
   it("stops streaming and surfaces unsafe receipt metadata", async () => {

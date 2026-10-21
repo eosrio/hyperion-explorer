@@ -46,7 +46,7 @@
                 </div>
 
                 <!-- Check block exists too-->
-                @if (libNumber && block && libNumber > block.number) {
+                @if (libNumber && block && libNumber >= block.number) {
                   <span class="tx-status confirmed-status" matTooltip="Block is irreversible" matTooltipClass="tooltip-bigger">
                 <fa-icon [icon]="icons.solid.faLock" class="mr-1"></fa-icon>
                 <span>Irreversible</span>
@@ -305,7 +305,7 @@
 
   @if (!block) {
     <div class="hr-container">
-      <div class="grid grid-cols-1 auto-cols-max gap-5 text-black appear">
+      <div class="grid grid-cols-1 auto-cols-max gap-5 text-[var(--main-text)] appear">
         <div class="custom-card">
           <h1 class="faded">
             <fa-icon [icon]="icons.solid.faSadTear" style="margin-right: 5px"></fa-icon>
@@ -319,5 +319,3 @@
     </div>
   }
 }
-
-

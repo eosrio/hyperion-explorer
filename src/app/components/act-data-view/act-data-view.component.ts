@@ -74,14 +74,23 @@ export class ActDataViewComponent {
 
   protected readonly Array = Array;
 
-  isAccountName(value: unknown): boolean {
-    const stringVal = value as string;
-    if (stringVal) {
-      // check if the string is a valid name
-      return !!stringVal.match(namePattern);
-    } else {
-      return false;
-    }
+  isAccountName(value: unknown, field = this.fieldName()): boolean {
+    const accountFields = new Set([
+      "account",
+      "actor",
+      "owner",
+      "issuer",
+      "payer",
+      "from",
+      "to",
+      "receiver",
+      "proxy",
+      "producer",
+      "producers",
+      "voter",
+      "creator"
+    ]);
+    return typeof value === "string" && value.length > 0 && accountFields.has(String(field)) && namePattern.test(value);
   }
 
   protected readonly String = String;

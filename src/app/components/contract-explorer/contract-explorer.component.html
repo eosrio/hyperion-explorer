@@ -1,9 +1,12 @@
 <mat-dialog-content id="dialog-content">
+  @if (abiRes.error() || tableScopesRes.error() || tableRowRes.error(); as error) {
+    <section class="api-error" role="alert"><p>{{ describeApiError(error) }}</p><button type="button" (click)="abiRes.reload(); tableScopesRes.reload(); tableRowRes.reload()">Try again</button></section>
+  }
   @if (code()) {
 
     <div class="w-full flex flex-row justify-between items-center">
       <div class="my-5 main-color">Please select a table:</div>
-      <button matTooltip="Reload Tables" (click)="reloadTables()" [disabled]="abiRes.isLoading()" mat-icon-button
+      <button aria-label="Reload tables" matTooltip="Reload Tables" (click)="reloadTables()" [disabled]="abiRes.isLoading()" mat-icon-button
               class="my-5">
         <mat-icon>sync</mat-icon>
       </button>
@@ -12,7 +15,7 @@
     <div class="grid dialog-grid-parent">
       @for (tableName of abiTableNames(); track tableName) {
         <button (click)="selectTable(tableName)" mat-raised-button class="grid-item-btn"
-                [ngClass]="{'selected': tableName === table()}">{{ tableName }}
+                [attr.aria-pressed]="tableName === table()" [ngClass]="{'selected': tableName === table()}">{{ tableName }}
         </button>
       }
     </div>
@@ -32,19 +35,19 @@
 
             <span>Scope Search Limit</span>
             <input matInput class="custom-input outline-hidden ml-0 pl-5 py-4 rounded-l-full h-[2.625rem] min-w-0"
-                   [(ngModel)]="getTableByScopeLimit" placeholder="Scope Search Limit" type="number" min="1"
+                   [(ngModel)]="getTableByScopeLimit" aria-label="Scope search limit" placeholder="Scope Search Limit" type="number" min="1"
                    max="1000">
 
-            <button mat-icon-button (click)="usePreviousScope()" [disabled]="!lastScope()" class="my-5">
+            <button mat-icon-button aria-label="Previous scopes" (click)="usePreviousScope()" [disabled]="!lastScope()" class="my-5">
               <mat-icon>arrow_left</mat-icon>
             </button>
 
-            <button mat-icon-button (click)="useNextScope()" [disabled]="!nextScopePresent()" class="my-5">
+            <button mat-icon-button aria-label="Next scopes" (click)="useNextScope()" [disabled]="!nextScopePresent()" class="my-5">
               <mat-icon>arrow_right</mat-icon>
             </button>
 
           </div>
-          <button matTooltip="Reload Scopes" (click)="reloadScopes()" [disabled]="tableScopesRes.isLoading()"
+          <button aria-label="Reload scopes" matTooltip="Reload Scopes" (click)="reloadScopes()" [disabled]="tableScopesRes.isLoading()"
                   mat-icon-button class="my-5">
             <mat-icon>sync</mat-icon>
           </button>
@@ -54,7 +57,7 @@
         <div class="grid dialog-grid-parent">
           @for (sName of scopeList(); track sName) {
             <button (click)="selectScope(sName)" mat-flat-button class="grid-item-btn"
-                    [ngClass]="{'selected': sName === scope()}">{{ sName }}
+                    [attr.aria-pressed]="sName === scope()" [ngClass]="{'selected': sName === scope()}">{{ sName }}
             </button>
           }
         </div>
@@ -100,7 +103,7 @@
               <span class="faded text-sm">with {{ tableData().length }} row@if (tableData().length > 1) {
                 <span>s</span>
               } </span>
-              <button matTooltip="Reload Rows" (click)="reloadRows()" [disabled]="tableRowRes.isLoading()"
+              <button aria-label="Reload rows" matTooltip="Reload Rows" (click)="reloadRows()" [disabled]="tableRowRes.isLoading()"
                       mat-icon-button>
                 <mat-icon>sync</mat-icon>
               </button>
@@ -110,18 +113,18 @@
               <!-- View mode toggle buttons -->
               <div class="flex flex-row items-center gap-2">
                 <span class="text-sm">View mode:</span>
-                <button mat-icon-button matTooltip="Collapsible List View"
-                        [ngClass]="{'selected-view': viewMode() === 'expanded'}"
+                <button mat-icon-button aria-label="Collapsible list view" matTooltip="Collapsible List View"
+                        [attr.aria-pressed]="viewMode() === 'expanded'" [ngClass]="{'selected-view': viewMode() === 'expanded'}"
                         (click)="setViewMode('expanded')">
                   <mat-icon>view_list</mat-icon>
                 </button>
-                <button mat-icon-button matTooltip="Card View"
-                        [ngClass]="{'selected-view': viewMode() === 'card'}"
+                <button mat-icon-button aria-label="Card view" matTooltip="Card View"
+                        [attr.aria-pressed]="viewMode() === 'card'" [ngClass]="{'selected-view': viewMode() === 'card'}"
                         (click)="setViewMode('card')">
                   <mat-icon>grid_view</mat-icon>
                 </button>
-                <button mat-icon-button matTooltip="Table View"
-                        [ngClass]="{'selected-view': viewMode() === 'table'}"
+                <button mat-icon-button aria-label="Table view" matTooltip="Table View"
+                        [attr.aria-pressed]="viewMode() === 'table'" [ngClass]="{'selected-view': viewMode() === 'table'}"
                         (click)="setViewMode('table')">
                   <mat-icon>table_chart</mat-icon>
                 </button>
@@ -155,7 +158,7 @@
                           *matCellDef="let element" [attr.data-label]="field.name + '\n\n(' + field.type + ')'"
                           class="text-wrap break-words lg:max-w-[15.313rem]">
 
-                        <app-act-data-view [data]="element[field.name] "></app-act-data-view>
+                        <app-act-data-view [fieldName]="field.name" [data]="element[field.name]"></app-act-data-view>
                         <!--                      {{ element[field.name] | json }}-->
                       </td>
                     </ng-container>
@@ -178,7 +181,7 @@
                               {{ field.name }}:
                             </div>
                             <div class="data-card-field-value">
-                              <app-act-data-view [data]="row[field.name]"></app-act-data-view>
+                              <app-act-data-view [fieldName]="field.name" [data]="row[field.name]"></app-act-data-view>
                             </div>
                           </div>
                         }
@@ -193,12 +196,12 @@
                 <div class="appear expanded-view mt-5">
                   @for (row of tableData(); track $index) {
                     <div class="expanded-item">
-                      <div class="expanded-item-header" (click)="toggleItemExpanded($index)">
+                      <button type="button" class="expanded-item-header" [attr.aria-expanded]="isItemExpanded($index)" (click)="toggleItemExpanded($index)">
                         <span class="expanded-item-title">Row {{ $index + 1 }}</span>
                         <mat-icon class="expand-icon" [ngClass]="{'rotated': isItemExpanded($index)}">
                           expand_more
                         </mat-icon>
-                      </div>
+                      </button>
                       @if (isItemExpanded($index)) {
                         <div class="expanded-item-content">
                           <table class="expanded-item-table">
@@ -209,7 +212,7 @@
                                     {{ field.name }}
                                   </td>
                                   <td class="expanded-field-value">
-                                    <app-act-data-view [data]="row[field.name]"></app-act-data-view>
+                                    <app-act-data-view [fieldName]="field.name" [data]="row[field.name]"></app-act-data-view>
                                   </td>
                                 </tr>
                               }

@@ -189,7 +189,7 @@ export class BlockComponent implements OnInit, OnDestroy {
       motionAnimate(
         target,
         {
-          boxShadow: "rgba(78 104 192, 0.25) 0px 4px 19px 0px, rgba(17, 12, 46, 0.15) 0px 20px 100px 0px",
+          boxShadow: "var(--card-box-shadow)",
           background: "var(--table-top-bg-gradient)"
         },
         { duration: 1 }

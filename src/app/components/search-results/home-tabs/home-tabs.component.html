@@ -31,6 +31,7 @@
 
       <!-- Expanded Content Wrapper (CSS animation) -->
       <div id="expanded-content-area" class="expanded-content-wrapper w-full"
+        [attr.inert]="!isExpanded() ? '' : null" [attr.aria-hidden]="!isExpanded()"
         [class.wrapper-expanded]="isExpanded()" [class.wrapper-collapsed]="!isExpanded()">
         <!-- Actual Tab Group -->
         <mat-tab-group fitInkBarToContent class="h-full home-tabs expanded-content w-full overflow-y-hidden"

@@ -1,234 +1,91 @@
-import { Component, computed, HostListener, inject, OnInit, PLATFORM_ID, resource, signal, ChangeDetectionStrategy } from "@angular/core";
-import { lastValueFrom } from "rxjs";
-import { DataService } from "../../services/data.service";
-import { ChainService } from "../../services/chain.service";
+import { ChangeDetectionStrategy, Component, computed, effect, ElementRef, inject, PLATFORM_ID, resource, viewChild } from "@angular/core";
+import { DecimalPipe, isPlatformBrowser, PercentPipe } from "@angular/common";
+import { ActivatedRoute, RouterLink } from "@angular/router";
+import { toSignal } from "@angular/core/rxjs-interop";
 import { HttpClient } from "@angular/common/http";
-
+import { lastValueFrom } from "rxjs";
 import * as echarts from "echarts/core";
-import { EChartsCoreOption, EChartsType } from "echarts/core";
 import { PieChart } from "echarts/charts";
 import { CanvasRenderer } from "echarts/renderers";
-import { LegendComponent, TitleComponent, TooltipComponent } from "echarts/components";
-import { isPlatformBrowser } from "@angular/common";
-import { MatDivider } from "@angular/material/divider";
-import { ActivatedRoute } from "@angular/router";
-import { toObservable } from "@angular/core/rxjs-interop";
+import { TooltipComponent } from "echarts/components";
+import { DataService } from "../../services/data.service";
+import { describeApiError } from "../../api-errors";
 
-echarts.use([PieChart, CanvasRenderer, TitleComponent, TooltipComponent, LegendComponent]);
-
+echarts.use([PieChart, CanvasRenderer, TooltipComponent]);
+interface Holder {
+  owner: string;
+  amount: number;
+}
 @Component({
   selector: "app-top-holders-chart",
+  imports: [DecimalPipe, PercentPipe, RouterLink],
   templateUrl: "./top-holders-chart.component.html",
   styleUrl: "./top-holders-chart.component.css",
-  changeDetection: ChangeDetectionStrategy.Eager,
-  imports: [MatDivider]
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class TopHoldersChartComponent implements OnInit {
-  data = inject(DataService);
-  route = inject(ActivatedRoute);
-  chainService = inject(ChainService);
-  httpClient = inject(HttpClient);
-  platformId = inject(PLATFORM_ID);
-  private chart?: EChartsType;
-
-  chartReady = signal(false);
-  tokenContract = signal("");
-  tokenSymbol = signal("");
-
-  allReady = computed(() => {
-    return this.chartReady() && this.tokenContract() && this.tokenSymbol() && this.holders.value();
-  });
-
-  allReady$ = toObservable(this.allReady);
-
-  // listen for window resize events
-  @HostListener("window:resize", ["$event"])
-  onResize(event: any) {
-    if (this.chart) {
-      this.chart.resize();
-    }
-  }
-
-  ngOnInit() {
-    if (isPlatformBrowser(this.platformId)) {
-      this.setupECharts();
-    }
-    this.route.params.subscribe(async (routeParams: any) => {
-      if (routeParams.contract) {
-        this.tokenContract.set(routeParams.contract);
-      }
-      if (routeParams.symbol) {
-        this.tokenSymbol.set(routeParams.symbol);
-      }
-    });
-
-    this.allReady$.subscribe(ready => {
-      if (ready) {
-        this.loadChartData();
-      }
-    });
-  }
-
-  holders = resource<any, any>({
-    params: () => {
-      return {
-        contract: this.tokenContract(),
-        symbol: this.tokenSymbol()
-      };
-    },
+export class TopHoldersChartComponent {
+  readonly data = inject(DataService);
+  private readonly http = inject(HttpClient);
+  private readonly platform = inject(PLATFORM_ID);
+  private readonly params = toSignal(inject(ActivatedRoute).paramMap);
+  readonly tokenContract = computed(() => this.params()?.get("contract") || "");
+  readonly tokenSymbol = computed(() => this.params()?.get("symbol") || "");
+  readonly chartTarget = viewChild<ElementRef<HTMLElement>>("holderChart");
+  readonly describeApiError = describeApiError;
+  readonly holders = resource({
+    params: () => (this.tokenContract() && this.tokenSymbol() ? { contract: this.tokenContract(), symbol: this.tokenSymbol() } : undefined),
     loader: async ({ params }) => {
-      try {
-        const opts = `contract=${params.contract}&symbol=${params.symbol}&limit=10`;
-        const getTopHolders = this.data.env.hyperionApiUrl + `/v2/state/get_top_holders?${opts}`;
-        const data = (await lastValueFrom(this.httpClient.get(getTopHolders))) as any;
-        if (data && data.holders && data.holders.length > 0) {
-          return data.holders;
-        } else {
-          return [];
-        }
-      } catch (e: any) {
-        console.log(e.message);
-        return [];
-      }
+      const query = new URLSearchParams({ ...params, limit: "10" });
+      const result = await lastValueFrom(
+        this.http.get<{ holders: Holder[] }>(`${this.data.env.hyperionApiUrl}/v2/state/get_top_holders?${query}`)
+      );
+      if (!Array.isArray(result.holders)) throw new Error("Hyperion returned an invalid holder response.");
+      return result.holders;
     }
   });
-
-  buildOptions(): EChartsCoreOption {
-    const split = this.splitHolders(0.1);
-
-    const useSplitCharts = split.inner.length > 0 && split.outer.length > 0;
-
-    const tokenSymbol = this.tokenSymbol();
-
-    return {
-      calculable: true,
-      title: {
-        left: "50%",
-        text: `${tokenSymbol} Top Holders`,
-        subtext: `Contract: ${this.tokenContract()} | Symbol: ${tokenSymbol}`,
-        textAlign: "center"
-      },
-      tooltip: {
-        trigger: "item",
-        formatter: (params: any) => {
-          const data = params.data;
-          const sharePct = (data.share * 100).toFixed(4);
-          return `Balance <br/>${data.name}: ${data.value} ${tokenSymbol} (${sharePct}%)`;
-        }
-      },
-      series: useSplitCharts
-        ? [
-            {
-              type: "pie",
-              radius: [0, "30%"],
-              label: {
-                position: "inner",
-                fontSize: 14
-              },
-              labelLine: {
-                show: false
-              },
-              data: split.inner
-            },
-            {
-              type: "pie",
-              radius: ["45%", "60%"],
-              avoidLabelOverlap: false,
-              padAngle: 2,
-              itemStyle: { borderRadius: 10 },
-              label: {
-                backgroundColor: "#eee",
-                borderColor: "#777",
-                borderWidth: 1,
-                borderRadius: 32,
-                formatter: (params: any) => {
-                  const data = params.data;
-                  const sharePct = (data.share * 100).toFixed(4);
-                  return `{acc|${data.name}}\n{pct|${sharePct}%}`;
-                },
-                rich: {
-                  acc: {
-                    padding: [20, 20, 20, 20],
-                    align: "center",
-                    fontSize: 14,
-                    lineHeight: 20
-                  },
-                  pct: {
-                    align: "center",
-                    padding: [10, 10, 10, 10],
-                    fontSize: 12,
-                    lineHeight: 20
-                  }
-                }
-              },
-              labelLine: {
-                length: 30
-              },
-              data: split.outer
-            }
-          ]
-        : [
-            {
-              name: "Balance",
-              type: "pie",
-              radius: ["40%", "70%"],
-              avoidLabelOverlap: false,
-              padAngle: 5,
-              itemStyle: { borderRadius: 10 },
-              label: { show: false, position: "center" },
-              emphasis: {
-                label: { show: true, fontSize: 40, fontWeight: "bold" }
-              },
-              labelLine: { show: false },
-              data: split.outer
-            }
-          ]
-    };
+  readonly rows = computed(() => (this.holders.hasValue() ? this.holders.value() : []));
+  readonly displayedTotal = computed(() => this.rows().reduce((total, row) => total + row.amount, 0));
+  share(amount: number): number {
+    return this.displayedTotal() ? amount / this.displayedTotal() : 0;
   }
-
-  private setupECharts() {
-    const chartDom = document.getElementById("top-holders-chart");
-    if (chartDom) {
-      this.chart = echarts.init(chartDom);
-      this.chartReady.set(true);
-    } else {
-      console.log("Failed to find chart element");
-      this.chartReady.set(false);
-    }
-  }
-
-  private loadChartData() {
-    if (this.chart && this.allReady()) {
-      this.chart.setOption(this.buildOptions());
-    }
-  }
-
-  // function to split the holders into 2 arrays, based on a custom threshold
-  private splitHolders(threshold: number): { inner: any[]; outer: any[] } {
-    const holders = this.holders.value();
-    if (holders) {
-      const total = holders.reduce((acc: number, holder: any) => acc + holder.amount, 0);
-      const inner: any[] = [];
-      const outer: any[] = [];
-      let innerTotal = 0;
-      let outerTotal = 0;
-      holders.forEach((holder: any) => {
-        if (holder.amount / total > threshold) {
-          inner.push({ value: holder.amount, name: holder.owner, share: holder.amount / total });
-          innerTotal += holder.amount;
-        } else {
-          outer.push({ value: holder.amount, name: holder.owner, share: holder.amount / total });
-          outerTotal += holder.amount;
-        }
+  constructor() {
+    effect(onCleanup => {
+      this.data.explorerMetadata(); // Repaint the chart when the chain appearance changes.
+      const target = this.chartTarget()?.nativeElement;
+      const rows = this.rows();
+      if (!isPlatformBrowser(this.platform) || !target || !rows.length) return;
+      const chart = echarts.init(target);
+      const palette = getComputedStyle(target);
+      const primary = palette.getPropertyValue("--primary").trim() || "#00688f";
+      const text = palette.getPropertyValue("--main-text").trim() || "#141519";
+      chart.setOption({
+        animation: !window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+        animationDuration: 250,
+        color: rows.map((_, index) => echarts.color.lift(primary, index * 0.065)),
+        textStyle: { color: text, fontFamily: palette.getPropertyValue("--main-font-family") },
+        tooltip: {
+          trigger: "item",
+          confine: true,
+          formatter: (params: any) => `${params.name}: ${Number(params.value).toLocaleString()} ${this.tokenSymbol()}`
+        },
+        series: [
+          {
+            type: "pie",
+            radius: ["48%", "78%"],
+            center: ["50%", "50%"],
+            label: { show: false },
+            labelLine: { show: false },
+            emphasis: { scaleSize: 5 },
+            data: rows.map(row => ({ name: row.owner, value: row.amount }))
+          }
+        ]
       });
-      if (inner.length > 0) {
-        inner.push({ value: total - innerTotal, name: "Others", share: (total - innerTotal) / total });
-      }
-      console.log("Inner", inner);
-      console.log("Outer", outer);
-      return { inner, outer };
-    } else {
-      return { inner: [], outer: [] };
-    }
+      const resize = new ResizeObserver(() => chart.resize());
+      resize.observe(target);
+      onCleanup(() => {
+        resize.disconnect();
+        chart.dispose();
+      });
+    });
   }
 }

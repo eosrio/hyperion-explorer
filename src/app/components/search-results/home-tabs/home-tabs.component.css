@@ -20,7 +20,9 @@
   height: 3.25rem !important; /* 52px Slightly taller tabs */
   padding: 0 1.5rem !important; /* 24px Increase horizontal padding */
   font-weight: 500; /* Medium font weight */
-  transition: color 0.3s ease, opacity 0.3s ease; /* Smooth transition */
+  transition:
+    color 0.3s ease,
+    opacity 0.3s ease; /* Smooth transition */
   background: none;
   box-shadow: none;
   background-color: transparent;
@@ -32,7 +34,7 @@
 
 ::ng-deep .home-tabs .mat-mdc-tab:not(.mdc-tab--active):hover {
   opacity: 1;
-  background-color: rgba(0,0,0,0.03); /* Subtle hover effect */
+  background-color: rgba(0, 0, 0, 0.03); /* Subtle hover effect */
 }
 
 ::ng-deep .home-tabs .mat-mdc-tab.mdc-tab--active {
@@ -87,7 +89,9 @@
   /* display: flex; /* Flex handled in HTML */
   /* align-items: center; /* Alignment handled in HTML */
   /* padding: 0 24px; /* Padding handled in HTML */
-  transition: min-height 0.3s ease-in-out, border-radius 0.3s ease-in-out; /* Keep height/radius transition */
+  transition:
+    min-height 0.3s ease-in-out,
+    border-radius 0.3s ease-in-out; /* Keep height/radius transition */
   border-radius: var(--card-border-radius); /* Apply full radius when collapsed */
   overflow: hidden; /* Hide overflowing content when collapsed */
   /* cursor: pointer; /* Cursor handled on the .collapsed-header element in HTML */
@@ -124,7 +128,6 @@
 /* .tabs-card.is-collapsed:hover .expand-collapse-icon { ... } */
 /* .tabs-card.is-expanded .expand-collapse-icon { ... } */
 
-
 /* Removed hover styles for the card itself, hover is now on the header element in HTML */
 /* .tabs-card.is-collapsed:hover { ... } */
 
@@ -134,8 +137,9 @@
   background: var(--card-bg-gradient), var(--main-background);
   box-shadow: var(--card-box-shadow);
   border-radius: var(--card-border-radius);
-  transition: max-height 300ms cubic-bezier(0.4, 0.0, 0.2, 1),
-              opacity 300ms cubic-bezier(0.4, 0.0, 0.2, 1);
+  transition:
+    max-height 300ms cubic-bezier(0.4, 0, 0.2, 1),
+    opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
 }
 
@@ -149,7 +153,7 @@
 }
 
 .expanded-content-wrapper.wrapper-expanded {
-  max-height: 800px; /* generous max for content */
+  max-height: none;
   opacity: 1;
   overflow: visible;
 }
@@ -164,19 +168,19 @@
 
 /* Override tab body padding if needed for animation */
 .expanded-content-wrapper ::ng-deep .mat-mdc-tab-body-content {
-   padding-top: 1rem; /* Re-apply padding inside the animated container */
+  padding-top: 1rem; /* Re-apply padding inside the animated container */
   overflow: hidden;
 }
 
 /*chevron animation start*/
 ::ng-deep .arrowUp {
   transform: rotate(0deg);
-  animation: arrowUpAnimation 225ms cubic-bezier(0.4, 0.0, 0.2, 1);
+  animation: arrowUpAnimation 225ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 ::ng-deep .arrowDown {
   transform: rotate(-180deg);
-  animation: arrowDownAnimation 225ms cubic-bezier(0.4, 0.0, 0.2, 1);
+  animation: arrowDownAnimation 225ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 @keyframes arrowUpAnimation {

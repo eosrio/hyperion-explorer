@@ -22,7 +22,8 @@ test("renders behind /explorer with metadata that has no history watermark", asy
   await expect(page.getByRole("combobox", { name: "Account name, block number, transaction ID, or public key" })).toBeVisible();
   await expect(page).toHaveTitle("Fixture Chain Hyperion Explorer");
   await expect(page.locator("#global-loader")).toHaveCount(0);
-  await expect(page.locator("app-layout-transition").first().locator("img")).toBeVisible();
+  await expect(page.locator(".chain-logo")).toBeVisible();
+  await expect(page.locator("#header-container img")).toHaveCount(1);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
   expect(errors).toEqual([]);
   await page.screenshot({ path: testInfo.outputPath("home.png"), fullPage: true, animations: "disabled" });
@@ -125,7 +126,7 @@ test("preserves uint64 metadata and exact continuation cursors after SSR hydrati
   await expect(dialog.getByText("9223372036854775808", { exact: true }).first()).toBeVisible();
   await dialog.getByRole("button", { name: "Toggle auth_sequence", exact: true }).click();
   await dialog.getByRole("button", { name: "Toggle 0", exact: true }).first().click();
-  await expect(dialog.getByText("9007199254740993", { exact: true }).first()).toBeVisible();
+  await expect(dialog.getByRole("treeitem", { name: "sequence 9007199254740993", exact: true })).toBeVisible();
 });
 
 test("uses the unrounded snapshot bound for filtered history", async ({ page, request }) => {

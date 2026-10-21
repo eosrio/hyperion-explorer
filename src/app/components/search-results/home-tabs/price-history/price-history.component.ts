@@ -1,430 +1,160 @@
-import { CommonModule, isPlatformBrowser } from "@angular/common"; // Import isPlatformBrowser
-import { Component, effect, ElementRef, inject, PLATFORM_ID, signal, ChangeDetectionStrategy } from "@angular/core";
+import { isPlatformBrowser } from "@angular/common";
+import { Component, effect, ElementRef, inject, PLATFORM_ID, signal, ChangeDetectionStrategy, OnDestroy } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import { FaIconComponent } from "@fortawesome/angular-fontawesome";
-import { faHandHoldingDollar, faTag, faTags } from "@fortawesome/free-solid-svg-icons";
-import { EChartsOption } from "echarts";
-import { NgxEchartsModule } from "ngx-echarts"; // Keep NgxEchartsModule
+import { faTag, faTags } from "@fortawesome/free-solid-svg-icons";
+import { color, EChartsOption } from "echarts";
+import { NgxEchartsModule } from "ngx-echarts";
 import { ChainService } from "../../../../services/chain.service";
 import { DataService } from "../../../../services/data.service";
-import { OracleHistogramResponse, OraclePair, OracleService } from "../../../../services/oracle.service";
+import { OraclePair, OracleService } from "../../../../services/oracle.service";
+import { describeApiError } from "../../../../api-errors";
 
 @Component({
   selector: "app-price-history",
   imports: [NgxEchartsModule, FaIconComponent, FormsModule],
   templateUrl: "./price-history.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
+  changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: "./price-history.component.css"
 })
-export class PriceHistoryComponent {
+export class PriceHistoryComponent implements OnDestroy {
   platformId = inject(PLATFORM_ID);
   elementRef = inject(ElementRef);
-  chartOptions = signal<EChartsOption>({});
-
   chain = inject(ChainService);
   data = inject(DataService);
   oracleService = inject(OracleService);
-
+  chartOptions = signal<EChartsOption>({});
   loading = signal(false);
-  error = signal<string>("");
-  selectedInterval = signal<string>("1h");
-  selectedPair = signal<string>("-");
+  error = signal("");
+  selectedInterval = signal("1h");
+  selectedPair = signal("-");
   availablePairs = signal<OraclePair[]>([]);
   selectedPairPrecision = signal(4);
   dataPointsCount = signal(0);
   currentPairPrice = signal<number | null>(null);
-
-  icons = {
-    solid: {
-      price: faHandHoldingDollar,
-      tag: faTag,
-      tags: faTags
-    }
-  };
+  icons = { solid: { tag: faTag, tags: faTags } };
+  private revision = 0;
 
   constructor() {
     if (isPlatformBrowser(this.platformId)) {
       effect(() => {
-        const explorerMetadata = this.data.explorerMetadata();
-        const systemSymbol = this.chain.systemSymbol.value();
-        if (explorerMetadata && explorerMetadata.oracle && systemSymbol) {
-          this.loading.set(true);
-          this.loadAvailablePairs()
-            .then(async () => {
-              await this.loadPriceHistory();
-              this.loading.set(false);
-            })
-            .catch(e => {
-              console.error("Error loading oracle data:", e);
-              this.error.set("Failed to load oracle data");
-              this.loading.set(false);
-            });
-        }
+        if (this.data.explorerMetadata()?.oracle && this.chain.systemSymbol.value()) void this.retry();
       });
     }
   }
 
-  /**
-   * Format price values based on their magnitude for better readability
-   */
+  ngOnDestroy(): void {
+    this.revision++;
+  }
+
   formatPriceForDisplay(price: number): string {
-    if (price === 0) return "$0.00";
-    if (Math.abs(price) < 0.000001) {
-      return `$${price.toFixed(12)}`;
-    } else if (Math.abs(price) < 0.001) {
-      return `$${price.toFixed(10)}`;
-    } else if (Math.abs(price) < 1) {
-      return `$${price.toFixed(8)}`;
-    } else {
-      return `$${price.toFixed(2)}`;
-    }
+    const precision = Math.min(12, Math.max(2, this.selectedPairPrecision()));
+    return "$" + price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: precision });
   }
 
-  async onIntervalChange(): Promise<void> {
-    if (isPlatformBrowser(this.platformId)) {
-      // Use setTimeout to prevent ExpressionChangedAfterItHasBeenCheckedError
-      setTimeout(async () => {
-        await this.loadPriceHistory();
-      }, 0);
-    }
-  }
-
-  async onPairChange(): Promise<void> {
-    if (isPlatformBrowser(this.platformId)) {
-      // Update precision when pair changes
-      const pairData = this.availablePairs().find(p => p.name === this.selectedPair());
-      if (pairData) {
-        this.selectedPairPrecision.set(pairData.precision);
-      }
-
-      // Use setTimeout to prevent ExpressionChangedAfterItHasBeenCheckedError
-      setTimeout(async () => {
-        await this.loadPriceHistory();
-      }, 0);
-    }
-  }
-
-  private async loadAvailablePairs(): Promise<void> {
+  async retry(): Promise<void> {
+    const revision = ++this.revision;
+    this.loading.set(true);
+    this.error.set("");
     try {
-      console.log("Loading available pairs...");
       const pairs = await this.oracleService.getPairs();
-      console.log("Loaded pairs:", pairs);
-
-      // Ensure all pairs have the proper structure
-      this.availablePairs.set(pairs.filter(pair => pair && pair.name && typeof pair.name === "string"));
-
-      console.log("Filtered pairs:", this.availablePairs);
-
-      // Set default pair to the first one that includes 'usd', or first available
-      const usdPair = this.availablePairs().find(pair => pair.name.toLowerCase().includes("usd"));
-      if (usdPair) {
-        this.selectedPair.set(usdPair.name);
-        this.selectedPairPrecision.set(usdPair.precision);
-        console.log("Selected USD pair:", usdPair);
-      } else if (this.availablePairs().length > 0) {
-        this.selectedPair.set(this.availablePairs()[0].name);
-        this.selectedPairPrecision.set(this.availablePairs()[0].precision);
-        console.log("Selected first available pair:", this.availablePairs()[0]);
-      }
+      if (revision !== this.revision) return;
+      this.availablePairs.set(pairs.filter(pair => pair?.name));
+      const pair = pairs.find(pair => pair.name === this.data.explorerMetadata()?.oracle?.pair) || pairs[0];
+      if (!pair) throw new Error("No oracle pairs are available.");
+      this.selectedPair.set(pair.name);
+      await this.loadPriceHistory();
     } catch (error) {
-      console.error("Error loading available pairs:", error);
-      // Provide fallback pairs to prevent template errors
-      this.availablePairs.set([{ name: "-", precision: 4 }]);
-      this.selectedPair.set("-");
-      this.selectedPairPrecision.set(4);
+      if (revision === this.revision) {
+        this.error.set(describeApiError(error));
+        this.loading.set(false);
+      }
     }
+  }
+
+  onIntervalChange(): Promise<void> {
+    return this.loadPriceHistory();
+  }
+  onPairChange(): Promise<void> {
+    return this.loadPriceHistory();
   }
 
   private async loadPriceHistory(): Promise<void> {
+    const revision = ++this.revision;
+    const pair = this.selectedPair();
+    const interval = this.selectedInterval();
+    const precision = this.availablePairs().find(item => item.name === pair)?.precision ?? 4;
+    this.selectedPairPrecision.set(precision);
+    this.loading.set(true);
+    this.error.set("");
     try {
-      this.loading.set(true);
-      this.error.set("");
-
-      // Get theme colors from CSS variables
-      const computedStyle = getComputedStyle(this.elementRef.nativeElement);
-      const primaryColor = computedStyle.getPropertyValue("--primary").trim() || "rgb(75, 192, 192)";
-      const fadedColor = computedStyle.getPropertyValue("--faded").trim() || "rgb(128, 128, 128)";
-
-      // Helper to convert color to rgba with alpha
-      const toRgba = (color: string, alpha: number): string => {
-        if (color.startsWith("rgb(")) {
-          return color.replace("rgb(", "rgba(").replace(")", `, ${alpha})`);
-        } else if (color.startsWith("#") && color.length === 7) {
-          const r = parseInt(color.slice(1, 3), 16);
-          const g = parseInt(color.slice(3, 5), 16);
-          const b = parseInt(color.slice(5, 7), 16);
-          return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-        }
-        // Add more parsing if needed (e.g., for hex shorthand, hsl)
-        return `rgba(75, 192, 192, ${alpha})`; // Fallback rgba
-      };
-
-      const areaColor = toRgba(primaryColor, 0.2); // Area color with 0.2 alpha
-
-      // Fetch real price history from API using the selected interval and pair
-      const response: OracleHistogramResponse = await this.oracleService.getPriceHistory(this.selectedPair(), this.selectedInterval());
-
-      if (!response || !response.histogram || response.histogram.length === 0) {
-        throw new Error("No price history data available");
-      }
-
-      // Store data points count
+      const response = await this.oracleService.getPriceHistory(pair, interval);
+      if (revision !== this.revision) return;
+      if (!response.histogram?.length) throw new Error("No price history is available for this pair.");
+      const style = getComputedStyle(this.elementRef.nativeElement);
+      const primary = style.getPropertyValue("--primary").trim();
+      const foreground = style.getPropertyValue("--main-text").trim();
+      const faded = style.getPropertyValue("--faded").trim();
+      const divider = style.getPropertyValue("--line-divider").trim();
+      const prices = response.histogram.map(bucket => this.oracleService.convertPrice(bucket.average_price, precision));
       this.dataPointsCount.set(response.histogram.length);
-
-      // Get current price from the most recent data point
-      if (response.histogram.length > 0) {
-        const latestData = response.histogram[response.histogram.length - 1];
-        this.currentPairPrice.set(this.oracleService.convertPrice(latestData.average_price, this.selectedPairPrecision()));
-      } else {
-        this.currentPairPrice.set(null);
-      }
-
-      // Format dates for better display
-      const formatDate = (dateStr: string) => {
-        const date = new Date(dateStr);
-        // For longer intervals (monthly, weekly, daily), show date only; for shorter intervals, show date and time
-        if (["1M", "1w", "1d"].includes(this.selectedInterval())) {
-          return date.toLocaleDateString("en-US", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-            timeZone: "UTC" // Use UTC to avoid timezone issues
-          });
-        } else {
-          return date.toLocaleString("en-US", {
-            day: "2-digit",
-            month: "2-digit",
-            hour: "2-digit",
-            minute: "2-digit",
-            timeZone: "UTC" // Use UTC to avoid timezone issues
-          });
-        }
-      };
-
-      const dates = response.histogram.map(b => formatDate(b.timestamp));
-      // Convert raw prices to real prices using precision
-      const prices = response.histogram.map(b => this.oracleService.convertPrice(b.average_price, this.selectedPairPrecision()));
-
-      // Determine if we should show symbols (for few data points)
-      const showSymbols = response.histogram.length <= 10;
-
-      // Check if we have very small values with tiny variations
-      const minPrice = Math.min(...prices);
-      const maxPrice = Math.max(...prices);
-      const isVerySmallRange = minPrice > 0 && maxPrice > 0 && Math.abs(maxPrice - minPrice) / minPrice < 0.05; // Less than 5% variation
-
-      // For very small ranges, enhance visual contrast
-      const enhancedPrices = isVerySmallRange
-        ? prices.map(price => {
-            // Amplify the relative differences for better visualization
-            const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
-            const deviation = price - avgPrice;
-            return avgPrice + deviation * 3; // Amplify by 3x
-          })
-        : prices;
-
-      // Define chart options
+      this.currentPairPrice.set(prices.at(-1) ?? null);
       this.chartOptions.set({
-        tooltip: {
-          trigger: "axis",
-          position: function (pt: number[]) {
-            return [pt[0], "10%"];
-          },
-          formatter: (params: any) => {
-            const param = Array.isArray(params) ? params[0] : params;
-            const bucket = response.histogram[param.dataIndex]; // Convert raw prices to real prices using precision
-            const avgPrice = this.oracleService.convertPrice(bucket.average_price, this.selectedPairPrecision());
-            const minPrice = this.oracleService.convertPrice(bucket.min_price, this.selectedPairPrecision());
-            const maxPrice = this.oracleService.convertPrice(bucket.max_price, this.selectedPairPrecision());
-            const medianPrice = this.oracleService.convertPrice(bucket.median_price, this.selectedPairPrecision());
-
-            // Smart formatting based on value size
-            const formatPrice = (price: number): string => {
-              if (price === 0) return "$0";
-              if (Math.abs(price) < 0.000001) {
-                // For very tiny values, use many decimal places
-                return `$${price.toFixed(12)}`;
-              } else if (Math.abs(price) < 0.001) {
-                return `$${price.toFixed(10)}`;
-              } else if (Math.abs(price) < 1) {
-                return `$${price.toFixed(8)}`;
-              } else {
-                return `$${price.toFixed(Math.min(this.selectedPairPrecision(), 4))}`;
-              }
-            };
-
-            // Calculate percentage change from first data point if available
-            let changeInfo = "";
-            if (param.dataIndex > 0 && response.histogram.length > 1) {
-              const currentPrice = avgPrice;
-              const firstPrice = this.oracleService.convertPrice(response.histogram[0].average_price, this.selectedPairPrecision());
-              const changePercent = ((currentPrice - firstPrice) / firstPrice) * 100;
-              const changeSymbol = changePercent >= 0 ? "↗" : "↘";
-              const changeColor = changePercent >= 0 ? "#10b981" : "#ef4444";
-              changeInfo = `<div style="color: ${changeColor};">${changeSymbol} ${changePercent.toFixed(4)}% from start</div>`;
-            }
-
-            return `
-              <div style="font-weight: bold; margin-bottom: 5px;">${param.name}</div>
-              <div>Average Price: ${formatPrice(avgPrice)}</div>
-              <div>Min Price: ${formatPrice(minPrice)}</div>
-              <div>Max Price: ${formatPrice(maxPrice)}</div>
-              <div>Median: ${formatPrice(medianPrice)}</div>
-              <div>Samples: ${bucket.doc_count.toLocaleString()}</div>
-              ${changeInfo}
-            `;
-          }
-        },
-        title: {
-          left: "center",
-          text: `Price History - ${this.selectedPair().toUpperCase()} (${this.selectedInterval()})`,
-          subtext: isVerySmallRange ? "* Visual differences amplified for better readability" : "",
-          textStyle: {
-            fontSize: 16,
-            fontWeight: "bold"
-          },
-          subtextStyle: {
-            fontSize: 12,
-            color: "#666",
-            fontStyle: "italic"
-          }
-        },
+        animation: !window.matchMedia("(prefers-reduced-motion: reduce)").matches,
+        textStyle: { color: foreground, fontFamily: style.fontFamily },
+        grid: { left: 12, right: 16, top: 16, bottom: 70, containLabel: true },
+        tooltip: { trigger: "axis", valueFormatter: value => this.formatPriceForDisplay(Number(value)) },
         xAxis: {
           type: "category",
-          boundaryGap: response.histogram.length === 1 ? true : false, // Use boundaryGap for single points
-          data: dates,
-          axisLabel: {
-            show: false // Hide x-axis labels since tooltip provides all the info
-          },
-          axisTick: {
-            show: false // Hide x-axis ticks as well
-          },
-          axisLine: {
-            show: true // Keep the axis line for visual reference
-          }
+          boundaryGap: false,
+          data: response.histogram.map(
+            bucket =>
+              new Date(bucket.timestamp).toLocaleString("en-US", {
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+                timeZone: "UTC"
+              }) + " UTC"
+          ),
+          axisLabel: { hideOverlap: true, showMinLabel: false, showMaxLabel: false, color: faded },
+          axisLine: { lineStyle: { color: divider } }
         },
         yAxis: {
           type: "value",
-          boundaryGap: [0, "5%"],
-          axisLabel: {
-            formatter: (value: number) => {
-              // For very small values, use fixed decimal notation instead of scientific
-              if (value === 0) return "$0";
-              if (Math.abs(value) < 0.001) {
-                // Use fixed notation with enough decimals to show the value properly
-                return `$${value.toFixed(10)}`;
-              } else if (Math.abs(value) < 1) {
-                return `$${value.toFixed(8)}`;
-              } else {
-                return `$${value.toFixed(2)}`;
-              }
-            }
-          },
-          // Ensure proper scaling for very small values
           scale: true,
-          min: function (value: any) {
-            const minVal = value.min;
-            const maxVal = value.max;
-
-            // For very small values with tiny ranges, expand the range for better visualization
-            if (minVal > 0 && maxVal > 0 && Math.abs(maxVal - minVal) / minVal < 0.1) {
-              // If the range is less than 10% of the minimum value, expand it
-              const center = (minVal + maxVal) / 2;
-              const expandedRange = center * 0.15; // 15% range around center
-              return Math.max(0, center - expandedRange);
-            } else if (minVal > 0 && minVal < 0.001) {
-              return minVal * 0.9; // 10% below minimum for very small values
-            }
-            return value.min;
-          },
-          max: function (value: any) {
-            const minVal = value.min;
-            const maxVal = value.max;
-
-            // For very small values with tiny ranges, expand the range for better visualization
-            if (minVal > 0 && maxVal > 0 && Math.abs(maxVal - minVal) / minVal < 0.1) {
-              // If the range is less than 10% of the minimum value, expand it
-              const center = (minVal + maxVal) / 2;
-              const expandedRange = center * 0.15; // 15% range around center
-              return center + expandedRange;
-            }
-            return value.max;
-          }
+          axisLabel: { color: faded, formatter: value => this.formatPriceForDisplay(value) },
+          splitLine: { lineStyle: { color: divider } }
         },
         dataZoom: [
+          { type: "inside" },
           {
-            type: "inside",
-            start: 0,
-            end: 100
-          },
-          {
-            start: 0,
-            end: 100,
-            backgroundColor: "#ddd",
-            fillerColor: toRgba(fadedColor, 0.4),
-            handleStyle: {
-              color: fadedColor,
-              borderWidth: 0,
-              shadowBlur: 0,
-              shadowColor: "transparent"
-            },
-            moveHandleStyle: {
-              color: fadedColor,
-              opacity: 0.7
-            },
-            emphasis: {
-              handleLabel: {
-                show: true
-              },
-              handleStyle: {
-                color: fadedColor,
-                borderColor: fadedColor,
-                shadowBlur: 0,
-                shadowColor: "transparent"
-              },
-              moveHandleStyle: {
-                color: fadedColor,
-                opacity: 1
-              }
-            },
-            textStyle: {
-              color: "#333"
-            }
+            type: "slider",
+            bottom: 8,
+            height: 24,
+            textStyle: { color: foreground },
+            borderColor: divider,
+            backgroundColor: "transparent",
+            fillerColor: color.modifyAlpha(primary, 0.15),
+            handleStyle: { color: primary }
           }
         ],
         series: [
           {
-            name: "Average Price",
-            type: response.histogram.length === 1 ? "bar" : "line", // Use bar chart for single data point
-            symbol: showSymbols ? "circle" : "none",
-            symbolSize: showSymbols ? 8 : 4,
-            sampling: "lttb",
-            itemStyle: {
-              color: primaryColor
-            },
-            areaStyle:
-              response.histogram.length > 1
-                ? {
-                    color: areaColor
-                  }
-                : undefined, // Only show area for multiple points
-            data: enhancedPrices, // Use enhanced prices for better visualization
-            emphasis: {
-              focus: "series"
-            },
-            lineStyle: {
-              width: 2
-            },
-            // Add smooth curve for better visualization of small changes
-            smooth: isVerySmallRange ? 0.3 : false
+            name: pair.toUpperCase(),
+            type: "line",
+            data: prices,
+            showSymbol: prices.length <= 10,
+            itemStyle: { color: primary },
+            areaStyle: { color: color.modifyAlpha(primary, 0.1) },
+            sampling: "lttb"
           }
         ]
       });
-    } catch (e: any) {
-      console.error("Error loading price history:", e);
-      this.error.set(e?.message || "Failed to load price history.");
+    } catch (error) {
+      if (revision === this.revision) this.error.set(describeApiError(error));
     } finally {
-      this.loading.set(false);
+      if (revision === this.revision) this.loading.set(false);
     }
   }
 }

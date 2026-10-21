@@ -17,7 +17,7 @@
       @let systemSymbol = acServ.systemSymbol();
       @let systemPrecision = acServ.systemPrecision();
 
-      <div id="account-content" class="appear grid auto-cols-max grid-cols-1 gap-5 text-black md:grid-cols-3">
+      <div id="account-content" class="appear grid auto-cols-max grid-cols-1 gap-5 text-[var(--main-text)] md:grid-cols-3">
         <!-- ACCOUNT NAME-->
         <div id="account-name-sticky" class="custom-card card-top-sticky bg-no-transparency sticky z-40 w-full md:col-span-3">
           <mat-card-header>
@@ -232,7 +232,7 @@
             </div>
           </mat-card-content>
         </div>      <!--TOKENS-->
-        <mat-accordion class="custom-card vote-card w-full text-black">
+        <mat-accordion class="custom-card vote-card w-full text-[var(--main-text)]">
           <mat-expansion-panel
             #tokensExpansionPanel
             [(expanded)]="tokensExpanded"
@@ -294,7 +294,7 @@
             }
           </mat-expansion-panel>
         </mat-accordion>      <!--KEYS-->
-        <mat-accordion class="custom-card vote-card w-full text-black md:col-span-2">
+        <mat-accordion class="custom-card vote-card w-full text-[var(--main-text)] md:col-span-2">
           <mat-expansion-panel #permissionsExpansionPanel
                                [(expanded)]="permissionsExpanded"
                                [disabled]="acServ.accountComputed().permissions.length <= 0"
@@ -340,7 +340,7 @@
         <!--VOTE CARD-->
         @let voterInfo = acServ.accountComputed().voter_info;
         @if (voterInfo && (voterInfo.proxy || voterInfo.producers.length > 0)) {
-          <mat-accordion class="custom-card vote-card w-full text-black md:col-span-3">
+          <mat-accordion class="custom-card vote-card w-full text-[var(--main-text)] md:col-span-3">
             <mat-expansion-panel
               #voteExpansionPanel
               [disabled]="voterInfo.producers.length <= 0"
@@ -416,7 +416,8 @@
                   <fa-icon [icon]="icons.solid.broadcast" class="livestream-icon"></fa-icon>
                   <span>Action Live Streaming</span>
                 </div>
-                <div class="livestream-toggle" (click)="acServ.toggleStreaming()">
+                <button type="button" role="switch" aria-label="Action live streaming"
+                        [attr.aria-checked]="acServ.streamClientStatus()" class="livestream-toggle" (click)="acServ.toggleStreaming()">
                   <div class="toggle-track" [ngClass]="{'toggle-track-on': acServ.streamClientStatus()}">
                     <div class="toggle-indicator" [ngClass]="{'toggle-indicator-on': acServ.streamClientStatus()}">
                       <div class="toggle-indicator-light" [ngClass]="{'pulse': acServ.streamClientStatus()}"></div>
@@ -425,7 +426,7 @@
                   <span class="toggle-status font-medium">
                 {{ acServ.streamClientStatus() ? "ON" : "OFF" }}
               </span>
-                </div>
+                </button>
                 @if (acServ.streamClientStatus()) {
                   <div class="ml-2 flex flex-row items-center gap-1">
                     <span class="text-sm faded">Actions:</span>
@@ -443,7 +444,7 @@
                   {{ chain.lastIrreversibleBlockNum() | number }}
                 </strong>
               </a>
-              <button mat-button matTooltip="Refresh Last Irreversible Block" (click)="chain.refreshChainInfo()"
+              <button mat-button aria-label="Refresh last irreversible block" matTooltip="Refresh Last Irreversible Block" (click)="chain.refreshChainInfo()"
                       class="custom-icon-btn">
                 <fa-icon [icon]="icons.solid.faSync" class="text-lg faded"></fa-icon>
               </button>
@@ -452,7 +453,16 @@
 
           </div>
 
-          <!-- aqui -->
+          @if (acServ.streamClientStatus() || acServ.pendingStreamCount()) {
+            <div class="new-actions-bar" aria-live="polite">
+              @if (acServ.pendingStreamCount()) {
+                <button type="button" mat-raised-button class="primary-btn" (click)="acServ.showNewActions()">{{ acServ.pendingStreamCount() }} New actions</button>
+              } @else {
+                <span class="faded">Listening for new actions</span>
+              }
+            </div>
+          }
+
           @if (acServ.totalActionCounter() || (acServ.filter() && acServ.totalActionCounter() === 0)) {
 
             <!--ACTION FILTERS-->
@@ -528,13 +538,13 @@
                     <mat-panel-description class="grow">
                       <div class="flex flex-row items-center gap-7 py-2">
                         <div class="flex flex-row items-center gap-2">
-                          <input type="checkbox" [(ngModel)]="useUTC" (click)="$event.stopPropagation()"/>
-                          <div class="faded">Dates in UTC</div>
+                          <input id="history-utc" type="checkbox" [(ngModel)]="useUTC" (click)="$event.stopPropagation()"/>
+                          <label for="history-utc" class="faded" (click)="$event.stopPropagation()">Dates in UTC</label>
                         </div>
 
                         <div class="flex flex-row items-center gap-2">
-                          <input type="checkbox" [(ngModel)]="compactMode" (click)="$event.stopPropagation()"/>
-                          <div class="faded">Compact Mode</div>
+                          <input id="history-compact" type="checkbox" [(ngModel)]="compactMode" (click)="$event.stopPropagation()"/>
+                          <label for="history-compact" class="faded" (click)="$event.stopPropagation()">Compact Mode</label>
                         </div>
                       </div>
                     </mat-panel-description>
@@ -569,8 +579,8 @@
                     Filter
                   </button>
                   <div class="flex flex-row items-center gap-2">
-                    <input type="checkbox" [(ngModel)]="saveCustomFilter"/>
-                    <div class="faded">Save this filter</div>
+                    <input id="history-save-filter" type="checkbox" [(ngModel)]="saveCustomFilter"/>
+                    <label for="history-save-filter" class="faded">Save this filter</label>
                   </div>
                 </div>
               </mat-expansion-panel>
@@ -661,12 +671,12 @@
                       <a matRipple [routerLink]="['/transaction', action['trx_id']]" class="link-primary m-2">
                         {{ action["trx_id"].slice(0, 8) }}...
                       </a>
-                      <a matRipple (click)="onRowClick(action)" class="link-btn faded">
+                      <button type="button" matRipple (click)="onRowClick(action)" class="link-btn faded">
                         <div class="flex flex-row items-center gap-2">
                           <fa-icon [icon]="icons.solid.dots"></fa-icon>
                           <div class="text-xs uppercase">Expand Details</div>
                         </div>
-                      </a>
+                      </button>
                     </div>
                   </td>
                 </ng-container>

@@ -83,4 +83,22 @@ describe("Explorer metadata", () => {
   it("rejects non-HTTP API origins", () => {
     expect(() => TestBed.inject(DataServiceServer).setOrigin("file:///tmp/explorer")).toThrow("HTTP or HTTPS");
   });
+
+  it("keeps appearance overrides scoped to chain identity", async () => {
+    const browser = TestBed.inject(DataServiceBrowser);
+    const state = TestBed.inject(TransferState);
+    state.set(browser.metadataKey, hydratedMetadata);
+    await browser.load();
+    await browser.setThemeOverride({ "--accent": "#ff6600" });
+    expect(localStorage.getItem(`theme-override:${metadata.chain_id}`)).toContain("#ff6600");
+    state.set(browser.metadataKey, { ...hydratedMetadata, chain_id: "b".repeat(64), theme: { "--primary": "#216a54" } });
+    await browser.load();
+    expect(browser.explorerMetadata()?.theme).toEqual({ "--primary": "#216a54" });
+    await browser.activateTheme();
+    expect(document.documentElement.style.getPropertyValue("--accent")).toBe("");
+    await browser.setThemeOverride({ "--accent": "#cc4400" });
+    await browser.setThemeOverride(null);
+    expect(browser.explorerMetadata()?.theme).toEqual({ "--primary": "#216a54" });
+    document.documentElement.style.removeProperty("--primary");
+  });
 });
