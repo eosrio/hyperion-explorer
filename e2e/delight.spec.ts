@@ -43,7 +43,7 @@ test("copy confirmation stays visible, re-arms and preserves the full identifier
   await context.grantPermissions(["clipboard-read", "clipboard-write"]);
   await page.goto("/explorer/key/" + publicKey);
   const button = page.getByRole("button", { name: "Copy public key", exact: true });
-  await expect(button).toBeVisible();
+  await expect(button).toBeEnabled();
   await button.press("Enter");
   await expect(button.getByText("Copied", { exact: true })).toBeVisible();
   await expect(page.getByRole("status")).toHaveText("public key copied");
@@ -52,4 +52,41 @@ test("copy confirmation stays visible, re-arms and preserves the full identifier
   await button.press("Enter");
   await expect(button.getByText("Copied", { exact: true })).toBeVisible();
   await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(publicKey);
+});
+
+test("SSR search and copy wait for their browser handlers before accepting the first interaction", async ({ page, context }) => {
+  const publicKey = "EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5SoA82QKS2jD1xrF1vARe";
+  await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  for (const path of ["/explorer/", "/explorer/key/" + publicKey]) {
+    let resume!: () => void;
+    const held = new Promise<void>(resolve => {
+      resume = resolve;
+    });
+    await page.route("**/main-*.js", async route => {
+      await held;
+      await route.continue();
+    });
+    try {
+      await page.goto(path, { waitUntil: "commit" });
+      const control =
+        path === "/explorer/"
+          ? page.getByRole("combobox", { name: "Account name, block number, transaction ID, or public key" })
+          : page.getByRole("button", { name: "Copy public key", exact: true });
+      await expect(control).toBeDisabled();
+      resume();
+      await expect(control).toBeEnabled();
+      if (path === "/explorer/") {
+        await control.fill("eosio");
+        await control.press("Enter");
+        await expect(page).toHaveURL(/\/explorer\/account\/eosio/);
+      } else {
+        await control.press("Enter");
+        await expect(page.getByRole("status")).toHaveText("public key copied");
+        await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe(publicKey);
+      }
+    } finally {
+      resume();
+      await page.unroute("**/main-*.js");
+    }
+  }
 });

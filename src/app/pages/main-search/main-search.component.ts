@@ -52,7 +52,8 @@ export class MainSearchComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly platform = inject(PLATFORM_ID);
   private readonly destroyRef = inject(DestroyRef);
-  readonly searchForm = inject(FormBuilder).nonNullable.group({ search_field: ["", Validators.required] });
+  readonly searchForm = inject(FormBuilder).nonNullable.group({ search_field: [{ value: "", disabled: true }, Validators.required] });
+  readonly searchReady = signal(false);
   readonly chainData = this.dataService.explorerMetadata;
   readonly logoFailed = signal(false);
   readonly logoUrl = computed(() =>
@@ -96,7 +97,11 @@ export class MainSearchComponent implements OnInit, OnDestroy {
       const accounts = await this.searchService.filterAccountNames(text);
       if (!this.destroyRef.destroyed && revision === this.searchRevision) this.filteredAccounts.set(accounts);
     });
-    afterNextRender(() => this.updateScroll());
+    afterNextRender(() => {
+      this.searchForm.controls.search_field.enable({ emitEvent: false });
+      this.searchReady.set(true);
+      this.updateScroll();
+    });
   }
   ngOnInit(): void {
     if (this.dataService.routeError) {

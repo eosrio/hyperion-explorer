@@ -36,6 +36,10 @@ button {
 button:hover {
   background: color-mix(in srgb, var(--primary) 8%, transparent);
 }
+button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
 mat-icon {
   width: 20px;
   height: 20px;

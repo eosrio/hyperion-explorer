@@ -93,7 +93,7 @@ The offline lab guide describes reproducible routes/scenarios and the limits of 
 
 The refinement was checked with 123 unit tests, the real published streaming client
 against the fixture (5 Node test results), production SSR/browser compilation, and
-54 Chromium desktop/mobile browser cases. Those cases exercise every route type,
+56 Chromium desktop/mobile browser cases. Those cases exercise every route type,
 three chain identities, all nine shipped appearance presets, lossless sequences,
 queued streaming, reconnect/cancellation, saved filters, copy controls, scope paging,
 selected-control contrast, empty holders and retryable recovery.
@@ -115,4 +115,6 @@ Identifier controls show Copy/Copied alongside the icon. Successful confirmation
 remains for three seconds and re-arms for repeated use; changing the identifier clears
 it and destroying the component clears its timer. No dependency, sound or asset request
 was added. Desktop/mobile keyboard, repeat-use, row-position and reduced-motion paths
-are covered by six additional browser cases.
+are covered by eight additional browser cases. Search and copy controls stay disabled
+until their browser handlers are ready; a controlled main-script delay verifies their
+first interaction after SSR hydration.

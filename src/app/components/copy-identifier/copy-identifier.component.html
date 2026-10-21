@@ -1,5 +1,5 @@
 <span class="identifier">{{ value() }}</span>
-<button type="button" [cdkCopyToClipboard]="value()" (cdkCopyToClipboardCopied)="copyFinished($event)"
+<button type="button" [disabled]="!clipboardReady()" [cdkCopyToClipboard]="value()" (cdkCopyToClipboardCopied)="copyFinished($event)"
         [attr.aria-label]="'Copy ' + label()" [matTooltip]="copied() ? 'Copied' : 'Copy ' + label()">
   <mat-icon aria-hidden="true">{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
   <span class="copy-label" aria-hidden="true">{{ copied() ? 'Copied' : 'Copy' }}</span>

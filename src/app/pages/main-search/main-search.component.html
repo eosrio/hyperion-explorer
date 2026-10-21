@@ -11,7 +11,7 @@
                  aria-label="Account name, block number, transaction ID, or public key" aria-describedby="search-error search-help" aria-keyshortcuts="Control+Shift+F Meta+Shift+F"
                  autocomplete="off" autocapitalize="off" spellcheck="false" [matAutocomplete]="auto" />
           <details id="search-help" class="search-help"><summary aria-label="Search help" title="Search help"><fa-icon [icon]="icons.help" aria-hidden="true" /></summary><p>Search by account, block number, transaction ID or public key. Press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>F</kbd> (or <kbd>⌘</kbd> + <kbd>Shift</kbd> + <kbd>F</kbd> on Mac) to focus search.</p></details>
-          <button type="submit" aria-label="Search blockchain" mat-raised-button class="search-btn primary-btn">
+          <button type="submit" aria-label="Search blockchain" mat-raised-button class="search-btn primary-btn" [disabled]="!searchReady()">
             <fa-icon [icon]="icons.search"></fa-icon><span>Search</span>
           </button>
         </div>
