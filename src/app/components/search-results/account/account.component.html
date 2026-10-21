@@ -420,15 +420,27 @@
               <button type="button" class="icon-control" aria-label="Refresh last irreversible block" (click)="chain.refreshChainInfo()" [disabled]="chain.chainInfoResource.isLoading()"><fa-icon [icon]="icons.solid.faSync" /></button>
             </div>
           </div>
-          @if (acServ.streamClientStatus() || acServ.streamConnecting() || acServ.pendingStreamCount()) {
+          @if (acServ.streamClientStatus() || acServ.streamConnecting() || acServ.pendingStreamCount() || appliedBatch()) {
             <div class="new-actions-bar">
-              <div aria-live="polite">
+              <div class="queue-control" aria-live="polite" aria-atomic="true">
                 @if (acServ.pendingStreamCount()) {
-                  <button type="button" mat-raised-button class="primary-btn" (click)="acServ.showNewActions()">{{ acServ.pendingStreamCount() }} New actions</button>
+                  <button type="button" mat-raised-button class="primary-btn" (click)="applyNewActions()">{{ acServ.pendingStreamCount() }} New actions</button>
+                } @else if (appliedBatch()) {
+                  @for (receipt of batchReceipts(); track receipt.id) {
+                    <span class="batch-receipt">
+                  <svg viewBox="0 0 52 24" width="52" height="24" aria-hidden="true" focusable="false">
+                    <path class="signal-trace" animate.enter="signal-received" pathLength="1" d="M1 14h12l5-9-2 16 8-18-2 17 6-6h23" />
+                  </svg>
+                  <span>{{ receipt.actionIds.size }} new action{{ receipt.actionIds.size === 1 ? '' : 's' }} in view</span>
+                    </span>
+                  }
                 } @else { <span class="faded">{{ acServ.streamOnline() ? 'Listening for new actions' : 'Waiting for the stream connection' }}</span> }
               </div>
-              @if (acServ.lastStreamActionAt(); as received) { <span class="faded">Last action received {{ received | date:'mediumTime' }}</span> }
-              @if (acServ.pendingStreamCount() >= 500) { <span class="faded">Latest 500 received actions queued.</span> }
+              <div class="queue-meta faded">
+                @if (acServ.lastStreamActionAt(); as received) { <span>Last action received {{ received | date:'mediumTime' }}</span> }
+                @else { <span>No actions received yet</span> }
+                @if (acServ.pendingStreamCount() >= 500) { <span>Latest 500 received actions queued.</span> }
+              </div>
             </div>
           }
           <div class="history-toolbar">
@@ -539,6 +551,7 @@
                   <th mat-header-cell *matHeaderCellDef>Action</th>
                   <td mat-cell *matCellDef="let action" data-label="Action">
                     <div class="action-cell p-2 flex flex-col gap-1">
+                      @if (isNewInBatch(action)) { <span class="batch-mark" aria-label="New in this batch">New</span> }
                       <span class="accent font-medium">{{ action["act"]["name"] }}</span>
                       <span class="main-color"> on</span>
                       <a [routerLink]="['/account', action['act']['account']]" class="div-link main-color font-medium">
@@ -587,7 +600,7 @@
                 </ng-container>
 
                 <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-                <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns" [class.is-new-action]="isNewInBatch(row)"></tr>
               </table>
               <mat-paginator
                 class="actions-table-paginator"

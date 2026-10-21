@@ -1,9 +1,11 @@
 import { FinalityHelpComponent } from "../../finality-help/finality-help.component";
 import {
   Component,
+  computed,
   effect,
   ElementRef,
   inject,
+  linkedSignal,
   OnInit,
   OnDestroy,
   PLATFORM_ID,
@@ -62,6 +64,7 @@ import { FormsModule } from "@angular/forms";
 import { ChainService } from "../../../services/chain.service";
 import { faTowerBroadcast } from "@fortawesome/free-solid-svg-icons";
 import { describeApiError, isApiNotFound } from "../../../api-errors";
+import { HistoryAction } from "../../../sequences";
 
 interface Permission {
   perm_name: string;
@@ -162,6 +165,38 @@ export class AccountComponent implements OnInit, OnDestroy {
 
   useUTC = signal(false);
   compactMode = signal(false);
+
+  readonly appliedBatch = linkedSignal<string, { id: number; actionIds: ReadonlySet<string> } | null>({
+    source: () =>
+      JSON.stringify([
+        this.acServ.accountName(),
+        this.acServ.pageIndex(),
+        this.acServ.pageSize(),
+        this.acServ.sortDirection(),
+        this.acServ.customParams()
+      ]),
+    computation: () => null
+  });
+  readonly batchReceipts = computed(() => (this.appliedBatch() ? [this.appliedBatch()!] : []));
+  private batchRevision = 0;
+
+  private actionIdentity(action: HistoryAction): string {
+    return JSON.stringify([action.global_sequence, action.trx_id, action.receiver, action.recv_sequence]);
+  }
+  isNewInBatch(action: HistoryAction): boolean {
+    return this.appliedBatch()?.actionIds.has(this.actionIdentity(action)) ?? false;
+  }
+  applyNewActions(): void {
+    const previous = new Set(this.acServ.actionsComputed().map(action => this.actionIdentity(action)));
+    this.acServ.showNewActions();
+    const actionIds = new Set(
+      this.acServ
+        .actionsComputed()
+        .map(action => this.actionIdentity(action))
+        .filter(id => !previous.has(id))
+    );
+    this.appliedBatch.set(actionIds.size ? { id: ++this.batchRevision, actionIds } : null);
+  }
 
   contractFilterInput = signal<string>("");
   actionFilterInput = signal<string>("");

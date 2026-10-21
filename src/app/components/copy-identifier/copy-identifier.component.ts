@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, effect, input, signal } from "@angular/core";
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, input, linkedSignal } from "@angular/core";
 import { CdkCopyToClipboard } from "@angular/cdk/clipboard";
 import { MatIcon } from "@angular/material/icon";
 import { MatTooltip } from "@angular/material/tooltip";
@@ -13,11 +13,22 @@ import { MatTooltip } from "@angular/material/tooltip";
 export class CopyIdentifierComponent {
   readonly value = input.required<string>();
   readonly label = input("identifier");
-  readonly copied = signal<boolean | null>(null);
+  readonly copied = linkedSignal<boolean | null>(() => {
+    this.value();
+    return null;
+  });
+  private resetTimer?: ReturnType<typeof setTimeout>;
   constructor() {
-    effect(() => {
-      this.value();
-      this.copied.set(null);
-    });
+    inject(DestroyRef).onDestroy(() => clearTimeout(this.resetTimer));
+  }
+  copyFinished(success: boolean): void {
+    clearTimeout(this.resetTimer);
+    this.copied.set(success);
+    if (success) {
+      const value = this.value();
+      this.resetTimer = setTimeout(() => {
+        if (this.value() === value) this.copied.set(null);
+      }, 3000);
+    }
   }
 }

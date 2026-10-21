@@ -13,6 +13,8 @@
 }
 button {
   display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
   flex: 0 0 auto;
   align-items: center;
   justify-content: center;
@@ -24,6 +26,12 @@ button {
   color: var(--primary);
   background: transparent;
   cursor: pointer;
+}
+.copy-label {
+  color: var(--main-text);
+  font-size: 0.6875rem;
+  line-height: 1;
+  font-weight: 500;
 }
 button:hover {
   background: color-mix(in srgb, var(--primary) 8%, transparent);

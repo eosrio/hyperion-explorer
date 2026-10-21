@@ -93,7 +93,7 @@ The offline lab guide describes reproducible routes/scenarios and the limits of 
 
 The refinement was checked with 123 unit tests, the real published streaming client
 against the fixture (5 Node test results), production SSR/browser compilation, and
-48 Chromium desktop/mobile browser cases. Those cases exercise every route type,
+54 Chromium desktop/mobile browser cases. Those cases exercise every route type,
 three chain identities, all nine shipped appearance presets, lossless sequences,
 queued streaming, reconnect/cancellation, saved filters, copy controls, scope paging,
 selected-control contrast, empty holders and retryable recovery.
@@ -101,3 +101,18 @@ The account stylesheet was reduced below its existing budget; the production bui
 has no stylesheet budget warning. The final manual detector still reports seven
 signals: five retained-font notices and two framework image-binding false positives.
 The mock does not replace live Hyperion 4.5 server/chain qualification.
+
+## Delight pass
+
+The interaction thesis is **a clear signal, received**. Applying a queued batch draws a
+short Hyperion trace and marks only the actions newly brought into the current view.
+The receipt counts visible rows, respects page size and resets when account, filter,
+sort or pagination changes. Queue feedback reserves its space so arrivals leave the
+table in place. The 520 ms trace runs once per explicit application; reduced motion
+keeps the static trace and confirmation text.
+
+Identifier controls show Copy/Copied alongside the icon. Successful confirmation
+remains for three seconds and re-arms for repeated use; changing the identifier clears
+it and destroying the component clears its timer. No dependency, sound or asset request
+was added. Desktop/mobile keyboard, repeat-use, row-position and reduced-motion paths
+are covered by six additional browser cases.
