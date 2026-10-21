@@ -5,6 +5,37 @@ test.beforeEach(async ({ request }) => {
   await request.post("/__fixture/state", { data: { manualStreaming: true } });
 });
 
+test("price history remains discoverable while its chart code is loading", async ({ page }) => {
+  let release!: () => void;
+  const held = new Promise<void>(resolve => {
+    release = resolve;
+  });
+  let chartRequested = false;
+  await page.route("**/*.js", async route => {
+    const response = await route.fetch();
+    const body = await response.text();
+    if (/selectors:\s*\[\[\s*["'`]app-price-history["'`]\s*\]\]/.test(body)) {
+      chartRequested = true;
+      await held;
+    }
+    await route.fulfill({ response });
+  });
+  try {
+    await page.goto("/explorer/");
+    await expect(page.getByRole("button", { name: "Search blockchain", exact: true })).toBeEnabled();
+    await page.getByRole("button", { name: "Show Chain Details", exact: true }).click();
+    await page.getByRole("tab", { name: "Price History", exact: true }).click({ timeout: 5000 });
+    await expect.poll(() => chartRequested).toBe(true);
+    await expect(page.getByRole("status")).toHaveText("Loading price history…");
+    release();
+    await expect(page.locator("#pair-select")).toHaveValue("sysusd");
+    await expect(page.locator("app-price-history canvas")).toBeVisible();
+  } finally {
+    release();
+    if (!page.isClosed()) await page.unrouteAll({ behavior: "ignoreErrors" });
+  }
+});
+
 test("chain details remain in document flow and price controls use the local oracle", async ({ page }, info) => {
   await page.goto("/explorer/");
   await expect(page.locator("#expanded-content-area")).toHaveAttribute("inert", "");
