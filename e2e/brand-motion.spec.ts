@@ -15,7 +15,7 @@ test("Hyperion brand draws once, stays legible and becomes static with reduced m
   expect(timing.length).toBeGreaterThan(0);
   for (const animation of timing) {
     expect(animation.iterations).toBe(1);
-    expect(Number(animation.endTime)).toBeLessThanOrEqual(3000);
+    expect(Number(animation.endTime)).toBeLessThanOrEqual(2000);
   }
   expect(await page.locator(".base").count()).toBe(3);
   expect(await page.locator(".letter").evaluateAll(letters => letters.every(letter => Number(getComputedStyle(letter).opacity) > 0))).toBe(

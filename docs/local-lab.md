@@ -60,7 +60,7 @@ appearance overrides are scoped by chain ID in browser storage.
 
 The bundled `assets/logo-hyperion-horz.svg` uses the Control Plane's crystal and
 heartbeat geometry with the explorer's outlined wordmark. It draws once, sends
-one heartbeat, then rests after three seconds. Reduced motion shows the complete
+one heartbeat, then rests after two seconds. Reduced motion shows the complete
 static mark immediately. The SVG has no script, font or external asset request.
 The default fixture and unavailable-logo fallback use this asset; configured chain
 logos keep their own image. To use this Hyperion mark on a deployment, point the
