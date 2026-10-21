@@ -66,9 +66,8 @@
                 }
               </mat-chip-listbox>
             </div>
-            <h4 style="margin: 10px 0 12px 0" class="break-word">
-              {{ txID() }}
-            </h4>
+            <app-copy-identifier class="mt-4" [value]="txID()" label="transaction ID" />
+            <app-finality-help />
           </div>
         </div>
         <div class="custom-card w-full">
@@ -91,7 +90,7 @@
                   <span class="title">NET</span>
                   <span class="faded used">usage</span>
                 </div>
-                <div>{{ tx().actions[0]["net_usage_words"] }} bytes</div>
+                <div>{{ tx().actions[0]["net_usage_words"] * 8 }} bytes</div>
               </div>
             </div>
           </div>

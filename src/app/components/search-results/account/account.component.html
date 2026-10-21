@@ -2,7 +2,8 @@
 @if (acServ.accountDataRes.error(); as error) {
   <div class="hr-container">
     <section class="api-error" role="alert">
-      <p>{{ describeApiError(error) }}</p>
+      @if (isApiNotFound(error)) { <h1>Account not found</h1><p>We could not find <strong>{{ acServ.accountName() }}</strong> on {{ dataService.explorerMetadata()?.chain_name }}. Check the account name in search.</p> }
+      @else { <p>{{ describeApiError(error) }}</p> }
       <button type="button" (click)="acServ.accountDataRes.reload()">Try again</button>
     </section>
   </div>
@@ -34,7 +35,7 @@
                   }
                   <div>{{ acServ.accountComputed().account_name }}</div>
                 </div>
-                <div id="totalBalance" class="faded mt-1 text-[0.938rem] font-medium opacity-0">
+                <div id="totalBalance" class="account-summary faded mt-1 text-[0.938rem] font-medium">
                 <span class="primary">
                   {{ acServ.totalBalance() | number: "1.0-" + systemPrecision }}
                   {{ systemSymbol }}
@@ -136,7 +137,7 @@
               <!--CPU-->
               <div class="w-full lg:w-[50%]">
                 <div>
-                  <span class="title">CPU</span>
+                  <span class="title" title="Processing time, measured in microseconds">CPU</span>
                   @if (acServ.accountComputed().cpu_limit.max === -1) {
                     <span class="faded ml-2">unlimited</span>
                   } @else {
@@ -177,7 +178,7 @@
               <!--NET-->
               <div class="grow">
                 <div>
-                  <span class="title">NET</span>
+                  <span class="title" title="Network bandwidth, measured in bytes">NET</span>
                   @if (acServ.accountComputed().net_limit.max === -1) {
                     <span class="faded ml-2">unlimited</span>
                   } @else {
@@ -230,6 +231,7 @@
                 <mat-progress-bar class="mt-2.5" mode="determinate" [value]="acServ.userResPct().ram"></mat-progress-bar>
               </div>
             </div>
+          <details class="resource-help"><summary>About resources</summary><p>CPU measures processing time in microseconds. NET measures network bandwidth in bytes. RAM measures persistent storage in bytes. KiB and MiB use 1,024-byte units.</p></details>
           </mat-card-content>
         </div>      <!--TOKENS-->
         <mat-accordion class="custom-card vote-card w-full text-[var(--main-text)]">
@@ -243,7 +245,7 @@
               <mat-panel-title class="!flex-grow-0 !flex-shrink-0">
                 <div class="flex flex-row items-center gap-2 text-xl">
                   @if (acServ.tokensComputed().length > 0) {
-                    <button mat-icon-button class="small-arrow-btn">
+                    <span class="small-arrow-btn" aria-hidden="true">
                       <div class="flex flex-col items-center justify-center">
                         <fa-icon
                           [ngClass]="tokensExpansionPanel.expanded ? 'arrowDown' : 'arrowRight'"
@@ -251,7 +253,7 @@
                           class="arrowSize main-color"
                         ></fa-icon>
                       </div>
-                    </button>
+                    </span>
                   }
                   <fa-layers [fixedWidth]="true">
                     <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
@@ -280,9 +282,9 @@
                 @for (token of acServ.tokensComputed(); track token.contract + token.symbol) {
                   <div class="sm:flex-[0_0_calc((100%]">
                     <div class="token-cell flex flex-col items-start gap-1">
-                      <div class="faded monospace div-link min-w-min" [routerLink]="['/account', token.contract]">
+                      <a class="faded monospace div-link min-w-min" [routerLink]="['/account', token.contract]">
                         {{ token.contract }}
-                      </div>
+                      </a>
                       <div class="token-amount">
                         {{ token.amount | number: "1.0-" + (token.precision || 4) }}
                         <span class="token">{{ token.symbol }}</span>
@@ -303,7 +305,7 @@
               <mat-panel-title class="!flex-grow-0 !flex-shrink-0">
                 <div class="flex flex-row items-center gap-2 text-xl">
                   @if (acServ.accountComputed().permissions.length > 0) {
-                    <button mat-icon-button class="small-arrow-btn">
+                    <span class="small-arrow-btn" aria-hidden="true">
                       <div class="flex flex-col items-center justify-center">
                         <fa-icon
                           [ngClass]="permissionsExpansionPanel.expanded ? 'arrowDown' : 'arrowRight'"
@@ -311,7 +313,7 @@
                           class="arrowSize main-color"
                         ></fa-icon>
                       </div>
-                    </button>
+                    </span>
                   }
                   <fa-layers [fixedWidth]="true">
                     <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
@@ -352,7 +354,7 @@
                 <mat-panel-title class="!flex-grow-0 !flex-shrink-0">
                   <div class="flex flex-row items-center gap-2 text-xl">
                     @if (voterInfo.producers.length > 0) {
-                      <button mat-icon-button class="small-arrow-btn">
+                      <span class="small-arrow-btn" aria-hidden="true">
                         <div class="flex flex-col items-center justify-center">
                           <fa-icon
                             [ngClass]="voteExpansionPanel.expanded ? 'arrowDown' : 'arrowRight'"
@@ -360,7 +362,7 @@
                             class="arrowSize main-color"
                           ></fa-icon>
                         </div>
-                      </button>
+                      </span>
                     }
                     <fa-layers [fixedWidth]="true">
                       <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
@@ -386,8 +388,8 @@
               <div class="mt-3">
                 <mat-chip-set aria-label="list of producers voted">
                   @for (producer of voterInfo.producers; track producer) {
-                    <mat-chip [routerLink]="['/account', producer]" class="cursor-pointer">
-                      {{ producer }}
+                    <mat-chip>
+                      <a [routerLink]="['/account', producer]">{{ producer }}</a>
                     </mat-chip>
                   }
                 </mat-chip-set>
@@ -397,194 +399,73 @@
           </mat-accordion>
         }
 
-        <!--ACTIONS CARD/TABLE-->
-        <div class="custom-card h-full min-h-full w-full min-w-full md:col-span-3">
-          <div class="flex flex-row flex-wrap items-start justify-between">
-            <div class="flex flex-row flex-wrap items-center gap-3">
-              <div class="text-xl mb-3" style="margin-top: 0">
-                <fa-layers [fixedWidth]="true" style="margin-right: 5px">
-                  <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
-                  <fa-icon [icon]="icons.solid.faHistory" [inverse]="true" transform="shrink-5"></fa-icon>
-                </fa-layers>
-                Actions
-              </div>
-
-              <!--          @if (acServ.streamClientLoaded) {-->
-              <div class="livestream-container flex flex-row items-center gap-3" matTooltip="Toggle action live streaming"
-                   matTooltipClass="tooltip-bigger">
-                <div class="livestream-label">
-                  <fa-icon [icon]="icons.solid.broadcast" class="livestream-icon"></fa-icon>
-                  <span>Action Live Streaming</span>
-                </div>
-                <button type="button" role="switch" aria-label="Action live streaming"
-                        [attr.aria-checked]="acServ.streamClientStatus()" class="livestream-toggle" (click)="acServ.toggleStreaming()">
-                  <div class="toggle-track" [ngClass]="{'toggle-track-on': acServ.streamClientStatus()}">
-                    <div class="toggle-indicator" [ngClass]="{'toggle-indicator-on': acServ.streamClientStatus()}">
-                      <div class="toggle-indicator-light" [ngClass]="{'pulse': acServ.streamClientStatus()}"></div>
-                    </div>
-                  </div>
-                  <span class="toggle-status font-medium">
-                {{ acServ.streamClientStatus() ? "ON" : "OFF" }}
-              </span>
-                </button>
-                @if (acServ.streamClientStatus()) {
-                  <div class="ml-2 flex flex-row items-center gap-1">
-                    <span class="text-sm faded">Actions:</span>
-                    <span class="text-sm font-medium">{{ acServ.streamingActionsSize() }}/500</span>
-                  </div>
-                }
-              </div>
-              <!--          }-->
-            </div>
-
-            <div class="lib flex flex-row items-center gap-3">
-              Last Irreversible Block:
-              <a [routerLink]="['/block', chain.lastIrreversibleBlockNum()]">
-                <strong class="monospace div-link">
-                  {{ chain.lastIrreversibleBlockNum() | number }}
-                </strong>
-              </a>
-              <button mat-button aria-label="Refresh last irreversible block" matTooltip="Refresh Last Irreversible Block" (click)="chain.refreshChainInfo()"
-                      class="custom-icon-btn">
-                <fa-icon [icon]="icons.solid.faSync" class="text-lg faded"></fa-icon>
+        <!-- ACTION HISTORY -->
+        <section class="custom-card history-card w-full md:col-span-3" aria-labelledby="actions-heading">
+          <div class="history-header">
+            <h2 id="actions-heading"><fa-icon [icon]="icons.solid.faHistory" aria-hidden="true" /> Actions</h2>
+            <div class="live-controls">
+              <span id="live-label">Live actions</span>
+              <button type="button" role="switch" aria-label="Action live streaming" [attr.aria-checked]="acServ.streamClientStatus()"
+                      [disabled]="acServ.streamConnecting()" [attr.aria-busy]="acServ.streamConnecting()"
+                      class="livestream-toggle" (click)="acServ.toggleStreaming()">
+                <span class="toggle-track" [class.toggle-track-on]="acServ.streamClientStatus()"><span class="toggle-indicator" [class.toggle-indicator-on]="acServ.streamClientStatus()"></span></span>
+                <span>{{ acServ.streamConnecting() ? 'Connecting' : acServ.streamClientStatus() ? 'ON' : 'OFF' }}</span>
               </button>
+              <span class="stream-status" role="status">{{ acServ.streamState() }}</span>
             </div>
-
-
+            <div class="lib">
+              <span>Last irreversible block</span>
+              @if (chain.lastIrreversibleBlockNum()) { <a [routerLink]="['/block', chain.lastIrreversibleBlockNum()]">{{ chain.lastIrreversibleBlockNum() | number }}</a> }
+              @else { <span>Unavailable</span> }
+              <button type="button" class="icon-control" aria-label="Refresh last irreversible block" (click)="chain.refreshChainInfo()" [disabled]="chain.chainInfoResource.isLoading()"><fa-icon [icon]="icons.solid.faSync" /></button>
+            </div>
           </div>
-
-          @if (acServ.streamClientStatus() || acServ.pendingStreamCount()) {
-            <div class="new-actions-bar" aria-live="polite">
-              @if (acServ.pendingStreamCount()) {
-                <button type="button" mat-raised-button class="primary-btn" (click)="acServ.showNewActions()">{{ acServ.pendingStreamCount() }} New actions</button>
-              } @else {
-                <span class="faded">Listening for new actions</span>
-              }
+          @if (acServ.streamClientStatus() || acServ.streamConnecting() || acServ.pendingStreamCount()) {
+            <div class="new-actions-bar">
+              <div aria-live="polite">
+                @if (acServ.pendingStreamCount()) {
+                  <button type="button" mat-raised-button class="primary-btn" (click)="acServ.showNewActions()">{{ acServ.pendingStreamCount() }} New actions</button>
+                } @else { <span class="faded">{{ acServ.streamOnline() ? 'Listening for new actions' : 'Waiting for the stream connection' }}</span> }
+              </div>
+              @if (acServ.lastStreamActionAt(); as received) { <span class="faded">Last action received {{ received | date:'mediumTime' }}</span> }
+              @if (acServ.pendingStreamCount() >= 500) { <span class="faded">Latest 500 received actions queued.</span> }
             </div>
           }
-
-          @if (acServ.totalActionCounter() || (acServ.filter() && acServ.totalActionCounter() === 0)) {
-
-            <!--ACTION FILTERS-->
-            <div class="action-filters relative mb-1 flex snap-x snap-proximity snap-always flex-row items-center gap-5
-          overflow-x-auto overflow-y-hidden
-          py-4 pr-1.5 -mx-6 lg:mx-0
-          lg:mb-0 lg:flex-wrap lg:justify-end">
-
-              <div class="faded pl-6.5">Filter by</div>
-
-              @for (filter of acServ.commonFilters; track filter.name) {
-
-                <div class="shrink-0 snap-center first:pl-1 last:pr-3">
-
-                  <button mat-raised-button
-                          class="filter-btn w-max"
-                          [class.primary-btn]="acServ.filter()?.name === filter.name"
-                          (click)="setFilter(filter)">
-
-                    <div class="flex flex-row items-center gap-2">
-
-                      @if (filter.icon) {
-                        <fa-icon [icon]="filter.icon" class="text-base"></fa-icon>
-                      }
-
-                      <div>{{ filter.name }}</div>
-
-                      @if (filter.userFilter) {
-                        <fa-icon
-                          (click)="removeUserFilter(filter); $event.stopPropagation()"
-                          [icon]="icons.solid.faTimes"
-                          class="warn remove-filter relative text-base"
-                          matTooltip="remove filter">
-                        </fa-icon>
-                      }
-
-                    </div>
-                  </button>
-                </div>
-              }
-            </div>
-
-            @if (acServ.historyError(); as error) {
-              <section class="api-error" role="alert">
-                <p>{{ error }}</p>
-                <button type="button" (click)="acServ.retryHistory()">Try again</button>
-              </section>
-            }
-            @if (acServ.actionRes.error(); as error) {
-              <section class="api-error" role="alert">
-                <p>{{ describeApiError(error) }}</p>
-                <button type="button" (click)="acServ.actionRes.reload()">Try again</button>
-              </section>
-            }
+          <div class="history-toolbar">
+            <label class="filter-choice">Action filter
+              <select aria-label="Action filter" [ngModel]="acServ.filter()?.name || ''" (ngModelChange)="selectActionFilter($event)">
+                <option value="">All actions</option>
+                <optgroup label="Transfers">@for (filter of transferFilters; track filter.name) { <option [value]="filter.name">{{ filter.name }}</option> }</optgroup>
+                <optgroup label="System activity">@for (filter of systemFilters; track filter.name) { <option [value]="filter.name">{{ filter.name }}</option> }</optgroup>
+                @if (savedFilters.length) { <optgroup label="Saved filters">@for (filter of savedFilters; track filter.name) { <option [value]="filter.name">{{ filter.name }}</option> }</optgroup> }
+              </select>
+            </label>
+            @if (acServ.filter()) { <button type="button" class="link-btn" (click)="acServ.clearFilter()">Clear filter</button> }
+            @if (acServ.filter()?.userFilter) { <button type="button" class="link-btn" (click)="removeUserFilter(acServ.filter()!)">Delete saved filter</button> }
+            <details class="history-options">
+              <summary>Custom filter</summary>
+              <form class="custom-filter-fields" (ngSubmit)="useCustomFilter()">
+                <label>Contract<input type="text" name="contract" [(ngModel)]="contractFilterInput" placeholder="eosio.token" /></label>
+                <label>Action name<input type="text" name="action" [(ngModel)]="actionFilterInput" placeholder="transfer" /></label>
+                <label class="checkbox-label"><input type="checkbox" name="saveFilter" [(ngModel)]="saveCustomFilter" />Save this filter</label>
+                <button type="submit" mat-raised-button [disabled]="!contractFilterInput() && !actionFilterInput()">Apply filter</button>
+              </form>
+            </details>
+            <details class="history-options">
+              <summary>Display options</summary>
+              <div class="display-options">
+                <label class="checkbox-label"><input type="checkbox" [(ngModel)]="useUTC" />Dates in UTC</label>
+                <label class="checkbox-label"><input type="checkbox" [(ngModel)]="compactMode" />Compact mode</label>
+                <label>Rows per page<select aria-label="Rows per page" [ngModel]="acServ.pageSize()" (ngModelChange)="changePageSize($event)">@for (size of [5,10,20,50,100]; track size) { <option [ngValue]="size">{{ size }}</option> }</select></label>
+              </div>
+            </details>
+            <app-finality-help />
+          </div>
+          @if (acServ.historyError(); as error) { <section class="api-error" role="alert"><p>{{ error }}</p><button type="button" (click)="acServ.retryHistory()">Try again</button></section> }
+          @if (acServ.actionRes.error(); as error) { <section class="api-error" role="alert"><p>{{ describeApiError(error) }}</p><button type="button" (click)="acServ.actionRes.reload()">Try again</button></section> }
+          @if (acServ.totalActionCounter() || acServ.filter()) {
             @let filteredActions = acServ.actionRes.hasValue() ? acServ.actionRes.value()?.actions : undefined;
             @let totalFilteredActions = acServ.actionRes.hasValue() ? acServ.actionRes.value()?.total?.value : undefined;
-            @if (!(acServ.filter() && acServ.totalActionCounter() === 0)) {
-              <mat-expansion-panel #filterExpansionPanel hideToggle class="filter-panel">
-                <mat-expansion-panel-header>
-                  <div class="flex w-full flex-row flex-wrap items-center gap-2 pt-1">
-                    <button mat-icon-button class="small-arrow-btn">
-                      <div class="flex flex-col items-center justify-center">
-                        <fa-icon
-                          [ngClass]="filterExpansionPanel.expanded ? 'arrowDown' : 'arrowRight'"
-                          [icon]="icons.solid.faChevronRight"
-                          class="arrowSize main-color"
-                        ></fa-icon>
-                      </div>
-                    </button>
-
-                    <div class="pr-6">More filters</div>
-                    <!--              @if (filterExpansionPanel.expanded) {-->
-                    <mat-panel-description class="grow">
-                      <div class="flex flex-row items-center gap-7 py-2">
-                        <div class="flex flex-row items-center gap-2">
-                          <input id="history-utc" type="checkbox" [(ngModel)]="useUTC" (click)="$event.stopPropagation()"/>
-                          <label for="history-utc" class="faded" (click)="$event.stopPropagation()">Dates in UTC</label>
-                        </div>
-
-                        <div class="flex flex-row items-center gap-2">
-                          <input id="history-compact" type="checkbox" [(ngModel)]="compactMode" (click)="$event.stopPropagation()"/>
-                          <label for="history-compact" class="faded" (click)="$event.stopPropagation()">Compact Mode</label>
-                        </div>
-                      </div>
-                    </mat-panel-description>
-                    <!--              }-->
-                  </div>
-                </mat-expansion-panel-header>
-
-                <!--CUSTOM FILTERS-->
-                <div class="flex flex-row flex-wrap items-center gap-4">
-                  <div class="custom-input-group flex w-full max-w-full flex-row items-center rounded-full border-transparent sm:w-auto">
-                    <input
-                      matInput
-                      id="contract"
-                      type="text"
-                      class="custom-input ml-0 h-[2.625rem] rounded-l-full py-4 pl-5 outline-hidden"
-                      [(ngModel)]="contractFilterInput"
-                      placeholder="Contract"
-                    />
-                  </div>
-                  <div class="custom-input-group flex w-full max-w-full flex-row items-center rounded-full border-transparent sm:w-auto">
-                    <input
-                      matInput
-                      id="action"
-                      type="text"
-                      class="custom-input ml-0 h-[2.625rem] rounded-l-full py-4 pl-5 outline-hidden"
-                      [(ngModel)]="actionFilterInput"
-                      placeholder="Action Name"
-                    />
-                  </div>
-
-                  <button [disabled]="!contractFilterInput() && !actionFilterInput()" (click)="useCustomFilter()" mat-raised-button>
-                    Filter
-                  </button>
-                  <div class="flex flex-row items-center gap-2">
-                    <input id="history-save-filter" type="checkbox" [(ngModel)]="saveCustomFilter"/>
-                    <label for="history-save-filter" class="faded">Save this filter</label>
-                  </div>
-                </div>
-              </mat-expansion-panel>
-            }
             <div #actionsTable class="flex flex-row flex-wrap items-center justify-between gap-2 pt-5 pb-3">
               @if (filteredActions && filteredActions.length > 0 && acServ.filter()) {
                 <div class="animate fast fadeInDown flex flex-row items-center justify-start gap-5">
@@ -614,19 +495,6 @@
                 }
               }
 
-              <!-- aqui2 -->
-              @if (acServ.totalActionCounter() >= 10) {
-                <mat-paginator
-                  class="actions-table-paginator"
-                  [selectConfig]="{ panelClass: 'actions-table-paginator' }"
-                  [pageSize]="acServ.pageSize()"
-                  [pageIndex]="acServ.pageIndex()"
-                  [pageSizeOptions]="[5, 10, 20, 50, 100]"
-                  [length]="acServ.totalActionCounter()"
-                  (page)="changePage($event)"
-                  showFirstLastButtons
-                ></mat-paginator>
-              }
             </div>
 
             <!-- aqui fim -->
@@ -648,25 +516,10 @@
                     <!--                justify-between items-start h-full-->
                     <div class="flex flex-col items-start gap-1">
                       <div class="flex flex-row items-center">
-                        @if (chain.lastIrreversibleBlockNum() > 0 && chain.lastIrreversibleBlockNum() < action["block_num"]) {
-                          <span class="tx-status pending-status" matTooltip="time until irreversible" matTooltipClass="tooltip-bigger">
+                        @if (!chain.lastIrreversibleBlockNum()) { <span class="tx-status pending-status">Finality unavailable</span> }
+                        @else if (chain.lastIrreversibleBlockNum() < action.block_num) { <span class="tx-status pending-status">Awaiting finality</span> }
+                        @else { <span class="tx-status confirmed-status" matTooltip="This action is in an irreversible block"><fa-icon [icon]="icons.solid.faCheck" aria-hidden="true" /> Irreversible</span> }
 
-                          <fa-icon [icon]="icons.solid.faClock" class="mr-1"></fa-icon>
-
-                            @let eta = ((action["block_num"] - chain.lastIrreversibleBlockNum()) / 2) - chain.elapsedTime();
-                            @if (eta > 0) {
-                              <span>{{ eta }}s until confirmed</span>
-                            } @else {
-                              <span>Validating confirmation</span>
-                            }
-
-                        </span>
-                        } @else {
-                          <span class="tx-status confirmed-status" matTooltip="Transaction confirmed" matTooltipClass="tooltip-bigger">
-                          <fa-icon [icon]="icons.solid.faCheck" class="mr-1"></fa-icon>
-                          <span>Confirmed</span>
-                        </span>
-                        }
                       </div>
                       <a matRipple [routerLink]="['/transaction', action['trx_id']]" class="link-primary m-2">
                         {{ action["trx_id"].slice(0, 8) }}...
@@ -688,9 +541,9 @@
                     <div class="action-cell p-2 flex flex-col gap-1">
                       <span class="accent font-medium">{{ action["act"]["name"] }}</span>
                       <span class="main-color"> on</span>
-                      <span [routerLink]="['/account', action['act']['account']]" class="div-link main-color font-medium">
+                      <a [routerLink]="['/account', action['act']['account']]" class="div-link main-color font-medium">
                       {{ action["act"]["account"] }}
-                    </span>
+                    </a>
                     </div>
                   </td>
                 </ng-container>
@@ -700,23 +553,7 @@
                   <th mat-header-cell *matHeaderCellDef>Data</th>
                   <td mat-cell *matCellDef="let action" data-label="Data">
                     @if (compactMode()) {
-                      <div class="flex flex-row items-center">
-                        <button mat-icon-button class="small-arrow-btn" (click)="action._expanded = !action._expanded">
-                          <div class="flex flex-col items-center justify-center">
-                            <fa-icon
-                              [ngClass]="action._expanded ? 'arrowUp' : 'arrowUpDown'"
-                              [icon]="icons.solid.faChevronDown"
-                              class="arrowSize main-color"
-                            ></fa-icon>
-                          </div>
-                        </button>
-                        @if (action._expanded) {
-                          <span (click)="action._expanded = false" class="faded">collapse</span>
-                        } @else {
-                          <!--EXPAND-->
-                          <span (click)="action._expanded = true" class="faded">expand</span>
-                        }
-                      </div>
+                      <button type="button" class="link-btn" [attr.aria-expanded]="!!action._expanded" [attr.aria-label]="'Toggle action data ' + action.global_sequence" (click)="action._expanded = !action._expanded">{{ action._expanded ? 'Collapse data' : 'Expand data' }}</button>
                     }
                     @if (!compactMode() || action._expanded) {
                       <div class="py-4">
@@ -769,7 +606,7 @@
           } @else {
             No actions to display
           }
-        </div>
+        </section>
       </div>
     } @else {
       <!--      NO ACCOUNT-->

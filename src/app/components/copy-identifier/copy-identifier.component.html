@@ -1,0 +1,6 @@
+<span class="identifier">{{ value() }}</span>
+<button type="button" [cdkCopyToClipboard]="value()" (cdkCopyToClipboardCopied)="copied.set($event)"
+        [attr.aria-label]="'Copy ' + label()" [matTooltip]="copied() ? 'Copied' : 'Copy ' + label()">
+  <mat-icon aria-hidden="true">{{ copied() ? 'check' : 'content_copy' }}</mat-icon>
+</button>
+<span class="sr-only" role="status">{{ copied() === null ? '' : copied() ? label() + ' copied' : 'Copy failed. Select and copy the identifier.' }}</span>

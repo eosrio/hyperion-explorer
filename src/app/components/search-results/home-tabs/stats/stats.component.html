@@ -1,80 +1,20 @@
-<div class="p-4 overflow-hidden">
-
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 overflow-hidden">
-
-    <!-- LIB Card -->
-    <div class="stat-card">
-      <div class="stat-icon">
-        <fa-icon [icon]="icons.solid.cube" class="opacity-70"></fa-icon> <!-- Slightly different icon/style for LIB -->
-      </div>
-      <div class="flex flex-col min-w-0 items-start">
-        <div class="stat-label">Last Irreversible Block</div>
-        <a [routerLink]="['/block', chainService.lastIrreversibleBlockNum()]" class="stat-value link-accent">
-          {{ chainService.lastIrreversibleBlockNum() | number }}
-        </a>
-      </div>
-    </div>
-
-    <!-- Chain ID Card (Takes 2/3 on lg, full on sm) -->
-    <div class="stat-card sm:col-span-2 lg:col-span-2"> <!-- Changed lg:col-span-3 to lg:col-span-2 -->
-      <div class="stat-icon">
-        <fa-icon [icon]="icons.solid.link" class="opacity-70"></fa-icon>
-      </div>
-      <div class="stat-content">
-        <div class="stat-label">Chain ID</div>
-        <div class="stat-value main-color" [title]="chainService.chainId()">{{ chainService.chainId() }}</div>
-        <!-- Removed truncate class -->
-      </div>
-    </div>
-
-    <!-- Head Block Card (Moved Up, takes 1/3 on lg) -->
-    <div class="stat-card"> <!-- No lg:col-span needed, defaults to 1 -->
-      <div class="stat-icon">
-        <fa-icon [icon]="icons.solid.cube" class="opacity-70"></fa-icon>
-      </div>
-      <div class="flex flex-col min-w-0 items-start">
-        <div class="stat-label">Head Block</div>
-        <a [routerLink]="['/block', chainService.headBlockNum()]" class="stat-value link-accent">
-          {{ chainService.headBlockNum() | number }}
-        </a>
-      </div>
-    </div>
-
-
-    <!-- Head Block Time Card -->
-    <div class="stat-card">
-      <div class="stat-icon">
-        <fa-icon [icon]="icons.solid.clock" class="opacity-70"></fa-icon>
-      </div>
-      <div class="stat-content">
-        <div class="stat-label faded">Head Block Time</div>
-        <div class="stat-value main-color">{{ chainService.headBlockTime() | date:'medium' }}</div>
-      </div>
-    </div>
-
-    <!-- Server Version Card -->
-    <div class="stat-card">
-      <div class="stat-icon">
-        <fa-icon [icon]="icons.solid.server" class="opacity-70"></fa-icon>
-      </div>
-      <div class="stat-content">
-        <div class="stat-label">Server Version</div>
-        <div class="stat-value main-color">{{ chainService.serverVersion() }}</div>
-      </div>
-    </div>
-
+<section class="chain-stats" aria-label="Chain statistics">
+  @if (chainService.chainInfoResource.error(); as error) {
+    <section class="api-error" role="alert"><p>{{ describeApiError(error) }}</p><button type="button" (click)="chainService.refreshChainInfo()">Try again</button></section>
+  } @else {
+    <dl class="stats-summary">
+      <div><dt>Head block</dt><dd><a [routerLink]="['/block', chainService.headBlockNum()]">{{ chainService.headBlockNum() | number }}</a></dd></div>
+      <div><dt>Last irreversible block</dt><dd><a [routerLink]="['/block', chainService.lastIrreversibleBlockNum()]">{{ chainService.lastIrreversibleBlockNum() | number }}</a></dd></div>
+      <div class="head-time"><dt>Head block time (UTC)</dt><dd>{{ chainService.headBlockTime() | date:'medium':'UTC' }}</dd></div>
+    </dl>
+    <app-finality-help />
+    <details class="chain-metadata"><summary>Chain identity and server</summary>
+      <dl><div><dt>Chain ID</dt><dd><app-copy-identifier [value]="chainService.chainId()" label="chain ID" /></dd></div><div><dt>Server version</dt><dd>{{ chainService.serverVersion() }}</dd></div></dl>
+    </details>
+  }
+  <div class="stats-refresh">
+    <button type="button" mat-raised-button class="primary-btn" (click)="chainService.refreshChainInfo()" [disabled]="chainService.chainInfoResource.isLoading()">Refresh data</button>
+    @if (chainService.chainInfoResource.isLoading()) { <span role="status">Updating chain data…</span> }
+    @else if (chainService.lastUpdatedAt(); as updated) { <span class="faded">Updated {{ updated | date:'mediumTime' }}</span> }
   </div>
-
-  <!-- REFRESH BUTTON -->
-  <div class="flex justify-center mt-6">
-    <button mat-raised-button
-            class="primary-btn"
-            matTooltip="Refresh Chain Info"
-            (click)="chainService.chainInfoResource.reload()"
-            [disabled]="chainService.chainInfoResource.isLoading()">
-      <fa-icon [icon]="icons.solid.sync" class="mr-2"></fa-icon>
-      Refresh Data
-    </button>
-  </div>
-
-</div>
+</section>

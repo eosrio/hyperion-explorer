@@ -553,3 +553,29 @@ table,
     padding-inline: 1rem;
   }
 }
+
+/* Inverse glyphs follow the panel color in every chain theme. */
+:root {
+  --fa-inverse: var(--card-bg);
+}
+.resource-help {
+  color: var(--faded);
+  font-size: 0.875rem;
+  margin-top: 1rem;
+}
+.resource-help summary {
+  color: var(--main-text);
+  cursor: pointer;
+  padding-block: 0.5rem;
+  min-height: 44px;
+}
+.resource-help p {
+  line-height: 1.6;
+  max-width: 65ch;
+}
+.history-options {
+  max-width: 100%;
+}
+.actions-table .mat-mdc-header-row {
+  background: var(--table-top-bg-gradient);
+}

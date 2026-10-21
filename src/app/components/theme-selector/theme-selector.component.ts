@@ -16,7 +16,7 @@ import { describeApiError } from "../../api-errors";
 export class ThemeSelectorComponent {
   readonly ds = inject(DataService);
   private readonly http = inject(HttpClient);
-  readonly selectedTheme = signal("");
+  readonly selectedTheme = signal("CURRENT_THEME");
   readonly loading = signal(false);
   readonly error = signal("");
   async selectTheme(name: string): Promise<void> {

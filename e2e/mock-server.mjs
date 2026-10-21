@@ -153,6 +153,7 @@ export function createFixture({ port = 17000, ssrPort = 17001 } = {}) {
           oracle: { contract: "oracle", table: "prices", pair: "sysusd" }
         });
       }
+      if (url.pathname === "/v1/chain/get_info" && unavailable("chainUnavailable", "Chain information unavailable")) return;
       if (url.pathname === "/v1/chain/get_info")
         return send({
           chain_id: currentChainId(),
@@ -280,6 +281,7 @@ export function createFixture({ port = 17000, ssrPort = 17001 } = {}) {
       }
       if (url.pathname === "/v2/state/get_voter_scopes")
         return send({ scopes: accountNames.filter(name => name.startsWith((url.searchParams.get("term") || "").replaceAll("*", ""))) });
+      if (url.pathname === "/v1/chain/get_producers" && unavailable("producersUnavailable", "Producer information unavailable")) return;
       if (url.pathname === "/v1/chain/get_producers")
         return send({ rows: state.emptyProducers ? [] : producers, total_producer_vote_weight: "24500000000000000", more: "" });
       if (url.pathname === "/v2/state/get_top_holders") {

@@ -1,4 +1,5 @@
 <div class="p-4">
+  @if (chainService.producersResource.error(); as error) { <section class="api-error" role="alert"><p>{{ describeApiError(error) }}</p><button type="button" mat-button (click)="chainService.producersResource.reload()">Try again</button></section> }
   <!-- Bind dataSource to the producers signal -->
   <table mat-table [dataSource]="dataSource"
         matSort
@@ -65,7 +66,7 @@
     </div>
   }
   <!-- Add message if no producers found -->
-  @if (!chainService.producersResource.isLoading() && chainService.producers().length === 0) {
+  @if (!chainService.producersResource.isLoading() && !chainService.producersResource.error() && chainService.producers().length === 0) {
     <div class="text-center p-4 faded">No producers found.</div>
   }
 </div>

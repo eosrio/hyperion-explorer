@@ -36,7 +36,7 @@ table {
 /* Add alternating row colors for better readability */
 .deltas-table tr.mat-mdc-row:nth-child(even),
 .transactions-table tr.mat-mdc-row:nth-child(even) {
-  background-color: rgba(0, 0, 0, 0.007);
+  background-color: color-mix(in srgb, var(--primary) 1%, transparent);
 }
 
 .action-border {
@@ -46,23 +46,23 @@ table {
 
 /*table expand row START*/
 .expanded-row {
-  background: rgba(0, 0, 0, 0.015);
+  background: color-mix(in srgb, var(--primary) 2%, transparent);
 }
 
 tr.detail-row {
   height: auto !important;
-  background: rgba(0, 0, 0, 0.015);
+  background: color-mix(in srgb, var(--primary) 2%, transparent);
 }
 
 tr.element-row:not(.expanded-row):hover {
-  background-color: rgba(0, 0, 0, 0.03) !important;
+  background-color: color-mix(in srgb, var(--primary) 3%, transparent) !important;
   cursor: pointer;
   transition: background-color 0.5s;
   /*box-shadow: rgba(78 104 192, 0.25) 0px 4px 19px 0px, rgba(17, 12, 46, 0.15) 0px 20px 100px 0px !important;*/
 }
 
 tr.element-row:not(.expanded-row):active {
-  background: rgba(0, 0, 0, 0.02);
+  background: color-mix(in srgb, var(--primary) 2%, transparent);
 }
 
 .element-row td {

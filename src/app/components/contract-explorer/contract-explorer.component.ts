@@ -7,7 +7,6 @@ import {
   linkedSignal,
   model,
   PLATFORM_ID,
-  resource,
   signal,
   ChangeDetectionStrategy
 } from "@angular/core";
@@ -23,7 +22,6 @@ import { AbiStructField, AbiTable, GetAbiResponse } from "../../interfaces";
 import { FormsModule } from "@angular/forms";
 import { MatDialogContent } from "@angular/material/dialog";
 import { isPlatformBrowser, NgClass } from "@angular/common";
-import { MatInput } from "@angular/material/input";
 import { MatIcon } from "@angular/material/icon";
 import { ActDataViewComponent } from "../act-data-view/act-data-view.component";
 import { DataService } from "../../services/data.service";
@@ -56,7 +54,6 @@ function buildFieldArray(structs: any[], array: AbiStructField[], type: string):
     MatTooltip,
     MatDialogContent,
     NgClass,
-    MatInput,
     MatIconButton,
     MatIcon,
     ActDataViewComponent
@@ -112,6 +109,7 @@ export class ContractExplorerComponent {
     } | null,
     {
       table: string | null | undefined;
+      code: string | null | undefined;
       limit: number;
       lb: string;
     }
@@ -119,6 +117,7 @@ export class ContractExplorerComponent {
     params: () => {
       return {
         table: this.table(),
+        code: this.code(),
         limit: this.getTableByScopeLimit() ?? 30,
         lb: this.scopeLb()
       };
@@ -127,7 +126,7 @@ export class ContractExplorerComponent {
       if (data.table) {
         // request table scopes
         return this.http.post<any>(this.endpoints.getTableByScope, {
-          code: this.code(),
+          code: data.code,
           table: data.table,
           limit: data.limit,
           lower_bound: data.lb,
@@ -141,116 +140,28 @@ export class ContractExplorerComponent {
   });
 
   tableRowRes = rxResource({
-    params: () => this.scope(),
-    stream: ({ params: scope }) => {
-      if (scope) {
-        // request table scopes
-        return this.http
-          .post<any>(this.endpoints.getTableRows, {
-            code: this.code(),
-            table: this.table(),
-            scope: scope,
-            limit: this.getTableByScopeLimit(),
-            json: true
-          })
-          .pipe(map(d => d.rows));
-      } else {
-        // return empty array if no table is selected
-        return of([]);
-      }
-    }
+    params: () => ({ code: this.code(), table: this.table(), scope: this.scope(), limit: this.getTableByScopeLimit() }),
+    stream: ({ params }) =>
+      params.code && params.table && params.scope
+        ? this.http.post<{ rows: any[] }>(this.endpoints.getTableRows, { ...params, json: true }).pipe(map(data => data.rows))
+        : of([])
   });
+  abiTableNames = computed<string[]>(() =>
+    this.abiRes.hasValue() ? (this.abiRes.value()?.abi?.tables.map(table => table.name) ?? []) : []
+  );
+  scopeList = computed<string[]>(() =>
+    this.tableScopesRes.hasValue() ? (this.tableScopesRes.value()?.rows.map(row => row.scope) ?? []) : []
+  );
+  nextScope = computed(() => (this.tableScopesRes.hasValue() ? this.tableScopesRes.value()?.more || "" : ""));
+  nextScopePresent = computed(() => !!this.nextScope());
+  private scopeHistory = signal<string[]>([]);
+  lastScope = computed(() => this.scopeHistory().length > 0);
 
-  nextScopePresentRes = resource({
-    params: () => {
-      return {
-        next: this.tableScopesRes.hasValue() ? this.tableScopesRes.value()?.more : undefined,
-        table: this.table()
-      };
-    },
-    loader: async ({ params: data }) => {
-      if (data.next && data.table) {
-        const entry = await lastValueFrom(
-          this.http
-            .post<any>(this.endpoints.getTableRows, {
-              code: this.code(),
-              table: data.table,
-              scope: data.next,
-              limit: 1
-            })
-            .pipe(map(d => d.rows))
-        );
-        return !!(entry && entry.length === 1);
-      } else {
-        return false;
-      }
-    }
-  });
-
-  nextScopePresent = linkedSignal<any, boolean>({
-    source: () => {
-      return {
-        value: this.nextScopePresentRes.hasValue() ? this.nextScopePresentRes.value() : undefined,
-        nextScope: this.nextScope()
-      };
-    },
-    computation: (source, previous): boolean => {
-      if (source.value !== undefined && source.nextScope) {
-        return !!source.value;
-      } else {
-        return previous ? previous.value : false;
-      }
-    }
-  });
-
-  abiTableNames = computed<string[]>(() => {
-    const data = this.abiRes.hasValue() ? this.abiRes.value() : undefined;
-    if (data && data.abi) {
-      return data.abi.tables.map((table: AbiTable) => table.name);
-    } else {
-      return [];
-    }
-  });
-
-  scopeList = linkedSignal<any, string[]>({
-    source: () => {
-      return {
-        scopes: this.tableScopesRes.hasValue() ? this.tableScopesRes.value() : undefined,
-        nextPresent: this.nextScopePresentRes.hasValue() ? this.nextScopePresentRes.value() : undefined
-      };
-    },
-    computation: (source, previous): string[] => {
-      if (source.scopes && source.nextPresent !== undefined) {
-        const scopeSet = new Set<string>();
-        // include contract name in the list if the list of scopes is too large
-        if (source.scopes.more && source.nextPresent) {
-          const contract = this.code();
-          if (contract) {
-            scopeSet.add(contract);
-          }
-        }
-        if (source.scopes.rows) {
-          source.scopes.rows.forEach((row: any) => scopeSet.add(row.scope));
-          return Array.from(scopeSet);
-        } else {
-          return [];
-        }
-      } else {
-        return previous ? previous.value : [];
-      }
-    }
-  });
-
-  nextScope = linkedSignal<any, string>({
-    source: () => (this.tableScopesRes.hasValue() ? this.tableScopesRes.value() : undefined),
-    computation: (source, previous): string => {
-      if (source) {
-        return source.more;
-      } else {
-        return previous ? previous.value : "";
-      }
-    }
-  });
+  setScopeLimit(value: number): void {
+    this.getTableByScopeLimit.set(Math.max(1, Math.min(1000, Math.floor(value) || 30)));
+    this.scopeLb.set("");
+    this.scopeHistory.set([]);
+  }
 
   sortBy = signal<string>("");
   sortDirection = signal<string>("desc");
@@ -327,11 +238,9 @@ export class ContractExplorerComponent {
   displayedColumns = computed<string[]>(() => this.fields().map(v => v.name));
 
   async selectTable(name: string) {
-    this.nextScopePresent.set(false);
-    this.nextScope.set("");
     this.scope.set(null);
     this.scopeLb.set("");
-    this.lastScope.set("");
+    this.scopeHistory.set([]);
     this.tableData.set([]);
     this.expandedItems.set(new Set<number>());
     this.autoExpanded.set(false);
@@ -388,19 +297,13 @@ export class ContractExplorerComponent {
     }
   }
 
-  lastScope = signal("");
-
-  useNextScope() {
-    this.lastScope.set(this.scopeLb());
+  useNextScope(): void {
+    if (!this.nextScope()) return;
+    this.scopeHistory.update(values => [...values, this.scopeLb()]);
     this.scopeLb.set(this.nextScope());
   }
 
   constructor() {
-    // Debug effect
-    effect(() => {
-      console.log(`Next present:`, this.nextScopePresent());
-    });
-
     // Auto-expand the first item when entering expanded (list) view with data loaded
     effect(() => {
       const mode = this.viewMode();
@@ -414,10 +317,11 @@ export class ContractExplorerComponent {
     });
   }
 
-  usePreviousScope() {
-    if (this.lastScope) {
-      this.scopeLb.set(this.lastScope());
-    }
+  usePreviousScope(): void {
+    const history = this.scopeHistory();
+    if (!history.length) return;
+    this.scopeLb.set(history.at(-1) || "");
+    this.scopeHistory.set(history.slice(0, -1));
   }
 
   // Method to change the view mode

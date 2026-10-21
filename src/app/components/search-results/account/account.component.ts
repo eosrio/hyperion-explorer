@@ -1,3 +1,4 @@
+import { FinalityHelpComponent } from "../../finality-help/finality-help.component";
 import {
   Component,
   effect,
@@ -11,7 +12,7 @@ import {
   ChangeDetectionStrategy
 } from "@angular/core";
 import { SearchService } from "../../../services/search.service";
-import { MatButton, MatIconButton } from "@angular/material/button";
+import { MatButton } from "@angular/material/button";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { MatCardContent, MatCardHeader } from "@angular/material/card";
@@ -54,15 +55,13 @@ import { MatChipsModule } from "@angular/material/chips";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { ActionDetailsComponent } from "../../action-details/action-details.component";
 import { ContractDialogComponent } from "../../contract-dialog/contract-dialog.component";
-import { animate, scroll } from "motion";
 import { ActDataViewComponent } from "../../act-data-view/act-data-view.component";
 import { MatRipple } from "@angular/material/core";
 import { PermissionTreeComponent } from "../../permission-tree/permission-tree.component";
 import { FormsModule } from "@angular/forms";
-import { MatInput } from "@angular/material/input";
 import { ChainService } from "../../../services/chain.service";
 import { faTowerBroadcast } from "@fortawesome/free-solid-svg-icons";
-import { describeApiError } from "../../../api-errors";
+import { describeApiError, isApiNotFound } from "../../../api-errors";
 
 interface Permission {
   perm_name: string;
@@ -108,6 +107,7 @@ interface FlatNode {
 @Component({
   selector: "app-account",
   imports: [
+    FinalityHelpComponent,
     MatButton,
     MatProgressSpinner,
     FaIconComponent,
@@ -133,9 +133,7 @@ interface FlatNode {
     ActDataViewComponent,
     MatRipple,
     PermissionTreeComponent,
-    MatIconButton,
     FormsModule,
-    MatInput,
     MatChipsModule
   ],
   templateUrl: "./account.component.html",
@@ -147,6 +145,7 @@ export class AccountComponent implements OnInit, OnDestroy {
     this.acServ.stopActionStream();
   }
   describeApiError = describeApiError;
+  readonly isApiNotFound = isApiNotFound;
   dataService = inject(DataService);
   acServ = inject(AccountService);
   chain = inject(ChainService);
@@ -196,7 +195,7 @@ export class AccountComponent implements OnInit, OnDestroy {
     }
   };
 
-  displayedColumns: string[] = ["trx_id", "action", "data", "block_num"];
+  displayedColumns: string[] = ["action", "data", "block_num", "trx_id"];
 
   systemSymbol = "";
 
@@ -225,34 +224,6 @@ export class AccountComponent implements OnInit, OnDestroy {
       }
     });
 
-    // When the balance card element is available, apply scroll animation
-    effect(() => {
-      const card = this.balanceCard();
-      if (card && isPlatformBrowser(this.platformId)) {
-        setTimeout(() => {
-          this.accountStickyMotion(this.balanceCard());
-        }, 1000);
-      }
-    });
-
-    // When the actions table element is available, apply scroll animation
-    effect(() => {
-      const table = this.actionsTable();
-      if (table && isPlatformBrowser(this.platformId)) {
-        this.tableStickyMotion(this.actionsTable());
-      }
-    });
-
-    // Re-apply table sticky motion when filter changes
-    effect(() => {
-      this.acServ.filter(); // track the signal
-      if (this.actionsTable() && isPlatformBrowser(this.platformId)) {
-        setTimeout(() => {
-          this.tableStickyMotion(this.actionsTable());
-        }, 100);
-      }
-    });
-
     // Update page title when account data changes
     effect(() => {
       const accountName = this.acServ.accountName();
@@ -264,51 +235,6 @@ export class AccountComponent implements OnInit, OnDestroy {
         this.title.setTitle(`${accountName} • ${chainData.chain_name} Hyperion Explorer`);
       }
     });
-  }
-
-  private accountStickyMotion(accountNameSticky?: ElementRef<HTMLDivElement>) {
-    scroll(animate("#totalBalance", { x: [-100, 0], opacity: [0, 1] }, { duration: 1 }), {
-      target: accountNameSticky?.nativeElement,
-      offset: ["start 200px", "start 100px"]
-    });
-  }
-
-  private tableStickyMotion(tableSticky?: ElementRef<HTMLDivElement>) {
-    // Apply animation to the header row
-    scroll(
-      animate(
-        ".mat-mdc-header-row",
-        {
-          boxShadow: "var(--card-box-shadow)",
-          background: "var(--table-top-bg-gradient)"
-        },
-        { duration: 1 }
-      ),
-      { target: tableSticky?.nativeElement, offset: ["end 250px", "200px 250px"] }
-    );
-
-    // Apply border radius animation to the trx_id column and column-block_num separately
-    scroll(
-      animate(
-        "[mat-header-cell].mat-column-trx_id",
-        {
-          borderRadius: "1rem 0 0  1rem"
-        },
-        { duration: 1 }
-      ),
-      { target: tableSticky?.nativeElement, offset: ["end 250px", "200px 250px"] }
-    );
-
-    scroll(
-      animate(
-        "[mat-header-cell].mat-column-block_num",
-        {
-          borderRadius: "0  1rem 1rem 0"
-        },
-        { duration: 1 }
-      ),
-      { target: tableSticky?.nativeElement, offset: ["end 250px", "200px 250px"] }
-    );
   }
 
   transformer(node: Permission, level: number): any {
@@ -409,6 +335,24 @@ export class AccountComponent implements OnInit, OnDestroy {
       return (bytes / 1024).toFixed(2) + " KB";
     }
     return bytes + " bytes";
+  }
+
+  get transferFilters() {
+    return this.acServ.commonFilters.slice(0, 4);
+  }
+  get systemFilters() {
+    return this.acServ.commonFilters.slice(4).filter(filter => !filter.userFilter);
+  }
+  get savedFilters() {
+    return this.acServ.commonFilters.filter(filter => filter.userFilter);
+  }
+  selectActionFilter(name: string): void {
+    const filter = this.acServ.commonFilters.find(filter => filter.name === name);
+    if (filter) this.setFilter(filter);
+    else this.acServ.clearFilter();
+  }
+  changePageSize(pageSize: number): void {
+    this.changePage({ pageIndex: 0, pageSize, length: this.acServ.totalActionCounter() });
   }
 
   changePage(event: PageEvent): void {

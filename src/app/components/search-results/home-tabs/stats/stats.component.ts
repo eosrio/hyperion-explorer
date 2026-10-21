@@ -1,6 +1,8 @@
+import { FinalityHelpComponent } from "../../../finality-help/finality-help.component";
+import { describeApiError } from "../../../../api-errors";
+import { CopyIdentifierComponent } from "../../../copy-identifier/copy-identifier.component";
 import { Component, inject, ChangeDetectionStrategy } from "@angular/core";
 import { faClock, faCube, faLink, faServer, faSync } from "@fortawesome/free-solid-svg-icons";
-import { FaIconComponent } from "@fortawesome/angular-fontawesome";
 import { ChainService } from "../../../../services/chain.service";
 import { DecimalPipe, DatePipe } from "@angular/common";
 import { RouterLink } from "@angular/router";
@@ -9,13 +11,14 @@ import { MatTooltipModule } from "@angular/material/tooltip";
 
 @Component({
   selector: "app-stats",
-  imports: [DecimalPipe, DatePipe, FaIconComponent, RouterLink, MatButtonModule, MatTooltipModule],
+  imports: [FinalityHelpComponent, CopyIdentifierComponent, DecimalPipe, DatePipe, RouterLink, MatButtonModule, MatTooltipModule],
   templateUrl: "./stats.component.html",
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./stats.component.css"
 })
 export class StatsComponent {
   chainService = inject(ChainService);
+  readonly describeApiError = describeApiError;
 
   icons = {
     solid: {

@@ -2,14 +2,15 @@
   <header id="header-container" class="header-card" aria-label="Explorer navigation">
     <div class="header-inner">
       <a routerLink="/" class="chain-brand" aria-label="Hyperion Explorer home">
-        <img [src]="chainData()?.logo" [alt]="(chainData()?.chain_name || 'Hyperion') + ' explorer'" class="chain-logo" width="260" height="70" />
+        <img [src]="logoUrl()" (error)="logoFailed.set(true)" [alt]="(chainData()?.chain_name || 'Hyperion') + ' explorer'" class="chain-logo" width="260" height="70" />
       </a>
       <form [formGroup]="searchForm" (ngSubmit)="submit()" class="header-search" role="search" aria-label="Blockchain search">
         <div class="custom-input-group search-control">
           <input #searchFieldRef formControlName="search_field" type="search" class="custom-input"
                  placeholder="Account, block, transaction or public key"
-                 aria-label="Account name, block number, transaction ID, or public key" aria-describedby="search-error"
+                 aria-label="Account name, block number, transaction ID, or public key" aria-describedby="search-error search-help" aria-keyshortcuts="Control+Shift+F Meta+Shift+F"
                  autocomplete="off" autocapitalize="off" spellcheck="false" [matAutocomplete]="auto" />
+          <details id="search-help" class="search-help"><summary aria-label="Search help" title="Search help"><fa-icon [icon]="icons.help" aria-hidden="true" /></summary><p>Search by account, block number, transaction ID or public key. Press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>F</kbd> (or <kbd>⌘</kbd> + <kbd>Shift</kbd> + <kbd>F</kbd> on Mac) to focus search.</p></details>
           <button type="submit" aria-label="Search blockchain" mat-raised-button class="search-btn primary-btn">
             <fa-icon [icon]="icons.search"></fa-icon><span>Search</span>
           </button>

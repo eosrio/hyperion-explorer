@@ -52,6 +52,21 @@ The targeted questions were answered by the user: preserve pale blue and soft pa
   percentages explicitly use displayed-holder balances. Contract strings do not become bogus links.
 - Retryable API errors remain separate from empty results. Transaction IDs/finality, contract
   scope limit/sorting and price formatting were corrected. Price charts plot actual values.
+- History now groups action categories in one selector, with custom filters and display
+  preferences in disclosures. Scope selection uses a labeled field and paged scope options.
+  Saved filters, page sizes, sorting and all three contract views remain available.
+- Live controls distinguish connecting, live, reconnecting and paused states and show the
+  last received action time. Finality comes from LIB, with explanatory help instead of an
+  estimated countdown. Pending history continues refreshing until irreversible.
+- Public keys and transaction/block/chain IDs have copy buttons with status feedback.
+  Search help exposes the keyboard shortcut; resource help explains CPU, NET and RAM.
+  NET/RAM use byte units, and transaction NET converts eight-byte words into bytes.
+- Chain Stats puts head/LIB before secondary identity details. Missing-account feedback
+  names the searched account; chain/producer outages have explicit retry states.
+  Selected contract controls pass 4.5:1 in all nine shipped appearance presets; Jungle,
+  QRY and WAX retain their primary colors with darker button text.
+
+Every reported item is accounted for in [the findings closure ledger](findings-closure.md).
 
 ## Run notes
 
@@ -76,10 +91,13 @@ The offline lab guide describes reproducible routes/scenarios and the limits of 
 
 ## Local validation
 
-The refinement was checked with 114 unit tests, the real published streaming client
+The refinement was checked with 123 unit tests, the real published streaming client
 against the fixture (5 Node test results), production SSR/browser compilation, and
-30 Chromium desktop/mobile browser cases. Those cases exercise every route type,
+48 Chromium desktop/mobile browser cases. Those cases exercise every route type,
 three chain identities, all nine shipped appearance presets, lossless sequences,
-queued streaming, reconnect/cancellation, empty holders and retryable recovery.
-The existing account stylesheet still emits a non-failing 10.96 kB / 10 kB warning.
+queued streaming, reconnect/cancellation, saved filters, copy controls, scope paging,
+selected-control contrast, empty holders and retryable recovery.
+The account stylesheet was reduced below its existing budget; the production build
+has no stylesheet budget warning. The final manual detector still reports seven
+signals: five retained-font notices and two framework image-binding false positives.
 The mock does not replace live Hyperion 4.5 server/chain qualification.

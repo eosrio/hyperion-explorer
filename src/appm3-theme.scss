@@ -31,6 +31,11 @@ html {
   @include mat.sort-overrides((
     arrow-color: var(--faded),
   ));
+
+  @include mat.icon-button-overrides((
+    icon-color: var(--main-text),
+    disabled-icon-color: color-mix(in srgb, var(--main-text) 38%, transparent),
+  ));
 }
 
 // no zooming in on safari inputs
@@ -80,8 +85,8 @@ $overlay-backdrop-color: rgba(0, 0, 0, 0.8) !important;
 }
 
 .mat-mdc-raised-button:not(:disabled):not(.primary-btn) {
-  color: var(--primary) !important;
-  background-color: oklch(from var(--primary) 96% 0.021 h) !important;
+  color: var(--main-text) !important;
+  background-color: color-mix(in srgb, var(--card-bg) 92%, var(--primary)) !important;
 }
 
 .mdc-linear-progress__bar-inner {

@@ -2,6 +2,7 @@
   <mat-form-field>
     <mat-label>Theme</mat-label>
     <mat-select [value]="selectedTheme()" (selectionChange)="selectTheme($event.value)" [disabled]="loading()">
+      <mat-option value="CURRENT_THEME" disabled>Current appearance</mat-option>
       <mat-option value="UNSET_THEME">Chain default</mat-option>
       @for (theme of ds.availableThemes; track theme) { <mat-option [value]="theme">{{ theme }}</mat-option> }
     </mat-select>

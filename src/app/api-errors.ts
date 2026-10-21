@@ -13,3 +13,7 @@ export function describeApiError(error: unknown): string {
   }
   return "Unable to load this data from Hyperion. Try again.";
 }
+
+export function isApiNotFound(error: unknown): boolean {
+  return !!error && typeof error === "object" && "status" in error && error.status === 404;
+}

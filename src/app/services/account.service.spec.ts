@@ -2,6 +2,7 @@ import { TestBed } from "@angular/core/testing";
 import { HttpTestingController } from "@angular/common/http/testing";
 import { vi } from "vitest";
 import { AccountService } from "./account.service";
+import { ChainService } from "./chain.service";
 import { DataService } from "./data.service";
 import { historyAction } from "../sequences";
 
@@ -70,6 +71,25 @@ describe("AccountService compatibility", () => {
     await settle();
     await settle();
   }
+
+  it("keeps checking finality while pending history remains unchanged and stops when irreversible", async () => {
+    await loadAccount(["9007199254740993"]);
+    const chain = TestBed.inject(ChainService);
+    chain.chainInfoResource.set({ last_irreversible_block_num: 99 } as any);
+    const reload = vi.spyOn(chain.chainInfoResource, "reload").mockReturnValue(true);
+    vi.useFakeTimers();
+    try {
+      TestBed.tick();
+      vi.advanceTimersByTime(20000);
+      expect(reload).toHaveBeenCalledTimes(2);
+      chain.chainInfoResource.set({ last_irreversible_block_num: 100 } as any);
+      TestBed.tick();
+      vi.advanceTimersByTime(20000);
+      expect(reload).toHaveBeenCalledTimes(2);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 
   it.each(["", "wss://stream.example"])("uses the deployment stream endpoint with override %s", async override => {
     data.env.streamApiUrl = override;
@@ -271,6 +291,16 @@ describe("AccountService compatibility", () => {
     service.showNewActions();
     expect(service.actionsComputed()[0].global_sequence).toBe("9007199254740993");
     expect(service.firstGlobalSequence()).toBe("9007199254740993");
+  });
+
+  it("keeps NET and RAM byte units separate from CPU time", () => {
+    service.accountDataRes.set({
+      account: { cpu_limit: { used: 1450, max: 100000 }, net_limit: { used: 8560, max: 262144 }, ram_quota: 1048576, ram_usage: 287340 },
+      actions: []
+    } as any);
+    expect(service.userResPct().cpuStr).toBe("1.45ms / 100.00ms");
+    expect(service.userResPct().netStr).toBe("8.36 KiB / 256 KiB");
+    expect(service.userResPct().ramStr).toBe("280.61 KiB / 1 MiB");
   });
 
   it("stops streaming and surfaces unsafe receipt metadata", async () => {

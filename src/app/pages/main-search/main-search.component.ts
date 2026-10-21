@@ -3,6 +3,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   DestroyRef,
   ElementRef,
   HostListener,
@@ -21,7 +22,7 @@ import { debounceTime, filter, map } from "rxjs";
 import { MatAutocomplete, MatAutocompleteTrigger, MatOption } from "@angular/material/autocomplete";
 import { MatButton } from "@angular/material/button";
 import { FaIconComponent } from "@fortawesome/angular-fontawesome";
-import { faHeart, faSearch } from "@fortawesome/free-solid-svg-icons";
+import { faHeart, faSearch, faCircleQuestion } from "@fortawesome/free-solid-svg-icons";
 import { faGithub, faTelegram } from "@fortawesome/free-brands-svg-icons";
 import { DataService } from "../../services/data.service";
 import { SearchService } from "../../services/search.service";
@@ -53,8 +54,12 @@ export class MainSearchComponent implements OnInit, OnDestroy {
   private readonly destroyRef = inject(DestroyRef);
   readonly searchForm = inject(FormBuilder).nonNullable.group({ search_field: ["", Validators.required] });
   readonly chainData = this.dataService.explorerMetadata;
+  readonly logoFailed = signal(false);
+  readonly logoUrl = computed(() =>
+    this.logoFailed() ? "assets/logo-hyperion-horz.svg" : this.chainData()?.logo || "assets/logo-hyperion-horz.svg"
+  );
   readonly version = version;
-  readonly icons = { search: faSearch, heart: faHeart, github: faGithub, telegram: faTelegram };
+  readonly icons = { help: faCircleQuestion, search: faSearch, heart: faHeart, github: faGithub, telegram: faTelegram };
   readonly searchFieldRef = viewChild<ElementRef<HTMLInputElement>>("searchFieldRef");
   readonly autocomplete = viewChild(MatAutocompleteTrigger);
   readonly filteredAccounts = signal<string[]>([]);
@@ -76,6 +81,10 @@ export class MainSearchComponent implements OnInit, OnDestroy {
   private searchRevision = 0;
 
   constructor() {
+    effect(() => {
+      this.chainData()?.logo;
+      this.logoFailed.set(false);
+    });
     this.searchForm.controls.search_field.valueChanges.pipe(debounceTime(200), takeUntilDestroyed()).subscribe(async value => {
       const revision = ++this.searchRevision;
       const text = value.trim();

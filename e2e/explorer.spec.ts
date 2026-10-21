@@ -136,7 +136,7 @@ test("uses the unrounded snapshot bound for filtered history", async ({ page, re
     const url = new URL(request.url());
     return url.pathname === "/v2/history/get_actions" && url.searchParams.get("act.name") === "transfer";
   });
-  await page.getByRole("button", { name: "Native Transfers", exact: false }).click();
+  await page.getByRole("combobox", { name: "Action filter", exact: true }).selectOption({ label: "Native Transfers" });
   expect(new URL((await filtered).url()).searchParams.get("global_sequence")).toBe("0-18446744073709551615");
   await expect(page.getByText("Sequence 9007199254740993", { exact: true })).toBeVisible();
 });

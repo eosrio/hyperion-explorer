@@ -41,17 +41,6 @@ grid-item-btn:not(:disabled):focus {
   color: var(--primary) !important;
 }
 
-.acc-header {
-  background-color: transparent;
-  border-radius: 0.625rem;
-  border: none !important;
-  box-shadow:
-    rgb(78 104 192 / 25%) 0 4px 19px 0,
-    rgba(17, 12, 46, 0.15) 0 20px 100px 0 !important;
-  color: var(--main-text);
-  min-height: fit-content;
-}
-
 .transparent-table {
   background-color: transparent;
   border-collapse: collapse;
@@ -113,7 +102,7 @@ grid-item-btn:not(:disabled):focus {
     text-align: left;
     font-size: 12px;
     font-weight: 500;
-    color: rgba(0, 0, 0, 0.54);
+    color: var(--faded);
   }
 
   [mat-table] [mat-row] td[mat-cell].mat-column-icon:not(.mat-column-actions):before {
@@ -135,7 +124,7 @@ grid-item-btn:not(:disabled):focus {
   }
 
   [mat-table] [mat-row]:not(:last-of-type) td:last-of-type {
-    border-bottom: 0.5rem solid #e5e5e5;
+    border-bottom: 0.5rem solid var(--main-background);
     padding-bottom: 1.25rem !important;
     margin-bottom: 1.25rem;
   }
@@ -145,12 +134,12 @@ grid-item-btn:not(:disabled):focus {
 .view-mode-toggle {
   border-radius: 0.5rem;
   padding: 0.5rem 0.9rem;
-  background-color: rgba(0, 0, 0, 0.05);
+  background-color: color-mix(in srgb, var(--primary) 5%, transparent);
 }
 
 .selected-view {
   color: var(--primary) !important;
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: color-mix(in srgb, var(--primary) 10%, transparent);
 }
 
 /* Card view styles */
@@ -175,14 +164,14 @@ grid-item-btn:not(:disabled):focus {
   transform: translateY(-2px);
   box-shadow:
     var(--box-shadow-bg-sharp),
-    0 10px 20px rgba(0, 0, 0, 0.15);
+    0 10px 20px color-mix(in srgb, var(--primary) 15%, transparent);
   border-color: var(--primary);
 }
 
 .data-card-header {
   padding: 0.75rem 1rem;
   font-weight: 600;
-  background-color: rgba(0, 0, 0, 0.08);
+  background-color: color-mix(in srgb, var(--primary) 8%, transparent);
   color: var(--primary);
   border-bottom: 1px solid var(--line-divider);
   border-left: 1px solid var(--primary);
@@ -196,12 +185,12 @@ grid-item-btn:not(:disabled):focus {
 .data-card-field {
   margin-bottom: 0.75rem;
   padding-bottom: 0.75rem;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid var(--line-divider);
   transition: background-color 0.2s;
 }
 
 .data-card-field:hover {
-  background-color: rgba(0, 0, 0, 0.03);
+  background-color: color-mix(in srgb, var(--primary) 3%, transparent);
 }
 
 .data-card-field:last-child {
@@ -251,13 +240,13 @@ grid-item-btn:not(:disabled):focus {
   transform: translateY(-2px);
   box-shadow:
     var(--box-shadow-bg-sharp),
-    0 10px 20px rgba(0, 0, 0, 0.15);
+    0 10px 20px color-mix(in srgb, var(--primary) 15%, transparent);
   border-color: var(--primary);
 }
 
 .expanded-item-header {
   padding: 0.75rem 1rem;
-  background-color: rgba(0, 0, 0, 0.08);
+  background-color: color-mix(in srgb, var(--primary) 8%, transparent);
   color: var(--primary);
   font-weight: 600;
   cursor: pointer;
@@ -270,7 +259,7 @@ grid-item-btn:not(:disabled):focus {
 }
 
 .expanded-item-header:hover {
-  background-color: rgba(0, 0, 0, 0.12);
+  background-color: color-mix(in srgb, var(--primary) 12%, transparent);
 }
 
 .expanded-item-content {
@@ -284,12 +273,12 @@ grid-item-btn:not(:disabled):focus {
 }
 
 .expanded-item-table tr {
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  border-bottom: 1px solid var(--line-divider);
   transition: background-color 0.2s;
 }
 
 .expanded-item-table tr:hover {
-  background-color: rgba(0, 0, 0, 0.03);
+  background-color: color-mix(in srgb, var(--primary) 3%, transparent);
 }
 
 .expanded-item-table tr:last-child {
@@ -386,5 +375,78 @@ grid-item-btn:not(:disabled):focus {
 @media (prefers-reduced-motion: reduce) {
   .expanded-item-content {
     animation: none;
+  }
+}
+
+.contract-table-heading,
+.scope-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+.contract-table-heading {
+  justify-content: space-between;
+}
+h2 {
+  font-size: 1.125rem;
+  font-weight: 600;
+  margin-block: 1rem 0.5rem;
+}
+.contract-section {
+  padding-block: 1rem;
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--line-divider);
+  min-width: 0;
+}
+.scope-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.scope-paging {
+  display: flex;
+  align-items: center;
+}
+.scope-toolbar select,
+.scope-options input {
+  min-height: 44px;
+  border: 1px solid var(--line-divider);
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  color: var(--main-text);
+  background: var(--card-bg);
+  font: inherit;
+  max-width: 100%;
+}
+.scope-options {
+  font-size: 0.875rem;
+  max-width: 100%;
+}
+.scope-options summary {
+  cursor: pointer;
+  min-height: 44px;
+  padding-block: 0.75rem;
+}
+.scope-options label {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-block: 0.5rem;
+}
+.scope-options input[type="number"] {
+  width: 6rem;
+}
+@media (max-width: 640px) {
+  .scope-selector {
+    width: 100%;
+  }
+  .scope-selector select {
+    flex: 1;
+    min-width: 0;
+  }
+  #data-section {
+    overflow-x: auto;
   }
 }

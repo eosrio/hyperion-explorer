@@ -1,4 +1,5 @@
-import { computed, effect, inject, Injectable, resource, signal, untracked } from "@angular/core";
+import { asUtcTimestamp } from "../utils";
+import { computed, inject, Injectable, resource, signal } from "@angular/core";
 import { lastValueFrom } from "rxjs";
 import { HttpClient } from "@angular/common/http";
 import { DataService } from "./data.service";
@@ -49,27 +50,17 @@ interface GetProducersResponse {
   providedIn: "root"
 })
 export class ChainService {
-  
   data = inject(DataService);
   httpClient = inject(HttpClient);
 
   // Resource to fetch and store the full chain info
+  readonly lastUpdatedAt = signal<number | null>(null);
   chainInfoResource = resource<ChainInfo | null, void>({
     loader: async () => {
-      // console.log("Fetching Chain Info...");
-      try {
-        const info = await lastValueFrom(this.httpClient.get<ChainInfo>(this.data.env.hyperionApiUrl + "/v1/chain/get_info"));
-        // Add server_version_string if it doesn't exist but server_version does (for compatibility)
-        if (info && !info.server_version_string && info.server_version) {
-          info.server_version_string = info.server_version;
-        }
-        return info;
-      } catch (e: any) {
-        console.error("Failed to fetch chain info:", e.message);
-        return null;
-      }
+      const info = await lastValueFrom(this.httpClient.get<ChainInfo>(this.data.env.hyperionApiUrl + "/v1/chain/get_info"));
+      this.lastUpdatedAt.set(Date.now());
+      return { ...info, server_version_string: info.server_version_string || info.server_version };
     }
-    // Removed initialValue as it's not a valid option
   });
 
   oracleData = resource<any, any>({
@@ -83,7 +74,7 @@ export class ChainService {
           return null;
         }
 
-        const {contract, table} = oracleConfig;
+        const { contract, table } = oracleConfig;
         if (!contract || !table) {
           return null;
         }
@@ -157,87 +148,29 @@ export class ChainService {
   });
 
   // Computed signals for specific chain info fields
-  chainInfo = computed(() => this.chainInfoResource.value());
+  chainInfo = computed(() => (this.chainInfoResource.hasValue() ? this.chainInfoResource.value() : null));
   streamLib = signal(0);
 
-  lastIrreversibleBlockNum = computed(() => {
-    const streamLib = this.streamLib();
-    const chainInfo = this.chainInfo();
-    if (streamLib && streamLib > 0) {
-      // console.log(`LIB from Stream: ${streamLib}`);
-      return streamLib;
-    } else if (chainInfo && chainInfo.last_irreversible_block_num) {
-      // console.log(`LIB from Chain: ${chainInfo.last_irreversible_block_num}`);
-      return chainInfo.last_irreversible_block_num;
-    } else {
-      return 0;
-    }
-  });
+  lastIrreversibleBlockNum = computed(() => Math.max(this.streamLib(), this.chainInfo()?.last_irreversible_block_num || 0));
 
   chainId = computed(() => this.chainInfo()?.chain_id ?? "N/A");
   headBlockNum = computed(() => this.chainInfo()?.head_block_num ?? 0);
-  headBlockTime = computed(() => this.chainInfo()?.head_block_time ?? null); // Keep as string or null
+  headBlockTime = computed(() => (this.chainInfo()?.head_block_time ? asUtcTimestamp(this.chainInfo()!.head_block_time) : null)); // Keep as string or null
   serverVersion = computed(() => this.chainInfo()?.server_version_string ?? this.chainInfo()?.server_version ?? "N/A");
-
-  elapsedTime = signal(0);
-
-  secondsToLib = computed(() => {
-    const lib = this.lastIrreversibleBlockNum();
-    const chainInfo = this.chainInfo();
-    const headBlock = chainInfo?.head_block_num;
-    if (headBlock) {
-      const numBlocks = headBlock - lib;
-      return numBlocks * 2 - this.elapsedTime();
-    } else {
-      return 0;
-    }
-  });
-
-  constructor() {
-    effect(() => {
-      // reset the libSeconds counter when the lib is updated
-      const lib = this.lastIrreversibleBlockNum();
-      if (lib > 0) {
-        untracked(() => {
-          this.elapsedTime.set(0);
-        });
-      }
-    });
-
-    // Increment the elapsed signal every second
-    setInterval(() => {
-      this.elapsedTime.update(v => v + 1);
-    }, 1000);
-  }
 
   // Resource to fetch producer data
   producersResource = resource<GetProducersResponse | null, void>({
     loader: async () => {
-      // console.log("Fetching Producers...");
-      try {
-        // Standard endpoint, might need adjustment based on specific Hyperion config
-        const producers = await lastValueFrom(
-          this.httpClient.post<GetProducersResponse>(this.data.env.hyperionApiUrl + "/v1/chain/get_producers", {
-            json: true,
-            limit: 1000 // Fetch a large number, assuming pagination isn't needed for typical top producer lists
-          })
-        );
-
-        // Sort producers by total_votes descending to easily determine rank later
-        if (producers && producers.rows) {
-          producers.rows.sort((a, b) => parseFloat(b.total_votes) - parseFloat(a.total_votes));
-        }
-
-        return producers;
-      } catch (e: any) {
-        console.error("Failed to fetch producers:", e.message);
-        return null;
-      }
+      const producers = await lastValueFrom(
+        this.httpClient.post<GetProducersResponse>(this.data.env.hyperionApiUrl + "/v1/chain/get_producers", { json: true, limit: 1000 })
+      );
+      producers.rows.sort((a, b) => parseFloat(b.total_votes) - parseFloat(a.total_votes));
+      return producers;
     }
   });
 
   // Computed signal for the producer rows, sorted by votes
-  producers = computed(() => this.producersResource.value()?.rows ?? []);
+  producers = computed(() => (this.producersResource.hasValue() ? (this.producersResource.value()?.rows ?? []) : []));
 
   // Method to refresh the chain info
   refreshChainInfo() {
