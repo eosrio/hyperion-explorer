@@ -1,4 +1,4 @@
-<div class="explorer-layout" [class.is-home]="isHome()" [style.--header-collapse]="headerProgress()">
+<div class="explorer-layout" [class.is-home]="isHome()" [class.has-search-error]="!!err()" [style.--header-collapse]="headerProgress()">
   <header id="header-container" class="header-card" aria-label="Explorer navigation">
     <div class="header-inner">
       <a routerLink="/" class="chain-brand" aria-label="Hyperion Explorer home">
@@ -8,7 +8,7 @@
         <div class="custom-input-group search-control">
           <input #searchFieldRef formControlName="search_field" type="search" class="custom-input"
                  placeholder="Account, block, transaction or public key"
-                 aria-label="Account name, block number, transaction ID, or public key" aria-describedby="search-error search-help" aria-keyshortcuts="Control+Shift+F Meta+Shift+F"
+                 aria-label="Account name, block number, transaction ID, or public key" [attr.aria-invalid]="err() ? 'true' : null" [attr.aria-describedby]="err() ? 'search-error search-help' : 'search-help'" aria-keyshortcuts="Control+Shift+F Meta+Shift+F"
                  autocomplete="off" autocapitalize="off" spellcheck="false" [matAutocomplete]="auto" />
           <details id="search-help" class="search-help"><summary aria-label="Search help" title="Search help"><fa-icon [icon]="icons.help" aria-hidden="true" /></summary><p>Search by account, block number, transaction ID or public key. Press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>F</kbd> (or <kbd>⌘</kbd> + <kbd>Shift</kbd> + <kbd>F</kbd> on Mac) to focus search.</p></details>
           <button type="submit" aria-label="Search blockchain" mat-raised-button class="search-btn primary-btn" [disabled]="!searchReady()">
@@ -18,7 +18,7 @@
         <mat-autocomplete #auto="matAutocomplete" (optionSelected)="submit()" class="custom-autocomplete">
           @for (account of filteredAccounts(); track account) { <mat-option [value]="account">{{ account }}</mat-option> }
         </mat-autocomplete>
-        <div id="search-error" class="search-message" aria-live="polite">{{ err() }}</div>
+        <div id="search-error" class="search-message" aria-live="polite" aria-atomic="true">@if (err()) { <fa-icon [icon]="icons.error" aria-hidden="true" /><span>{{ err() }}</span> }</div>
       </form>
       <div class="provider">
         <span class="provider-label">Data provider</span>

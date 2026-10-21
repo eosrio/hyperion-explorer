@@ -18,11 +18,11 @@ import { isPlatformBrowser } from "@angular/common";
 import { FormBuilder, ReactiveFormsModule, Validators } from "@angular/forms";
 import { NavigationEnd, Router, RouterLink, RouterOutlet } from "@angular/router";
 import { takeUntilDestroyed, toSignal } from "@angular/core/rxjs-interop";
-import { debounceTime, filter, map } from "rxjs";
+import { debounceTime, filter, map, tap } from "rxjs";
 import { MatAutocomplete, MatAutocompleteTrigger, MatOption } from "@angular/material/autocomplete";
 import { MatButton } from "@angular/material/button";
 import { FaIconComponent } from "@fortawesome/angular-fontawesome";
-import { faHeart, faSearch, faCircleQuestion } from "@fortawesome/free-solid-svg-icons";
+import { faHeart, faSearch, faCircleQuestion, faCircleExclamation } from "@fortawesome/free-solid-svg-icons";
 import { faGithub, faTelegram } from "@fortawesome/free-brands-svg-icons";
 import { DataService } from "../../services/data.service";
 import { SearchService } from "../../services/search.service";
@@ -60,7 +60,14 @@ export class MainSearchComponent implements OnInit, OnDestroy {
     this.logoFailed() ? "assets/logo-hyperion-horz.svg" : this.chainData()?.logo || "assets/logo-hyperion-horz.svg"
   );
   readonly version = version;
-  readonly icons = { help: faCircleQuestion, search: faSearch, heart: faHeart, github: faGithub, telegram: faTelegram };
+  readonly icons = {
+    help: faCircleQuestion,
+    error: faCircleExclamation,
+    search: faSearch,
+    heart: faHeart,
+    github: faGithub,
+    telegram: faTelegram
+  };
   readonly searchFieldRef = viewChild<ElementRef<HTMLInputElement>>("searchFieldRef");
   readonly autocomplete = viewChild(MatAutocompleteTrigger);
   readonly filteredAccounts = signal<string[]>([]);
@@ -86,17 +93,23 @@ export class MainSearchComponent implements OnInit, OnDestroy {
       this.chainData()?.logo;
       this.logoFailed.set(false);
     });
-    this.searchForm.controls.search_field.valueChanges.pipe(debounceTime(200), takeUntilDestroyed()).subscribe(async value => {
-      const revision = ++this.searchRevision;
-      const text = value.trim();
-      this.validSearch.set(text.length > 0 && this.searchService.submitSearch(text, []));
-      if (text.length < 3 || text.length > 12) {
-        this.filteredAccounts.set([]);
-        return;
-      }
-      const accounts = await this.searchService.filterAccountNames(text);
-      if (!this.destroyRef.destroyed && revision === this.searchRevision) this.filteredAccounts.set(accounts);
-    });
+    this.searchForm.controls.search_field.valueChanges
+      .pipe(
+        tap(() => this.err.set("")),
+        debounceTime(200),
+        takeUntilDestroyed()
+      )
+      .subscribe(async value => {
+        const revision = ++this.searchRevision;
+        const text = value.trim();
+        this.validSearch.set(text.length > 0 && this.searchService.submitSearch(text, []));
+        if (text.length < 3 || text.length > 12) {
+          this.filteredAccounts.set([]);
+          return;
+        }
+        const accounts = await this.searchService.filterAccountNames(text);
+        if (!this.destroyRef.destroyed && revision === this.searchRevision) this.filteredAccounts.set(accounts);
+      });
     afterNextRender(() => {
       this.searchForm.controls.search_field.enable({ emitEvent: false });
       this.searchReady.set(true);
@@ -128,13 +141,14 @@ export class MainSearchComponent implements OnInit, OnDestroy {
   async submit(): Promise<void> {
     const value = this.searchForm.controls.search_field.value.trim();
     if (!value) {
-      this.err.set("Enter an account, block number, transaction ID, or public key.");
+      this.err.set("Enter an account, block, transaction ID or public key.");
       this.searchFieldRef()?.nativeElement.focus();
       return;
     }
     const suggestions = this.filteredAccounts();
     if (!this.searchService.submitSearch(value, suggestions)) {
-      this.err.set(`No results for ${value}`);
+      this.err.set("Search format not recognized. Check the search help.");
+      this.searchFieldRef()?.nativeElement.focus();
       return;
     }
     this.err.set("");

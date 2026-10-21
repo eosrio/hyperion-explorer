@@ -142,9 +142,12 @@ test("saved custom filters survive reload and can be deleted", async ({ page }) 
   await expect(select).toHaveValue("");
 });
 
-test("contract controls retain readable contrast in every shipped palette", async ({ page }, info) => {
+test("contract controls and search feedback retain readable contrast in every shipped palette", async ({ page }, info) => {
   await page.goto("/explorer/contract/vault.defi/vaults/alice");
   await expect(page.getByRole("button", { name: "Row 1", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Search blockchain", exact: true })).toBeEnabled();
+  await page.getByRole("button", { name: "Search blockchain", exact: true }).click();
+  await expect(page.locator("#search-error")).toBeVisible();
   await page.addStyleTag({ content: "*, *::before, *::after { transition: none !important; animation: none !important; }" });
   await page.getByRole("button", { name: "Choose explorer theme" }).click();
   const select = page.getByRole("combobox", { name: "Theme", exact: true });
@@ -159,7 +162,7 @@ test("contract controls retain readable contrast in every shipped palette", asyn
       .poll(() => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--primary").trim()))
       .toBe(palette["--primary"].trim());
     await expect(select).toBeEnabled();
-    measurements[name] = await page.locator(".grid-item-btn, select[aria-label='Contract scope']").evaluateAll(elements => {
+    measurements[name] = await page.locator(".grid-item-btn, select[aria-label='Contract scope'], #search-error").evaluateAll(elements => {
       const luminance = (color: string) => {
         const context = new OffscreenCanvas(1, 1).getContext("2d")!;
         context.fillStyle = color;
@@ -187,6 +190,9 @@ test("dark chain controls inherit readable panel and icon colors", async ({ page
   await request.post("/__fixture/state", { data: { theme: "dark", manualStreaming: true } });
   await page.goto("/explorer/contract/vault.defi/vaults/alice");
   await expect(page.getByRole("button", { name: "Row 1", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Search blockchain", exact: true })).toBeEnabled();
+  await page.getByRole("button", { name: "Search blockchain", exact: true }).click();
+  await expect(page.locator("#search-error")).toBeVisible();
   await page.addStyleTag({ content: "*, *::before, *::after { transition: none !important; animation: none !important; }" });
   const controls = await page
     .locator(".grid-item-btn:not(.selected), button[aria-label='Reload scopes'], button[aria-label='Reload rows']")
@@ -199,7 +205,7 @@ test("dark chain controls inherit readable panel and icon colors", async ({ page
     );
   expect(controls).toHaveLength(4);
   for (const control of controls) expect(control.foreground).toBe(control.expected);
-  const ratios = await page.locator(".grid-item-btn:not(.selected)").evaluateAll(elements =>
+  const ratios = await page.locator(".grid-item-btn:not(.selected), #search-error").evaluateAll(elements =>
     elements.map(element => {
       const context = new OffscreenCanvas(1, 1).getContext("2d")!;
       const luminance = (color: string) => {
