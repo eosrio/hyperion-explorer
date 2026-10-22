@@ -1,7 +1,24 @@
-.custom-top-card {
-  background: radial-gradient(circle, rgba(241,245,252,1) 50%, rgba(221,229,246,1)  100%);
-  box-shadow: var(--card-box-shadow) !important;
-  min-height: 60%;
-  height: auto;
-  padding: 1.6rem;
+.error-page {
+  padding-block: clamp(2rem, 10vh, 7rem);
+}
+.error-panel {
+  max-width: 40rem;
+  margin: auto;
+  padding: clamp(1.5rem, 5vw, 3rem);
+}
+h1 {
+  margin: 2rem 0 1rem;
+  font-size: clamp(1.5rem, 4vw, 2rem);
+  line-height: 1.25;
+  text-wrap: balance;
+}
+.error-reason {
+  overflow-wrap: anywhere;
+  margin-block: 1rem 1.5rem;
+}
+button {
+  padding: 0.75rem 1.25rem;
+  border-radius: 2rem;
+  min-height: 44px;
+  cursor: pointer;
 }

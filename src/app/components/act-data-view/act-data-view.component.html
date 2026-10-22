@@ -38,7 +38,7 @@
         @if (item.value) {
           @switch (itemType) {
             @case ("string") {
-              @if (isAccountName(item.value)) {
+              @if (isAccountName(item.value, item.key)) {
                 <a [routerLink]="['/account', item.value]"
                    class="break-word link-primary text-pretty">{{ item.value }}</a>
               } @else {

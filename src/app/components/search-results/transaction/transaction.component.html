@@ -15,7 +15,7 @@
 } @else {
   @if (tx().actions && tx().actions.length === 0) {
     <div class="hr-container w-full">
-      <div class="grid grid-cols-1 auto-cols-max gap-5 text-black appear">
+      <div class="grid grid-cols-1 auto-cols-max gap-5 text-[var(--main-text)] appear">
         <div class="custom-card w-full">
           <h1 class="faded">
             <fa-icon [icon]="icons.solid.faSadTear" style="margin-right: 5px"></fa-icon>
@@ -36,7 +36,7 @@
   @if (tx().actions && tx().actions.length > 0 && accountService.loaded()) {
     <div class="hr-container w-full">
       <!--    md:grid-cols-2 auto-cols-auto-->
-      <div class="flex flex-col gap-5 text-black w-full appear">
+      <div class="flex flex-col gap-5 text-[var(--main-text)] w-full appear">
         <!--      min-w-full-->
         <div class="custom-card card-top-sticky bg-no-transparency w-full h-full min-h-full sticky top-[122px] z-40">
           <div>
@@ -49,26 +49,25 @@
                 Transaction
               </div>
               <mat-chip-listbox class="mat-mdc-chip-set-stacked">
-                @if (accountService.libNum > tx().actions[0]["block_num"]) {
+                @if ((accountService.chain.lastIrreversibleBlockNum() || tx().lib) >= tx().actions[0]["block_num"]) {
                   <mat-chip-option selected>
                     <fa-icon [icon]="icons.solid.faLock" style="margin-right: 5px"></fa-icon>
                     Irreversible
                   </mat-chip-option>
                 }
-                @if (accountService.libNum < tx().actions[0]["block_num"]) {
+                @if ((accountService.chain.lastIrreversibleBlockNum() || tx().lib) < tx().actions[0]["block_num"]) {
                   <mat-chip-option color="accent" selected>
                     <fa-icon
                       [icon]="icons.solid.faHourglass"
                       style="margin-right: 5px"
                     ></fa-icon>
-                    Pending ({{ countdownTimer }}s)
+                    Pending
                   </mat-chip-option>
                 }
               </mat-chip-listbox>
             </div>
-            <h4 style="margin: 10px 0 12px 0" class="break-word">
-              {{ tx().trx_id }}
-            </h4>
+            <app-copy-identifier class="mt-4" [value]="txID()" label="transaction ID" />
+            <app-finality-help />
           </div>
         </div>
         <div class="custom-card w-full">
@@ -91,7 +90,7 @@
                   <span class="title">NET</span>
                   <span class="faded used">usage</span>
                 </div>
-                <div>{{ tx().actions[0]["net_usage_words"] }} bytes</div>
+                <div>{{ tx().actions[0]["net_usage_words"] * 8 }} bytes</div>
               </div>
             </div>
           </div>

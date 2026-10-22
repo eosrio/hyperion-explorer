@@ -24,6 +24,7 @@ export abstract class DataService {
 
   abstract load(): Promise<void>;
   abstract activateTheme(): Promise<void>;
+  abstract setThemeOverride(theme: Record<string, string> | null): Promise<void>;
 
   setOrigin(hyperionServer: string): void {
     const url = new URL(hyperionServer);
@@ -61,6 +62,7 @@ export abstract class DataService {
 export class DataServiceServer extends DataService {
   private state = inject(TransferState);
   async activateTheme(): Promise<void> {}
+  async setThemeOverride(): Promise<void> {}
 
   async load(): Promise<void> {
     this.state.remove(this.metadataKey);
@@ -77,6 +79,8 @@ export class DataServiceServer extends DataService {
 export class DataServiceBrowser extends DataService {
   private title = inject(Title);
   private state = inject(TransferState);
+  private deploymentTheme: Record<string, string> = {};
+  private appliedThemeKeys = new Set<string>();
 
   async load(): Promise<void> {
     this.explorerMetadata.set(this.state.get(this.metadataKey, null));
@@ -85,9 +89,11 @@ export class DataServiceBrowser extends DataService {
     if (!this.explorerMetadata()) await this.loadChainData();
     const data = this.explorerMetadata();
     if (data) {
+      this.deploymentTheme = { ...data.theme };
       // Browser storage may be disabled or contain an override from an older build.
       try {
-        const saved = localStorage.getItem("theme-override");
+        const scopedKey = `theme-override:${data.chain_id}`;
+        const saved = localStorage.getItem(scopedKey) || localStorage.getItem("theme-override");
         const theme: unknown = saved ? JSON.parse(saved) : null;
         if (
           theme &&
@@ -96,6 +102,10 @@ export class DataServiceBrowser extends DataService {
           Object.entries(theme).every(([key, value]) => key.startsWith("--") && typeof value === "string")
         ) {
           this.explorerMetadata.set({ ...data, theme: { ...data.theme, ...theme } });
+          if (!localStorage.getItem(scopedKey)) {
+            localStorage.setItem(scopedKey, JSON.stringify(theme));
+            localStorage.removeItem("theme-override");
+          }
         }
       } catch {
         /* Keep the deployment theme when browser storage is unavailable. */
@@ -107,11 +117,28 @@ export class DataServiceBrowser extends DataService {
   }
 
   async activateTheme(): Promise<void> {
+    for (const key of this.appliedThemeKeys) document.documentElement.style.removeProperty(key);
+    this.appliedThemeKeys.clear();
     for (const [key, value] of Object.entries(this.explorerMetadata()?.theme ?? {})) {
       if (key.startsWith("--") && typeof value === "string") {
         document.documentElement.style.setProperty(key, value);
+        this.appliedThemeKeys.add(key);
       }
     }
     this.ready.set(true);
+  }
+
+  async setThemeOverride(theme: Record<string, string> | null): Promise<void> {
+    const data = this.explorerMetadata();
+    if (!data) return;
+    this.explorerMetadata.set({ ...data, theme: { ...this.deploymentTheme, ...theme } });
+    try {
+      const key = `theme-override:${data.chain_id}`;
+      if (theme) localStorage.setItem(key, JSON.stringify(theme));
+      else localStorage.removeItem(key);
+    } catch {
+      /* Theme changes still work when browser storage is unavailable. */
+    }
+    await this.activateTheme();
   }
 }

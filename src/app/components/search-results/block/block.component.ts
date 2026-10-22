@@ -1,3 +1,6 @@
+import { asUtcTimestamp } from "../../../utils";
+import { FinalityHelpComponent } from "../../finality-help/finality-help.component";
+import { CopyIdentifierComponent } from "../../copy-identifier/copy-identifier.component";
 import { describeApiError } from "../../../api-errors";
 import { Component, ElementRef, inject, OnDestroy, OnInit, PLATFORM_ID, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
@@ -23,8 +26,6 @@ import {
 import { Title } from "@angular/platform-browser";
 import { SearchService } from "../../../services/search.service";
 import { DataService } from "../../../services/data.service";
-import { animate as motionAnimate, scroll } from "motion";
-import { toObservable } from "@angular/core/rxjs-interop";
 import { ActDataViewComponent } from "../../act-data-view/act-data-view.component";
 import { BlockService } from "../../../services/block.service";
 import { ChainService } from "../../../services/chain.service";
@@ -34,6 +35,8 @@ import { MatTooltip } from "@angular/material/tooltip";
 @Component({
   selector: "app-block",
   imports: [
+    FinalityHelpComponent,
+    CopyIdentifierComponent,
     RouterModule,
     MatChipsModule,
     MatTableModule,
@@ -99,26 +102,6 @@ export class BlockComponent implements OnInit, OnDestroy {
     }
   }
 
-  constructor() {
-    toObservable(this.transactionsTable).subscribe(value => {
-      if (value && isPlatformBrowser(this.platformId)) {
-        this.tableStickyMotion(".transactions-table-header", value);
-      }
-    });
-
-    // toObservable(this.actionsTable).subscribe((value) => {
-    //   if (value && isPlatformBrowser(this.platformId)) {
-    //     this.tableStickyMotion('.actions-table-header', value);
-    //   }
-    // });
-
-    toObservable(this.deltasTable).subscribe(value => {
-      if (value && isPlatformBrowser(this.platformId)) {
-        this.tableStickyMotion(".deltas-table-header", value);
-      }
-    });
-  }
-
   ngOnInit(): void {
     this.searchService.searchType.set("block");
 
@@ -181,20 +164,6 @@ export class BlockComponent implements OnInit, OnDestroy {
   }
 
   formatDate(date: string): string {
-    return new Date(date).toLocaleString();
-  }
-
-  private tableStickyMotion(target: string, tableSticky?: ElementRef<HTMLDivElement>) {
-    scroll(
-      motionAnimate(
-        target,
-        {
-          boxShadow: "rgba(78 104 192, 0.25) 0px 4px 19px 0px, rgba(17, 12, 46, 0.15) 0px 20px 100px 0px",
-          background: "var(--table-top-bg-gradient)"
-        },
-        { duration: 1 }
-      ),
-      { target: tableSticky?.nativeElement, offset: ["end 250px", "200px 250px"] }
-    );
+    return new Date(asUtcTimestamp(date)).toLocaleString();
   }
 }

@@ -1,54 +1,40 @@
-import { Component, effect, inject, signal, ChangeDetectionStrategy } from "@angular/core";
+import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/core";
 import { DataService } from "../../services/data.service";
 import { MatFormField, MatLabel } from "@angular/material/form-field";
 import { MatOption, MatSelect } from "@angular/material/select";
-import { rxResource } from "@angular/core/rxjs-interop";
 import { HttpClient } from "@angular/common/http";
-import { Observable, of } from "rxjs";
+import { lastValueFrom } from "rxjs";
+import { describeApiError } from "../../api-errors";
 
 @Component({
   selector: "app-theme-selector",
   imports: [MatFormField, MatSelect, MatOption, MatLabel],
   templateUrl: "./theme-selector.component.html",
-  changeDetection: ChangeDetectionStrategy.Eager,
-  styleUrl: "./theme-selector.component.css"
+  styleUrl: "./theme-selector.component.css",
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ThemeSelectorComponent {
-  ds = inject(DataService);
-  http = inject(HttpClient);
-
-  selectedTheme = signal("");
-
-  themeData = rxResource<any, { theme: string }>({
-    params: () => {
-      return { theme: this.selectedTheme() };
-    },
-    stream: ({ params }) => {
-      if (params.theme === "UNSET_THEME") {
-        window.location.href = window ? window.location.origin : "/";
-        return of({} as any);
-      }
-      if (!params.theme) {
-        return of({} as any);
-      } else {
-        return this.http.get("/.internal/read_theme/" + params.theme) as Observable<any>;
-      }
+  readonly ds = inject(DataService);
+  private readonly http = inject(HttpClient);
+  readonly selectedTheme = signal("CURRENT_THEME");
+  readonly loading = signal(false);
+  readonly error = signal("");
+  async selectTheme(name: string): Promise<void> {
+    this.selectedTheme.set(name);
+    this.loading.set(true);
+    this.error.set("");
+    try {
+      const theme =
+        name === "UNSET_THEME"
+          ? null
+          : await lastValueFrom(this.http.get<Record<string, string>>(`/.internal/read_theme/${encodeURIComponent(name)}`));
+      if (theme && !Object.entries(theme).every(([key, value]) => key.startsWith("--") && typeof value === "string"))
+        throw new Error("This theme contains invalid CSS variables.");
+      await this.ds.setThemeOverride(theme);
+    } catch (error) {
+      this.error.set(describeApiError(error));
+    } finally {
+      this.loading.set(false);
     }
-  });
-
-  constructor() {
-    effect(() => {
-      const data = this.ds.explorerMetadata();
-      const ready = this.ds.ready();
-      if (data && ready) {
-        data.theme = this.themeData.value();
-        this.ds
-          .activateTheme()
-          .then(() => {
-            localStorage.setItem("theme-override", JSON.stringify(data.theme || {}));
-          })
-          .catch(console.error);
-      }
-    });
   }
 }

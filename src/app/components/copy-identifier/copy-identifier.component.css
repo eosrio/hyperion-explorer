@@ -1,0 +1,47 @@
+:host {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  min-width: 0;
+}
+.identifier {
+  overflow-wrap: anywhere;
+  min-width: 0;
+  flex: 1;
+  user-select: all;
+  font-variant-numeric: tabular-nums;
+}
+button {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-top: -0.5rem;
+  border: 0;
+  border-radius: 0.5rem;
+  color: var(--primary);
+  background: transparent;
+  cursor: pointer;
+}
+.copy-label {
+  color: var(--main-text);
+  font-size: 0.6875rem;
+  line-height: 1;
+  font-weight: 500;
+}
+button:hover {
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+mat-icon {
+  width: 20px;
+  height: 20px;
+  font-size: 20px;
+}

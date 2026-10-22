@@ -3,8 +3,8 @@
   letter-spacing: 1px;
   font-size: 14px;
   /*width: 160px;*/
-  border-right: 1px solid rgba(0, 0, 0, .12);
-  border-bottom: 1px solid rgba(0, 0, 0, .12);
+  border-right: 1px solid var(--line-divider);
+  border-bottom: 1px solid var(--line-divider);
 }
 
 @media (max-width: 477px) {
@@ -40,7 +40,7 @@
 }
 
 .permission {
-  /*color: rgba(0, 0, 0, 0.54);*/
+  /*color: var(--faded);*/
   font-size: 12px;
   font-weight: 500;
   text-align: right;

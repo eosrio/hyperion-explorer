@@ -1,3 +1,5 @@
+import { describeApiError } from "../../../../api-errors";
+import { MatButton } from "@angular/material/button";
 import { Component, inject, viewChild, effect, ChangeDetectionStrategy } from "@angular/core";
 import { MatSort, MatSortModule } from "@angular/material/sort"; // Import MatSortModule
 import {
@@ -25,6 +27,7 @@ import { countries } from "./countries";
 @Component({
   selector: "app-producers",
   imports: [
+    MatButton,
     DecimalPipe,
     RouterModule,
     MatTableModule,
@@ -47,6 +50,7 @@ import { countries } from "./countries";
   styleUrl: "./producers.component.css"
 })
 export class ProducersComponent {
+  readonly describeApiError = describeApiError;
   chainService = inject(ChainService); // Inject ChainService
 
   // MatTable data source

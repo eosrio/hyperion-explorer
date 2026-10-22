@@ -54,3 +54,8 @@ The local Font Awesome registry lacks an audit endpoint, so Bun skips that scope
 5. Validate Safari, Firefox, physical mobile devices, production compression/cache behavior, and the actual public proxy configuration.
 
 CI runs on Windows and Linux with Node 22 and 24, with the browser suite on Linux/Node 24. Local validation uses Windows and Node 26. The account component retains a small existing stylesheet budget warning (10.24 kB against a 10 kB warning threshold); the error threshold is unchanged.
+
+The build's Vite dependency is overridden to `8.3.3` because Angular 22.2.3 pins
+`8.3.0`, which is affected by GHSA-587h-7wmj-h5pm, GHSA-r825-w8mm-5pxw and
+GHSA-698v-4r3x-3vcv. The patch override also covers Vitest's Vite dependency.
+Remove it when the Angular build dependency advances past the affected version.

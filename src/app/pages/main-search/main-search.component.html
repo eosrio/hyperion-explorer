@@ -1,143 +1,45 @@
-<app-layout-transition #logoLayoutTransition [observedIds]="['header-container', 'tagline']"
-                       [sourceDiv]="logoSourceDiv" [targetDiv]="currentTargetDiv()" [progress]="transitionProgress()">
-  <div class="h-[4.375rem]" style="z-index: 100">
-    <img [src]="chainData().logo" alt="logo" class="logo"/>
-  </div>
-</app-layout-transition>
-<app-layout-transition #searchbarLayoutTransition [observedIds]="['header-container', 'tagline']"
-                       [sourceDiv]="searchbarSourceDiv"
-                       [targetDiv]="searchbarTargetDiv"
-                       [progress]="transitionProgress()">
-  <div class="w-full">
-    <form [formGroup]="searchForm" (ngSubmit)="submit()" class="flex flex-col" role="search" aria-label="Blockchain search">
-      <div class="custom-input-group grow w-full flex flex-row rounded-full pr-2">
-        <div class="relative grow min-w-0">
-          @if (!searchForm.get('search_field')?.value) {
-          <div aria-hidden="true" class="custom-placeholder absolute left-5 top-0 flex items-center h-full pointer-events-none">
-            <span class="static-placeholder">Search by&nbsp;</span>
-            <span class="dynamic-placeholder"> {{ dynamicPlaceholder() }}</span>
-          </div>
-          }
-          <input #searchFieldRef formControlName="search_field" placeholder="" type="search"
-                 aria-label="Account name, block number, transaction ID, or public key"
-                 aria-describedby="search-error" autocomplete="off" autocapitalize="off" spellcheck="false"
-                 class="custom-input grow outline-hidden pl-5 rounded-l-full w-full max-w-full"
-                 [matAutocomplete]="auto">
+<div class="explorer-layout" [class.is-home]="isHome()" [class.has-search-error]="!!err()" [style.--header-collapse]="headerProgress()">
+  <header id="header-container" class="header-card" aria-label="Explorer navigation">
+    <div class="header-inner">
+      <a routerLink="/" class="chain-brand" aria-label="Hyperion Explorer home">
+        <img [src]="logoUrl()" (error)="logoFailed.set(true)" [alt]="(chainData()?.chain_name || 'Hyperion') + ' explorer'" class="chain-logo" width="260" height="70" />
+      </a>
+      <form [formGroup]="searchForm" (ngSubmit)="submit()" class="header-search" role="search" aria-label="Blockchain search">
+        <div class="custom-input-group search-control">
+          <input #searchFieldRef formControlName="search_field" type="search" class="custom-input"
+                 placeholder="Account, block, transaction or public key"
+                 aria-label="Account name, block number, transaction ID, or public key" [attr.aria-invalid]="err() ? 'true' : null" [attr.aria-describedby]="err() ? 'search-error search-help' : 'search-help'" aria-keyshortcuts="Control+Shift+F Meta+Shift+F"
+                 autocomplete="off" autocapitalize="off" spellcheck="false" [matAutocomplete]="auto" />
+          <details id="search-help" class="search-help"><summary aria-label="Search help" title="Search help"><fa-icon [icon]="icons.help" aria-hidden="true" /></summary><p>Search by account, block number, transaction ID or public key. Press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>F</kbd> (or <kbd>⌘</kbd> + <kbd>Shift</kbd> + <kbd>F</kbd> on Mac) to focus search.</p></details>
+          <button type="submit" aria-label="Search blockchain" mat-raised-button class="search-btn primary-btn" [disabled]="!searchReady()">
+            <fa-icon [icon]="icons.search"></fa-icon><span>Search</span>
+          </button>
         </div>
-        <button type="submit" aria-label="Search blockchain" mat-raised-button class="search-btn place-self-center" [class.primary-btn]="validSearch()">
-          <fa-icon [icon]="icons.solid.search"></fa-icon>
-          @if (validSearch()) {
-            <span class="hidden sm:inline sm:pl-1">Search </span><span class="pl-1 sm:pl-0">{{ searchService.searchType() }}</span>
-          } @else {
-            <span class="hidden sm:inline sm:pl-1">Search</span>
-          }
-        </button>
-      </div>
-      <div class="flex flex-row justify-center w-full min-h-8">
-        @if (err()) {
-
-          <div class="w-full max-w-full pl-5">
-            <div id="search-error" role="alert" class="justify-start text-red-600 pt-2 animate fast fadeInDown">{{ err() }}</div>
-          </div>
-
-        }
-        <mat-autocomplete #auto="matAutocomplete" (optionSelected)="submit()"
-                          class="custom-autocomplete"
-                          [classList]="'custom-autocomplete'">
-          @for (account of filteredAccounts(); track account) {
-            <mat-option [value]="account">
-              {{ account }}
-            </mat-option>
-          }
+        <mat-autocomplete #auto="matAutocomplete" (optionSelected)="submit()" class="custom-autocomplete">
+          @for (account of filteredAccounts(); track account) { <mat-option [value]="account">{{ account }}</mat-option> }
         </mat-autocomplete>
+        <div id="search-error" class="search-message" aria-live="polite" aria-atomic="true">@if (err()) { <fa-icon [icon]="icons.error" aria-hidden="true" /><span>{{ err() }}</span> }</div>
+      </form>
+      <div class="provider">
+        <span class="provider-label">Data provider</span>
+        <a [href]="chainData()?.provider_url" target="_blank" rel="noopener noreferrer">{{ chainData()?.provider }}</a>
       </div>
-    </form>
-  </div>
-</app-layout-transition>
-
-<div id="layout-container" class="w-full h-full flex flex-col justify-between" [class.is-animating]="isAnimating()">
-
-  <div #headerContainer id="header-container"
-       class="header-card flex flex-col items-center fixed top-0 lg:rounded-b-2xl left-0 right-0 lg:left-3 lg:right-3 w-full lg:w-auto">
-    <div class="w-full mt-7">
-      <div class="hr-container flex flex-row flex-wrap justify-between items-center gap-5">
-
-        <div class="flex flex-row items-center gap-1.5 xs:gap-1.5">
-          <a routerLink="/" aria-label="Hyperion Explorer home"
-               class="flex flex-row flex-wrap justify-start items-center gap-1.5 xs:gap-1.5">
-            <img
-              ngSrc="assets/hyperion-pulse.svg"
-              alt="logo"
-              style="height: 19px"
-              class="logo"
-              width="26.85" height="19"
-            />
-
-            <div class="logo-name hidden sm:block">HYPERION</div>
-            <div id="tagline" class="tagline faded">Lightweight Explorer</div>
-          </a>
-
-          <div #logoTargetDivMobile class="compact-logo opacity-0 block sm:hidden">
-            <img [src]="chainData().logo" id="compact-logo-mobile" alt="logo" class="logo"/>
-          </div>
-        </div>
-
-        <div class="searchbar-empty-space grow-0 sm:grow flex flex-row items-center gap-2 md:gap-5 w-full sm:w-auto min-w-0 max-w-full sm:max-w-[46rem] order-3 lg:order-none">
-          <div #logoTargetDivDesktop class="compact-logo opacity-0 hidden sm:block">
-            <img [src]="chainData().logo" id="compact-logo" alt="logo" class="logo"/>
-          </div>
-          <div #searchbarTargetDiv class="searchbar-placeholder bg-red-400 w-full opacity-0"></div>
-        </div>
-
-        @if (chainData()) {
-          <div class="faded provider hidden sm:inline">
-            Data provider:
-            <a [href]="chainData().provider_url" target="_blank" rel="noopener noreferrer">{{ chainData().provider }}</a>
-          </div>
-        }
-      </div>
-
+      <p class="header-description">Lightweight Explorer</p>
     </div>
-
-    <div id="searchbar-container"
-         class="flex flex-col justify-center items-center gap-5 pt-9 pb-10 w-full searchbar-container pointer-events-none">
-
-      <div #logoSourceDiv id="logo-element" class="h-[4.375rem] opacity-0">
-        <img (load)="logoLayoutTransitionRef()?.refreshSynchronously()" [src]="chainData().logo" id="main-logo" alt="logo" class="logo"/>
-      </div>
-      <div #searchbarSourceDiv id="search-bar" class="flex flex-col bg-red-400 opacity-0 w-full md:max-w-[46rem]">
-        <div class="grow w-full  flex flex-row h-[3.188rem]"></div>
-        <div class="flex flex-row justify-center w-full h-8 min-h-8"></div>
-      </div>
-
-    </div>
-  </div>
-
-  <div #contentContainer id="content-container" class="flex flex-col justify-between pb-10 w-full grow">
-    <main id="main-content" tabindex="-1">
-      <router-outlet></router-outlet>
-    </main>
-    <div class="flex md:flex-row flex-col justify-between items-center hr-container w-full pt-4 gap-4">
-      <div class="w-[4.383rem]"></div>
-      <div class="footer-color justify-self-center">v{{ version }} | Made with
-        <button type="button" aria-label="Choose explorer theme" [attr.aria-expanded]="showThemeSelector()"
-                (click)="showThemeSelector.set(!showThemeSelector())" class="theme-toggle">
-          <fa-icon [icon]="icons.solid.heart"></fa-icon>
-        </button>
+  </header>
+  <div id="content-container" class="content-container">
+    <main id="main-content" tabindex="-1"><router-outlet></router-outlet></main>
+    <footer class="explorer-footer hr-container">
+      <span class="footer-color">v{{ version }} · Made with
+        <fa-icon [icon]="icons.heart" aria-hidden="true"></fa-icon>
         by RioBlocks
+      </span>
+      <div class="footer-links">
+        <button type="button" aria-label="Choose explorer theme" [attr.aria-expanded]="showThemeSelector()" (click)="showThemeSelector.set(!showThemeSelector())" class="theme-toggle">Theme</button>
+        <a class="icon-link" aria-label="Hyperion Explorer on GitHub" href="https://github.com/eosrio/hyperion-explorer" target="_blank" rel="noopener noreferrer"><fa-icon [icon]="icons.github"></fa-icon></a>
+        <a class="icon-link" aria-label="Hyperion community on Telegram" href="https://t.me/EOSHyperion" target="_blank" rel="noopener noreferrer"><fa-icon [icon]="icons.telegram"></fa-icon></a>
       </div>
-      <div class="flex flex-row items-center gap-3">
-        <a class="icon-link" aria-label="Hyperion Explorer on GitHub" href="https://github.com/eosrio/hyperion-explorer" target="_blank" rel="noopener noreferrer">
-          <fa-icon [icon]="icons.brand.github" class="text-xl " size="xl"></fa-icon>
-        </a>
-        <a class="icon-link" aria-label="Hyperion community on Telegram" href="https://t.me/EOSHyperion" target="_blank" rel="noopener noreferrer">
-          <fa-icon [icon]="icons.brand.telegram" class="text-xl" size="xl"></fa-icon>
-        </a>
-      </div>
-    </div>
-
-    @if (showThemeSelector()) {
-      <app-theme-selector></app-theme-selector>
-    }
+    </footer>
+    @if (showThemeSelector()) { <app-theme-selector></app-theme-selector> }
   </div>
 </div>

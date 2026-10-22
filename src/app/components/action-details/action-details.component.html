@@ -1,7 +1,7 @@
 <div mat-dialog-title>
   <div class="flex flex-row justify-between">
     <div>Action Details</div>
-    <button mat-icon-button mat-dialog-close class="faded mt-[-2rem]">
+    <button mat-icon-button mat-dialog-close aria-label="Close action details" class="faded mt-[-2rem]">
       <mat-icon class="faded">close</mat-icon>
     </button>
   </div>
@@ -16,10 +16,10 @@
                    justify-between place-content-center place-items-center content-center">
 
       @if (node.arrayItem) {
-        <p class="font-light text-slate-800 break-all">{{ node.value }}</p>
+        <p class="font-light text-[var(--main-text)] break-all">{{ node.value }}</p>
       } @else {
-        <p class="font-semibold text-slate-900 mb-0">{{ node.name }}</p>
-        <p class="font-light text-slate-800 text-wrap">{{ node.value }}</p>
+        <p class="font-semibold text-[var(--main-text)] mb-0">{{ node.name }}</p>
+        <p class="font-light text-[var(--main-text)] text-wrap">{{ node.value }}</p>
       }
 
     </mat-nested-tree-node>

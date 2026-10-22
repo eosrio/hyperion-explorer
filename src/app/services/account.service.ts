@@ -18,7 +18,7 @@ import { ActionContent, HyperionStream, HyperionStreamClient } from "@eosrio/hyp
 import { lastValueFrom, Observable } from "rxjs";
 import { DataService } from "./data.service";
 import { toObservable } from "@angular/core/rxjs-interop";
-import { convertMicroS, getPrecision, getSymbol } from "../utils";
+import { convertMicroS, formatBytes, getPrecision, getSymbol } from "../utils";
 import { faComputer, faFilter, faMoneyBill, faRightFromBracket, faRightToBracket, faVoteYea } from "@fortawesome/free-solid-svg-icons";
 import { IconDefinition } from "@fortawesome/angular-fontawesome";
 import { isPlatformBrowser } from "@angular/common";
@@ -69,6 +69,18 @@ export class AccountService {
   public tableDataSource: Observable<HistoryAction[]>;
   streamClient?: HyperionStreamClient;
   public streamClientStatus = signal(false);
+  readonly streamConnecting = signal(false);
+  readonly streamOnline = signal(false);
+  readonly lastStreamActionAt = linkedSignal<string, number | null>({ source: () => this.accountName(), computation: () => null });
+  readonly streamState = computed(() =>
+    this.streamConnecting()
+      ? "Connecting"
+      : this.streamClientStatus()
+        ? this.streamOnline()
+          ? "Live connection"
+          : "Reconnecting"
+        : "Paused"
+  );
   public libNum = signal<number>(0);
   private pendingSet = new Set<number>();
   public streamClientLoaded = false;
@@ -184,12 +196,17 @@ export class AccountService {
     loader: async ({ params }) => {
       const firstGS = params.first;
 
-      // stop streaming if enabled
-      if (this.streamClientStatus() && this.streamClient?.online && this.actionStream) {
+      // Applying queued rows advances the snapshot without ending the live subscription.
+      // Filtering or leaving the newest page still pauses it for historical inspection.
+      if (
+        (params.customParams || params.skip > 0 || params.sort === "asc") &&
+        this.streamClientStatus() &&
+        this.streamClient?.online &&
+        this.actionStream
+      ) {
         console.log("Stopping Stream Client");
-        this.actionStream.stop();
+        this.stopActionStream();
         this.streamingActions.set([]);
-        this.streamClientStatus.set(false);
       }
 
       const cp = params.customParams;
@@ -256,14 +273,21 @@ export class AccountService {
   private actionResponse = computed(() => (this.actionRes.hasValue() ? this.actionRes.value() : undefined));
 
   public firstGlobalSequence = computed<Sequence | null>(() => {
-    return this.accountResponse()?.actions[0]?.global_sequence ?? null;
+    const historical = this.accountResponse()?.actions[0]?.global_sequence;
+    const applied = this.appliedStreamingActions()[0]?.global_sequence;
+    if (!historical) return applied ?? null;
+    return applied && compareSequences(applied, historical) > 0 ? applied : historical;
   });
 
   public totalActionCounter = computed(() => {
     if (this.filter()) {
       return this.actionResponse()?.total?.value ?? 0;
     } else {
-      const total = this.accountResponse()?.total_actions ?? 0;
+      const historical = this.accountResponse()?.actions[0]?.global_sequence;
+      const added = this.appliedStreamingActions().filter(
+        action => !historical || compareSequences(action.global_sequence, historical) > 0
+      ).length;
+      const total = (this.accountResponse()?.total_actions ?? 0) + added;
       if (total > MAX_ES_SKIP) {
         return MAX_ES_SKIP;
       } else {
@@ -301,7 +325,7 @@ export class AccountService {
         accountName: this.accountName(),
         accountActions: this.accountResponse()?.actions ?? [],
         filteredActions: this.actionResponse()?.actions ?? [],
-        streamingActions: this.streamingActions() ?? [],
+        streamingActions: this.appliedStreamingActions(),
         activeFilter: this.filter(),
         pageIndex: this.pageIndex(),
         pageSize: this.pageSize(),
@@ -309,13 +333,16 @@ export class AccountService {
       };
     },
     computation: (source, previous) => {
+      const latestPage = !source.activeFilter && source.pageIndex === 0 && source.sortDirection !== "asc";
       // if we are on filtered action or on a different page, replace the filtered actions with the account actions
       if (
         source.filteredActions &&
         (source.activeFilter || source.pageIndex > 0 || source.sortDirection === "asc" || source.pageSize !== 20)
       ) {
-        if (source.filteredActions.length > 0) {
-          return source.filteredActions;
+        if (source.filteredActions.length > 0 || (latestPage && source.streamingActions.length)) {
+          return latestPage
+            ? mergeHistory(source.streamingActions, source.filteredActions).slice(0, source.pageSize)
+            : source.filteredActions;
         } else {
           if (this.actionRes.hasValue()) {
             return [];
@@ -324,7 +351,7 @@ export class AccountService {
           }
         }
       } else {
-        if (source.accountActions.length > 0) {
+        if (source.accountActions.length > 0 || source.streamingActions.length > 0) {
           return mergeHistory(source.streamingActions, source.accountActions).slice(0, source.pageSize);
         } else {
           if (source.activeFilter) {
@@ -344,12 +371,12 @@ export class AccountService {
     const ramQuota = account.ram_quota;
     const ramUsage = account.ram_usage;
     return {
-      cpu: cpu.max === -1 ? 0 : (cpu.used / cpu.max) * 100,
-      net: net.max === -1 ? 0 : (net.used / net.max) * 100,
-      ram: ramQuota === -1 ? 0 : (ramUsage / ramQuota) * 100,
-      cpuStr: cpu.max === -1 ? "♾️" : `${convertMicroS(cpu.used)} / ${convertMicroS(cpu.max)}`,
-      netStr: net.max === -1 ? "♾️" : `${convertMicroS(net.used)} / ${convertMicroS(net.max)}`,
-      ramStr: ramQuota === -1 ? "♾️" : `${ramUsage} / ${ramQuota}`
+      cpu: cpu.max > 0 ? Math.min(100, Math.max(0, (cpu.used / cpu.max) * 100)) : 0,
+      net: net.max > 0 ? Math.min(100, Math.max(0, (net.used / net.max) * 100)) : 0,
+      ram: ramQuota > 0 ? Math.min(100, Math.max(0, (ramUsage / ramQuota) * 100)) : 0,
+      cpuStr: cpu.max === -1 ? "Unlimited" : `${convertMicroS(cpu.used)} / ${convertMicroS(cpu.max)}`,
+      netStr: net.max === -1 ? "Unlimited" : `${formatBytes(net.used)} / ${formatBytes(net.max)}`,
+      ramStr: ramQuota === -1 ? "Unlimited" : `${formatBytes(ramUsage)} / ${formatBytes(ramQuota)}`
     };
   });
 
@@ -456,6 +483,28 @@ export class AccountService {
   });
   private platformId = inject(PLATFORM_ID);
   private streamingActions = linkedSignal<string, HistoryAction[]>({ source: this.accountName, computation: () => [] });
+  private appliedStreamingActions = linkedSignal<string, HistoryAction[]>({ source: this.accountName, computation: () => [] });
+  private streamStartRevision = 0;
+  public pendingStreamCount = computed(() => {
+    const visible = new Set(this.actionsComputed().map(action => this.streamIdentity(action)));
+    return this.streamingActions().filter(action => !visible.has(this.streamIdentity(action))).length;
+  });
+  private streamIdentity(action: HistoryAction): string {
+    return JSON.stringify([action.global_sequence, action.trx_id, action.receiver, action.recv_sequence]);
+  }
+  showNewActions(): void {
+    this.clearFilter();
+    this.pageIndex.set(0);
+    this.sortDirection.set("desc");
+    this.appliedStreamingActions.set(this.streamingActions());
+  }
+  stopActionStream(): void {
+    ++this.streamStartRevision;
+    this.actionStream?.stop();
+    this.actionStream = undefined;
+    this.streamClientStatus.set(false);
+    this.streamConnecting.set(false);
+  }
 
   // Computed signal to expose the size of streamingActions
   public streamingActionsSize = computed(() => {
@@ -464,22 +513,16 @@ export class AccountService {
   private actionStream?: HyperionStream<ActionContent>;
 
   constructor() {
-    // monitor pending actions for LIB check
-    effect(() => {
-      const pendingActions = this.pendingActions();
-      const isStreaming = this.streamClientStatus();
-      // Use the new computed signal for LIB
-      // console.log(`Pending Actions (lib: ${this.chain.lastIrreversibleBlockNum()})`, pendingActions.length);
-      if (pendingActions.length > 0 && !isStreaming) {
-        untracked(() => {
-          setTimeout(() => {
-            console.log(`Rechecking Chain Info (for LIB)...`);
-            // Use the new resource for chain info
-            const reloadStatus = this.chain.chainInfoResource.reload();
-            console.log(`Reload status: ${reloadStatus}`);
-          }, 10000);
-        });
-      }
+    effect(onCleanup => {
+      if (!isPlatformBrowser(this.platformId) || !this.pendingActions().length || this.streamClientStatus()) return;
+      const timer = setInterval(() => this.chain.chainInfoResource.reload(), 10000);
+      onCleanup(() => clearInterval(timer));
+    });
+    // The published client exposes `online` but has no disconnect event.
+    effect(onCleanup => {
+      if (!isPlatformBrowser(this.platformId) || (!this.streamClientStatus() && !this.streamConnecting())) return;
+      const timer = setInterval(() => this.streamOnline.set(this.streamClient?.online === true), 250);
+      onCleanup(() => clearInterval(timer));
     });
 
     this.tableDataSource = toObservable(this.actionsComputed);
@@ -635,21 +678,22 @@ export class AccountService {
   }
 
   async toggleStreaming(): Promise<void> {
+    if (this.streamConnecting()) return;
     if (this.streamClientStatus()) {
-      // Pause Streaming
-      if (this.streamClient && this.actionStream) {
-        this.actionStream.stop();
-      }
+      this.stopActionStream();
+      return;
+    }
+    this.pageIndex.set(0);
+    this.clearFilter();
+    this.sortDirection.set("desc");
+    const revision = this.streamStartRevision + 1;
+    try {
+      const active = await this.startActionStream();
+      if (revision === this.streamStartRevision) this.streamClientStatus.set(active);
+    } catch (error) {
+      if (revision !== this.streamStartRevision) return;
+      this.historyError.set(describeApiError(error));
       this.streamClientStatus.set(false);
-    } else {
-      // Start Streaming from the last received block
-      this.pageIndex.set(0);
-      try {
-        this.streamClientStatus.set(await this.startActionStream());
-      } catch (error) {
-        this.historyError.set(describeApiError(error));
-        this.streamClientStatus.set(false);
-      }
     }
   }
 
@@ -694,59 +738,55 @@ export class AccountService {
     }
   }
 
-  async startActionStream() {
+  async startActionStream(): Promise<boolean> {
+    const revision = ++this.streamStartRevision;
+    const requestedAccount = this.accountName();
+    this.streamConnecting.set(true);
     this.historyError.set(null);
-    if (!this.streamClient) {
-      this.streamClient = new HyperionStreamClient({
-        endpoint: this.data.env.streamApiUrl || this.data.env.hyperionApiUrl,
-        libMonitor: true,
-        debug: false
-      });
-      await this.streamClient.connect();
-      this.streamClient.on("libUpdate", data => {
-        this.chain.streamLib.set(data.block_num);
-      });
-      console.log("Connected to stream client");
-    }
-
-    if (this.streamClient && !this.streamClient.online) {
-      await this.streamClient.connect();
-      console.log("Reconnected to stream client");
-    }
-
-    if (this.streamClient && this.streamClient.online) {
-      const lastReceivedBlock = this.actionsComputed().length > 0 ? this.actionsComputed()[0].block_num : 0;
-
-      console.log(`Last received block: ${lastReceivedBlock}`);
-
-      this.actionStream = await this.streamClient.streamActions({
-        account: this.accountName(),
+    try {
+      if (!this.streamClient) {
+        this.streamClient = new HyperionStreamClient({
+          endpoint: this.data.env.streamApiUrl || this.data.env.hyperionApiUrl,
+          libMonitor: true,
+          debug: false
+        });
+        this.streamClient.on("libUpdate", data => this.chain.streamLib.set(data.block_num));
+        this.streamClient.on("connect", () => this.streamOnline.set(true));
+      }
+      if (!this.streamClient.online) await this.streamClient.connect();
+      this.streamOnline.set(this.streamClient.online);
+      if (revision !== this.streamStartRevision || requestedAccount !== this.accountName() || !this.streamClient.online) return false;
+      const lastReceivedBlock = this.actionsComputed()[0]?.block_num || 0;
+      const requestedStream = await this.streamClient.streamActions({
+        account: requestedAccount,
         filters: [],
         read_until: 0,
         start_from: lastReceivedBlock + 1
       });
-
-      console.log(
-        `Streaming actions from block ${lastReceivedBlock + 1} for account ${this.accountName()}, hash: ${this.actionStream.requestHash}`
-      );
-
-      const stream = this.actionStream;
-      const accountName = this.accountName();
-      let invalidMetadata = false;
-      this.actionStream.on("message", data => {
-        if (invalidMetadata || this.actionStream !== stream || this.accountName() !== accountName) return;
+      if (revision !== this.streamStartRevision || requestedAccount !== this.accountName()) {
+        requestedStream.stop();
+        return false;
+      }
+      this.actionStream = requestedStream;
+      const fail = (error: unknown) => {
+        if (this.actionStream !== requestedStream || requestedAccount !== this.accountName()) return;
+        this.stopActionStream();
+        this.historyError.set(describeApiError(error));
+      };
+      requestedStream.on("error", fail);
+      requestedStream.on("message", data => {
+        if (this.actionStream !== requestedStream || requestedAccount !== this.accountName()) return;
         try {
-          // The published client's types still declare numeric sequences; validate the wire value.
           const action = historyAction(data.content);
           this.streamingActions.update(value => mergeHistory([action], value).slice(0, 500));
+          this.lastStreamActionAt.set(Date.now());
         } catch (error) {
-          invalidMetadata = true;
-          stream.stop();
-          this.streamClientStatus.set(false);
-          this.historyError.set(describeApiError(error));
+          fail(error);
         }
       });
+      return true;
+    } finally {
+      if (revision === this.streamStartRevision) this.streamConnecting.set(false);
     }
-    return this.streamClient?.online === true && this.historyError() === null;
   }
 }

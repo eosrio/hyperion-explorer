@@ -7,7 +7,6 @@ import {
   linkedSignal,
   model,
   PLATFORM_ID,
-  resource,
   signal,
   ChangeDetectionStrategy
 } from "@angular/core";
@@ -23,14 +22,15 @@ import { AbiStructField, AbiTable, GetAbiResponse } from "../../interfaces";
 import { FormsModule } from "@angular/forms";
 import { MatDialogContent } from "@angular/material/dialog";
 import { isPlatformBrowser, NgClass } from "@angular/common";
-import { MatInput } from "@angular/material/input";
 import { MatIcon } from "@angular/material/icon";
 import { ActDataViewComponent } from "../act-data-view/act-data-view.component";
 import { DataService } from "../../services/data.service";
+import { describeApiError } from "../../api-errors";
 
 function buildFieldArray(structs: any[], array: AbiStructField[], type: string): void {
   if (array && type) {
     const struct = structs.find((struct: any) => struct.name === type);
+    if (!struct) return;
     if (struct.base) {
       buildFieldArray(structs, array, struct.base);
     }
@@ -54,7 +54,6 @@ function buildFieldArray(structs: any[], array: AbiStructField[], type: string):
     MatTooltip,
     MatDialogContent,
     NgClass,
-    MatInput,
     MatIconButton,
     MatIcon,
     ActDataViewComponent
@@ -64,6 +63,7 @@ function buildFieldArray(structs: any[], array: AbiStructField[], type: string):
   styleUrl: "./contract-explorer.component.css"
 })
 export class ContractExplorerComponent {
+  readonly describeApiError = describeApiError;
   http = inject(HttpClient);
   router = inject(Router);
   data = inject(DataService);
@@ -109,6 +109,7 @@ export class ContractExplorerComponent {
     } | null,
     {
       table: string | null | undefined;
+      code: string | null | undefined;
       limit: number;
       lb: string;
     }
@@ -116,6 +117,7 @@ export class ContractExplorerComponent {
     params: () => {
       return {
         table: this.table(),
+        code: this.code(),
         limit: this.getTableByScopeLimit() ?? 30,
         lb: this.scopeLb()
       };
@@ -124,7 +126,7 @@ export class ContractExplorerComponent {
       if (data.table) {
         // request table scopes
         return this.http.post<any>(this.endpoints.getTableByScope, {
-          code: this.code(),
+          code: data.code,
           table: data.table,
           limit: data.limit,
           lower_bound: data.lb,
@@ -138,116 +140,28 @@ export class ContractExplorerComponent {
   });
 
   tableRowRes = rxResource({
-    params: () => this.scope(),
-    stream: ({ params: scope }) => {
-      if (scope) {
-        // request table scopes
-        return this.http
-          .post<any>(this.endpoints.getTableRows, {
-            code: this.code(),
-            table: this.table(),
-            scope: scope,
-            limit: this.getTableByScopeLimit,
-            json: true
-          })
-          .pipe(map(d => d.rows));
-      } else {
-        // return empty array if no table is selected
-        return of([]);
-      }
-    }
+    params: () => ({ code: this.code(), table: this.table(), scope: this.scope(), limit: this.getTableByScopeLimit() }),
+    stream: ({ params }) =>
+      params.code && params.table && params.scope
+        ? this.http.post<{ rows: any[] }>(this.endpoints.getTableRows, { ...params, json: true }).pipe(map(data => data.rows))
+        : of([])
   });
+  abiTableNames = computed<string[]>(() =>
+    this.abiRes.hasValue() ? (this.abiRes.value()?.abi?.tables.map(table => table.name) ?? []) : []
+  );
+  scopeList = computed<string[]>(() =>
+    this.tableScopesRes.hasValue() ? (this.tableScopesRes.value()?.rows.map(row => row.scope) ?? []) : []
+  );
+  nextScope = computed(() => (this.tableScopesRes.hasValue() ? this.tableScopesRes.value()?.more || "" : ""));
+  nextScopePresent = computed(() => !!this.nextScope());
+  private scopeHistory = signal<string[]>([]);
+  lastScope = computed(() => this.scopeHistory().length > 0);
 
-  nextScopePresentRes = resource({
-    params: () => {
-      return {
-        next: this.tableScopesRes.value()?.more,
-        table: this.table()
-      };
-    },
-    loader: async ({ params: data }) => {
-      if (data.next && data.table) {
-        const entry = await lastValueFrom(
-          this.http
-            .post<any>(this.endpoints.getTableRows, {
-              code: this.code(),
-              table: data.table,
-              scope: data.next,
-              limit: 1
-            })
-            .pipe(map(d => d.rows))
-        );
-        return !!(entry && entry.length === 1);
-      } else {
-        return false;
-      }
-    }
-  });
-
-  nextScopePresent = linkedSignal<any, boolean>({
-    source: () => {
-      return {
-        value: this.nextScopePresentRes.value(),
-        nextScope: this.nextScope()
-      };
-    },
-    computation: (source, previous): boolean => {
-      if (source.value !== undefined && source.nextScope) {
-        return source;
-      } else {
-        return previous ? previous.value : false;
-      }
-    }
-  });
-
-  abiTableNames = computed<string[]>(() => {
-    const data = this.abiRes.value();
-    if (data && data.abi) {
-      return data.abi.tables.map((table: AbiTable) => table.name);
-    } else {
-      return [];
-    }
-  });
-
-  scopeList = linkedSignal<any, string[]>({
-    source: () => {
-      return {
-        scopes: this.tableScopesRes.value(),
-        nextPresent: this.nextScopePresentRes.value()
-      };
-    },
-    computation: (source, previous): string[] => {
-      if (source.scopes && source.nextPresent !== undefined) {
-        const scopeSet = new Set<string>();
-        // include contract name in the list if the list of scopes is too large
-        if (source.scopes.more && source.nextPresent) {
-          const contract = this.code();
-          if (contract) {
-            scopeSet.add(contract);
-          }
-        }
-        if (source.scopes.rows) {
-          source.scopes.rows.forEach((row: any) => scopeSet.add(row.scope));
-          return Array.from(scopeSet);
-        } else {
-          return [];
-        }
-      } else {
-        return previous ? previous.value : [];
-      }
-    }
-  });
-
-  nextScope = linkedSignal<any, string>({
-    source: () => this.tableScopesRes.value(),
-    computation: (source, previous): string => {
-      if (source) {
-        return source.more;
-      } else {
-        return previous ? previous.value : "";
-      }
-    }
-  });
+  setScopeLimit(value: number): void {
+    this.getTableByScopeLimit.set(Math.max(1, Math.min(1000, Math.floor(value) || 30)));
+    this.scopeLb.set("");
+    this.scopeHistory.set([]);
+  }
 
   sortBy = signal<string>("");
   sortDirection = signal<string>("desc");
@@ -283,32 +197,34 @@ export class ContractExplorerComponent {
   tableData = linkedSignal<any, any[]>({
     source: () => {
       return {
-        rows: this.tableRowRes.value(),
+        rows: this.tableRowRes.hasValue() ? this.tableRowRes.value() : undefined,
         sort: this.sortBy(),
         dir: this.sortDirection()
       };
     },
     computation: (source, previous): any[] => {
       if (source.rows && source.rows.length > 0) {
-        if (source.dir === "") {
+        if (!source.sort || source.dir === "") {
           return source.rows;
         } else {
           return [...source.rows].sort((a: any, b: any) => {
-            if (source.dir === "desc") {
-              return a[source.sort] > b[source.sort] ? 1 : -1;
-            } else {
-              return a[source.sort] > b[source.sort] ? -1 : 1;
-            }
+            const left = a[source.sort];
+            const right = b[source.sort];
+            const integers = /^\d+$/.test(String(left)) && /^\d+$/.test(String(right));
+            const l = integers ? BigInt(left) : left;
+            const r = integers ? BigInt(right) : right;
+            const comparison = l === r ? 0 : l > r ? 1 : -1;
+            return source.dir === "desc" ? -comparison : comparison;
           });
         }
       } else {
-        return previous ? previous.value : [];
+        return [];
       }
     }
   });
 
   fields = computed<AbiStructField[]>(() => {
-    const abi = this.abiRes.value()?.abi;
+    const abi = this.abiRes.hasValue() ? this.abiRes.value()?.abi : undefined;
     const fieldArray: AbiStructField[] = [];
     if (abi) {
       const type = abi.tables.find((t: AbiTable) => t.name === this.table())?.type;
@@ -322,11 +238,9 @@ export class ContractExplorerComponent {
   displayedColumns = computed<string[]>(() => this.fields().map(v => v.name));
 
   async selectTable(name: string) {
-    this.nextScopePresent.set(false);
-    this.nextScope.set("");
     this.scope.set(null);
     this.scopeLb.set("");
-    this.lastScope.set("");
+    this.scopeHistory.set([]);
     this.tableData.set([]);
     this.expandedItems.set(new Set<number>());
     this.autoExpanded.set(false);
@@ -383,19 +297,13 @@ export class ContractExplorerComponent {
     }
   }
 
-  lastScope = signal("");
-
-  useNextScope() {
-    this.lastScope.set(this.scopeLb());
+  useNextScope(): void {
+    if (!this.nextScope()) return;
+    this.scopeHistory.update(values => [...values, this.scopeLb()]);
     this.scopeLb.set(this.nextScope());
   }
 
   constructor() {
-    // Debug effect
-    effect(() => {
-      console.log(`Next present:`, this.nextScopePresent());
-    });
-
     // Auto-expand the first item when entering expanded (list) view with data loaded
     effect(() => {
       const mode = this.viewMode();
@@ -409,10 +317,11 @@ export class ContractExplorerComponent {
     });
   }
 
-  usePreviousScope() {
-    if (this.lastScope) {
-      this.scopeLb.set(this.lastScope());
-    }
+  usePreviousScope(): void {
+    const history = this.scopeHistory();
+    if (!history.length) return;
+    this.scopeLb.set(history.at(-1) || "");
+    this.scopeHistory.set(history.slice(0, -1));
   }
 
   // Method to change the view mode

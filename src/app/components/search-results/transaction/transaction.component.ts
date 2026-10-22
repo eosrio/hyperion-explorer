@@ -1,3 +1,6 @@
+import { asUtcTimestamp } from "../../../utils";
+import { FinalityHelpComponent } from "../../finality-help/finality-help.component";
+import { CopyIdentifierComponent } from "../../copy-identifier/copy-identifier.component";
 import { Component, ElementRef, inject, OnDestroy, OnInit, PLATFORM_ID, signal, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { faCircle, faExchangeAlt, faHistory, faHourglassStart, faLock, faSadTear, faSpinner } from "@fortawesome/free-solid-svg-icons";
@@ -10,14 +13,14 @@ import { FaIconComponent, FaLayersComponent } from "@fortawesome/angular-fontawe
 import { MatChipListbox, MatChipOption } from "@angular/material/chips";
 import { MatTableModule } from "@angular/material/table";
 import { isPlatformBrowser, KeyValuePipe } from "@angular/common";
-import { animate, scroll } from "motion";
-import { toObservable } from "@angular/core/rxjs-interop";
 import { ActDataViewComponent } from "../../act-data-view/act-data-view.component";
 import { ChainService } from "../../../services/chain.service";
 
 @Component({
   selector: "app-transaction",
   imports: [
+    FinalityHelpComponent,
+    CopyIdentifierComponent,
     MatProgressSpinner,
     FaIconComponent,
     FaLayersComponent,
@@ -76,14 +79,6 @@ export class TransactionComponent implements OnInit, OnDestroy {
     }
   }
 
-  constructor() {
-    toObservable(this.actionsTable).subscribe(value => {
-      if (value && isPlatformBrowser(this.platformId)) {
-        this.tableStickyMotion(this.actionsTable());
-      }
-    });
-  }
-
   ngOnInit(): void {
     this.searchService.searchType.set("transaction");
 
@@ -129,7 +124,7 @@ export class TransactionComponent implements OnInit, OnDestroy {
   }
 
   formatDate(date: string): string {
-    return new Date(date).toLocaleString();
+    return new Date(asUtcTimestamp(date)).toLocaleString();
   }
 
   // async reloadCountdownTimer(): Promise<void> {
@@ -140,18 +135,4 @@ export class TransactionComponent implements OnInit, OnDestroy {
   //   }
   //   this.countdownTimer = Math.ceil((this.tx().actions[0].block_num - lib) / 2);
   // }
-
-  private tableStickyMotion(tableSticky?: ElementRef<HTMLDivElement>) {
-    scroll(
-      animate(
-        ".mat-mdc-header-row",
-        {
-          boxShadow: "rgba(78 104 192, 0.25) 0px 4px 19px 0px, rgba(17, 12, 46, 0.15) 0px 20px 100px 0px",
-          background: "var(--table-top-bg-gradient)"
-        },
-        { duration: 1 }
-      ),
-      { target: tableSticky?.nativeElement, offset: ["end 250px", "200px 250px"] }
-    );
-  }
 }

@@ -1,12 +1,29 @@
-<div id="top-holders-chart" class="w-full h-[600px]"></div>
-<div class="flex flex-col gap-2 w-full p-5">
-  @for (holder of holders.value(); track holder.owner) {
-    <div class="flex flex-row justify-between items-center gap-2 w-full">
-      <div class="text-ellipsis">{{ holder.owner }}</div>
-      <div class="text-ellipsis">{{ holder.amount }} {{ chainService.systemSymbol.value() }}</div>
-    </div>
-    @if (!$last) {
-      <mat-divider></mat-divider>
+<div class="hr-container w-full">
+  <section class="custom-card holders-page">
+    <h1 class="page-heading">{{ tokenSymbol() }} Top Holders</h1>
+    <p class="page-description">Token contract <a [routerLink]="['/contract', tokenContract()]" class="link-primary">{{ tokenContract() }}</a>. Shares are relative to the displayed holders, not the total token supply.</p>
+    @if (holders.error(); as error) {
+      <section class="api-error" role="alert"><p>{{ describeApiError(error) }}</p><button type="button" (click)="holders.reload()">Try again</button></section>
+    } @else if (holders.isLoading()) {
+      <div class="holder-loading" role="status">Loading token holders…</div>
+    } @else if (!rows().length) {
+      <p class="faded">No holders were returned for this token. Check the contract and symbol, or try again.</p>
+      <button type="button" class="link-btn" (click)="holders.reload()">Reload holders</button>
+    } @else {
+      <div class="holders-content">
+        <div #holderChart id="top-holders-chart" class="holder-chart" role="img" [attr.aria-label]="tokenSymbol() + ' balance distribution among displayed holders'"></div>
+        <div class="holder-table-scroll">
+          <table class="holder-table">
+            <caption class="sr-only">Top {{ rows().length }} {{ tokenSymbol() }} holders</caption>
+            <thead><tr><th scope="col">Account</th><th scope="col">Balance · {{ tokenSymbol() }}</th><th scope="col">Share</th></tr></thead>
+            <tbody>
+              @for (holder of rows(); track holder.owner) {
+                <tr><th scope="row"><a class="link-primary" [routerLink]="['/account', holder.owner]">{{ holder.owner }}</a></th><td>{{ holder.amount | number:'1.0-4' }}</td><td>{{ share(holder.amount) | percent:'1.1-2' }}</td></tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
     }
-  }
+  </section>
 </div>

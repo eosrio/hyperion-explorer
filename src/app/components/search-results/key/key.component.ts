@@ -1,3 +1,4 @@
+import { CopyIdentifierComponent } from "../../copy-identifier/copy-identifier.component";
 import { Component, OnInit, signal, inject, ChangeDetectionStrategy } from "@angular/core";
 import { ActivatedRoute, RouterLink } from "@angular/router";
 import { AccountService } from "../../../services/account.service";
@@ -15,7 +16,7 @@ interface KeyResponse {
 
 @Component({
   selector: "app-key",
-  imports: [RouterLink, MatProgressSpinner, FaIconComponent, FaLayersComponent],
+  imports: [CopyIdentifierComponent, RouterLink, MatProgressSpinner, FaIconComponent, FaLayersComponent],
   templateUrl: "./key.component.html",
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./key.component.css"

@@ -1,41 +1,50 @@
+.price-controls,
+.price-selectors,
+.price-stats {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+.price-controls {
+  justify-content: space-between;
+}
+.price-stats {
+  gap: 2rem;
+  padding-block: 0.5rem;
+}
+.price-select {
+  min-height: 44px;
+  padding: 0.5rem;
+  border: 1px solid var(--line-divider);
+  border-radius: 0.5rem;
+  background: var(--card-bg);
+  color: var(--main-text);
+}
 .stat-card {
   display: flex;
   align-items: center;
-  background: var(--card-bg-gradient, linear-gradient(135deg, #f9f9f9, #e9e9e9)); /* Use theme gradient or fallback */
-  padding: 1rem 1.25rem; /* Adjust padding */
-  border-radius: 0.75rem; /* Rounded corners */
-  gap: 1rem; /* Space between icon and content */
-  min-height: 80px; /* Ensure consistent height */
-  border: 1px solid var(--line-divider);
+  gap: 0.75rem;
 }
-
 .stat-icon {
-  font-size: 1.75rem; /* Larger icon */
-  color: var(--primary); /* Use primary theme color */
-  flex-shrink: 0; /* Prevent icon from shrinking */
-  width: 40px; /* Fixed width for alignment */
-  text-align: center;
+  color: var(--primary);
+  font-size: 1.25rem;
 }
-
-.stat-content {
-  display: flex;
-  flex-direction: column;
-  /* overflow: hidden; */ /* Allow content to expand vertically */
-  min-width: 0; /* Prevent flex item from overflowing its container */
-}
-
 .stat-label {
-  font-size: 0.8rem; /* Smaller label */
-  color: var(--faded); /* Use secondary text color */
-  margin-bottom: 0.15rem;
-  text-transform: uppercase; /* Uppercase label */
-  font-weight: 500;
+  color: var(--faded);
+  font-size: 0.8rem;
 }
-
 .stat-value {
-  font-size: 1.1rem; /* Larger value */
-  color: var(--main-text); /* Use primary text color */
-  line-height: 1.3;
-  white-space: normal; /* Allow wrapping */
-  word-break: break-all; /* Break long strings like IDs */
+  color: var(--main-text);
+  font-size: 1.1rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 640px) {
+  .price-selectors {
+    gap: 0.5rem;
+  }
+  .price-stats {
+    gap: 1rem;
+  }
 }
