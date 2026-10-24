@@ -22,12 +22,12 @@
     "mock:serve": "node e2e/local-preview.mjs"
   },
   "private": true,
-  "packageManager": "bun@1.4.3",
+  "packageManager": "bun@1.4.4",
   "overrides": {
     "vite": "8.3.3"
   },
   "engines": {
-    "node": "^22.22.3 || ^24.15.0 || >=26.0.0"
+    "node": "^24.15.0 || >=26.0.0"
   },
   "dependencies": {
     "@angular/cdk": "^22.2.3",
