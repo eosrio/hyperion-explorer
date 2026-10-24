@@ -15,8 +15,8 @@ A lightweight blockchain explorer built with **Angular v22** and **server-side r
 
 ## Requirements
 
-- **Node.js** 22.22.3+, 24.15.0+, or 26+ (the supported Angular 22 runtime ranges)
-- **Bun** 1.4.3 for reproducible installs using the committed lockfile
+- **Node.js** 24.15.0+ or 26+ (the 4.5 minimum, retaining Angular 22's minor-version requirement)
+- **Bun** 1.4.4 for reproducible installs using the committed lockfile
 - **Hyperion History API** ≥ v4.0.0
 
 ## Deployment
@@ -154,7 +154,7 @@ The browser suite starts a local API fixture on `127.0.0.1:17200` and the built 
 
 Hyperion 4.5 sequence metadata is stored as decimal strings. Safe integer values from older APIs remain supported; unsafe numeric sequences are rejected because their exact identity has already been lost. Upgrade APIs returning those numbers to the lossless string contract.
 
-The [modernization notes](docs/modernization.md) record dependency constraints, completed work, and remaining Hyperion 4.5 qualification. The CI workflow runs type checking, unit tests, and production builds on Windows and Linux with Node 22/24, with the browser suite on Linux/Node 24.
+The [modernization notes](docs/modernization.md) record dependency constraints, completed work, and remaining Hyperion 4.5 qualification. The CI workflow runs type checking, unit tests, and production builds on Windows and Linux with Node 24/26, with the browser suite on Linux/Node 24. Push validation covers `master`; PRs and manual runs validate other branches without a duplicate feature-branch push run.
 
 ## Offline frontend lab
 
