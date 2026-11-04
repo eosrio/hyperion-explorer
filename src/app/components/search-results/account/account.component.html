@@ -439,6 +439,7 @@
           <div class="history-header">
             <h2 id="actions-heading"><fa-icon [icon]="icons.solid.faHistory" aria-hidden="true" /> Actions</h2>
             @if (acServ.projectionUnavailable()) { <p>Indexed action history may be incomplete.</p> }
+            @if (!acServ.indexedHistoryUnavailable()) {
             <div class="live-controls">
               <span id="live-label">Live actions</span>
               <button type="button" role="switch" aria-label="Action live streaming" [attr.aria-checked]="acServ.streamClientStatus()"
@@ -449,6 +450,7 @@
               </button>
               <span class="stream-status" role="status">{{ acServ.streamState() }}</span>
             </div>
+            }
             <div class="lib">
               <span>Last irreversible block</span>
               @if (chain.lastIrreversibleBlockNum()) { <a [routerLink]="['/block', chain.lastIrreversibleBlockNum()]">{{ chain.lastIrreversibleBlockNum() | number }}</a> }
@@ -456,6 +458,9 @@
               <button type="button" class="icon-control" aria-label="Refresh last irreversible block" (click)="chain.refreshChainInfo()" [disabled]="chain.chainInfoResource.isLoading()"><fa-icon [icon]="icons.solid.faSync" /></button>
             </div>
           </div>
+          @if (acServ.indexedHistoryUnavailable()) {
+            <section class="api-error" role="alert"><p>Indexed action history is temporarily unavailable. Core account data is shown above.</p><button type="button" (click)="acServ.retryHistory()">Retry history</button></section>
+          } @else {
           @if (acServ.streamClientStatus() || acServ.streamConnecting() || acServ.pendingStreamCount() || appliedBatch()) {
             <div class="new-actions-bar">
               <div class="queue-control" aria-live="polite" aria-atomic="true">
@@ -654,6 +659,7 @@
             }
           } @else {
             No actions to display
+          }
           }
         </section>
       </div>

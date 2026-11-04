@@ -190,7 +190,7 @@ export class AccountService {
     | undefined
   >({
     params: () => {
-      if (!this.accountName() || !this.accountDataRes.hasValue()) return undefined;
+      if (!this.accountName() || !this.accountDataRes.hasValue() || this.accountDataRes.value()?.historyUnavailable) return undefined;
       return {
         accountName: this.accountName(),
         customParams: this.customParams(),
@@ -274,15 +274,24 @@ export class AccountService {
             const accountUrl = this.data.env.hyperionApiUrl + "/v1/chain/get_account";
             const historyUrl = this.data.env.hyperionApiUrl + "/v2/history/get_actions?" +
               new URLSearchParams({ account, limit: "20", skip: "0", noBinary: "true", track: "true" });
-            const [core, rawHistory] = await Promise.all([
+            const [coreResult, historyResult] = await Promise.allSettled([
               lastValueFrom(this.httpClient.post<AccountData>(accountUrl, { account_name: account })),
               lastValueFrom(this.httpClient.get<GetActionsResponse>(historyUrl))
             ]);
+            if (coreResult.status === "rejected") throw coreResult.reason;
+            const core = coreResult.value;
             if (!core || core.account_name !== account) throw new Error("Chain account response did not match the requested account.");
-            const history = historyResponse(rawHistory);
+            const normalizedCore = { ...core, ram_quota: safeResourceInteger(core.ram_quota, true), ram_usage: safeResourceInteger(core.ram_usage) };
+            if (historyResult.status === "rejected") {
+              const reason = historyResult.reason;
+              if (!(reason instanceof HttpErrorResponse) || reason.status !== 503) throw reason;
+              return { account: normalizedCore, actions: [], total_actions: null, tokens: [], links: [],
+                projectionUnavailable: true, historyUnavailable: true };
+            }
+            const history = historyResponse(historyResult.value);
             if (!Number.isSafeInteger(history.total?.value) || history.total.value < 0)
               throw new Error("Hyperion returned an invalid action total.");
-            return { account: { ...core, ram_quota: safeResourceInteger(core.ram_quota, true), ram_usage: safeResourceInteger(core.ram_usage) }, actions: history.actions, total_actions: history.total.value,
+            return { account: normalizedCore, actions: history.actions, total_actions: history.total.value,
               tokens: [], links: [], projectionUnavailable: true };
           }
         } else {
@@ -322,6 +331,7 @@ export class AccountService {
   });
 
   // computed signals
+  public indexedHistoryUnavailable = computed(() => this.accountResponse()?.historyUnavailable === true);
   public projectionUnavailable = computed(() => this.accountResponse()?.projectionUnavailable === true);
 
   public tokensComputed = computed<TokenData[]>(() => {

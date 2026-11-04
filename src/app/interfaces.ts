@@ -68,9 +68,10 @@ export interface GetAccountResponse {
   account: AccountData;
   actions: HistoryAction[];
   tokens: any[];
-  total_actions: number;
+  total_actions: number | null;
   links: any[];
   projectionUnavailable?: true;
+  historyUnavailable?: true;
 }
 
 export interface GetActionsResponse {

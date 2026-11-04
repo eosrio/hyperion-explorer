@@ -28,6 +28,7 @@
     </div>
   </header>
   <div id="content-container" class="content-container">
+    @if (previewLabel) { <aside class="history-coverage" role="status">{{ previewLabel }}</aside> }
     @if (historyCoverage.value(); as coverage) {
       @if (coverage.state === "missing") {
         <aside class="history-coverage" role="status">History coverage is incomplete: {{ coverage.missing.toLocaleString("en-US") }} blocks reported missing@if (coverage.pct) { ({{ coverage.pct }} of the reported indexed range) }. Recent blocks do not mean older history is complete. <button type="button" (click)="historyCoverage.reload()">Refresh</button></aside>

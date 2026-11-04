@@ -268,6 +268,7 @@ export function createFixture({ port = 17000, ssrPort = 17001 } = {}) {
         });
       }
       if (url.pathname === "/v2/history/get_deltas") {
+        if (state.deltasProjectionUnavailable) return send({statusCode:503,code:"protocol_projection_unavailable",error:"Service Unavailable",message:"The requested projection is not ready; retry later."},503);
         if (unavailable("deltasUnavailable", "Delta history unavailable")) return;
         const number = Number(url.searchParams.get("block_num") || 100);
         const deltas = state.emptyHistory

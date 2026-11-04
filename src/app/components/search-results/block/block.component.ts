@@ -1,7 +1,7 @@
 import { asUtcTimestamp } from "../../../utils";
 import { FinalityHelpComponent } from "../../finality-help/finality-help.component";
 import { CopyIdentifierComponent } from "../../copy-identifier/copy-identifier.component";
-import { describeApiError } from "../../../api-errors";
+import { describeApiError, isProtocolProjectionUnavailable } from "../../../api-errors";
 import { Component, ElementRef, inject, OnDestroy, OnInit, PLATFORM_ID, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { FontAwesomeModule } from "@fortawesome/angular-fontawesome";
@@ -55,6 +55,7 @@ import { MatTooltip } from "@angular/material/tooltip";
 })
 export class BlockComponent implements OnInit, OnDestroy {
   describeApiError = describeApiError;
+  isProtocolProjectionUnavailable = isProtocolProjectionUnavailable;
   private route = inject(ActivatedRoute);
   private dataService = inject(DataService);
   private searchService = inject(SearchService);
