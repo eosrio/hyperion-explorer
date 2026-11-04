@@ -3,6 +3,15 @@ import {fromEvent, lastValueFrom, takeUntil} from "rxjs";
 import {DataService} from "./data.service";
 import {HttpClient, HttpErrorResponse} from "@angular/common/http";
 
+function validBlockTimestamp(value: unknown): value is string {
+  if (typeof value !== 'string') return false;
+  const parts = /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d{1,6}))?Z?$/.exec(value);
+  if (!parts) return false;
+  const iso = parts[1] + '.' + (parts[2] || '').padEnd(3, '0').slice(0, 3) + 'Z';
+  const date = new Date(iso);
+  return Number.isFinite(date.valueOf()) && date.toISOString() === iso;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -48,7 +57,7 @@ export class BlockService {
             || (header.block_num === 1 ? header.previous !== '0'.repeat(64)
               : Number.parseInt(header.previous.slice(0, 8), 16) !== header.block_num - 1)
             || typeof header.producer !== 'string' || !header.producer
-            || typeof header.timestamp !== 'string' || !Number.isFinite(Date.parse(header.timestamp))) throw historyError;
+            || !validBlockTimestamp(header.timestamp)) throw historyError;
           // A chain header does not establish whether any transaction traces are available.
           return {id: header.id.toLowerCase(), number: header.block_num, previous_id: header.previous,
             producer: header.producer, timestamp: header.timestamp, transactions: [], historyUnavailable: true};
