@@ -74,6 +74,7 @@ describe('BlockService history availability', () => {
     {...header, id: '00000065' + 'a'.repeat(56)},
     {...header, id: 'invalid'},
     {...header, previous: 'invalid'},
+    {...header, previous: '00000001' + 'b'.repeat(56)},
     {...header, timestamp: 'invalid'}
   ])('refuses an inconsistent or malformed chain header', async invalid => {
     lookup().flush({}, {status: 503, statusText: 'Unavailable'});

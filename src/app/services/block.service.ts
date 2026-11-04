@@ -45,6 +45,8 @@ export class BlockService {
             || Number.parseInt(header.id.slice(0, 8), 16) !== header.block_num
             || (params.id ? header.id.toLowerCase() !== params.id.toLowerCase() : header.block_num !== params.block_num)
             || typeof header.previous !== 'string' || !/^[a-f0-9]{64}$/i.test(header.previous)
+            || (header.block_num === 1 ? header.previous !== '0'.repeat(64)
+              : Number.parseInt(header.previous.slice(0, 8), 16) !== header.block_num - 1)
             || typeof header.producer !== 'string' || !header.producer
             || typeof header.timestamp !== 'string' || !Number.isFinite(Date.parse(header.timestamp))) throw historyError;
           // A chain header does not establish whether any transaction traces are available.
