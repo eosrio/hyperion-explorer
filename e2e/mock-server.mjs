@@ -335,11 +335,15 @@ export function createFixture({ port = 17000, ssrPort = 17001 } = {}) {
         if (unavailable("oracleUnavailable", "Price history unavailable")) return;
         return send(histogram(url.searchParams));
       }
-      if (url.pathname === "/v2/health")
-        return send({
-          health: [{ service: "Mock chain", status: "OK" }],
-          features: { streaming: { enable: true, traces: true, deltas: true } }
-        });
+      if (url.pathname === "/v2/health") {
+        if (unavailable("healthUnavailable", "Health unavailable")) return;
+        const health = state.healthMissingFields
+          ? [{ service: "Elasticsearch", status: "OK", service_data: {} }]
+          : [{ service: "Elasticsearch", status: "OK", service_data: {
+              missing_blocks: state.missingBlocks ?? 0, missing_pct: state.missingPct ?? "0.00%"
+            } }];
+        return send({ health, features: { streaming: { enable: true, traces: true, deltas: true } } });
+      }
       send({ message: `Missing API fixture: ${url.pathname}` }, 404);
     } catch (error) {
       if (!res.headersSent) send({ message: error.message }, 400);

@@ -11,6 +11,7 @@ import {
   OnDestroy,
   OnInit,
   PLATFORM_ID,
+  resource,
   signal,
   viewChild
 } from "@angular/core";
@@ -55,6 +56,27 @@ export class MainSearchComponent implements OnInit, OnDestroy {
   readonly searchForm = inject(FormBuilder).nonNullable.group({ search_field: [{ value: "", disabled: true }, Validators.required] });
   readonly searchReady = signal(false);
   readonly chainData = this.dataService.explorerMetadata;
+  readonly historyCoverage = resource({
+    loader: async () => {
+      try {
+        const response = await fetch(this.dataService.env.hyperionApiUrl + "/v2/health", { signal: AbortSignal.timeout(10_000) });
+        if (!response.ok) return { state: "unknown" as const };
+        const health: unknown = await response.json();
+        if (!health || typeof health !== "object" || !Array.isArray((health as any).health)) return { state: "unknown" as const };
+        const elastic = (health as any).health.filter((entry: any) => entry?.service === "Elasticsearch");
+        if (elastic.length !== 1 || elastic[0].status === "Error") return { state: "unknown" as const };
+        const data = elastic[0].service_data, missing = data?.missing_blocks;
+        if (!Number.isSafeInteger(missing) || missing < 0) return { state: "unknown" as const };
+        if (missing === 0) return { state: "no-reported-gaps" as const };
+        const pct = typeof data.missing_pct === "string" && /^(?:100(?:\.0{1,2})?|[0-9]{1,2}(?:\.[0-9]{1,2})?)%$/.test(data.missing_pct)
+          ? data.missing_pct : null;
+        return { state: "missing" as const, missing, pct };
+      } catch {
+        return { state: "unknown" as const };
+      }
+    }
+  });
+
   readonly logoFailed = signal(false);
   readonly logoUrl = computed(() =>
     this.logoFailed() ? "assets/logo-hyperion-horz.svg" : this.chainData()?.logo || "assets/logo-hyperion-horz.svg"
