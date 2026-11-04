@@ -47,6 +47,9 @@
               ],
               "outputHashing": "all"
             },
+            "wire-preview": {
+              "fileReplacements": [{ "replace": "src/app/preview-label.ts", "with": "src/app/preview-label.wire.ts" }]
+            },
             "development": {
               "define": {
                 "DEV_MODE": "true",

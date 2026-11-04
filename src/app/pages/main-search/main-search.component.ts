@@ -1,3 +1,4 @@
+import { previewLabel } from "../../preview-label";
 import {
   afterNextRender,
   ChangeDetectionStrategy,
@@ -82,6 +83,7 @@ export class MainSearchComponent implements OnInit, OnDestroy {
     this.logoFailed() ? "assets/logo-hyperion-horz.svg" : this.chainData()?.logo || "assets/logo-hyperion-horz.svg"
   );
   readonly version = version;
+  readonly previewLabel = previewLabel;
   readonly icons = {
     help: faCircleQuestion,
     error: faCircleExclamation,

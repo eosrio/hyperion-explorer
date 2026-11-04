@@ -8,6 +8,7 @@
     "start:ssl": "ng serve --host 0.0.0.0 --ssl",
     "build": "ng build",
     "build:root-preview": "ng build --base-href /",
+    "build:wire-preview": "ng build --configuration production,wire-preview --base-href /",
     "build:dev": "ng build --configuration development",
     "watch": "ng build --watch --configuration development",
     "watch:prod": "ng build --watch --configuration production",

@@ -21,6 +21,7 @@ test("renders behind /explorer with metadata that has no history watermark", asy
   await page.goto("/explorer/");
   await expect(page.getByRole("combobox", { name: "Account name, block number, transaction ID, or public key" })).toBeVisible();
   await expect(page).toHaveTitle("Fixture Chain Hyperion Explorer");
+  await expect(page.getByText("Hyperion 4.5 Wire preview", { exact: true })).toHaveCount(0);
   await expect(page.locator("#global-loader")).toHaveCount(0);
   await expect(page.locator(".chain-logo")).toBeVisible();
   await expect(page.locator("#header-container img")).toHaveCount(1);
