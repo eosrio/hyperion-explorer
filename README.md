@@ -180,3 +180,6 @@ Run `bun run test:mock` for API and published streaming-client integration check
 Run `bun run test:e2e` after a normal build; the browser suite owns ports 17200/17201,
 independently of the interactive preview. For the mock build, set
 `HYP_E2E_DIST=dist/mock` before running the browser suite.
+
+For the currently deployed Wire testnet preview, its limits and guarded rollback,
+see [Wire preview operations](WIRE-PREVIEW-RUNBOOK.md).
