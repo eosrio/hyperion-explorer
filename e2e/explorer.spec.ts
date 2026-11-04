@@ -52,6 +52,7 @@ test("skips RAM market when the configured contract ABI does not declare it", as
   await page.goto("/explorer/");
   await expect(page.getByRole("combobox", { name: "Account name, block number, transaction ID, or public key" })).toBeVisible();
   await expect.poll(async () => (await (await request.get("/__fixture/requests")).json()).some((entry: {path:string;body?:{account_name?:string}}) => entry.path === "/v1/chain/get_abi" && entry.body?.account_name === "sysio")).toBe(true);
+  await page.waitForLoadState("networkidle");
   const calls = await (await request.get("/__fixture/requests")).json();
   expect(calls.some((entry: {path:string;body?:{table?:string}}) => entry.path === "/v1/chain/get_table_rows" && entry.body?.table === "rammarket")).toBe(false);
 });
