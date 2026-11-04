@@ -150,7 +150,7 @@ export function createFixture({ port = 17000, ssrPort = 17001 } = {}) {
           provider_url: "https://example.com",
           theme: themes[state.theme] || {},
           oracle_price_historgram: !state.disableOracle,
-          oracle: { contract: "oracle", table: "prices", pair: "sysusd" }
+          oracle: state.noOracle ? undefined : { contract: "oracle", table: "prices", pair: "sysusd" }
         });
       }
       if (url.pathname === "/v1/chain/get_info" && unavailable("chainUnavailable", "Chain information unavailable")) return;
@@ -170,7 +170,32 @@ export function createFixture({ port = 17000, ssrPort = 17001 } = {}) {
           block_cpu_limit: 200000,
           block_net_limit: 1048576
         });
+      if (url.pathname === "/v1/chain/get_account") {
+        const profile = account(body.account_name, body.account_name === "empty" || state.emptyAccount);
+        if (!profile) return send({ message: "Account not found" }, 404);
+        const core = { ...profile };
+        if (state.rpcRamQuota !== undefined) core.ram_quota = state.rpcRamQuota;
+        // Observed Wire ordinary-account fields; no assumption that omitted balances are zero.
+        if (state.wireOrdinaryShape) {
+          core.cpu_limit = { used: 0, max: 1604941138 };
+          core.net_limit = { used: 0, max: "11994038048" };
+          core.total_resources = { cpu_weight: "0.0500 SYS", net_weight: "0.0500 SYS" };
+          delete core.core_liquid_balance;
+          delete core.self_delegated_bandwidth;
+          delete core.refund_request;
+        }
+        // Observed sysio unlimited CPU/NET values, independent of fixture identity.
+        if (state.wireUnlimitedShape) {
+          core.cpu_limit = { used: -1, max: -1 };
+          core.net_limit = { used: -1, max: -1 };
+          core.ram_quota = "6744062231";
+          core.ram_usage = 6921461;
+        }
+        if (state.omitTotalResources) delete core.total_resources;
+        return send(core);
+      }
       if (url.pathname === "/v2/state/get_account") {
+        if (state.accountProjectionUnsupported) return send({statusCode:503,code:"protocol_projection_unavailable",error:"Service Unavailable",message:"The requested projection is not ready; retry later."},503);
         if (unavailable("accountUnavailable", "Projection recovering")) return;
         const name = url.searchParams.get("account") || "eosio";
         const profile = account(name, name === "empty" || state.emptyAccount);
@@ -230,7 +255,7 @@ export function createFixture({ port = 17000, ssrPort = 17001 } = {}) {
             cpu_usage_us: row.cpu_usage_us,
             net_usage_words: row.net_usage_words,
             status: "executed",
-            actions: [
+            actions: state.blockEmptyActions ? [] : [
               {
                 receiver: row.receiver,
                 account: row.act.account,

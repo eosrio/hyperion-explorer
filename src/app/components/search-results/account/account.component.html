@@ -19,6 +19,9 @@
       @let systemPrecision = acServ.systemPrecision();
 
       <div id="account-content" class="appear grid auto-cols-max grid-cols-1 gap-5 text-[var(--main-text)] md:grid-cols-3">
+        @if (acServ.projectionUnavailable()) {
+          <section class="api-error md:col-span-3" role="status">Core account data comes from the chain. Indexed token balances and permission links are unavailable.</section>
+        }
         <!-- ACCOUNT NAME-->
         <div id="account-name-sticky" class="custom-card card-top-sticky bg-no-transparency sticky z-40 w-full md:col-span-3">
           <mat-card-header>
@@ -35,14 +38,20 @@
                   }
                   <div>{{ acServ.accountComputed().account_name }}</div>
                 </div>
+                @if (acServ.fallbackBalanceIncomplete()) {
+                  <div class="account-summary faded mt-1">Complete balance unavailable</div>
+                } @else {
                 <div id="totalBalance" class="account-summary faded mt-1 text-[0.938rem] font-medium">
                 <span class="primary">
                   {{ acServ.totalBalance() | number: "1.0-" + systemPrecision }}
                   {{ systemSymbol }}
                 </span>
-                  | ${{ acServ.totalBalanceUSD() | number: "1.0-2" }}
-                  <span class="text-sm">&#64; ${{ chain.priceRateUsd() }} / {{ systemSymbol }}</span>
+                  @if (chain.priceRateUsd() !== null) {
+                    | ${{ acServ.totalBalanceUSD() | number: "1.0-2" }}
+                    <span class="text-sm">&#64; ${{ chain.priceRateUsd() }} / {{ systemSymbol }}</span>
+                  } @else { <span class="text-sm">USD price unavailable</span> }
                 </div>
+                }
               </div>
               @defer (when acServ.hasContract()) {
                 @if (acServ.hasContract()) {
@@ -56,6 +65,13 @@
         </div>
 
         <!-- ACCOUNT BALANCE -->
+        @if (acServ.fallbackBalanceIncomplete()) {
+          <div class="custom-card" id="balance-card">
+            @if (acServ.accountComputed().core_liquid_balance; as balance) { <p>Chain liquid balance: {{ balance }}</p> }
+            @else { <p>Chain liquid balance unavailable</p> }
+            <p>Complete balance, stake and refund details are unavailable.</p>
+          </div>
+        } @else {
         <div #balanceCard class="custom-card" id="balance-card">
           <div class="mt-2 flex min-h-full flex-auto flex-col items-start justify-start">
             <!-- total balance-->
@@ -70,13 +86,13 @@
             <!-- total usd balance-->
             <div class="mb-1.5 w-full">
               <strong class="faded font-semibold">USD Value:</strong>
-              <span class="float-right">${{ acServ.totalBalanceUSD() | number: "1.0-2" }}</span>
+              <span class="float-right">@if (chain.priceRateUsd() !== null) { ${{ acServ.totalBalanceUSD() | number: "1.0-2" }} } @else { Unavailable }</span>
             </div>
 
             <!-- current usd price -->
             <div class="bottom-divider mb-1.5 w-full">
               <span class="faded font-semibold">{{ systemSymbol }} Price:</span>
-              <span class="float-right">${{ chain.priceRateUsd() }}</span>
+              <span class="float-right">@if (chain.priceRateUsd() !== null) { ${{ chain.priceRateUsd() }} } @else { Unavailable }</span>
             </div>
 
             <!-- liquid balance-->
@@ -130,6 +146,7 @@
           </div>
         </div>
 
+        }
         <!-- ACCOUNT RESOURCES, CPU, NET AND RAM -->
         <div class="custom-card md:col-span-2">
           <mat-card-content>
@@ -138,16 +155,21 @@
               <div class="w-full lg:w-[50%]">
                 <div>
                   <span class="title" title="Processing time, measured in microseconds">CPU</span>
-                  @if (acServ.accountComputed().cpu_limit.max === -1) {
+                  @if (acServ.userResPct().cpuUnlimited) {
                     <span class="faded ml-2">unlimited</span>
+                  } @else if (!acServ.userResPct().cpuAvailable) {
+                    <span class="faded ml-2">usage unavailable</span>
                   } @else {
                     <span class="faded ml-2">{{ acServ.userResPct().cpu | number: "1.0-2" }}% used</span>
                   }
                   <span class="float-right mt-2">{{ acServ.userResPct().cpuStr }}</span>
                 </div>
 
-                <mat-progress-bar class="mt-2.5" mode="determinate" [value]="acServ.userResPct().cpu"></mat-progress-bar>
+                @if (acServ.userResPct().cpuAvailable && !acServ.userResPct().cpuUnlimited) {
+                  <mat-progress-bar class="mt-2.5" mode="determinate" [value]="acServ.userResPct().cpu"></mat-progress-bar>
+                }
 
+                @if (acServ.fallbackStakeIncomplete()) { <p>Stake details unavailable</p> } @else {
                 <div class="small-info">
                   <div class="faded mb-1">
                     <span>Self-staked:</span>
@@ -173,22 +195,28 @@
                   </span>
                   </div>
                 </div>
+                }
               </div>
 
               <!--NET-->
               <div class="grow">
                 <div>
                   <span class="title" title="Network bandwidth, measured in bytes">NET</span>
-                  @if (acServ.accountComputed().net_limit.max === -1) {
+                  @if (acServ.userResPct().netUnlimited) {
                     <span class="faded ml-2">unlimited</span>
+                  } @else if (!acServ.userResPct().netAvailable) {
+                    <span class="faded ml-2">usage unavailable</span>
                   } @else {
                     <span class="faded ml-2">{{ acServ.userResPct().net | number: "1.0-2" }}% used</span>
                   }
                   <span class="float-right mt-2">{{ acServ.userResPct().netStr }}</span>
                 </div>
 
-                <mat-progress-bar class="mt-2.5" mode="determinate" [value]="acServ.userResPct().net"></mat-progress-bar>
+                @if (acServ.userResPct().netAvailable && !acServ.userResPct().netUnlimited) {
+                  <mat-progress-bar class="mt-2.5" mode="determinate" [value]="acServ.userResPct().net"></mat-progress-bar>
+                }
 
+                @if (acServ.fallbackStakeIncomplete()) { <p>Stake details unavailable</p> } @else {
                 <div class="small-info">
                   <div class="faded mb-1">
                     <span>Self-staked:</span>
@@ -214,21 +242,26 @@
                   </span>
                   </div>
                 </div>
+                }
               </div>
 
               <!--RAM-->
               <div class="grow">
                 <div>
                   <span class="title mt-6">RAM</span>
-                  @if (acServ.accountComputed().ram_quota === -1) {
+                  @if (acServ.userResPct().ramUnlimited) {
                     <span class="faded ml-2">unlimited</span>
+                  } @else if (!acServ.userResPct().ramAvailable) {
+                    <span class="faded ml-2">usage unavailable</span>
                   } @else {
                     <span class="faded ml-2">{{ acServ.userResPct().ram | number: "1.0-2" }}% used</span>
                   }
                   <span class="float-right mt-2">{{ acServ.userResPct().ramStr }}</span>
                 </div>
 
-                <mat-progress-bar class="mt-2.5" mode="determinate" [value]="acServ.userResPct().ram"></mat-progress-bar>
+                @if (acServ.userResPct().ramAvailable && !acServ.userResPct().ramUnlimited) {
+                  <mat-progress-bar class="mt-2.5" mode="determinate" [value]="acServ.userResPct().ram"></mat-progress-bar>
+                }
               </div>
             </div>
           <details class="resource-help"><summary>About resources</summary><p>CPU measures processing time in microseconds. NET measures network bandwidth in bytes. RAM measures persistent storage in bytes. KiB and MiB use 1,024-byte units.</p></details>
@@ -269,7 +302,9 @@
                 </div>
               </mat-panel-title>
               <mat-panel-description class="!text-right !justify-end !ml-auto !flex-grow-0 !flex-shrink-0">
-                @if (acServ.tokensComputed().length > 0) {
+                @if (acServ.projectionUnavailable()) {
+                  <span class="whitespace-nowrap faded text-sm">Unavailable</span>
+                } @else if (acServ.tokensComputed().length > 0) {
                   <span class="whitespace-nowrap faded text-sm"><strong>{{ acServ.tokensComputed().length }}</strong> found</span>
                 } @else {
                   <span class="whitespace-nowrap faded text-sm">No tokens</span>
@@ -403,6 +438,7 @@
         <section class="custom-card history-card w-full md:col-span-3" aria-labelledby="actions-heading">
           <div class="history-header">
             <h2 id="actions-heading"><fa-icon [icon]="icons.solid.faHistory" aria-hidden="true" /> Actions</h2>
+            @if (acServ.projectionUnavailable()) { <p>Indexed action history may be incomplete.</p> }
             <div class="live-controls">
               <span id="live-label">Live actions</span>
               <button type="button" role="switch" aria-label="Action live streaming" [attr.aria-checked]="acServ.streamClientStatus()"

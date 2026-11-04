@@ -55,8 +55,8 @@ export interface AccountData {
     cpu_amount: string;
     net_amount: string;
   };
-  ram_quota: number;
-  ram_usage: number;
+  ram_quota: number | null;
+  ram_usage: number | null;
   voter_info: {
     producers: string[];
     proxy: string;
@@ -70,6 +70,7 @@ export interface GetAccountResponse {
   tokens: any[];
   total_actions: number;
   links: any[];
+  projectionUnavailable?: true;
 }
 
 export interface GetActionsResponse {

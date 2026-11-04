@@ -12,7 +12,7 @@ import {
   untracked,
   WritableSignal
 } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpErrorResponse } from "@angular/common/http";
 import { AccountCreationData, AccountData, GetAccountResponse, GetActionsResponse, TokenData } from "../interfaces";
 import { ActionContent, HyperionStream, HyperionStreamClient } from "@eosrio/hyperion-stream-client";
 import { lastValueFrom, Observable } from "rxjs";
@@ -51,6 +51,13 @@ export interface ActionFilterSpec {
   icon?: IconDefinition;
   userFilter?: boolean;
   exec: (params: WritableSignal<Record<string, string> | undefined>) => void;
+}
+
+// nodeos may serialize int64 resource counters as decimal strings. Never round unsafe values.
+function safeResourceInteger(value: unknown, allowUnlimited = false): number | null {
+  if (typeof value === "string" && /^(?:0|[1-9][0-9]*|-1)$/.test(value)) value = Number(value);
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || (value < 0 && !(allowUnlimited && value === -1))) return null;
+  return value;
 }
 
 export const MAX_ES_SKIP = 10000;
@@ -259,7 +266,25 @@ export class AccountService {
         const account = loaderParams.params.accountName;
         if (account) {
           const url = this.data.env.hyperionApiUrl + "/v2/state/get_account?account=" + account;
-          return historyResponse(await lastValueFrom(this.httpClient.get<GetAccountResponse>(url)));
+          try {
+            return historyResponse(await lastValueFrom(this.httpClient.get<GetAccountResponse>(url)));
+          } catch (error) {
+            if (!(error instanceof HttpErrorResponse) || error.status !== 503 ||
+                error.error?.code !== "protocol_projection_unavailable") throw error;
+            const accountUrl = this.data.env.hyperionApiUrl + "/v1/chain/get_account";
+            const historyUrl = this.data.env.hyperionApiUrl + "/v2/history/get_actions?" +
+              new URLSearchParams({ account, limit: "20", skip: "0", noBinary: "true", track: "true" });
+            const [core, rawHistory] = await Promise.all([
+              lastValueFrom(this.httpClient.post<AccountData>(accountUrl, { account_name: account })),
+              lastValueFrom(this.httpClient.get<GetActionsResponse>(historyUrl))
+            ]);
+            if (!core || core.account_name !== account) throw new Error("Chain account response did not match the requested account.");
+            const history = historyResponse(rawHistory);
+            if (!Number.isSafeInteger(history.total?.value) || history.total.value < 0)
+              throw new Error("Hyperion returned an invalid action total.");
+            return { account: { ...core, ram_quota: safeResourceInteger(core.ram_quota, true), ram_usage: safeResourceInteger(core.ram_usage) }, actions: history.actions, total_actions: history.total.value,
+              tokens: [], links: [], projectionUnavailable: true };
+          }
         } else {
           return null;
         }
@@ -297,6 +322,8 @@ export class AccountService {
   });
 
   // computed signals
+  public projectionUnavailable = computed(() => this.accountResponse()?.projectionUnavailable === true);
+
   public tokensComputed = computed<TokenData[]>(() => {
     return this.accountResponse()?.tokens ?? [];
   });
@@ -368,15 +395,21 @@ export class AccountService {
     const account = this.accountComputed();
     const cpu = account.cpu_limit;
     const net = account.net_limit;
-    const ramQuota = account.ram_quota;
-    const ramUsage = account.ram_usage;
+    const cpuMax = safeResourceInteger(cpu?.max, true), cpuUsed = safeResourceInteger(cpu?.used);
+    const netMax = safeResourceInteger(net?.max, true), netUsed = safeResourceInteger(net?.used);
+    const ramQuota = safeResourceInteger(account.ram_quota, true);
+    const ramUsage = safeResourceInteger(account.ram_usage);
     return {
-      cpu: cpu.max > 0 ? Math.min(100, Math.max(0, (cpu.used / cpu.max) * 100)) : 0,
-      net: net.max > 0 ? Math.min(100, Math.max(0, (net.used / net.max) * 100)) : 0,
-      ram: ramQuota > 0 ? Math.min(100, Math.max(0, (ramUsage / ramQuota) * 100)) : 0,
-      cpuStr: cpu.max === -1 ? "Unlimited" : `${convertMicroS(cpu.used)} / ${convertMicroS(cpu.max)}`,
-      netStr: net.max === -1 ? "Unlimited" : `${formatBytes(net.used)} / ${formatBytes(net.max)}`,
-      ramStr: ramQuota === -1 ? "Unlimited" : `${formatBytes(ramUsage)} / ${formatBytes(ramQuota)}`
+      ramAvailable: ramQuota !== null && ramUsage !== null,
+      ramUnlimited: ramQuota === -1,
+      cpuAvailable: cpuMax !== null && (cpuMax === -1 || cpuUsed !== null), cpuUnlimited: cpuMax === -1,
+      netAvailable: netMax !== null && (netMax === -1 || netUsed !== null), netUnlimited: netMax === -1,
+      cpu: cpuMax !== null && cpuUsed !== null && cpuMax > 0 ? Math.min(100, Math.max(0, (cpuUsed / cpuMax) * 100)) : 0,
+      net: netMax !== null && netUsed !== null && netMax > 0 ? Math.min(100, Math.max(0, (netUsed / netMax) * 100)) : 0,
+      ram: ramQuota !== null && ramUsage !== null && ramQuota > 0 ? Math.min(100, Math.max(0, (ramUsage / ramQuota) * 100)) : 0,
+      cpuStr: cpuMax === -1 ? "Unlimited" : cpuUsed === null || cpuMax === null ? "Unavailable" : `${convertMicroS(cpuUsed)} / ${convertMicroS(cpuMax)}`,
+      netStr: netMax === -1 ? "Unlimited" : netUsed === null || netMax === null ? "Unavailable" : `${formatBytes(netUsed)} / ${formatBytes(netMax)}`,
+      ramStr: ramQuota === -1 ? "Unlimited" : ramQuota === null || ramUsage === null ? "Unavailable" : `${formatBytes(ramUsage)} / ${formatBytes(ramQuota)}`
     };
   });
 
@@ -434,7 +467,8 @@ export class AccountService {
   });
 
   public totalBalanceUSD = computed(() => {
-    return this.totalBalance() * this.chain.priceRateUsd();
+    const price = this.chain.priceRateUsd();
+    return price === null ? null : this.totalBalance() * price;
   });
 
   public myStakedBalance = computed(() => {
@@ -468,7 +502,19 @@ export class AccountService {
   });
 
   systemPrecision = computed(() => {
-    return getPrecision(this.accountComputed().core_liquid_balance);
+    const account = this.accountComputed();
+    return getPrecision(account.core_liquid_balance || account.total_resources?.cpu_weight || account.total_resources?.net_weight);
+  });
+
+  fallbackBalanceIncomplete = computed(() => {
+    const account = this.accountComputed();
+    return this.projectionUnavailable() && (!account.core_liquid_balance || !account.self_delegated_bandwidth?.cpu_weight ||
+      !account.self_delegated_bandwidth?.net_weight || !account.refund_request?.cpu_amount || !account.refund_request?.net_amount);
+  });
+  fallbackStakeIncomplete = computed(() => {
+    const account = this.accountComputed();
+    return this.projectionUnavailable() && (!account.self_delegated_bandwidth?.cpu_weight || !account.self_delegated_bandwidth?.net_weight ||
+      !account.total_resources?.cpu_weight || !account.total_resources?.net_weight);
   });
 
   refundBalance = computed(() => {
