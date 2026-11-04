@@ -68,12 +68,12 @@
               <!--                </button>-->
               <!--              </div>-->
               <div>
-                <button matButton [routerLink]="['/block', block.next_id ]">
+                <a matButton [routerLink]="['/block', block.next_id || block.number + 1 ]">
                   <div class="flex flex-row items-center gap-1">
                     <div>Next Block</div>
                     <fa-icon [icon]="icons.solid.arrowRight"></fa-icon>
                   </div>
-                </button>
+                </a>
               </div>
               <!--            </div>-->
             </div>
@@ -100,6 +100,12 @@
             </div>
           </div>
         </div>
+        @if (block.historyUnavailable) {
+          <section class="custom-card md:col-span-2" role="status">
+            <p>Block header available. Transaction and action details are temporarily unavailable from history.</p>
+            <button matButton type="button" (click)="blockService.blockResource.reload()">Retry history</button>
+          </section>
+        } @else {
         <div class="custom-card md:col-span-2 w-full min-w-full h-full min-h-full">
           <div #transactionsTable style="margin-top: 0" class="mb-5 text-base">
             <fa-layers [fixedWidth]="true" style="margin-right: 5px">
@@ -227,13 +233,14 @@
           </table>
         </div>
 
-        @if (deltaService.deltasResource.error(); as error) {
+        }
+        @if (!block.historyUnavailable && deltaService.deltasResource.error(); as error) {
           <section class="api-error md:col-span-2" role="alert">
             @if (isProtocolProjectionUnavailable(error)) { <p>Block state deltas are temporarily unavailable. Block and transaction details remain available.</p> }
             @else { <p>{{ describeApiError(error) }}</p> }
             <button type="button" (click)="deltaService.deltasResource.reload()">Try again</button>
           </section>
-        } @else if (deltas) {
+        } @else if (!block.historyUnavailable && deltas) {
           <div class="custom-card md:col-span-2 w-full min-w-full h-full min-h-full">
             <div #deltasTable style="margin-top: 0" class="mb-5 text-base">
               <fa-layers [fixedWidth]="true" style="margin-right: 5px">
