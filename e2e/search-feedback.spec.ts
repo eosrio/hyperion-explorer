@@ -7,16 +7,26 @@ test.beforeEach(async ({ request }) => {
 });
 
 async function expectContainedFeedback(page: Page) {
-  const message = await page.locator("#search-error").boundingBox();
-  const header = await page.locator("#header-container").boundingBox();
-  const control = await page.locator(".search-control").boundingBox();
-  expect(message!.y).toBeGreaterThanOrEqual(control!.y + control!.height + 7);
-  expect(message!.y + message!.height).toBeLessThanOrEqual(header!.y + header!.height - 8);
-  expect(message!.x).toBeGreaterThanOrEqual(0);
-  expect(message!.x + message!.width).toBeLessThanOrEqual(page.viewportSize()!.width);
-  const content = await page.locator("#main-content").boundingBox();
-  expect(content!.y).toBeGreaterThanOrEqual(header!.y + header!.height + 16);
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  await expect(async () => {
+    const geometry = await page.evaluate(() => {
+      const rect = (selector: string) => {
+        const element = document.querySelector(selector);
+        if (!element) throw new Error(`Missing geometry target: ${selector}`);
+        const { x, y, width, height } = element.getBoundingClientRect();
+        return { x, y, width, height };
+      };
+      return { message: rect("#search-error"), header: rect("#header-container"),
+        control: rect(".search-control"), content: rect("#main-content"),
+        viewport: innerWidth, documentWidth: document.documentElement.scrollWidth };
+    });
+    const { message, header, control, content } = geometry;
+    expect(message.y).toBeGreaterThanOrEqual(control.y + control.height + 7);
+    expect(message.y + message.height).toBeLessThanOrEqual(header.y + header.height - 8);
+    expect(message.x).toBeGreaterThanOrEqual(0);
+    expect(message.x + message.width).toBeLessThanOrEqual(geometry.viewport);
+    expect(content.y).toBeGreaterThanOrEqual(header.y + header.height + 16);
+    expect(geometry.documentWidth).toBeLessThanOrEqual(geometry.viewport);
+  }).toPass({ timeout: 5000 });
 }
 
 test("search validation connects the field, feedback and recovery from a missing account", async ({ page }) => {
@@ -59,6 +69,9 @@ test("search feedback fits expanded and compact headers at narrow, tablet and de
           await expect(search).toBeEnabled();
           await search.press("Enter");
           await expect(page.locator("#search-error")).toBeVisible();
+          if (reducedMotion === "reduce") {
+            await expect(page.locator("#content-container")).toHaveCSS("transition-duration", "0s");
+          }
           await expectContainedFeedback(page);
         });
       }
