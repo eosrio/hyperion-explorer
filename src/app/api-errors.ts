@@ -17,3 +17,9 @@ export function describeApiError(error: unknown): string {
 export function isApiNotFound(error: unknown): boolean {
   return !!error && typeof error === "object" && "status" in error && error.status === 404;
 }
+
+export function isProtocolProjectionUnavailable(error: unknown): boolean {
+  if (!error || typeof error !== "object" || !("status" in error) || error.status !== 503 || !("error" in error)) return false;
+  const body = error.error;
+  return !!body && typeof body === "object" && "code" in body && body.code === "protocol_projection_unavailable";
+}

@@ -229,7 +229,8 @@
 
         @if (deltaService.deltasResource.error(); as error) {
           <section class="api-error md:col-span-2" role="alert">
-            <p>{{ describeApiError(error) }}</p>
+            @if (isProtocolProjectionUnavailable(error)) { <p>Block state deltas are temporarily unavailable. Block and transaction details remain available.</p> }
+            @else { <p>{{ describeApiError(error) }}</p> }
             <button type="button" (click)="deltaService.deltasResource.reload()">Try again</button>
           </section>
         } @else if (deltas) {

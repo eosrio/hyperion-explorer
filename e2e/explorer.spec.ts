@@ -103,6 +103,38 @@ test("qualifies an empty indexed account history", async ({ page, request }) => 
   await request.post("/__fixture/state", { data: {} });
 });
 
+test("preserves core account when action history is unavailable and retries it", async ({ page, request }) => {
+  await request.post("/__fixture/state", { data: { accountProjectionUnsupported: true, actionsUnavailable: true } });
+  const unavailable = page.waitForResponse(response => new URL(response.url()).pathname === "/v2/history/get_actions" && response.status() === 503);
+  await page.goto("/explorer/account/eosio");
+  await unavailable;
+  await expect(page.locator("#account-content")).toBeVisible();
+  const history = page.getByRole("region", { name: "Actions" });
+  await expect(history.getByRole("alert")).toContainText("Indexed action history is temporarily unavailable");
+  await expect(history).not.toContainText("No actions to display");
+  await expect(history.locator(".actions-table")).toHaveCount(0);
+  await request.post("/__fixture/state", { data: { accountProjectionUnsupported: true } });
+  const restored = page.waitForResponse(response => new URL(response.url()).pathname === "/v2/history/get_actions" && response.status() === 200);
+  await history.getByRole("button", { name: "Retry history" }).click();
+  await restored;
+  await expect(page.locator(".actions-table tbody tr").first()).toBeVisible();
+});
+
+test("labels unavailable block delta projection without hiding the trace", async ({ page, request }) => {
+  await request.post("/__fixture/state", { data: { deltasProjectionUnavailable: true } });
+  const unavailable = page.waitForResponse(response => new URL(response.url()).pathname === "/v2/history/get_deltas" && response.status() === 503);
+  await page.goto("/explorer/block/100");
+  await unavailable;
+  await expect(page.getByText("Block ID:", { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Toggle actions for transaction " + "f".repeat(64) })).toBeVisible();
+  await expect(page.getByRole("alert")).toContainText("Block state deltas are temporarily unavailable");
+  await request.post("/__fixture/state", { data: {} });
+  const restored = page.waitForResponse(response => new URL(response.url()).pathname === "/v2/history/get_deltas" && response.status() === 200);
+  await page.getByRole("button", { name: "Try again", exact: true }).click();
+  await restored;
+  await expect(page.getByRole("alert")).toHaveCount(0);
+});
+
 test("keeps unlimited and unsafe RPC RAM quotas distinct", async ({ page, request }) => {
   await request.post("/__fixture/state", { data: { accountProjectionUnsupported: true, rpcRamQuota: "-1" } });
   await page.goto("/explorer/account/eosio");
