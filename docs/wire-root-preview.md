@@ -19,7 +19,7 @@ HYP_EXPLORER_PORT=4777
 HYP_EXPLORER_ALLOWED_HOSTS=testnet.wire.eosrio.io
 ```
 
-Keep the listener private and configure trusted proxy routing so that the public host and API origin are correct. The server uses the trusted `x-hyperion-server` header to select the SSR API origin; the edge must not allow clients to choose that authority. The root build and root runtime setting must be deployed together. Do not expose the theme or SSR listener directly to the public.
+Keep the listener private. For every proxied SSR request, overwrite `x-hyperion-server` with the literal `https://testnet.wire.eosrio.io`; never forward a client-supplied value. The existing SSR origin selection falls back to the request's `Referer` if this header is absent, so the header must be set on root and deep-link requests alike. The root build and root runtime setting must be deployed together. Do not expose the theme or SSR listener directly to the public. Verify the exact header and actual public routes before activation; this document does not assert that the proxy is configured.
 
 ## Route contract
 
