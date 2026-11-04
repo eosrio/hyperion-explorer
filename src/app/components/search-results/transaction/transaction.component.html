@@ -90,7 +90,7 @@
                   <span class="title">NET</span>
                   <span class="faded used">usage</span>
                 </div>
-                <div>{{ tx().actions[0]["net_usage_words"] * 8 }} bytes</div>
+                <div data-testid="net-usage">@if (netUsageBytes(tx().actions[0]["net_usage_words"]); as bytes) { {{ bytes }} bytes } @else if (netUsageBytes(tx().actions[0]["net_usage_words"]) === 0) { 0 bytes } @else { Unavailable }</div>
               </div>
             </div>
           </div>

@@ -116,6 +116,10 @@ export class ChainService {
     params: () => this.data.explorerMetadata()?.system_contract || "eosio",
     loader: async ({ params: systemContract }) => {
       try {
+        const abi = await lastValueFrom(this.httpClient.post<{ abi?: { tables?: { name?: string }[] } }>(
+          this.data.env.hyperionApiUrl + "/v1/chain/get_abi", { account_name: systemContract }
+        ));
+        if (!Array.isArray(abi?.abi?.tables) || !abi.abi.tables.some(table => table?.name === "rammarket")) return "SYS";
         const getTableRows = this.data.env.hyperionApiUrl + "/v1/chain/get_table_rows";
         const ramMarket = (await lastValueFrom(
           this.httpClient.post(getTableRows, {

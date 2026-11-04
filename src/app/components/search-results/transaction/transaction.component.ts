@@ -71,6 +71,11 @@ export class TransactionComponent implements OnInit, OnDestroy {
   actionsTable = viewChild<ElementRef<HTMLDivElement>>("actionsTable");
   platformId = inject(PLATFORM_ID);
 
+  netUsageBytes(value: unknown): number | null {
+    return typeof value === "number" && Number.isSafeInteger(value) && value >= 0 &&
+      Number.isSafeInteger(value * 8) ? value * 8 : null;
+  }
+
   objectKeyCount(obj: any): number {
     try {
       return Object.keys(obj).length;
