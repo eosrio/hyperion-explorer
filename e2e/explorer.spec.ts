@@ -39,12 +39,78 @@ test("searches an account and retains block navigation", async ({ page }, testIn
   await page.goto("/explorer/block/100");
   await expect(page.getByText("Block ID:", { exact: true })).toBeVisible();
   await expect(page.getByText("Irreversible", { exact: true })).toBeVisible();
+  await expect(page.getByText("Transactions and actions reflect the connected history service and may be incomplete.", { exact: true })).toBeVisible();
+  await expect(page.locator("th").filter({ hasText: "First returned action" })).toHaveCount(1);
   const toggle = page.getByRole("button", { name: "Toggle actions for transaction " + "f".repeat(64) });
   await expect(toggle).toHaveAttribute("aria-expanded", "false");
   await toggle.focus();
   await toggle.press("Enter");
   await expect(toggle).toHaveAttribute("aria-expanded", "true");
   await expect(page.getByText("Fixture transfer", { exact: true })).toBeVisible();
+});
+
+test("renders a returned transaction with no action details", async ({ page, request }) => {
+  await request.post("/__fixture/state", { data: { blockEmptyActions: true } });
+  await page.goto("/explorer/block/100");
+  await expect(page.getByText("No action details returned").first()).toBeVisible();
+  await request.post("/__fixture/state", { data: {} });
+});
+
+test("shows chain account and history when the state projection is unavailable", async ({ page, request }) => {
+  await request.post("/__fixture/state", { data: { accountProjectionUnsupported: true, rpcRamQuota: "6744062231", noOracle: true } });
+  await page.goto("/explorer/account/eosio");
+  await expect(page.locator("#account-content")).toBeVisible();
+  await expect(page.getByText("Core account data comes from the chain. Indexed token balances and permission links are unavailable.")).toBeVisible();
+  await expect(page.getByText("Unavailable", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("No tokens", { exact: true })).toHaveCount(0);
+  await expect(page.getByText("Indexed action history may be incomplete.")).toBeVisible();
+  await expect(page.getByText("USD price unavailable")).toHaveCount(1);
+  await expect(page.getByText(/6\.28 GiB/)).toBeVisible();
+  await expect(page.locator(".actions-table tbody tr").first()).toBeVisible();
+  const calls = await (await request.get("/__fixture/requests")).json();
+  expect(calls.some((entry: { path: string }) => entry.path?.includes("/v1/chain/get_account"))).toBe(true);
+  expect(calls.some((entry: { path: string }) => entry.path?.includes("/v2/history/get_actions"))).toBe(true);
+  await request.post("/__fixture/state", { data: {} });
+});
+
+test("renders observed Wire resource types without inventing missing balances", async ({ page, request }) => {
+  await request.post("/__fixture/state", { data: { accountProjectionUnsupported: true, wireOrdinaryShape: true, noOracle: true } });
+  await page.goto("/explorer/account/eosio");
+  await expect(page.getByText(/11\.17 GiB/)).toBeVisible();
+  await expect(page.getByText("Chain liquid balance unavailable")).toBeVisible();
+  await expect(page.getByText("Complete balance, stake and refund details are unavailable.")).toBeVisible();
+  await expect(page.getByText("Stake details unavailable")).toHaveCount(2);
+  await request.post("/__fixture/state", { data: { accountProjectionUnsupported: true, wireOrdinaryShape: true, omitTotalResources: true, noOracle: true } });
+  await page.reload();
+  await expect(page.getByText("Stake details unavailable")).toHaveCount(2);
+  await expect(page.getByText("Chain liquid balance unavailable")).toBeVisible();
+  await request.post("/__fixture/state", { data: {} });
+});
+
+test("renders observed Wire unlimited CPU and NET values", async ({ page, request }) => {
+  await request.post("/__fixture/state", { data: { accountProjectionUnsupported: true, wireUnlimitedShape: true } });
+  await page.goto("/explorer/account/eosio");
+  await expect(page.getByText("unlimited", { exact: true })).toHaveCount(2);
+  await expect(page.getByText(/6\.28 GiB/)).toBeVisible();
+  await request.post("/__fixture/state", { data: {} });
+});
+
+test("qualifies an empty indexed account history", async ({ page, request }) => {
+  await request.post("/__fixture/state", { data: { accountProjectionUnsupported: true } });
+  await page.goto("/explorer/account/empty");
+  await expect(page.getByRole("region", { name: "Actions" })).toContainText("No actions to display");
+  await expect(page.getByText("Indexed action history may be incomplete.")).toBeVisible();
+  await request.post("/__fixture/state", { data: {} });
+});
+
+test("keeps unlimited and unsafe RPC RAM quotas distinct", async ({ page, request }) => {
+  await request.post("/__fixture/state", { data: { accountProjectionUnsupported: true, rpcRamQuota: "-1" } });
+  await page.goto("/explorer/account/eosio");
+  await expect(page.getByText("unlimited", { exact: true }).first()).toBeVisible();
+  await request.post("/__fixture/state", { data: { accountProjectionUnsupported: true, rpcRamQuota: "9007199254740992" } });
+  await page.reload();
+  await expect(page.getByText("usage unavailable", { exact: true })).toBeVisible();
+  await request.post("/__fixture/state", { data: {} });
 });
 
 test("keeps an unavailable projection isolated and allows explicit recovery", async ({ page, request }) => {
@@ -56,6 +122,8 @@ test("keeps an unavailable projection isolated and allows explicit recovery", as
   await page.goto("/explorer/account/eosio");
   await unavailable;
   await expect(page.getByRole("alert")).toContainText("temporarily unavailable");
+  const failedCalls = await (await request.get("/__fixture/requests")).json();
+  expect(failedCalls.some((entry: { path: string }) => entry.path === "/v1/chain/get_account")).toBe(false);
   await request.post("/__fixture/state", { data: {} });
   await page.getByRole("button", { name: "Try again", exact: true }).click();
   await expect(page.locator("#account-content")).toBeVisible();

@@ -101,17 +101,14 @@ export class ChainService {
     }
   });
 
-  priceRateUsd = computed<number>(() => {
+  priceRateUsd = computed<number | null>(() => {
     try {
-      const data = this.oracleData.value();
-      if (data && data.latest_rate && data.latest_rate.price) {
-        return parseFloat(data.latest_rate.price.split(" ")[0]);
-      } else {
-        return 0;
-      }
-    } catch (e: any) {
-      console.log("Failed to parse USD Rate from oracle", e.message);
-      return 0;
+      const raw = this.oracleData.value()?.latest_rate?.price;
+      if (typeof raw !== "string" || !/^(?:0|[1-9]\d*)(?:\.\d+)?(?:\s|$)/.test(raw)) return null;
+      const price = Number(raw.split(" ")[0]);
+      return Number.isFinite(price) ? price : null;
+    } catch {
+      return null;
     }
   });
 
