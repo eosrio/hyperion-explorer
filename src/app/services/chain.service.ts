@@ -112,14 +112,15 @@ export class ChainService {
     }
   });
 
-  systemSymbol = resource<string, any>({
-    loader: async () => {
+  systemSymbol = resource<string, string>({
+    params: () => this.data.explorerMetadata()?.system_contract || "eosio",
+    loader: async ({ params: systemContract }) => {
       try {
         const getTableRows = this.data.env.hyperionApiUrl + "/v1/chain/get_table_rows";
         const ramMarket = (await lastValueFrom(
           this.httpClient.post(getTableRows, {
-            code: "eosio",
-            scope: "eosio",
+            code: systemContract,
+            scope: systemContract,
             table: "rammarket",
             limit: 1,
             json: true

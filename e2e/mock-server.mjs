@@ -146,6 +146,7 @@ export function createFixture({ port = 17000, ssrPort = 17001 } = {}) {
         return send({
           chain_id: currentChainId(),
           chain_name: state.theme === "forest" ? "Canopy Testnet" : state.theme === "dark" ? "Nightfall Testnet" : "Fixture Chain",
+          system_contract: state.systemContract,
           provider: "Local fixture",
           provider_url: "https://example.com",
           theme: themes[state.theme] || {},

@@ -30,6 +30,23 @@ test("renders behind /explorer with metadata that has no history watermark", asy
   await page.screenshot({ path: testInfo.outputPath("home.png"), fullPage: true, animations: "disabled" });
 });
 
+test("uses the configured system account for RAM market reads", async ({ page, request }) => {
+  await request.post("/__fixture/state", { data: { systemContract: "sysio" } });
+  const market = page.waitForRequest(req => req.method() === "POST" && new URL(req.url()).pathname === "/v1/chain/get_table_rows" && req.postDataJSON()?.table === "rammarket");
+  await page.goto("/explorer/");
+  const body = (await market).postDataJSON();
+  expect(body.code).toBe("sysio");
+  expect(body.scope).toBe("sysio");
+});
+
+test("defaults RAM market reads to eosio without a system account", async ({ page }) => {
+  const market = page.waitForRequest(req => req.method() === "POST" && new URL(req.url()).pathname === "/v1/chain/get_table_rows" && req.postDataJSON()?.table === "rammarket");
+  await page.goto("/explorer/");
+  const body = (await market).postDataJSON();
+  expect(body.code).toBe("eosio");
+  expect(body.scope).toBe("eosio");
+});
+
 test("searches an account and retains block navigation", async ({ page }, testInfo) => {
   await page.goto("/explorer/");
   await page.getByRole("combobox", { name: "Account name, block number, transaction ID, or public key" }).fill("eosio");
