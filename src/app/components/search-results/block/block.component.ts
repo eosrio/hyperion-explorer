@@ -103,6 +103,11 @@ export class BlockComponent implements OnInit, OnDestroy {
     }
   }
 
+  retryHistory(): void {
+    this.deltaService.reloadCurrentBlock();
+    this.blockService.blockResource.reload();
+  }
+
   ngOnInit(): void {
     this.searchService.searchType.set("block");
 
