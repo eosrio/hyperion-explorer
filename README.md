@@ -65,6 +65,13 @@ Edit the chain config at `hyperion-history-api/config/chains/<chain>.config.json
 
 The Hyperion API will proxy all `/explorer/*` requests to the SSR server.
 
+For a domain-root preview, build with `bun run build:root-preview` and start the
+SSR server with `HYP_EXPLORER_ROOT=true`. Configure the reverse proxy to route
+API, documentation, and streaming paths to Hyperion before routing explorer
+pages and assets to the private SSR listener. Set `HYP_EXPLORER_ALLOWED_HOSTS`
+to the public hostname. The root build requires a matching root SSR setting;
+the ordinary build and server defaults remain `/explorer`.
+
 ## Environment Variables
 
 | Variable                     | Default          | Description                                                                                                                          |
