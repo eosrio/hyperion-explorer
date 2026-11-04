@@ -112,14 +112,22 @@ export class ChainService {
     }
   });
 
-  systemSymbol = resource<string, any>({
-    loader: async () => {
+  systemSymbol = resource<string, string | undefined>({
+    params: () => {
+      const metadata = this.data.explorerMetadata();
+      return metadata ? metadata.system_contract || "eosio" : undefined;
+    },
+    loader: async ({ params: systemContract }) => {
       try {
+        const abi = await lastValueFrom(this.httpClient.post<{ abi?: { tables?: { name?: string }[] } }>(
+          this.data.env.hyperionApiUrl + "/v1/chain/get_abi", { account_name: systemContract }
+        ));
+        if (!Array.isArray(abi?.abi?.tables) || !abi.abi.tables.some(table => table?.name === "rammarket")) return "SYS";
         const getTableRows = this.data.env.hyperionApiUrl + "/v1/chain/get_table_rows";
         const ramMarket = (await lastValueFrom(
           this.httpClient.post(getTableRows, {
-            code: "eosio",
-            scope: "eosio",
+            code: systemContract,
+            scope: systemContract,
             table: "rammarket",
             limit: 1,
             json: true

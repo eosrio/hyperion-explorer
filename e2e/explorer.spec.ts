@@ -30,6 +30,54 @@ test("renders behind /explorer with metadata that has no history watermark", asy
   await page.screenshot({ path: testInfo.outputPath("home.png"), fullPage: true, animations: "disabled" });
 });
 
+test("uses the configured system account for RAM market reads", async ({ page, request }) => {
+  await request.post("/__fixture/state", { data: { systemContract: "sysio" } });
+  const market = page.waitForRequest(req => req.method() === "POST" && new URL(req.url()).pathname === "/v1/chain/get_table_rows" && req.postDataJSON()?.table === "rammarket");
+  await page.goto("/explorer/");
+  const body = (await market).postDataJSON();
+  expect(body.code).toBe("sysio");
+  expect(body.scope).toBe("sysio");
+});
+
+test("waits for delayed metadata before selecting the system contract", async ({ page, request }) => {
+  await request.post("/__fixture/state", { data: { systemContract: "sysio", metadataDelay: true } });
+  const market = page.waitForRequest(req => req.method() === "POST" && new URL(req.url()).pathname === "/v1/chain/get_table_rows" && req.postDataJSON()?.table === "rammarket");
+  await page.goto("/explorer/");
+  expect((await market).postDataJSON().code).toBe("sysio");
+  await page.waitForLoadState("networkidle");
+  const calls = await (await request.get("/__fixture/requests")).json();
+  const abis = calls.filter((entry: {path:string}) => entry.path === "/v1/chain/get_abi");
+  expect(abis.length).toBeGreaterThan(0);
+  expect(abis.every((entry: {body:{account_name:string}}) => entry.body.account_name === "sysio")).toBe(true);
+});
+
+test("defaults RAM market reads to eosio without a system account", async ({ page }) => {
+  const market = page.waitForRequest(req => req.method() === "POST" && new URL(req.url()).pathname === "/v1/chain/get_table_rows" && req.postDataJSON()?.table === "rammarket");
+  await page.goto("/explorer/");
+  const body = (await market).postDataJSON();
+  expect(body.code).toBe("eosio");
+  expect(body.scope).toBe("eosio");
+});
+
+test("skips RAM market when the configured contract ABI does not declare it", async ({ page, request }) => {
+  await request.post("/__fixture/state", { data: { systemContract: "sysio", noRamMarket: true } });
+  await page.goto("/explorer/");
+  await expect(page.getByRole("combobox", { name: "Account name, block number, transaction ID, or public key" })).toBeVisible();
+  await expect.poll(async () => (await (await request.get("/__fixture/requests")).json()).some((entry: {path:string;body?:{account_name?:string}}) => entry.path === "/v1/chain/get_abi" && entry.body?.account_name === "sysio")).toBe(true);
+  await page.waitForLoadState("networkidle");
+  const calls = await (await request.get("/__fixture/requests")).json();
+  expect(calls.some((entry: {path:string;body?:{table?:string}}) => entry.path === "/v1/chain/get_table_rows" && entry.body?.table === "rammarket")).toBe(false);
+});
+
+test("renders missing, invalid and zero transaction NET usage truthfully", async ({ page, request }) => {
+  const tx = "/explorer/transaction/" + "f".repeat(64);
+  for (const [fixture, expected] of [[{ missingNetUsage: true }, "Unavailable"], [{ netUsageWords: -1 }, "Unavailable"], [{ netUsageWords: "19" }, "Unavailable"], [{ netUsageWords: 1125899906842624 }, "Unavailable"], [{ netUsageWords: 0 }, "0 bytes"], [{ netUsageWords: 19 }, "152 bytes"]] as const) {
+    await request.post("/__fixture/state", { data: fixture });
+    await page.goto(tx);
+    await expect(page.locator("[data-testid=net-usage]")).toHaveText(expected);
+  }
+});
+
 test("searches an account and retains block navigation", async ({ page }, testInfo) => {
   await page.goto("/explorer/");
   await page.getByRole("combobox", { name: "Account name, block number, transaction ID, or public key" }).fill("eosio");

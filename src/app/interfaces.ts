@@ -7,6 +7,7 @@ export interface ExplorerMetadata {
   chain_name: string;
   chain_id: string;
   custom_core_token: string;
+  system_contract?: string;
   query_time_ms: number;
   last_indexed_block: number;
   last_indexed_block_time: string;

@@ -142,10 +142,12 @@ export function createFixture({ port = 17000, ssrPort = 17001 } = {}) {
         return res.end(await readFile(new URL("../src/assets/logo-hyperion-horz.svg", import.meta.url)));
       }
       if (url.pathname === "/v2/explorer_metadata") {
+        if (state.metadataDelay) await new Promise(resolve => setTimeout(resolve, 500));
         if (unavailable("metadataUnavailable", "Metadata temporarily unavailable")) return;
         return send({
           chain_id: currentChainId(),
           chain_name: state.theme === "forest" ? "Canopy Testnet" : state.theme === "dark" ? "Nightfall Testnet" : "Fixture Chain",
+          system_contract: state.systemContract,
           provider: "Local fixture",
           provider_url: "https://example.com",
           theme: themes[state.theme] || {},
@@ -225,7 +227,10 @@ export function createFixture({ port = 17000, ssrPort = 17001 } = {}) {
       }
       if (url.pathname === "/v2/history/get_transaction") {
         if (unavailable("transactionUnavailable", "History unavailable")) return;
-        const actions = allActions().filter(row => row.trx_id === url.searchParams.get("id"));
+        const actions = allActions().filter(row => row.trx_id === url.searchParams.get("id")).map(row => {
+          if (state.missingNetUsage) { const { net_usage_words, ...rest } = row; return rest; }
+          return Object.hasOwn(state, "netUsageWords") ? { ...row, net_usage_words: state.netUsageWords } : row;
+        });
         return send({ actions, lib: lib(), executed: actions.length > 0, cached: false, query_time_ms: 2 });
       }
       if (url.pathname === "/v2/state/get_key_accounts") {
@@ -289,7 +294,10 @@ export function createFixture({ port = 17000, ssrPort = 17001 } = {}) {
       }
       if (url.pathname === "/v1/chain/get_abi") {
         if (unavailable("contractUnavailable", "Contract ABI unavailable")) return;
-        return send(abi(body.account_name));
+        const result = abi(body.account_name);
+        if ((body.account_name === "sysio" || body.account_name === "eosio") && !state.noRamMarket)
+          result.abi.tables.push({ name: "rammarket", type: "market", index_type: "i64", key_names: [], key_types: [] });
+        return send(result);
       }
       if (url.pathname === "/v1/chain/get_table_by_scope") {
         if (unavailable("contractUnavailable", "Contract scopes unavailable")) return;
