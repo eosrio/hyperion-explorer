@@ -28,6 +28,13 @@
     </div>
   </header>
   <div id="content-container" class="content-container">
+    @if (historyCoverage.value(); as coverage) {
+      @if (coverage.state === "missing") {
+        <aside class="history-coverage" role="status">History coverage is incomplete: {{ coverage.missing.toLocaleString("en-US") }} blocks reported missing@if (coverage.pct) { ({{ coverage.pct }} of the reported indexed range) }. Recent blocks do not mean older history is complete. <button type="button" (click)="historyCoverage.reload()">Refresh</button></aside>
+      } @else if (coverage.state === "unknown") {
+        <aside class="history-coverage" role="status">History coverage is unavailable; results may be incomplete. <button type="button" (click)="historyCoverage.reload()">Retry</button></aside>
+      }
+    }
     <main id="main-content" tabindex="-1"><router-outlet></router-outlet></main>
     <footer class="explorer-footer hr-container">
       <span class="footer-color">v{{ version }} · Made with

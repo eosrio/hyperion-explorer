@@ -322,3 +322,20 @@
   line-height: 1.6;
   margin: 0;
 }
+
+.history-coverage {
+  width: min(calc(100% - 2rem), var(--container-width));
+  margin: 0 auto 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--warn);
+  border-radius: 0.75rem;
+  color: var(--main-text);
+  background: var(--card-bg);
+  line-height: 1.5;
+}
+.history-coverage button {
+  text-decoration: underline;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
