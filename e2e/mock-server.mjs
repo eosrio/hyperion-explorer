@@ -142,6 +142,7 @@ export function createFixture({ port = 17000, ssrPort = 17001 } = {}) {
         return res.end(await readFile(new URL("../src/assets/logo-hyperion-horz.svg", import.meta.url)));
       }
       if (url.pathname === "/v2/explorer_metadata") {
+        if (state.metadataDelay) await new Promise(resolve => setTimeout(resolve, 500));
         if (unavailable("metadataUnavailable", "Metadata temporarily unavailable")) return;
         return send({
           chain_id: currentChainId(),

@@ -112,8 +112,11 @@ export class ChainService {
     }
   });
 
-  systemSymbol = resource<string, string>({
-    params: () => this.data.explorerMetadata()?.system_contract || "eosio",
+  systemSymbol = resource<string, string | undefined>({
+    params: () => {
+      const metadata = this.data.explorerMetadata();
+      return metadata ? metadata.system_contract || "eosio" : undefined;
+    },
     loader: async ({ params: systemContract }) => {
       try {
         const abi = await lastValueFrom(this.httpClient.post<{ abi?: { tables?: { name?: string }[] } }>(

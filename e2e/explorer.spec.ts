@@ -39,6 +39,18 @@ test("uses the configured system account for RAM market reads", async ({ page, r
   expect(body.scope).toBe("sysio");
 });
 
+test("waits for delayed metadata before selecting the system contract", async ({ page, request }) => {
+  await request.post("/__fixture/state", { data: { systemContract: "sysio", metadataDelay: true } });
+  const market = page.waitForRequest(req => req.method() === "POST" && new URL(req.url()).pathname === "/v1/chain/get_table_rows" && req.postDataJSON()?.table === "rammarket");
+  await page.goto("/explorer/");
+  expect((await market).postDataJSON().code).toBe("sysio");
+  await page.waitForLoadState("networkidle");
+  const calls = await (await request.get("/__fixture/requests")).json();
+  const abis = calls.filter((entry: {path:string}) => entry.path === "/v1/chain/get_abi");
+  expect(abis.length).toBeGreaterThan(0);
+  expect(abis.every((entry: {body:{account_name:string}}) => entry.body.account_name === "sysio")).toBe(true);
+});
+
 test("defaults RAM market reads to eosio without a system account", async ({ page }) => {
   const market = page.waitForRequest(req => req.method() === "POST" && new URL(req.url()).pathname === "/v1/chain/get_table_rows" && req.postDataJSON()?.table === "rammarket");
   await page.goto("/explorer/");
