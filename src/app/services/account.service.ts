@@ -278,7 +278,13 @@ export class AccountService {
               lastValueFrom(this.httpClient.post<AccountData>(accountUrl, { account_name: account })),
               lastValueFrom(this.httpClient.get<GetActionsResponse>(historyUrl))
             ]);
-            if (coreResult.status === "rejected") throw coreResult.reason;
+            if (coreResult.status === "rejected") {
+              const reason = coreResult.reason;
+              // Nodes report a missing account as 400 account_query_exception; show it as not found, not an outage.
+              if (reason instanceof HttpErrorResponse && reason.error?.error?.name === "account_query_exception")
+                throw new HttpErrorResponse({ status: 404, statusText: "Not Found", url: reason.url ?? undefined, error: reason.error });
+              throw reason;
+            }
             const core = coreResult.value;
             if (!core || core.account_name !== account) throw new Error("Chain account response did not match the requested account.");
             const normalizedCore = { ...core, ram_quota: safeResourceInteger(core.ram_quota, true), ram_usage: safeResourceInteger(core.ram_usage) };
