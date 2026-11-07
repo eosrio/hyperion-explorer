@@ -6,7 +6,7 @@ declare const DEV_MODE: boolean;
 const fastifyAngularSSR = new FastifyAngularSSR({
   port: parseInt(process.env["HYP_EXPLORER_PORT"] || "4777"),
   host: process.env["HYP_EXPLORER_HOST"] || "127.0.0.1",
-  baseHref: DEV_MODE ? "/" : "/explorer"
+  baseHref: DEV_MODE || process.env["HYP_EXPLORER_ROOT"] === "true" ? "/" : "/explorer"
 });
 
 // Start the server if this file is being run directly
