@@ -28,13 +28,29 @@
     </div>
   </header>
   <div id="content-container" class="content-container">
-    @if (previewLabel) { <aside class="history-coverage" role="status">{{ previewLabel }}</aside> }
-    @if (historyCoverage.value(); as coverage) {
-      @if (coverage.state === "missing") {
-        <aside class="history-coverage" role="status">History coverage is incomplete: {{ coverage.missing.toLocaleString("en-US") }} blocks reported missing@if (coverage.pct) { ({{ coverage.pct }} of the reported indexed range) }. Recent blocks do not mean older history is complete. <button type="button" (click)="historyCoverage.reload()">Refresh</button></aside>
-      } @else if (coverage.state === "unknown") {
-        <aside class="history-coverage" role="status">History coverage is unavailable; results may be incomplete. <button type="button" (click)="historyCoverage.reload()">Retry</button></aside>
-      }
+    @let coverage = historyCoverage.value();
+    @let coverageNotice = coverage?.state === "missing" || coverage?.state === "unknown";
+    @if (previewLabel || coverageNotice) {
+      <aside class="status-strip hr-container" aria-label="Service status">
+        <div class="status-inner">
+          @if (previewLabel) { <span class="status-badge">{{ previewLabel }}</span> }
+          @if (coverage?.state === "missing") {
+            <p class="history-coverage" role="status">
+              <span class="status-dot" aria-hidden="true"></span>
+              <span class="status-text"><strong>History is still indexing.</strong>
+                {{ coverage!.missing.toLocaleString("en-US") }} blocks reported missing@if (coverage!.pct) {<span class="status-extra"> ({{ coverage!.pct }} of the reported indexed range)</span>}.
+                <span class="status-extra">Recent blocks do not mean older history is complete.</span></span>
+              <button type="button" class="status-action" (click)="historyCoverage.reload()" aria-label="Refresh" title="Refresh history coverage"><fa-icon [icon]="icons.refresh" aria-hidden="true" /></button>
+            </p>
+          } @else if (coverage?.state === "unknown") {
+            <p class="history-coverage" role="status">
+              <span class="status-dot" aria-hidden="true"></span>
+              <span class="status-text">History coverage is unavailable; results may be incomplete.</span>
+              <button type="button" class="status-action" (click)="historyCoverage.reload()" aria-label="Retry" title="Retry history coverage"><fa-icon [icon]="icons.refresh" aria-hidden="true" /></button>
+            </p>
+          }
+        </div>
+      </aside>
     }
     <main id="main-content" tabindex="-1"><router-outlet></router-outlet></main>
     <footer class="explorer-footer hr-container">

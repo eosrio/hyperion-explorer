@@ -131,3 +131,45 @@
     border: 0.5rem solid var(--card-bg);
   }
 }
+
+/* Transaction facts share one label/value rhythm. */
+.tx-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
+  gap: 1rem 2rem;
+  margin: 0;
+}
+.tx-facts dt {
+  color: var(--faded);
+  font-size: 0.8125rem;
+}
+.tx-facts dd {
+  margin: 0.125rem 0 0;
+  font-size: 1rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+.tx-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.1875rem 0.5rem;
+  border-radius: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+.confirmed-status {
+  background: color-mix(in srgb, var(--success) 12%, transparent);
+  color: var(--success);
+}
+.pending-status {
+  background: color-mix(in srgb, var(--pending) 12%, transparent);
+  color: var(--pending);
+}

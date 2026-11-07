@@ -420,22 +420,52 @@ input {
   caret-color: var(--primary);
 }
 
+/* Recoverable failures read as a compact status row, not a second page. */
 .api-error {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
   margin-block: 1rem;
-  padding: 1.25rem;
-  background: var(--card-bg);
+  padding: 0.875rem 1rem 0.875rem 1.125rem;
+  background: color-mix(in srgb, var(--card-bg) 70%, transparent);
   border: 1px solid var(--line-divider);
   border-radius: var(--card-border-radius);
+  color: var(--main-text);
+  font-size: 0.9375rem;
+  line-height: 1.5;
   overflow-wrap: anywhere;
 }
+.api-error h1 {
+  flex-basis: 100%;
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+}
 .api-error p {
-  margin-block: 0 1rem;
+  flex: 1 1 18rem;
+  margin: 0;
 }
 .api-error button {
-  padding: 0.625rem 1rem;
-  border: 1px solid currentColor;
-  border-radius: 0.5rem;
+  flex: none;
+  min-height: 2.5rem;
+  padding: 0.375rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--primary) 45%, transparent);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--primary);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
   cursor: pointer;
+}
+.api-error button:hover {
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+}
+
+/* Native controls, scrollbars and pickers follow the active theme tone. */
+:root[data-tone="dark"] {
+  color-scheme: dark;
 }
 
 .theme-toggle {
@@ -504,6 +534,13 @@ table,
   --mat-table-background-color: transparent;
   --mat-table-row-item-label-text-color: var(--main-text);
   --mat-table-header-headline-color: var(--primary);
+}
+.mat-mdc-progress-bar {
+  --mat-progress-bar-active-indicator-color: var(--primary);
+  --mat-progress-bar-track-color: color-mix(in srgb, var(--primary) 16%, transparent);
+  --mat-progress-bar-track-height: 6px;
+  --mat-progress-bar-active-indicator-height: 6px;
+  border-radius: 999px;
 }
 .mat-mdc-paginator {
   --mat-paginator-container-background-color: transparent;

@@ -24,7 +24,7 @@ import { debounceTime, filter, map, tap } from "rxjs";
 import { MatAutocomplete, MatAutocompleteTrigger, MatOption } from "@angular/material/autocomplete";
 import { MatButton } from "@angular/material/button";
 import { FaIconComponent } from "@fortawesome/angular-fontawesome";
-import { faHeart, faSearch, faCircleQuestion, faCircleExclamation } from "@fortawesome/free-solid-svg-icons";
+import { faHeart, faSearch, faCircleQuestion, faCircleExclamation, faRotateRight } from "@fortawesome/free-solid-svg-icons";
 import { faGithub, faTelegram } from "@fortawesome/free-brands-svg-icons";
 import { DataService } from "../../services/data.service";
 import { SearchService } from "../../services/search.service";
@@ -86,6 +86,7 @@ export class MainSearchComponent implements OnInit, OnDestroy {
   readonly previewLabel = previewLabel;
   readonly icons = {
     help: faCircleQuestion,
+    refresh: faRotateRight,
     error: faCircleExclamation,
     search: faSearch,
     heart: faHeart,

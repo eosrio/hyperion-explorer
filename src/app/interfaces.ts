@@ -73,6 +73,8 @@ export interface GetAccountResponse {
   links: any[];
   projectionUnavailable?: true;
   historyUnavailable?: true;
+  /** Optional list of account sections the API could not supply (keys such as "tokens" or "links"). */
+  unavailable?: string[];
 }
 
 export interface GetActionsResponse {

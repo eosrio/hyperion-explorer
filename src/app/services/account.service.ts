@@ -527,6 +527,29 @@ export class AccountService {
       !account.total_resources?.cpu_weight || !account.total_resources?.net_weight);
   });
 
+  /** Sections the API could not supply, labelled once for a single partial-data notice. */
+  public dataGaps = computed<{ key: string; label: string }[]>(() => {
+    const response = this.accountResponse();
+    if (!response) return [];
+    const keys = new Set<string>();
+    for (const key of Array.isArray(response.unavailable) ? response.unavailable : []) {
+      if (typeof key === "string" && key.trim()) keys.add(key.trim());
+    }
+    if (response.projectionUnavailable) {
+      keys.add("tokens");
+      keys.add("links");
+    }
+    if (this.fallbackBalanceIncomplete()) {
+      const account = response.account;
+      if (!account.core_liquid_balance) keys.add("liquid_balance");
+      if (this.fallbackStakeIncomplete()) keys.add("stake");
+      if (!account.refund_request?.cpu_amount || !account.refund_request?.net_amount) keys.add("refunds");
+    }
+    if (this.tokensComputed().length > 0) keys.delete("tokens");
+    return [...keys].map(key => ({ key, label: describeDataGap(key) }));
+  });
+  public tokensUnavailable = computed(() => this.dataGaps().some(gap => gap.key === "tokens"));
+
   refundBalance = computed(() => {
     let cpuRefund = 0;
     let netRefund = 0;
@@ -845,4 +868,21 @@ export class AccountService {
       if (revision === this.streamStartRevision) this.streamConnecting.set(false);
     }
   }
+}
+
+const DATA_GAP_LABELS: Record<string, string> = {
+  tokens: "Token balances",
+  links: "Permission links",
+  liquid_balance: "Liquid balance",
+  stake: "Stake breakdown",
+  refunds: "Refunds",
+  creator: "Account creator",
+  actions: "Action history"
+};
+
+export function describeDataGap(key: string): string {
+  const known = DATA_GAP_LABELS[key];
+  if (known) return known;
+  const words = key.replace(/[_-]+/g, " ").trim().toLowerCase();
+  return words.charAt(0).toUpperCase() + words.slice(1);
 }

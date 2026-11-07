@@ -17,7 +17,6 @@ import { SearchService } from "../../../services/search.service";
 import { MatButton } from "@angular/material/button";
 import { ActivatedRoute, Router, RouterLink } from "@angular/router";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
-import { MatCardContent, MatCardHeader } from "@angular/material/card";
 import { FaIconComponent, FaLayersComponent } from "@fortawesome/angular-fontawesome";
 import { MatProgressBar } from "@angular/material/progress-bar";
 import { MatTooltip } from "@angular/material/tooltip";
@@ -32,6 +31,7 @@ import {
   faChevronRight,
   faChevronUp,
   faCircle,
+  faCircleInfo,
   faClock,
   faEllipsisV,
   faFilter,
@@ -130,8 +130,6 @@ interface FlatNode {
     NgClass,
     MatRow,
     MatHeaderRow,
-    MatCardContent,
-    MatCardHeader,
     DatePipe,
     ActDataViewComponent,
     MatRipple,
@@ -141,7 +139,7 @@ interface FlatNode {
   ],
   templateUrl: "./account.component.html",
   changeDetection: ChangeDetectionStrategy.Eager,
-  styleUrls: ["./account.component.css", "./action-table.css", "./permissions-card.css"]
+  styleUrls: ["./account.component.css", "./account-overview.css", "./action-table.css", "./permissions-card.css"]
 })
 export class AccountComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
@@ -209,6 +207,7 @@ export class AccountComponent implements OnInit, OnDestroy {
       faUserCircle: faUserCircle,
       faShield: faShield,
       faCircle: faCircle,
+      faCircleInfo: faCircleInfo,
       faCheck: faCheck,
       faStar: faStar,
       faLink: faLink,
