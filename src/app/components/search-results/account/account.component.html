@@ -112,7 +112,7 @@
                 <div class="balance-row"><span class="faded">Created by</span><a [routerLink]="['/account', creationData().creator]" class="link-gray">{{ creationData().creator }}</a></div>
               }
               @if (creationData().timestamp) {
-                <div class="balance-row"><span class="faded">Created on</span><span>{{ creationData().timestamp | date: "medium" }}</span></div>
+                <div class="balance-row"><span class="faded">Created on</span><span>{{ creationData().timestamp | chainTime: time.utc() }}</span></div>
               }
             </div>
           }
@@ -225,7 +225,7 @@
                     <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
                     <fa-icon [icon]="icons.solid.faStar" [inverse]="true" transform="shrink-5"></fa-icon>
                   </fa-layers>
-                  <div class="vote-card-title mb-0 whitespace-nowrap">Tokens</div>
+                  <h2 class="vote-card-title mb-0 whitespace-nowrap">Tokens</h2>
                   <span class="count-pill" [attr.aria-label]="acServ.tokensComputed().length + ' tokens'">{{ acServ.tokensComputed().length }}</span>
                   <fa-icon
                     [icon]="icons.regular.faQuestionCircle"
@@ -283,7 +283,7 @@
                     <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
                     <fa-icon [icon]="icons.solid.faLink" [inverse]="true" transform="shrink-5"></fa-icon>
                   </fa-layers>
-                  <div class="vote-card-title mb-0 whitespace-nowrap">Permissions & Keys</div>
+                  <h2 class="vote-card-title mb-0 whitespace-nowrap">Permissions & Keys</h2>
                   <span class="count-pill" [attr.aria-label]="account.permissions.length + ' permissions'">{{ account.permissions.length }}</span>
                 </div>
               </mat-panel-title>
@@ -324,7 +324,7 @@
                       <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
                       <fa-icon [icon]="icons.solid.faVote" [inverse]="true" transform="shrink-4"></fa-icon>
                     </fa-layers>
-                    <div class="vote-card-title mb-0 whitespace-nowrap">Votes</div>
+                    <h2 class="vote-card-title mb-0 whitespace-nowrap">Votes</h2>
                   </div>
                 </mat-panel-title>
                 <mat-panel-description class="!text-right !justify-end !ml-auto !flex-grow-0 !flex-shrink-0">
@@ -399,7 +399,7 @@
                 } @else { <span class="faded">{{ acServ.streamOnline() ? 'Listening for new actions' : 'Waiting for the stream connection' }}</span> }
               </div>
               <div class="queue-meta faded">
-                @if (acServ.lastStreamActionAt(); as received) { <span>Last action received {{ received | date:'mediumTime' }}</span> }
+                @if (acServ.lastStreamActionAt(); as received) { <span>Last action received {{ received | chainTime: time.utc() : 'time' }}</span> }
                 @else { <span>No actions received yet</span> }
                 @if (acServ.pendingStreamCount() >= 500) { <span>Latest 500 received actions queued.</span> }
               </div>
@@ -428,7 +428,7 @@
             <details class="history-options">
               <summary>Display options</summary>
               <div class="display-options">
-                <label class="checkbox-label"><input type="checkbox" [(ngModel)]="useUTC" />Dates in UTC</label>
+                <label class="checkbox-label"><input type="checkbox" [checked]="time.utc()" (change)="time.setUtc($any($event.target).checked)" />Dates in UTC</label>
                 <label class="checkbox-label"><input type="checkbox" [(ngModel)]="compactMode" />Compact mode</label>
                 <label>Rows per page<select aria-label="Rows per page" [ngModel]="acServ.pageSize()" (ngModelChange)="changePageSize($event)">@for (size of [5,10,20,50,100]; track size) { <option [ngValue]="size">{{ size }}</option> }</select></label>
               </div>
@@ -520,7 +520,7 @@
                         @else { <span class="tx-status confirmed-status"><fa-icon [icon]="icons.solid.faCheck" aria-hidden="true" /> Irreversible</span> }
                       </div>
                       <span class="where-time">
-                        {{ action["@timestamp"] + (useUTC() ? "" : "Z") | date: "medium" }}
+                        {{ action["@timestamp"] | chainTime: time.utc() }}
                         @if (isRecentTransaction(action['@timestamp'])) { <span class="where-recent">· last 24 h</span> }
                       </span>
                       <div class="where-tx">

@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ActDataViewComponent, decodeSymbolCode } from './act-data-view.component';
+import { ActDataViewComponent, decodeSymbolCode, symbolFromScope } from './act-data-view.component';
 
 describe('ActDataViewComponent', () => {
   let component: ActDataViewComponent;
@@ -19,6 +19,13 @@ describe('ActDataViewComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('reads token stat scopes back as their symbol', () => {
+    expect(symbolFromScope('........ehgp3')).toBe('SYS');
+    expect(symbolFromScope('......25ed4pb')).toBe('WIRE');
+    expect(symbolFromScope('.............')).toBeNull();
+    expect(symbolFromScope('alice')).toBeNull();
   });
 
   it('decodes raw symbol codes and leaves other numbers alone', () => {

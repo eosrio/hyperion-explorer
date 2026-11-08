@@ -78,7 +78,7 @@ test("keys, contract tables and token-specific holders have the shared explorer 
   await page.getByRole("button", { name: "Table view", exact: true }).click();
   await expect(page.locator("#data-section table tr")).toHaveCount(9);
   await page.goto("/explorer/top-holders/seed.token/SEED");
-  await expect(page.getByRole("heading", { name: "SEED Top Holders" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Top SEED holders" })).toBeVisible();
   await expect(page.getByRole("columnheader", { name: "Balance · SEED" })).toBeVisible();
   await expect(page.locator(".holder-table tbody tr")).toHaveCount(10);
   await expect(page.getByText(/Shares are relative to the displayed holders/)).toBeVisible();

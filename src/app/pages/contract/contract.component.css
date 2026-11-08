@@ -1,0 +1,33 @@
+.contract-page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 1rem;
+  margin-bottom: 1.5rem;
+}
+.contract-page-head h1 {
+  margin: 0;
+  color: var(--faded);
+  font-size: 1.125rem;
+  font-weight: 500;
+}
+.contract-code {
+  color: var(--main-text);
+  font-size: 1.625rem;
+  font-weight: 650;
+}
+.contract-account-link {
+  color: var(--primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.contract-account-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.contract-account-link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}

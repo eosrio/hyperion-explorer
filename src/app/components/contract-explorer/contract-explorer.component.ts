@@ -14,16 +14,13 @@ import { Router } from "@angular/router";
 import { rxResource } from "@angular/core/rxjs-interop";
 import { HttpClient } from "@angular/common/http";
 import { lastValueFrom, map, of } from "rxjs";
-import { MatButton, MatIconButton } from "@angular/material/button";
 import { MatCell, MatColumnDef, MatHeaderCell, MatHeaderRow, MatRow, MatTableModule } from "@angular/material/table";
 import { MatSort, MatSortHeader, Sort } from "@angular/material/sort";
-import { MatTooltip } from "@angular/material/tooltip";
 import { AbiStructField, AbiTable, GetAbiResponse } from "../../interfaces";
 import { FormsModule } from "@angular/forms";
-import { MatDialogContent } from "@angular/material/dialog";
-import { isPlatformBrowser, NgClass } from "@angular/common";
+import { isPlatformBrowser } from "@angular/common";
 import { MatIcon } from "@angular/material/icon";
-import { ActDataViewComponent } from "../act-data-view/act-data-view.component";
+import { ActDataViewComponent, symbolFromScope } from "../act-data-view/act-data-view.component";
 import { DataService } from "../../services/data.service";
 import { describeApiError, isRetryableApiError } from "../../api-errors";
 
@@ -42,7 +39,6 @@ function buildFieldArray(structs: any[], array: AbiStructField[], type: string):
   selector: "app-contract-explorer",
   imports: [
     FormsModule,
-    MatButton,
     MatTableModule,
     MatColumnDef,
     MatHeaderCell,
@@ -51,10 +47,6 @@ function buildFieldArray(structs: any[], array: AbiStructField[], type: string):
     MatRow,
     MatSortHeader,
     MatSort,
-    MatTooltip,
-    MatDialogContent,
-    NgClass,
-    MatIconButton,
     MatIcon,
     ActDataViewComponent
   ],
@@ -150,6 +142,39 @@ export class ContractExplorerComponent {
   abiTableNames = computed<string[]>(() =>
     this.abiRes.hasValue() ? (this.abiRes.value()?.abi?.tables.map(table => table.name) ?? []) : []
   );
+  /** Table name to its row struct, shown beside each table so a reader knows what it holds. */
+  tableTypes = computed(() => {
+    const tables = this.abiRes.hasValue() ? (this.abiRes.value()?.abi?.tables ?? []) : [];
+    return new Map(tables.map(table => [table.name, table.type] as const));
+  });
+  tableFilter = signal("");
+  filteredTables = computed(() => {
+    const filter = this.tableFilter().trim().toLowerCase();
+    return filter ? this.abiTableNames().filter(name => name.includes(filter)) : this.abiTableNames();
+  });
+  abiActions = computed<string[]>(() => {
+    const actions = this.abiRes.hasValue() ? this.abiRes.value()?.abi?.actions : null;
+    return Array.isArray(actions) ? actions.map(action => action?.name).filter((name): name is string => typeof name === "string") : [];
+  });
+
+  scopeLabel(scope: string): string {
+    const symbol = symbolFromScope(scope);
+    return symbol ? `${symbol} · ${scope}` : scope;
+  }
+
+  /** A collapsed row still says something: its first two scalar fields ("owner alice · balance 12.0000 EOS"). */
+  rowPreview(row: Record<string, unknown>): string {
+    const parts: string[] = [];
+    for (const field of this.fields()) {
+      const value = row?.[field.name];
+      if (value === null || value === undefined || typeof value === "object") continue;
+      const text = String(value);
+      parts.push(`${field.name} ${text.length > 40 ? text.slice(0, 39) + "…" : text}`);
+      if (parts.length === 2) break;
+    }
+    return parts.join(" · ");
+  }
+
   scopeList = computed<string[]>(() =>
     this.tableScopesRes.hasValue() ? (this.tableScopesRes.value()?.rows.map(row => row.scope) ?? []) : []
   );

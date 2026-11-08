@@ -31,6 +31,20 @@ export function decodeSymbolCode(value: unknown): string | null {
   return code.length <= 7 ? code : null;
 }
 
+/**
+ * Token contracts scope their `stat` rows by symbol code stored as a name ("........ehgp3" is WIRE). Read such a
+ * scope back as its ticker, or null for an ordinary account-style scope.
+ */
+export function symbolFromScope(scope: string): string | null {
+  if (!/^[a-z1-5.]{1,13}$/.test(scope) || !scope.startsWith(".")) return null;
+  let value = 0n;
+  for (let i = 0; i < scope.length; i++) {
+    const c = BigInt(charToSymbol(scope.charCodeAt(i)));
+    value |= i < 12 ? (c & 0x1fn) << BigInt(64 - 5 * (i + 1)) : c & 0x0fn;
+  }
+  return decodeSymbolCode(value.toString());
+}
+
 /** Regex pattern matching an Antelope/EOSIO name, case-sensitive. */
 const namePattern = /^[a-z1-5.]{0,13}$/;
 

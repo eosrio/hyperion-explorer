@@ -1,21 +1,57 @@
-.logo-name {
-  font-size: 0.938rem;
-  font-weight: 800;
-  font-family: Montserrat, sans-serif;
-  color: #353535;
-}
-
-.tagline {
-  font-size: 0.938rem;
-  font-weight: 500;
-  font-family: Montserrat, sans-serif;
-  width: max-content !important;
-}
-
-.acc-header {
-  background-color: transparent;
-  border-radius: 0.625rem;
-  border: none !important;
-  box-shadow:  rgb(78 104 192 / 25%) 0px 4px 19px 0px, rgba(17, 12, 46, 0.15) 0px 20px 100px 0px !important;
+:host {
+  display: flex;
+  flex-direction: column;
+  max-height: inherit;
   color: var(--main-text);
+}
+.cd-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 1.25rem;
+}
+.cd-head::before {
+  display: none;
+}
+.cd-title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 1rem;
+}
+.cd-title h2 {
+  margin: 0;
+  color: var(--faded);
+  font-size: 1.125rem;
+  font-weight: 500;
+}
+.cd-code {
+  color: var(--main-text);
+  font-size: 1.5rem;
+  font-weight: 650;
+}
+.cd-page-link {
+  color: var(--primary);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+.cd-page-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.cd-page-link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+.cd-close {
+  flex-shrink: 0;
+  margin: -0.5rem -0.75rem 0 0;
+  color: var(--faded);
+}
+.cd-body {
+  min-height: 0;
+  padding: 0 1.5rem 1.5rem;
 }

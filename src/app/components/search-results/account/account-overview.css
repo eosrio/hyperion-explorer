@@ -80,7 +80,7 @@
 }
 .data-gaps p {
   margin: 0;
-  color: var(--faded);
+  color: var(--main-text);
 }
 .data-gaps strong {
   color: var(--main-text);

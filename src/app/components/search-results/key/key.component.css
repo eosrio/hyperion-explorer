@@ -64,3 +64,54 @@
   grid-template-columns: repeat(auto-fill, minmax(200px, auto));
   justify-content: center;
 }
+.key-section-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.0625rem;
+  font-weight: 600;
+}
+.key-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  color: var(--main-text);
+  font-size: 1.375rem;
+  font-weight: 600;
+}
+.key-title fa-layers {
+  color: var(--faded);
+}
+.key-accounts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.key-account {
+  display: inline-flex;
+  align-items: baseline;
+  padding: 0.25rem 0.625rem;
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--primary) 9%, transparent);
+  color: var(--primary);
+  font-weight: 600;
+}
+.key-account a {
+  color: inherit;
+  text-decoration: none;
+}
+.key-account a:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.key-account a:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+.key-perm {
+  color: var(--faded);
+  font-weight: 400;
+}

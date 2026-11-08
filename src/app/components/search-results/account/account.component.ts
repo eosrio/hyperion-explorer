@@ -1,3 +1,4 @@
+import { ChainTimePipe, TimePreference } from "../../../chain-time";
 import { FinalityHelpComponent } from "../../finality-help/finality-help.component";
 import {
   Component,
@@ -20,7 +21,7 @@ import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { FaIconComponent, FaLayersComponent } from "@fortawesome/angular-fontawesome";
 import { MatProgressBar } from "@angular/material/progress-bar";
 import { MatTooltip } from "@angular/material/tooltip";
-import { DatePipe, DecimalPipe, isPlatformBrowser, NgClass } from "@angular/common";
+import { DecimalPipe, isPlatformBrowser, NgClass } from "@angular/common";
 import { MatPaginator, PageEvent } from "@angular/material/paginator";
 import { MatCell, MatColumnDef, MatHeaderCell, MatHeaderRow, MatRow, MatTableModule } from "@angular/material/table";
 import { AccountService, ActionFilterSpec, MAX_ES_SKIP } from "../../../services/account.service";
@@ -109,7 +110,7 @@ interface FlatNode {
 
 @Component({
   selector: "app-account",
-  imports: [
+  imports: [ChainTimePipe, 
     FinalityHelpComponent,
     MatButton,
     MatProgressSpinner,
@@ -130,7 +131,6 @@ interface FlatNode {
     NgClass,
     MatRow,
     MatHeaderRow,
-    DatePipe,
     ActionDataComponent,
     MorphLinkDirective,
     PermissionTreeComponent,
@@ -162,7 +162,7 @@ export class AccountComponent implements OnInit, OnDestroy {
   balanceCard = viewChild<ElementRef<HTMLDivElement>>("balanceCard");
   actionsTable = viewChild<ElementRef<HTMLDivElement>>("actionsTable");
 
-  useUTC = signal(false);
+  readonly time = inject(TimePreference);
   compactMode = signal(false);
 
   readonly appliedBatch = linkedSignal<string, { id: number; actionIds: ReadonlySet<string> } | null>({

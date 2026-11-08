@@ -1,4 +1,7 @@
-import { Component, signal, inject, ChangeDetectionStrategy } from "@angular/core";
+import { Component, computed, signal, inject, ChangeDetectionStrategy } from "@angular/core";
+import { RouterLink } from "@angular/router";
+import { ActionDataComponent } from "../action-data/action-data.component";
+import { formatChainTime, isoChainTime, TimePreference } from "../../chain-time";
 import { MAT_DIALOG_DATA, MatDialogClose, MatDialogContent, MatDialogRef, MatDialogTitle } from "@angular/material/dialog";
 import {
   MatNestedTreeNode,
@@ -11,6 +14,15 @@ import {
 import { NestedTreeControl } from "@angular/cdk/tree";
 import { MatIcon } from "@angular/material/icon";
 import { MatIconButton } from "@angular/material/button";
+
+interface Authorization {
+  actor: string;
+  permission: string;
+}
+interface Receipt {
+  receiver: string;
+  recv_sequence?: string | number;
+}
 
 interface KeyValueNode {
   name: string;
@@ -31,7 +43,9 @@ interface KeyValueNode {
     MatDialogTitle,
     MatDialogContent,
     MatDialogClose,
-    MatTreeNodeDef
+    MatTreeNodeDef,
+    RouterLink,
+    ActionDataComponent
   ],
   templateUrl: "./action-details.component.html",
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -41,13 +55,28 @@ export class ActionDetailsComponent {
   dialogRef = inject<MatDialogRef<ActionDetailsComponent>>(MatDialogRef);
   data = inject(MAT_DIALOG_DATA);
 
+  private readonly timePreference = inject(TimePreference);
   action = signal<any>(null);
+
+  readonly time = computed(() => {
+    const action = this.action();
+    const value = action?.["@timestamp"] ?? action?.timestamp;
+    if (!value) return null;
+    return { text: formatChainTime(value, this.timePreference.utc()), iso: isoChainTime(value) };
+  });
+  readonly authorizations = computed<Authorization[]>(() => {
+    const list = this.action()?.act?.authorization;
+    return Array.isArray(list) ? list.filter(auth => typeof auth?.actor === "string" && typeof auth?.permission === "string") : [];
+  });
+  readonly receipts = computed<Receipt[]>(() => {
+    const list = this.action()?.receipts;
+    return Array.isArray(list) ? list.filter(receipt => typeof receipt?.receiver === "string") : [];
+  });
 
   actionTreeControl = new NestedTreeControl<KeyValueNode>(dataNode => dataNode.children);
   actionTree = new MatTreeNestedDataSource<KeyValueNode>();
 
   constructor() {
-    console.log(this.data);
     if (this.data.action) {
       this.action.set(this.data.action);
 
@@ -63,7 +92,6 @@ export class ActionDetailsComponent {
 
   private buildTreeData() {
     const treeData: KeyValueNode[] | undefined = this.objectToTree(this.action());
-    console.log(treeData);
     if (treeData) {
       this.actionTree.data = treeData;
     }

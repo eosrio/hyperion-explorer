@@ -144,11 +144,8 @@ body {
 
 .mat-mdc-raised-button:not(:disabled):hover,
 .mat-mdc-raised-button:not(:disabled):focus-visible {
-  outline: none;
-  box-shadow: var(--box-shadow-bg-sharp-inset) !important;
-  transition: var(--transition-btn-down);
-  background: transparent !important;
-  color: var(--primary) !important;
+  outline: 2px solid var(--primary);
+  outline-offset: 3px;
 }
 
 .primary-btn {
@@ -277,7 +274,7 @@ body {
 }
 
 .link-gray {
-  color: gray;
+  color: var(--faded);
 }
 
 .link-primary {
@@ -408,7 +405,26 @@ body {
 /* Shared keyboard and recovery states follow the deployment theme. */
 :focus-visible {
   outline: 2px solid var(--primary);
-  outline-offset: 4px;
+  outline-offset: 3px;
+}
+
+/* Keyboard users can jump past the header straight to the page content. */
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 1000;
+  padding: 0.625rem 1rem;
+  border-radius: 0.5rem;
+  background: var(--primary);
+  color: var(--btn-primary-color);
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(-200%);
+}
+.skip-link:focus-visible {
+  transform: none;
+  outline-offset: 2px;
 }
 
 ::selection {

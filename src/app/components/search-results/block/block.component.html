@@ -24,7 +24,7 @@
 
           <div style="margin-bottom: 0.75rem">
 
-            <div class="flex flex-row flex-wrap justify-between items-center gap-2.5">
+            <div class="block-head-row flex flex-row flex-wrap justify-between items-center gap-2.5">
 
               <div>
                 <a matButton [routerLink]="['/block', block.previous_id ]">
@@ -34,14 +34,14 @@
                   </div>
                 </a>
               </div>
-              <div class="flex flex-row justify-start items-center gap-2.5">
-                <div class="text-xl font-semibold faded morph-target">
-                  <fa-layers [fixedWidth]="true" style="margin-right: 5px">
+              <div class="block-head-title flex flex-row flex-wrap justify-start items-center gap-2.5">
+                <h1 class="block-title morph-target">
+                  <fa-layers [fixedWidth]="true" aria-hidden="true">
                     <fa-icon [icon]="icons.solid.faCircle" transform="grow-1"></fa-icon>
                     <fa-icon [icon]="icons.solid.faBlock" [inverse]="true" transform="shrink-4"></fa-icon>
                   </fa-layers>
-                  <span>Block</span><span class="main-color"> {{ block.number }}</span>
-                </div>
+                  <span class="block-title-label">Block</span><span class="block-title-num">{{ block.number }}</span>
+                </h1>
 
                 <!-- Check block exists too-->
                 @if (libNumber && block && libNumber >= block.number) {
@@ -90,8 +90,8 @@
         </div>
         <div class="custom-card w-full min-w-full h-full min-h-full">
           <dl class="block-facts">
-            <div><dt>Producer</dt><dd><a [routerLink]="['/account', block.producer ]" class="link-accent font-medium">{{ block.producer }}</a></dd></div>
-            <div><dt>Time</dt><dd>{{ formatDate(block.timestamp) }}</dd></div>
+            <div><dt>Producer</dt><dd><a [routerLink]="['/account', block.producer ]" class="link-primary font-medium" appMorph>{{ block.producer }}</a></dd></div>
+            <div><dt>Time</dt><dd>{{ block.timestamp | chainTime: time.utc() }}</dd></div>
             <div><dt>Transactions</dt><dd>@if (block.historyUnavailable) { Unavailable } @else { {{ block.transactions.length }} returned }</dd></div>
           </dl>
         </div>
@@ -102,21 +102,19 @@
           </section>
         } @else {
         <div class="custom-card md:col-span-2 w-full min-w-full h-full min-h-full">
-          <div #transactionsTable style="margin-top: 0" class="mb-3 text-lg font-semibold">
-            <fa-layers [fixedWidth]="true" style="margin-right: 5px">
+          <h2 #transactionsTable class="section-title">
+            <fa-layers [fixedWidth]="true" aria-hidden="true">
               <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
               <fa-icon [icon]="icons.solid.faHistory" [inverse]="true" transform="shrink-5"></fa-icon>
             </fa-layers>
-            {{ block.transactions.length }} returned transaction@if (block.transactions.length !== 1) {
-            <span>s</span>
-          }
-          </div>
+            {{ block.transactions.length }} returned {{ block.transactions.length === 1 ? "transaction" : "transactions" }}
+          </h2>
           <p class="mb-3 text-sm faded">Transactions and actions reflect the connected history service and may be incomplete.</p>
           <table mat-table [dataSource]="block.transactions" class="transactions-table" multiTemplateDataRows>
             <!-- TX ID Column -->
             <ng-container matColumnDef="icon">
               <th mat-header-cell *matHeaderCellDef></th>
-              <td mat-cell *matCellDef="let transaction" data-label="Tap to see all actions">
+              <td mat-cell *matCellDef="let transaction" data-label="Actions">
                 <button mat-icon-button [attr.aria-expanded]="txExpandedElement === transaction"
                         [attr.aria-label]="'Toggle actions for transaction ' + transaction.id">
                   <fa-icon [ngClass]="txExpandedElement === transaction ? 'arrowDown' : 'arrowRight'"
@@ -129,9 +127,7 @@
             <ng-container matColumnDef="id">
               <th mat-header-cell *matHeaderCellDef>TX ID</th>
               <td mat-cell *matCellDef="let transaction" data-label="TX ID">
-                <a [routerLink]="['/transaction', transaction.id]" class="link-primary break-word" appMorph>
-                  {{ transaction.id }}
-                </a>
+                <a [routerLink]="['/transaction', transaction.id]" class="tx-id-link" appMorph (click)="$event.stopPropagation()">{{ transaction.id }}</a>
               </td>
             </ng-container>
             <!-- Root Action Column -->
@@ -139,26 +135,23 @@
               <th mat-header-cell *matHeaderCellDef style="padding-left: 10px">
                 First returned action
               </th>
-              <td mat-cell *matCellDef="let transaction" data-label="Root Action">
+              <td mat-cell *matCellDef="let transaction" data-label="First action">
                   @if (transaction.actions[0]; as firstAction) {
-                    <span class="action-cell">
-                      <span class="accent font-medium">{{ firstAction.action }}</span>
-                      on
-                      <span class="font-medium div-link" [routerLink]="['/account', firstAction.account]">
-                        {{ firstAction.account }}
-                      </span>
+                    <span class="first-action">
+                      <span class="action-name">{{ firstAction.action }}</span>
+                      <a class="action-contract" [routerLink]="['/account', firstAction.account]" appMorph (click)="$event.stopPropagation()">{{ firstAction.account }}</a>
                     </span>
                   } @else {
-                    <span>No action details returned</span>
+                    <span class="faded">No action details returned</span>
                   }
               </td>
             </ng-container>
             <!-- Num Action Column -->
             <ng-container matColumnDef="action">
-              <th mat-header-cell *matHeaderCellDef style="text-align: center">
+              <th mat-header-cell *matHeaderCellDef class="num-col">
                 Action entries
               </th>
-              <td mat-cell *matCellDef="let transaction" style="text-align: center" data-label="# Actions">
+              <td mat-cell *matCellDef="let transaction" class="num-col" data-label="Action entries">
                 {{ transaction["actions"].length }}
               </td>
             </ng-container>
@@ -171,45 +164,28 @@
                      [class.is-expanded]="transaction === txExpandedElement"
                      [attr.inert]="transaction === txExpandedElement ? null : ''">
                   <div class="detail-content">
-                  <table #actionsTable mat-table [dataSource]="transaction.actions" class="actions-table">
-                    <!-- Action Column -->
-                    <ng-container matColumnDef="action">
-                      <th mat-header-cell *matHeaderCellDef>Action</th>
-                      <td mat-cell *matCellDef="let action" data-label="Action">
-                        <span>
-                          <span class="accent font-medium">{{ action.action }}</span>
-                          on
-                          <span class="font-medium div-link" [routerLink]="['/account', action.account]">
-                            {{ action.account }}
-                          </span>
-                        </span>
-                      </td>
-                    </ng-container>
-
-                    <!-- Data Column -->
-                    <ng-container matColumnDef="data">
-                      <th mat-header-cell *matHeaderCellDef>Data</th>
-                      <td mat-cell *matCellDef="let action" data-label="Data">
-                        <div class="py-4">
-                          <app-action-data [contract]="action.account" [name]="action.action" [data]="action.data" />
-                        </div>
-                      </td>
-                    </ng-container>
-
-                    <!-- Authorization Column -->
-                    <ng-container matColumnDef="auth">
-                      <th mat-header-cell *matHeaderCellDef>Authorization</th>
-                      <td mat-cell *matCellDef="let action" data-label="Authorization">
-                        @for (auth of action['authorization'][0] | keyvalue; track auth) {
-                          <div class="pb-1">
-                            <span class="font-medium">{{ auth.key }}</span>: <span>{{ auth.value }}</span>
+                  <ol #actionsTable class="block-actions">
+                    @for (action of transaction.actions; track $index; let i = $index) {
+                      <li class="block-action">
+                        <div class="block-action-id">
+                          <span class="block-action-index" aria-hidden="true">{{ i + 1 }}</span>
+                          <div class="block-action-name">
+                            <span class="action-name">{{ action.action }}</span>
+                            <a class="action-contract" [routerLink]="['/account', action.account]" appMorph>{{ action.account }}</a>
+                            @if (action.receiver && action.receiver !== action.account) {
+                              <span class="action-receiver">notification to <a [routerLink]="['/account', action.receiver]" appMorph>{{ action.receiver }}</a></span>
+                            }
                           </div>
-                        }
-                      </td>
-                    </ng-container>
-                    <tr class="actions-table-header" mat-header-row *matHeaderRowDef="txColumnsInside; sticky: true"></tr>
-                    <tr mat-row *matRowDef="let myRowData2; columns: txColumnsInside"></tr>
-                  </table>
+                        </div>
+                        <app-action-data [contract]="action.account" [name]="action.action" [data]="action.data" />
+                        <div class="block-action-auth">
+                          @for (auth of action.authorization; track $index) {
+                            <span class="auth-chip"><a [routerLink]="['/account', auth.actor ?? auth.account]" appMorph>{{ auth.actor ?? auth.account }}</a><span class="auth-perm">&#64;{{ auth.permission }}</span></span>
+                          }
+                        </div>
+                      </li>
+                    }
+                  </ol>
                   </div>
                 </div>
               </td>
@@ -239,60 +215,46 @@
           <section class="custom-card md:col-span-2" role="status">Loading block state details…</section>
         } @else if (!block.historyUnavailable && deltas) {
           <div class="custom-card md:col-span-2 w-full min-w-full h-full min-h-full">
-            <div #deltasTable style="margin-top: 0" class="mb-3 text-lg font-semibold">
-              <fa-layers [fixedWidth]="true" style="margin-right: 5px">
+            <h2 #deltasTable class="section-title">
+              <fa-layers [fixedWidth]="true" aria-hidden="true">
                 <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
                 <fa-icon [icon]="icons.solid.faHistory" [inverse]="true" transform="shrink-5"></fa-icon>
               </fa-layers>
-              {{ deltas.length }} Delta@if (deltas.length > 1) {
-              <span>s</span>
-            }
-            </div>
+              {{ deltas.length }} state {{ deltas.length === 1 ? "change" : "changes" }}
+            </h2>
 
             <table mat-table [dataSource]="deltas" class="deltas-table" multiTemplateDataRows>
 
               <ng-container matColumnDef="present">
-                <th mat-header-cell *matHeaderCellDef style="text-align: center">Present</th>
-                <td mat-cell *matCellDef="let delta" style="text-align: center" data-label="Present">
-                  {{ delta.present }}
+                <th mat-header-cell *matHeaderCellDef>Change</th>
+                <td mat-cell *matCellDef="let delta" data-label="Change">
+                  @if (delta.present === 0 || delta.present === false) { <span class="delta-kind delta-removed">Row removed</span> }
+                  @else { <span class="delta-kind">Row written</span> }
                 </td>
               </ng-container>
 
               <ng-container matColumnDef="location">
-                <th mat-header-cell *matHeaderCellDef style="text-align: center">State Location</th>
+                <th mat-header-cell *matHeaderCellDef>Table</th>
                 <td mat-cell *matCellDef="let delta" data-label="State Location">
 
-                  <div class="action-cell flex flex-col gap-1 text-center justify-center items-center">
-                    <div>
-                    <span matTooltip="Table" matTooltipPosition="above"
-                          class="font-medium">{{ delta.table }}</span>
-                      <span class="main-color"> on </span>
-                    </div>
-                    <span matTooltip="Contract" matTooltipPosition="above" [routerLink]="['/account', delta.code]"
-                          class="accent font-medium div-link main-color">
-                    {{ delta.code }}
-                  </span>
-                    @if (delta.scope) {
-                      <div>
-                        <span class="main-color"> for </span>
-                        <span matTooltip="Scope" matTooltipPosition="above"
-                              class="font-medium cursor-default">{{ delta.scope }}</span>
-                      </div>
-                    }
+                  <div class="delta-location">
+                    <span class="delta-table">{{ delta.table }}</span>
+                    <a class="action-contract" [routerLink]="['/account', delta.code]" appMorph>{{ delta.code }}</a>
+                    @if (delta.scope) { <span class="delta-scope">scope {{ delta.scope }}</span> }
                   </div>
 
                 </td>
               </ng-container>
 
               <ng-container matColumnDef="payer">
-                <th mat-header-cell *matHeaderCellDef style="text-align: center">RAM Payer</th>
-                <td mat-cell *matCellDef="let delta" style="text-align: center" data-label="Payer">
-                  <a [routerLink]="['/account', delta.payer]" class="link-accent">{{ delta.payer }}</a>
+                <th mat-header-cell *matHeaderCellDef>RAM payer</th>
+                <td mat-cell *matCellDef="let delta" data-label="RAM payer">
+                  <a [routerLink]="['/account', delta.payer]" class="link-primary" appMorph>{{ delta.payer }}</a>
                 </td>
               </ng-container>
 
               <ng-container matColumnDef="data">
-                <th mat-header-cell *matHeaderCellDef style="text-align: center">Data</th>
+                <th mat-header-cell *matHeaderCellDef>Data</th>
                 <td mat-cell *matCellDef="let delta" data-label="Data">
                   <div class="py-4">
                     <app-act-data-view [data]="delta.data"></app-act-data-view>

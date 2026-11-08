@@ -1,3 +1,4 @@
+import { MorphLinkDirective } from "../../../morph";
 import { CopyIdentifierComponent } from "../../copy-identifier/copy-identifier.component";
 import { Component, OnInit, signal, inject, ChangeDetectionStrategy } from "@angular/core";
 import { ActivatedRoute, RouterLink } from "@angular/router";
@@ -16,7 +17,7 @@ interface KeyResponse {
 
 @Component({
   selector: "app-key",
-  imports: [CopyIdentifierComponent, RouterLink, MatProgressSpinner, FaIconComponent, FaLayersComponent],
+  imports: [MorphLinkDirective, CopyIdentifierComponent, RouterLink, MatProgressSpinner, FaIconComponent, FaLayersComponent],
   templateUrl: "./key.component.html",
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./key.component.css"

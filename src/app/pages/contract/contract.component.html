@@ -1,8 +1,10 @@
 <div class="hr-container w-full">
   <section class="custom-card contract-page">
-    <h1 class="page-heading">Contract <span class="primary">{{ code.value() }}</span></h1>
+    <header class="contract-page-head">
+      <h1>Contract <span class="contract-code">{{ code.value() }}</span></h1>
+      @if (code.value(); as code) { <a class="contract-account-link" [routerLink]="['/account', code]">View account</a> }
+    </header>
     <app-contract-explorer navMode="page" [(code)]="code.value" [(scope)]="scope.value"
                            [(table)]="table.value"></app-contract-explorer>
   </section>
 </div>
-

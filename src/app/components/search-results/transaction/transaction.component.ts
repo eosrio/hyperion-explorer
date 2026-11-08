@@ -1,3 +1,4 @@
+import { ChainTimePipe, TimePreference } from "../../../chain-time";
 import { ActionDataComponent } from "../../action-data/action-data.component";
 import { MorphLinkDirective } from "../../../morph";
 import { asUtcTimestamp } from "../../../utils";
@@ -12,21 +13,18 @@ import { DataService } from "../../../services/data.service";
 import { SearchService } from "../../../services/search.service";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { FaIconComponent, FaLayersComponent } from "@fortawesome/angular-fontawesome";
-import { MatTableModule } from "@angular/material/table";
-import { isPlatformBrowser, KeyValuePipe } from "@angular/common";
+import { isPlatformBrowser } from "@angular/common";
 import { ChainService } from "../../../services/chain.service";
 
 @Component({
   selector: "app-transaction",
-  imports: [ActionDataComponent, MorphLinkDirective,
+  imports: [ChainTimePipe, ActionDataComponent, MorphLinkDirective,
     FinalityHelpComponent,
     CopyIdentifierComponent,
     MatProgressSpinner,
     FaIconComponent,
     FaLayersComponent,
-    RouterLink,
-    MatTableModule,
-    KeyValuePipe
+    RouterLink
   ],
   templateUrl: "./transaction.component.html",
   changeDetection: ChangeDetectionStrategy.Eager,
@@ -43,7 +41,6 @@ export class TransactionComponent implements OnInit, OnDestroy {
   data = inject(DataService);
   private title = inject(Title);
 
-  columnsToDisplay: string[] = ["contract", "action", "data", "auth"];
 
   tx = signal<any>({
     actions: null
@@ -125,9 +122,7 @@ export class TransactionComponent implements OnInit, OnDestroy {
     }
   }
 
-  formatDate(date: string): string {
-    return new Date(asUtcTimestamp(date)).toLocaleString();
-  }
+  readonly time = inject(TimePreference);
 
   // async reloadCountdownTimer(): Promise<void> {
   //   await this.accountService.updateLib();

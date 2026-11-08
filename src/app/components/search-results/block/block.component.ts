@@ -1,3 +1,4 @@
+import { ChainTimePipe, TimePreference } from "../../../chain-time";
 import { ActionDataComponent } from "../../action-data/action-data.component";
 import { MorphLinkDirective } from "../../../morph";
 import { asUtcTimestamp } from "../../../utils";
@@ -11,7 +12,7 @@ import { MatChipsModule } from "@angular/material/chips";
 import { MatTableModule } from "@angular/material/table";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import { ActivatedRoute, RouterModule } from "@angular/router";
-import { isPlatformBrowser, KeyValuePipe, NgClass } from "@angular/common";
+import { isPlatformBrowser, NgClass } from "@angular/common";
 import {
   faArrowLeft,
   faArrowRight,
@@ -36,7 +37,7 @@ import { MatTooltip } from "@angular/material/tooltip";
 
 @Component({
   selector: "app-block",
-  imports: [ActionDataComponent, MorphLinkDirective,
+  imports: [ChainTimePipe, ActionDataComponent, MorphLinkDirective,
     FinalityHelpComponent,
     CopyIdentifierComponent,
     RouterModule,
@@ -46,7 +47,6 @@ import { MatTooltip } from "@angular/material/tooltip";
     MatProgressSpinner,
     MatIconButton,
     NgClass,
-    KeyValuePipe,
     ActDataViewComponent,
     MatTooltip,
     MatButton
@@ -70,7 +70,6 @@ export class BlockComponent implements OnInit, OnDestroy {
   chain = inject(ChainService);
 
   txColumnsToDisplay: string[] = ["icon", "id", "root", "action"];
-  txColumnsInside: string[] = ["action", "data", "auth"];
   txExpandedElement: any | null;
 
   deltasColumnsToDisplay: string[] = ["present", "location", "payer", "data"];
@@ -172,7 +171,5 @@ export class BlockComponent implements OnInit, OnDestroy {
     }
   }
 
-  formatDate(date: string): string {
-    return new Date(asUtcTimestamp(date)).toLocaleString();
-  }
+  readonly time = inject(TimePreference);
 }

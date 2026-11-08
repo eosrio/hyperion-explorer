@@ -64,12 +64,18 @@ export class ProducersComponent {
    */
   readonly hasVotes = computed(() => this.chainService.producers().some((p: any) => p.total_votes !== undefined && p.total_votes !== null));
   readonly hasLocation = computed(() => this.chainService.producers().some((p: any) => p.location !== undefined && p.location !== null && String(p.location).trim() !== ""));
+  readonly hasKeys = computed(() => this.chainService.producers().some((p: any) => typeof p.producer_key === "string" && p.producer_key.length > 0));
   readonly displayedColumns = computed(() => [
     "rank",
     "account",
+    ...(this.hasKeys() ? ["producer_key"] : []),
     ...(this.hasLocation() ? ["location"] : []),
     ...(this.hasVotes() ? ["total_votes"] : [])
   ]);
+
+  shortKey(key: string): string {
+    return key && key.length > 24 ? `${key.slice(0, 11)}…${key.slice(-6)}` : key;
+  }
 
   // Lookup maps for country names by code
   private readonly countryNameByNumeric = new Map<string, string>(countries.map(c => [c["country-code"], c.name]));

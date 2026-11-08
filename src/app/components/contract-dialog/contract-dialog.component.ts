@@ -1,16 +1,14 @@
-import { Component, inject, Inject, signal, ChangeDetectionStrategy } from "@angular/core";
+import { Component, computed, inject, signal, ChangeDetectionStrategy } from "@angular/core";
+import { RouterLink } from "@angular/router";
 import { MAT_DIALOG_DATA, MatDialogClose, MatDialogTitle } from "@angular/material/dialog";
 import { ContractExplorerData } from "../../interfaces";
 import { ContractExplorerComponent } from "../contract-explorer/contract-explorer.component";
-import { NgOptimizedImage } from "@angular/common";
-import { FaIconComponent } from "@fortawesome/angular-fontawesome";
-import { faUserCircle } from "@fortawesome/free-solid-svg-icons";
 import { MatIconButton } from "@angular/material/button";
 import { MatIcon } from "@angular/material/icon";
 
 @Component({
   selector: "app-contract-dialog",
-  imports: [MatDialogTitle, ContractExplorerComponent, NgOptimizedImage, FaIconComponent, MatDialogClose, MatIconButton, MatIcon],
+  imports: [MatDialogTitle, ContractExplorerComponent, MatDialogClose, MatIconButton, MatIcon, RouterLink],
   templateUrl: "./contract-dialog.component.html",
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./contract-dialog.component.css"
@@ -22,11 +20,8 @@ export class ContractDialogComponent {
   table = signal<string | null>(null);
   scope = signal<string | null>(null);
 
-  icons = {
-    solid: {
-      faUserCircle: faUserCircle
-    }
-  };
+  /** The same contract, table and scope as a standalone page that can be bookmarked and shared. */
+  readonly pagePath = computed(() => ["/contract", this.code(), this.table(), this.scope()].filter((part): part is string => !!part));
 
   constructor() {
     if (this.data.account) {

@@ -107,6 +107,14 @@ export class MainSearchComponent implements OnDestroy {
     { initialValue: this.router.url }
   );
   readonly isHome = computed(() => this.routeUrl().split("?")[0] === "/");
+
+  /** The skip link moves focus without touching the route (a bare #fragment would resolve against the base href). */
+  skipToContent(event: Event): void {
+    event.preventDefault();
+    const main = document.getElementById("main-content");
+    main?.focus();
+    main?.scrollIntoView({ block: "start" });
+  }
   readonly scrollProgress = signal(0);
   readonly reducedMotion = signal(isPlatformBrowser(this.platform) && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   readonly headerProgress = computed(() => (this.isHome() && !this.reducedMotion() ? this.scrollProgress() : 1));

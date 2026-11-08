@@ -21,15 +21,11 @@ dd {
   overflow-wrap: anywhere;
 }
 .stats-summary dd {
-  font-size: 1.375rem;
-  font-weight: 600;
-}
-.stats-summary .head-time {
-  grid-column: 1 / -1;
-}
-.head-time dd {
   font-size: 1rem;
-  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+}
+.stats-summary .stats-wide {
+  grid-column: 1 / -1;
 }
 .chain-metadata {
   padding-block: 0.75rem;

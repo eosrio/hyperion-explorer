@@ -10,7 +10,7 @@
       </span>
       <p class="pulse-state" aria-live="polite">
         @if (chain.liveFailedAt() !== null) {
-          Reconnecting<span class="pulse-updated">@if (chain.lastUpdatedAt(); as updated) { · last update {{ updated | date: "mediumTime" }}}</span>
+          Reconnecting<span class="pulse-updated">@if (chain.lastUpdatedAt(); as updated) { · last update {{ updated | chainTime: time.utc() : 'time' }}}</span>
         } @else {
           Live
         }

@@ -32,36 +32,33 @@
         <div class="flex flex-col justify-start items-center gap-[15px]">
           <div class="custom-card card-top-sticky bg-no-transparency w-full min-w-full h-full min-h-full sticky top-[100px] z-40">
             <div class="flex flex-row justify-start items-center">
-              <div class="text-xl font-semibold faded">
-                <fa-layers [fixedWidth]="true" style="margin-right: 2px">
+              <h1 class="key-title">
+                <fa-layers [fixedWidth]="true" aria-hidden="true">
                   <fa-icon [icon]="icons.solid.faCircle" transform="grow-1"></fa-icon>
                   <fa-icon [icon]="icons.solid.faKey" [inverse]="true" transform="shrink-4"></fa-icon>
                 </fa-layers>
-                Public Key
-              </div>
+                Public key
+              </h1>
             </div>
             <app-copy-identifier class="mt-5" [value]="pubKey()" label="public key" />
           </div>
           <div class="custom-card flex-100 w-full min-w-full h-full min-h-full">
             <div>
-              <h4 style="font-weight: 500">Associated accounts:</h4>
-              <div class="acc-grid-parent">
+              <h2 class="key-section-title">
+                Controls {{ key().permissions.length || key().account_names.length }}
+                {{ (key().permissions.length || key().account_names.length) === 1 ? "permission" : "permissions" }}
+              </h2>
+              <ul class="key-accounts">
                 @if (key().permissions.length > 0) {
-                  @for (acc of key().permissions; track acc) {
-                    <div class="account-cell">
-                      <a class="font-medium link-primary" [routerLink]="['/account', acc['owner']]">{{acc["owner"] }}</a>
-                      <span class="faded permission">{{ acc.name }}</span>
-                    </div>
+                  @for (acc of key().permissions; track $index) {
+                    <li class="key-account"><a [routerLink]="['/account', acc['owner']]" appMorph>{{ acc["owner"] }}</a><span class="key-perm">&#64;{{ acc.name }}</span></li>
                   }
-                }
-                @if (key().permissions.length === 0) {
+                } @else {
                   @for (acc of key().account_names; track acc) {
-                    <div class="account-cell">
-                      <a class="font-medium link-primary" [routerLink]="['/account', acc]">{{ acc }}</a>
-                    </div>
+                    <li class="key-account"><a [routerLink]="['/account', acc]" appMorph>{{ acc }}</a></li>
                   }
                 }
-              </div>
+              </ul>
             </div>
           </div>
         </div>

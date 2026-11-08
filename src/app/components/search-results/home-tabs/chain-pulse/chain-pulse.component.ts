@@ -1,6 +1,7 @@
+import { ChainTimePipe, TimePreference } from "../../../../chain-time";
 import { MorphLinkDirective } from "../../../../morph";
 import { afterNextRender, ChangeDetectionStrategy, Component, computed, DestroyRef, inject } from "@angular/core";
-import { DatePipe, DecimalPipe } from "@angular/common";
+import { DecimalPipe } from "@angular/common";
 import { RouterLink } from "@angular/router";
 import { ChainService } from "../../../../services/chain.service";
 
@@ -10,13 +11,14 @@ import { ChainService } from "../../../../services/chain.service";
  */
 @Component({
   selector: "app-chain-pulse",
-  imports: [MorphLinkDirective, DatePipe, DecimalPipe, RouterLink],
+  imports: [ChainTimePipe, MorphLinkDirective, DecimalPipe, RouterLink],
   templateUrl: "./chain-pulse.component.html",
   styleUrl: "./chain-pulse.component.css",
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ChainPulseComponent {
   readonly chain = inject(ChainService);
+  readonly time = inject(TimePreference);
 
   readonly info = this.chain.chainInfo;
   readonly head = computed(() => this.info()?.head_block_num ?? 0);

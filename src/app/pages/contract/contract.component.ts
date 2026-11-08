@@ -1,6 +1,6 @@
 import { Component, inject, ResourceRef, ChangeDetectionStrategy } from "@angular/core";
 import { ContractExplorerComponent } from "../../components/contract-explorer/contract-explorer.component";
-import { ActivatedRoute } from "@angular/router";
+import { ActivatedRoute, RouterLink } from "@angular/router";
 import { rxResource } from "@angular/core/rxjs-interop";
 import { map } from "rxjs";
 
@@ -12,7 +12,7 @@ function rxResFromParam(route: ActivatedRoute, key: string): ResourceRef<string 
 
 @Component({
   selector: "app-contract",
-  imports: [ContractExplorerComponent],
+  imports: [ContractExplorerComponent, RouterLink],
   templateUrl: "./contract.component.html",
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./contract.component.css"

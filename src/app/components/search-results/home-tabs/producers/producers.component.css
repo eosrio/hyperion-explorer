@@ -118,3 +118,18 @@
     border: 0.5rem solid var(--card-bg);
   }
 }
+.producers-table .mat-column-rank {
+  width: 4.5rem;
+  font-variant-numeric: tabular-nums;
+}
+.producer-key {
+  color: var(--faded);
+  font-family: ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
+  font-size: 0.8125rem;
+  text-decoration: none;
+}
+.producer-key:hover {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}

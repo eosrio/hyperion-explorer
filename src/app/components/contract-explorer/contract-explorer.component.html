@@ -1,182 +1,168 @@
-<mat-dialog-content id="dialog-content">
+<div class="cx" [class.cx-dialog]="navMode() === 'dialog'">
   @if (abiRes.error() || tableScopesRes.error() || tableRowRes.error(); as error) {
-    <section class="api-error" role="alert"><p>{{ describeApiError(error) }}</p>@if (isRetryableApiError(error)) { <button type="button" (click)="abiRes.reload(); tableScopesRes.reload(); tableRowRes.reload()">Try again</button> }</section>
+    <section class="api-error cx-error" role="alert"><p>{{ describeApiError(error) }}</p>@if (isRetryableApiError(error)) { <button type="button" (click)="abiRes.reload(); tableScopesRes.reload(); tableRowRes.reload()">Try again</button> }</section>
   }
+
   @if (code()) {
-    <div class="contract-table-heading"><h2>Contract tables</h2><button type="button" aria-label="Reload tables" mat-icon-button (click)="reloadTables()" [disabled]="abiRes.isLoading()"><mat-icon>sync</mat-icon></button></div>
-    @if (abiRes.isLoading()) { <p role="status">Loading contract tables…</p> }
-    @else if (!abiRes.error() && !abiTableNames().length) { <p class="faded">This contract does not define any tables.</p> }
-    <div class="grid dialog-grid-parent" role="group" aria-label="Contract tables">
-      @for (tableName of abiTableNames(); track tableName) {
-        <button type="button" mat-raised-button class="grid-item-btn" (click)="selectTable(tableName)" [attr.aria-pressed]="tableName === table()" [class.selected]="tableName === table()">{{ tableName }}</button>
+    <!-- Tables this contract stores, as a list a visitor can scan and filter. -->
+    <aside class="cx-tables" aria-labelledby="cx-tables-heading">
+      <div class="cx-tables-head">
+        <h2 id="cx-tables-heading">Tables @if (abiTableNames().length) { <span class="cx-count">{{ abiTableNames().length }}</span> }</h2>
+        <button type="button" class="cx-icon-btn" aria-label="Reload tables" title="Reload tables" (click)="reloadTables()" [disabled]="abiRes.isLoading()">
+          <mat-icon aria-hidden="true">sync</mat-icon>
+        </button>
+      </div>
+      @if (abiTableNames().length > 8) {
+        <input class="cx-filter" type="search" placeholder="Filter tables" aria-label="Filter tables" [ngModel]="tableFilter()" (ngModelChange)="tableFilter.set($event)" />
       }
-    </div>
-  }
-  @defer (on immediate) {
-    @if (table()) {
-      <section id="scope-section" class="contract-section" aria-labelledby="scope-heading">
-        <h2 id="scope-heading">Table {{ table() }}</h2>
-        <p id="scope-help" class="faded">A scope separates a table’s rows, often by account or token symbol.</p>
-        <div class="scope-toolbar">
-          <label class="scope-selector">Scope
-            <select aria-label="Contract scope" aria-describedby="scope-help" [ngModel]="scope() || ''" (ngModelChange)="$event && selectScope($event)">
-              <option value="">Select a scope</option>
-              @if (scope() && !scopeList().includes(scope()!)) { <option [value]="scope()">{{ scope() }}</option> }
-              @for (name of scopeList(); track name) { <option [value]="name">{{ name }}</option> }
-            </select>
-          </label>
-          <div class="scope-paging" role="group" aria-label="Scope pages">
-            <button type="button" mat-icon-button aria-label="Previous scopes" (click)="usePreviousScope()" [disabled]="!lastScope()"><mat-icon>arrow_left</mat-icon></button>
-            <button type="button" mat-icon-button aria-label="Next scopes" (click)="useNextScope()" [disabled]="!nextScopePresent()"><mat-icon>arrow_right</mat-icon></button>
-            <button type="button" mat-icon-button aria-label="Reload scopes" (click)="reloadScopes()" [disabled]="tableScopesRes.isLoading()"><mat-icon>sync</mat-icon></button>
-          </div>
-          <details class="scope-options"><summary>Scope options</summary>
-            <label>Scopes per request<input #scopeLimit type="number" min="1" max="1000" aria-label="Scope search limit" [value]="getTableByScopeLimit()" (change)="setScopeLimit(scopeLimit.valueAsNumber)" /></label>
-            <label>Enter a scope<input #customScope type="text" aria-label="Custom scope" placeholder="Account, symbol or scope" (keyup.enter)="customScope.value.trim() && selectScope(customScope.value.trim())" /></label>
-            <button type="button" mat-raised-button (click)="customScope.value.trim() && selectScope(customScope.value.trim())">Load scope</button>
-          </details>
-        </div>
-        @if (tableScopesRes.isLoading()) { <p role="status">Loading scopes…</p> }
-        @else if (!tableScopesRes.error() && !scopeList().length) { <p class="faded">No scopes were returned. Use Scope options to enter one directly.</p> }
-      </section>
+      @if (abiRes.isLoading()) { <p class="cx-note" role="status">Loading contract tables…</p> }
+      @else if (!abiRes.error() && !abiTableNames().length) { <p class="cx-note">This contract does not define any tables.</p> }
+      <div class="cx-table-list" role="group" aria-label="Contract tables">
+        @for (tableName of filteredTables(); track tableName) {
+          <button type="button" class="grid-item-btn" (click)="selectTable(tableName)" [attr.aria-pressed]="tableName === table()" [class.selected]="tableName === table()">
+            <span class="cx-table-name">{{ tableName }}</span>
+            @if (tableTypes().get(tableName); as type) { <span class="cx-table-type">{{ type }}</span> }
+          </button>
+        } @empty {
+          @if (tableFilter() && abiTableNames().length) { <p class="cx-note">No table matches “{{ tableFilter() }}”.</p> }
+        }
+      </div>
+    </aside>
 
-      @if (scope()) {
-        <div id="data-section" class="contract-section">
-          <div class="text-lg mt-5 flex flex-row flex-wrap justify-between items-start gap-3">
-            <div class="view-mode-toggle text-lg flex flex-row items-center gap-3">
-              <span class="main-color">Scope: </span>
-              <span class="font-medium">{{ scope() }}</span>
-              <span class="faded text-sm">with {{ tableData().length }} row@if (tableData().length > 1) {
-                <span>s</span>
-              } </span>
-              <button aria-label="Reload rows" matTooltip="Reload Rows" (click)="reloadRows()" [disabled]="tableRowRes.isLoading()"
-                      mat-icon-button>
-                <mat-icon>sync</mat-icon>
-              </button>
+    <div class="cx-main">
+      @if (!table()) {
+        <section class="cx-overview" aria-labelledby="cx-overview-heading">
+          <h2 id="cx-overview-heading">Choose a table to read its rows</h2>
+          <p class="cx-note">Each table stores rows in scopes, usually one per account or token symbol.</p>
+          @if (abiActions().length) {
+            <h3>Actions this contract accepts <span class="cx-count">{{ abiActions().length }}</span></h3>
+            <ul class="cx-actions">
+              @for (action of abiActions(); track action) { <li>{{ action }}</li> }
+            </ul>
+          }
+        </section>
+      }
+
+      @defer (on immediate) {
+        @if (table()) {
+          <section id="scope-section" class="cx-section" aria-labelledby="scope-heading">
+            <div class="cx-section-head">
+              <h2 id="scope-heading">{{ table() }}</h2>
+              @if (tableTypes().get(table()!); as type) { <span class="cx-type-tag">rows of {{ type }}</span> }
             </div>
-
-            @if (tableData().length > 1) {
-              <!-- View mode toggle buttons -->
-              <div class="flex flex-row items-center gap-2">
-                <span class="text-sm">View mode:</span>
-                <button mat-icon-button aria-label="Collapsible list view" matTooltip="Collapsible List View"
-                        [attr.aria-pressed]="viewMode() === 'expanded'" [ngClass]="{'selected-view': viewMode() === 'expanded'}"
-                        (click)="setViewMode('expanded')">
-                  <mat-icon>view_list</mat-icon>
-                </button>
-                <button mat-icon-button aria-label="Card view" matTooltip="Card View"
-                        [attr.aria-pressed]="viewMode() === 'card'" [ngClass]="{'selected-view': viewMode() === 'card'}"
-                        (click)="setViewMode('card')">
-                  <mat-icon>grid_view</mat-icon>
-                </button>
-                <button mat-icon-button aria-label="Table view" matTooltip="Table View"
-                        [attr.aria-pressed]="viewMode() === 'table'" [ngClass]="{'selected-view': viewMode() === 'table'}"
-                        (click)="setViewMode('table')">
-                  <mat-icon>table_chart</mat-icon>
-                </button>
+            <p id="scope-help" class="cx-note">A scope separates a table’s rows, often by account or token symbol.</p>
+            <div class="scope-toolbar">
+              <label class="scope-selector">Scope
+                <select aria-label="Contract scope" aria-describedby="scope-help" [ngModel]="scope() || ''" (ngModelChange)="$event && selectScope($event)">
+                  <option value="">Select a scope</option>
+                  @if (scope() && !scopeList().includes(scope()!)) { <option [value]="scope()">{{ scopeLabel(scope()!) }}</option> }
+                  @for (name of scopeList(); track name) { <option [value]="name">{{ scopeLabel(name) }}</option> }
+                </select>
+              </label>
+              <div class="scope-paging" role="group" aria-label="Scope pages">
+                <button type="button" class="cx-icon-btn" aria-label="Previous scopes" title="Previous scopes" (click)="usePreviousScope()" [disabled]="!lastScope()"><mat-icon aria-hidden="true">chevron_left</mat-icon></button>
+                <button type="button" class="cx-icon-btn" aria-label="Next scopes" title="Next scopes" (click)="useNextScope()" [disabled]="!nextScopePresent()"><mat-icon aria-hidden="true">chevron_right</mat-icon></button>
+                <button type="button" class="cx-icon-btn" aria-label="Reload scopes" title="Reload scopes" (click)="reloadScopes()" [disabled]="tableScopesRes.isLoading()"><mat-icon aria-hidden="true">sync</mat-icon></button>
               </div>
-            }
-          </div>
+              <details class="scope-options"><summary>Scope options</summary>
+                <label>Scopes per request<input #scopeLimit type="number" min="1" max="1000" aria-label="Scope search limit" [value]="getTableByScopeLimit()" (change)="setScopeLimit(scopeLimit.valueAsNumber)" /></label>
+                <label>Enter a scope<input #customScope type="text" aria-label="Custom scope" placeholder="Account, symbol or scope" (keyup.enter)="customScope.value.trim() && selectScope(customScope.value.trim())" /></label>
+                <button type="button" class="cx-text-btn" (click)="customScope.value.trim() && selectScope(customScope.value.trim())">Load scope</button>
+              </details>
+            </div>
+            @if (tableScopesRes.isLoading()) { <p class="cx-note" role="status">Loading scopes…</p> }
+            @else if (!tableScopesRes.error() && !scopeList().length) { <p class="cx-note">No scopes were returned. Use Scope options to enter one directly.</p> }
+          </section>
 
-
-          @if (tableRowRes.isLoading()) { <p role="status">Loading rows…</p> }
-          @else if (!tableRowRes.error() && !tableData().length) { <p class="faded">No rows were returned for this scope.</p> }
-          @defer (when displayedColumns().length > 0) {
-
-            @if (tableData().length === 1) {
-              <!--              <pre class="text-wrap break-words">{{ tableData()[0] | json }}</pre>-->
-              <div class="mt-5 mx-3 appear">
-                <app-act-data-view [data]="tableData()[0]"></app-act-data-view>
-              </div>
-            } @else {
-              <!-- Table View -->
-              @if (viewMode() === 'table') {
-                <table mat-table [dataSource]="tableData()" class="appear transparent-table max-w-full w-full mt-5"
-                       matSort (matSortChange)="announceSortChange($event)">
-                  @for (field of fields(); track field.name) {
-                    <ng-container [matColumnDef]="field.name">
-
-                      <th mat-header-cell
-                          *matHeaderCellDef mat-sort-header
-                          [matTooltip]="'Type: ' + field.type"
-                          [sortActionDescription]="'Sort by ' + field.name">{{ field.name }}
-                      </th>
-
-                      <td mat-cell
-                          *matCellDef="let element" [attr.data-label]="field.name + '\n\n(' + field.type + ')'"
-                          class="text-wrap break-words lg:max-w-[15.313rem]">
-
-                        <app-act-data-view [fieldName]="field.name" [data]="element[field.name]"></app-act-data-view>
-                        <!--                      {{ element[field.name] | json }}-->
-                      </td>
-                    </ng-container>
-                  }
-                  <tr mat-header-row *matHeaderRowDef="displayedColumns()"></tr>
-                  <tr mat-row *matRowDef="let row; columns: displayedColumns();"></tr>
-                </table>
-              }
-
-              <!-- Card View -->
-              @if (viewMode() === 'card') {
-                <div class="appear card-grid-view mt-5">
-                  @for (row of tableData(); track $index) {
-                    <div class="data-card">
-                      <div class="data-card-header">Row {{ $index + 1 }}</div>
-                      <div class="data-card-content">
-                        @for (field of fields(); track field.name) {
-                          <div class="data-card-field">
-                            <div class="data-card-field-name" [matTooltip]="'Type: ' + field.type">
-                              {{ field.name }}:
-                            </div>
-                            <div class="data-card-field-value">
-                              <app-act-data-view [fieldName]="field.name" [data]="row[field.name]"></app-act-data-view>
-                            </div>
-                          </div>
-                        }
-                      </div>
+          @if (scope()) {
+            <section id="data-section" class="cx-section" aria-labelledby="rows-heading">
+              <div class="cx-rows-head">
+                <h3 id="rows-heading">
+                  <span class="cx-scope-label">Scope</span> {{ scopeLabel(scope()!) }}
+                  <span class="cx-count">{{ tableData().length }} {{ tableData().length === 1 ? "row" : "rows" }}</span>
+                </h3>
+                <div class="cx-rows-tools">
+                  @if (tableData().length > 1) {
+                    <div class="cx-segmented" role="group" aria-label="Row layout">
+                      <button type="button" aria-label="Collapsible list view" [attr.aria-pressed]="viewMode() === 'expanded'" (click)="setViewMode('expanded')"><mat-icon aria-hidden="true">view_list</mat-icon><span>List</span></button>
+                      <button type="button" aria-label="Card view" [attr.aria-pressed]="viewMode() === 'card'" (click)="setViewMode('card')"><mat-icon aria-hidden="true">grid_view</mat-icon><span>Cards</span></button>
+                      <button type="button" aria-label="Table view" [attr.aria-pressed]="viewMode() === 'table'" (click)="setViewMode('table')"><mat-icon aria-hidden="true">table_chart</mat-icon><span>Table</span></button>
                     </div>
                   }
+                  <button type="button" class="cx-icon-btn" aria-label="Reload rows" title="Reload rows" (click)="reloadRows()" [disabled]="tableRowRes.isLoading()"><mat-icon aria-hidden="true">sync</mat-icon></button>
                 </div>
-              }
+              </div>
 
-              <!-- Expanded View -->
-              @if (viewMode() === 'expanded') {
-                <div class="appear expanded-view mt-5">
-                  @for (row of tableData(); track $index) {
-                    <div class="expanded-item">
-                      <button type="button" class="expanded-item-header" [attr.aria-expanded]="isItemExpanded($index)" (click)="toggleItemExpanded($index)">
-                        <span class="expanded-item-title">Row {{ $index + 1 }}</span>
-                        <mat-icon class="expand-icon" [ngClass]="{'rotated': isItemExpanded($index)}">
-                          expand_more
-                        </mat-icon>
-                      </button>
-                      @if (isItemExpanded($index)) {
-                        <div class="expanded-item-content">
-                          <table class="expanded-item-table">
-                            <tbody>
+              @if (tableRowRes.isLoading()) { <p class="cx-note" role="status">Loading rows…</p> }
+              @else if (!tableRowRes.error() && !tableData().length) { <p class="cx-note">No rows were returned for this scope.</p> }
+              @defer (when displayedColumns().length > 0) {
+                @if (tableData().length === 1) {
+                  <div class="cx-single appear">
+                    <app-act-data-view [data]="tableData()[0]"></app-act-data-view>
+                  </div>
+                } @else {
+                  @if (viewMode() === 'table') {
+                    <div class="cx-table-scroll appear">
+                      <table mat-table [dataSource]="tableData()" class="transparent-table cx-data-table" matSort (matSortChange)="announceSortChange($event)">
+                        @for (field of fields(); track field.name) {
+                          <ng-container [matColumnDef]="field.name">
+                            <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'Sort by ' + field.name">
+                              <span class="cx-col-name">{{ field.name }}</span><span class="cx-col-type">{{ field.type }}</span>
+                            </th>
+                            <td mat-cell *matCellDef="let element" [attr.data-label]="field.name">
+                              <app-act-data-view [fieldName]="field.name" [data]="element[field.name]"></app-act-data-view>
+                            </td>
+                          </ng-container>
+                        }
+                        <tr mat-header-row *matHeaderRowDef="displayedColumns()"></tr>
+                        <tr mat-row *matRowDef="let row; columns: displayedColumns();"></tr>
+                      </table>
+                    </div>
+                  }
+
+                  @if (viewMode() === 'card') {
+                    <div class="appear card-grid-view">
+                      @for (row of tableData(); track $index) {
+                        <article class="data-card">
+                          <h4 class="data-card-header">Row {{ $index + 1 }}</h4>
+                          <dl class="data-card-content">
+                            @for (field of fields(); track field.name) {
+                              <dt>{{ field.name }}<span class="cx-col-type">{{ field.type }}</span></dt>
+                              <dd><app-act-data-view [fieldName]="field.name" [data]="row[field.name]"></app-act-data-view></dd>
+                            }
+                          </dl>
+                        </article>
+                      }
+                    </div>
+                  }
+
+                  @if (viewMode() === 'expanded') {
+                    <div class="appear expanded-view">
+                      @for (row of tableData(); track $index) {
+                        <div class="expanded-item" [class.is-open]="isItemExpanded($index)">
+                          <button type="button" class="expanded-item-header" [attr.aria-label]="'Row ' + ($index + 1)" [attr.aria-expanded]="isItemExpanded($index)" (click)="toggleItemExpanded($index)">
+                            <span class="expanded-item-title">Row {{ $index + 1 }}</span>
+                            @if (!isItemExpanded($index) && rowPreview(row); as preview) { <span class="expanded-item-preview">{{ preview }}</span> }
+                            <mat-icon class="expand-icon" aria-hidden="true">expand_more</mat-icon>
+                          </button>
+                          @if (isItemExpanded($index)) {
+                            <dl class="expanded-item-content">
                               @for (field of fields(); track field.name) {
-                                <tr>
-                                  <td class="expanded-field-name" [matTooltip]="'Type: ' + field.type">
-                                    {{ field.name }}
-                                  </td>
-                                  <td class="expanded-field-value">
-                                    <app-act-data-view [fieldName]="field.name" [data]="row[field.name]"></app-act-data-view>
-                                  </td>
-                                </tr>
+                                <dt>{{ field.name }}<span class="cx-col-type">{{ field.type }}</span></dt>
+                                <dd><app-act-data-view [fieldName]="field.name" [data]="row[field.name]"></app-act-data-view></dd>
                               }
-                            </tbody>
-                          </table>
+                            </dl>
+                          }
                         </div>
                       }
                     </div>
                   }
-                </div>
+                }
               }
-            }
+            </section>
           }
-        </div>
+        }
       }
-
-    }
+    </div>
   }
-</mat-dialog-content>
+</div>

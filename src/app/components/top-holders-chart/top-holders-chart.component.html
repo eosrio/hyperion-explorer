@@ -1,6 +1,6 @@
 <div class="hr-container w-full">
   <section class="custom-card holders-page">
-    <h1 class="page-heading">{{ tokenSymbol() }} Top Holders</h1>
+    <h1 class="page-heading">Top {{ tokenSymbol() }} holders</h1>
     <p class="page-description">Token contract <a [routerLink]="['/contract', tokenContract()]" class="link-primary">{{ tokenContract() }}</a>. Shares are relative to the displayed holders, not the total token supply.</p>
     @if (holders.error(); as error) {
       <section class="api-error" role="alert"><p>{{ describeApiError(error) }}</p>@if (isRetryableApiError(error)) { <button type="button" (click)="holders.reload()">Try again</button> }</section>

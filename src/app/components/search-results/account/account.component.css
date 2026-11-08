@@ -58,6 +58,7 @@
 }
 .vote-card-title {
   font-size: 1.188rem;
+  font-weight: 400;
   margin: 0;
 }
 .small-arrow-btn {
@@ -171,6 +172,9 @@
 .where-time {
   color: var(--faded);
   font-variant-numeric: tabular-nums;
+}
+.where-recent {
+  white-space: nowrap;
 }
 .where-tx {
   display: flex;

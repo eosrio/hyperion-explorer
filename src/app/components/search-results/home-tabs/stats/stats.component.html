@@ -4,14 +4,13 @@
   } @else {
     <!-- Head and irreversible block numbers live in the chain pulse above; this tab adds their context. -->
     <dl class="stats-summary">
-      <div class="head-time"><dt>Head block time (UTC)</dt><dd>{{ chainService.headBlockTime() | date:'medium':'UTC' }}</dd></div>
+      <div><dt>Head block time</dt><dd>{{ chainService.headBlockTime() | chainTime: time.utc() }}</dd></div>
+      <div><dt>Server version</dt><dd>{{ chainService.serverVersion() }}</dd></div>
+      <div class="stats-wide"><dt>Chain ID</dt><dd><app-copy-identifier [value]="chainService.chainId()" label="chain ID" /></dd></div>
     </dl>
     <app-finality-help />
-    <details class="chain-metadata"><summary>Chain identity and server</summary>
-      <dl><div><dt>Chain ID</dt><dd><app-copy-identifier [value]="chainService.chainId()" label="chain ID" /></dd></div><div><dt>Server version</dt><dd>{{ chainService.serverVersion() }}</dd></div></dl>
-    </details>
   }
   @if (chainService.lastUpdatedAt(); as updated) {
-    <p class="stats-refresh faded">Updates live while this page is open · last update {{ updated | date:'mediumTime' }}</p>
+    <p class="stats-refresh faded">Updates live while this page is open · last update {{ updated | chainTime: time.utc() : 'time' }}</p>
   }
 </section>

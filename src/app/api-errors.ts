@@ -60,6 +60,18 @@ export function apiErrorView(error: unknown): ApiErrorView {
   return { message: describeApiError(error), retryable: isRetryableApiError(error) };
 }
 
+/**
+ * Live action streaming fails at the socket, where errors carry transport jargon ("websocket error") rather than an
+ * HTTP status. Say what stopped and that the loaded history is unaffected.
+ */
+export function streamErrorView(error: unknown): ApiErrorView {
+  if (httpStatus(error) !== undefined) return apiErrorView(error);
+  return {
+    message: "Live actions could not connect to this Hyperion API's stream. The history below is unaffected.",
+    retryable: true
+  };
+}
+
 export function isApiNotFound(error: unknown): boolean {
   return httpStatus(error) === 404;
 }

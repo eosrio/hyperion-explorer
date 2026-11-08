@@ -77,8 +77,7 @@ test("identifiers can be copied without truncation and the search shortcut is di
   await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toMatch(/^00000064[a-f0-9]{56}$/);
   await page.goto("/explorer/");
   await page.getByRole("button", { name: "Show Chain Details" }).click();
-  await expect(page.getByLabel("Chain statistics").getByText("Head block time (UTC)", { exact: true })).toBeVisible();
-  await page.getByText("Chain identity and server", { exact: true }).click();
+  await expect(page.getByLabel("Chain statistics").getByText("Head block time", { exact: true })).toBeVisible();
   await page.getByRole("button", { name: "Copy chain ID", exact: true }).click();
   await expect.poll(() => page.evaluate(() => navigator.clipboard.readText())).toBe("a".repeat(64));
 });

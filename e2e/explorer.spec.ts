@@ -278,6 +278,7 @@ test("preserves uint64 metadata and exact continuation cursors after SSR hydrati
   const dialog = page.getByRole("dialog");
   await expect(dialog.getByText(sequences[0], { exact: true }).first()).toBeVisible();
   await expect(dialog.getByText("9223372036854775808", { exact: true }).first()).toBeVisible();
+  await dialog.getByText("All fields", { exact: true }).click();
   await dialog.getByRole("button", { name: "Toggle auth_sequence", exact: true }).click();
   await dialog.getByRole("button", { name: "Toggle 0", exact: true }).first().click();
   await expect(dialog.getByRole("treeitem", { name: "sequence 9007199254740993", exact: true })).toBeVisible();

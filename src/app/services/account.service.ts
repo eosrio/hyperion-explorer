@@ -23,7 +23,7 @@ import { faComputer, faFilter, faMoneyBill, faRightFromBracket, faRightToBracket
 import { IconDefinition } from "@fortawesome/angular-fontawesome";
 import { isPlatformBrowser } from "@angular/common";
 import { SortDirection } from "@angular/material/sort";
-import { ApiErrorView, apiErrorView, isAccountStateFallbackEligible } from "../api-errors";
+import { ApiErrorView, apiErrorView, isAccountStateFallbackEligible, streamErrorView } from "../api-errors";
 import { ChainService } from "./chain.service";
 import {
   Sequence,
@@ -788,7 +788,7 @@ export class AccountService {
       if (revision === this.streamStartRevision) this.streamClientStatus.set(active);
     } catch (error) {
       if (revision !== this.streamStartRevision) return;
-      this.historyError.set(apiErrorView(error));
+      this.historyError.set(streamErrorView(error));
       this.streamClientStatus.set(false);
     }
   }
@@ -864,12 +864,12 @@ export class AccountService {
         return false;
       }
       this.actionStream = requestedStream;
-      const fail = (error: unknown) => {
+      const fail = (view: ApiErrorView) => {
         if (this.actionStream !== requestedStream || requestedAccount !== this.accountName()) return;
         this.stopActionStream();
-        this.historyError.set(apiErrorView(error));
+        this.historyError.set(view);
       };
-      requestedStream.on("error", fail);
+      requestedStream.on("error", error => fail(streamErrorView(error)));
       requestedStream.on("message", data => {
         if (this.actionStream !== requestedStream || requestedAccount !== this.accountName()) return;
         try {
@@ -877,7 +877,7 @@ export class AccountService {
           this.streamingActions.update(value => mergeHistory([action], value).slice(0, 500));
           this.lastStreamActionAt.set(Date.now());
         } catch (error) {
-          fail(error);
+          fail(apiErrorView(error));
         }
       });
       return true;
