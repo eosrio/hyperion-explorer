@@ -48,10 +48,6 @@ summary {
   padding-block: 0.5rem;
 }
 .stats-refresh {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 1rem;
-  margin-top: 1rem;
+  margin: 1rem 0 0;
   font-size: 0.875rem;
 }

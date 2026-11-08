@@ -46,6 +46,10 @@ interface GetProducersResponse {
   more: string; // Indicates if more producers are available (pagination)
 }
 
+/** Antelope chains produce a block every half second; two seconds keeps the head visibly moving at a modest API cost. */
+export const LIVE_HEAD_INTERVAL_MS = 2_000;
+export const LIVE_HEAD_RETRY_MS = 10_000;
+
 @Injectable({
   providedIn: "root"
 })
@@ -200,5 +204,52 @@ export class ChainService {
   refreshChainInfo() {
     console.log("Refreshing Chain Info...");
     this.chainInfoResource.reload();
+  }
+
+  /** When live head polling last failed; cleared by the next successful poll. */
+  readonly liveFailedAt = signal<number | null>(null);
+  private liveUsers = 0;
+  private liveTimer?: ReturnType<typeof setTimeout>;
+
+  /**
+   * Keep the chain head current while a view needs it (the home pulse). Polls get_info every two seconds while the
+   * page is visible, writing results straight into chainInfo so nothing flips into a loading state, and backs off to
+   * ten seconds while the API is failing. Returns the function that stops this view's interest.
+   */
+  startLiveHead(): () => void {
+    this.liveUsers++;
+    if (this.liveUsers === 1) this.scheduleLiveHead(LIVE_HEAD_INTERVAL_MS);
+    let stopped = false;
+    return () => {
+      if (stopped) return;
+      stopped = true;
+      this.liveUsers--;
+      if (this.liveUsers === 0) clearTimeout(this.liveTimer);
+    };
+  }
+
+  private scheduleLiveHead(delay: number): void {
+    clearTimeout(this.liveTimer);
+    this.liveTimer = setTimeout(() => void this.pollLiveHead(), delay);
+  }
+
+  private async pollLiveHead(): Promise<void> {
+    if (this.liveUsers === 0) return;
+    if (typeof document !== "undefined" && document.visibilityState === "hidden") {
+      this.scheduleLiveHead(LIVE_HEAD_INTERVAL_MS);
+      return;
+    }
+    try {
+      const info = await lastValueFrom(this.httpClient.get<ChainInfo>(this.data.env.hyperionApiUrl + "/v1/chain/get_info"));
+      if (this.liveUsers === 0) return;
+      this.chainInfoResource.set({ ...info, server_version_string: info.server_version_string || info.server_version });
+      this.lastUpdatedAt.set(Date.now());
+      this.liveFailedAt.set(null);
+      this.scheduleLiveHead(LIVE_HEAD_INTERVAL_MS);
+    } catch {
+      if (this.liveUsers === 0) return;
+      if (this.liveFailedAt() === null) this.liveFailedAt.set(Date.now());
+      this.scheduleLiveHead(LIVE_HEAD_RETRY_MS);
+    }
   }
 }

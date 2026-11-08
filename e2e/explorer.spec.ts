@@ -322,3 +322,18 @@ test("names the chain in the header and links tokens to holders only when the AP
   await expect(page.locator(".token-list").getByText("SEED", { exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "Top SEED holders" })).toHaveCount(0);
 });
+
+test("shows the live chain head on arrival and says when it is reconnecting", async ({ page, request }) => {
+  await page.goto("/explorer/");
+  const pulse = page.getByRole("region", { name: "Chain status" });
+  await expect(pulse).toContainText("Live");
+  await expect(pulse.getByRole("link", { name: "102", exact: true })).toHaveAttribute("href", "/explorer/block/102");
+  await expect(pulse.getByRole("link", { name: "harborbp", exact: true })).toHaveAttribute("href", "/explorer/account/harborbp");
+  await expect(pulse).toContainText("1 block behind head");
+
+  await request.post("/__fixture/state", { data: { chainUnavailable: true } });
+  await expect(pulse).toContainText("Reconnecting", { timeout: 6_000 });
+  await expect(pulse.getByRole("link", { name: "102", exact: true })).toBeVisible();
+  await request.post("/__fixture/state", { data: {} });
+  await expect(pulse).toContainText("Live", { timeout: 15_000 });
+});

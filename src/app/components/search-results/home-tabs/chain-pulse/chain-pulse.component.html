@@ -1,0 +1,43 @@
+<section class="custom-card chain-pulse" aria-label="Chain status" [class.is-stale]="chain.liveFailedAt() !== null">
+  @if (info()) {
+    <div class="pulse-signal">
+      <span class="pulse-trace" aria-hidden="true">
+        @for (block of beat(); track block) {
+          <svg viewBox="0 0 52 24" width="52" height="24" focusable="false">
+            <path class="signal-trace signal-received" pathLength="1" d="M1 14h12l5-9-2 16 8-18-2 17 6-6h23" />
+          </svg>
+        }
+      </span>
+      <p class="pulse-state" aria-live="polite">
+        @if (chain.liveFailedAt() !== null) {
+          Reconnecting<span class="pulse-updated">@if (chain.lastUpdatedAt(); as updated) { · last update {{ updated | date: "mediumTime" }}}</span>
+        } @else {
+          Live
+        }
+      </p>
+    </div>
+    <dl class="pulse-stats">
+      <div>
+        <dt>Head block</dt>
+        <dd><a class="pulse-number" [routerLink]="['/block', head()]">{{ head() | number }}</a></dd>
+      </div>
+      <div>
+        <dt>Last irreversible block</dt>
+        <dd>
+          <a class="pulse-number" [routerLink]="['/block', lib()]">{{ lib() | number }}</a>
+          <span class="pulse-lag">{{ lag() | number }} {{ lag() === 1 ? "block" : "blocks" }} behind head</span>
+        </dd>
+      </div>
+      @if (producer(); as producer) {
+        <div class="pulse-producer">
+          <dt>Produced by</dt>
+          <dd><a class="pulse-account" [routerLink]="['/account', producer]">{{ producer }}</a></dd>
+        </div>
+      }
+    </dl>
+  } @else if (chain.chainInfoResource.error()) {
+    <p class="pulse-message">Chain status is unavailable right now. The explorer keeps retrying on its own.</p>
+  } @else {
+    <p class="pulse-message" role="status">Reading the chain head…</p>
+  }
+</section>

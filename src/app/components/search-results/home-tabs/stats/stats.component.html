@@ -2,9 +2,8 @@
   @if (chainService.chainInfoResource.error(); as error) {
     <section class="api-error" role="alert"><p>{{ describeApiError(error) }}</p>@if (isRetryableApiError(error)) { <button type="button" (click)="chainService.refreshChainInfo()">Try again</button> }</section>
   } @else {
+    <!-- Head and irreversible block numbers live in the chain pulse above; this tab adds their context. -->
     <dl class="stats-summary">
-      <div><dt>Head block</dt><dd><a [routerLink]="['/block', chainService.headBlockNum()]">{{ chainService.headBlockNum() | number }}</a></dd></div>
-      <div><dt>Last irreversible block</dt><dd><a [routerLink]="['/block', chainService.lastIrreversibleBlockNum()]">{{ chainService.lastIrreversibleBlockNum() | number }}</a></dd></div>
       <div class="head-time"><dt>Head block time (UTC)</dt><dd>{{ chainService.headBlockTime() | date:'medium':'UTC' }}</dd></div>
     </dl>
     <app-finality-help />
@@ -12,9 +11,7 @@
       <dl><div><dt>Chain ID</dt><dd><app-copy-identifier [value]="chainService.chainId()" label="chain ID" /></dd></div><div><dt>Server version</dt><dd>{{ chainService.serverVersion() }}</dd></div></dl>
     </details>
   }
-  <div class="stats-refresh">
-    <button type="button" mat-raised-button class="primary-btn" (click)="chainService.refreshChainInfo()" [disabled]="chainService.chainInfoResource.isLoading()">Refresh data</button>
-    @if (chainService.chainInfoResource.isLoading()) { <span role="status">Updating chain data…</span> }
-    @else if (chainService.lastUpdatedAt(); as updated) { <span class="faded">Updated {{ updated | date:'mediumTime' }}</span> }
-  </div>
+  @if (chainService.lastUpdatedAt(); as updated) {
+    <p class="stats-refresh faded">Updates live while this page is open · last update {{ updated | date:'mediumTime' }}</p>
+  }
 </section>

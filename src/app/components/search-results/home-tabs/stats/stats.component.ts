@@ -4,14 +4,12 @@ import { CopyIdentifierComponent } from "../../../copy-identifier/copy-identifie
 import { Component, inject, ChangeDetectionStrategy } from "@angular/core";
 import { faClock, faCube, faLink, faServer, faSync } from "@fortawesome/free-solid-svg-icons";
 import { ChainService } from "../../../../services/chain.service";
-import { DecimalPipe, DatePipe } from "@angular/common";
-import { RouterLink } from "@angular/router";
-import { MatButtonModule } from "@angular/material/button";
+import { DatePipe } from "@angular/common";
 import { MatTooltipModule } from "@angular/material/tooltip";
 
 @Component({
   selector: "app-stats",
-  imports: [FinalityHelpComponent, CopyIdentifierComponent, DecimalPipe, DatePipe, RouterLink, MatButtonModule, MatTooltipModule],
+  imports: [FinalityHelpComponent, CopyIdentifierComponent, DatePipe, MatTooltipModule],
   templateUrl: "./stats.component.html",
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./stats.component.css"
