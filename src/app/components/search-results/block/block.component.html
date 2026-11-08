@@ -80,7 +80,7 @@
           </div>
           <div class="flex flex-col justify-start items-stretch gap-[10px]">
             <div>
-              <span class="font-medium">Block ID: </span>
+              <span class="fact-label">Block ID</span>
               <app-copy-identifier [value]="block.id" label="block ID" />
               <app-finality-help />
             </div>
@@ -91,23 +91,20 @@
           </div>
         </div>
         <div class="custom-card w-full min-w-full h-full min-h-full">
-          <div class="flex flex-col justify-end gap-[10px]">
-            <div><span class="font-medium">Producer: </span>
-              <a [routerLink]="['/account', block.producer ]" class="link-accent font-medium">{{ block.producer }}</a>
-            </div>
-            <div>
-              <span class="font-medium">Time: </span>{{ formatDate(block.timestamp) }}
-            </div>
-          </div>
+          <dl class="block-facts">
+            <div><dt>Producer</dt><dd><a [routerLink]="['/account', block.producer ]" class="link-accent font-medium">{{ block.producer }}</a></dd></div>
+            <div><dt>Time</dt><dd>{{ formatDate(block.timestamp) }}</dd></div>
+            <div><dt>Transactions</dt><dd>@if (block.historyUnavailable) { Unavailable } @else { {{ block.transactions.length }} returned }</dd></div>
+          </dl>
         </div>
         @if (block.historyUnavailable) {
-          <section class="custom-card md:col-span-2" role="status">
+          <section class="api-error md:col-span-2" role="status">
             <p>Block header available. Transaction and action details are temporarily unavailable from history.</p>
-            <button matButton type="button" (click)="retryHistory()">Retry history</button>
+            <button type="button" (click)="retryHistory()">Retry history</button>
           </section>
         } @else {
         <div class="custom-card md:col-span-2 w-full min-w-full h-full min-h-full">
-          <div #transactionsTable style="margin-top: 0" class="mb-5 text-base">
+          <div #transactionsTable style="margin-top: 0" class="mb-3 text-lg font-semibold">
             <fa-layers [fixedWidth]="true" style="margin-right: 5px">
               <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
               <fa-icon [icon]="icons.solid.faHistory" [inverse]="true" transform="shrink-5"></fa-icon>
@@ -116,7 +113,7 @@
             <span>s</span>
           }
           </div>
-          <p class="mb-3 text-sm">Transactions and actions reflect the connected history service and may be incomplete.</p>
+          <p class="mb-3 text-sm faded">Transactions and actions reflect the connected history service and may be incomplete.</p>
           <table mat-table [dataSource]="block.transactions" class="transactions-table" multiTemplateDataRows>
             <!-- TX ID Column -->
             <ng-container matColumnDef="icon">
@@ -244,7 +241,7 @@
           <section class="custom-card md:col-span-2" role="status">Loading block state details…</section>
         } @else if (!block.historyUnavailable && deltas) {
           <div class="custom-card md:col-span-2 w-full min-w-full h-full min-h-full">
-            <div #deltasTable style="margin-top: 0" class="mb-5 text-base">
+            <div #deltasTable style="margin-top: 0" class="mb-3 text-lg font-semibold">
               <fa-layers [fixedWidth]="true" style="margin-right: 5px">
                 <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
                 <fa-icon [icon]="icons.solid.faHistory" [inverse]="true" transform="shrink-5"></fa-icon>

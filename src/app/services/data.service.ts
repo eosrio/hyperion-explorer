@@ -3,6 +3,19 @@ import { Title } from "@angular/platform-browser";
 import { ExplorerMetadata } from "../interfaces";
 import { describeApiError } from "../api-errors";
 
+/** Light text on the active palette means a dark theme; native controls should follow it. */
+function themeTone(): "light" | "dark" {
+  if (!document.body) return "light";
+  const probe = document.createElement("span");
+  probe.style.color = "var(--main-text)";
+  document.body.appendChild(probe);
+  const rgb = getComputedStyle(probe).color.match(/\d+(\.\d+)?/g)?.map(Number);
+  probe.remove();
+  if (!rgb || rgb.length < 3) return "light";
+  const [r, g, b] = rgb;
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 140 ? "dark" : "light";
+}
+
 export abstract class DataService {
   env = {
     hyperionApiUrl: "",
@@ -125,6 +138,7 @@ export class DataServiceBrowser extends DataService {
         this.appliedThemeKeys.add(key);
       }
     }
+    document.documentElement.dataset["tone"] = themeTone();
     this.ready.set(true);
   }
 

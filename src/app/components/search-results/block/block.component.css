@@ -370,3 +370,21 @@ tr.element-row:not(.expanded-row):active {
   background-color: oklch(from var(--pending) l c h / 0.09);
   color: var(--pending);
 }
+
+/* Block facts share the transaction page's label/value rhythm. */
+.block-facts {
+  display: grid;
+  gap: 0.875rem;
+  margin: 0;
+}
+.block-facts dt,
+.fact-label {
+  display: block;
+  color: var(--faded);
+  font-size: 0.8125rem;
+}
+.block-facts dd {
+  margin: 0.125rem 0 0;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}

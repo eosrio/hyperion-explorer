@@ -86,7 +86,7 @@ test("searches an account and retains block navigation", async ({ page }, testIn
   await expect(page.locator("#account-content")).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("account.png"), fullPage: true, animations: "disabled" });
   await page.goto("/explorer/block/100");
-  await expect(page.getByText("Block ID:", { exact: true })).toBeVisible();
+  await expect(page.getByText("Block ID", { exact: true })).toBeVisible();
   await expect(page.getByText("Irreversible", { exact: true })).toBeVisible();
   await expect(page.getByText("Transactions and actions reflect the connected history service and may be incomplete.", { exact: true })).toBeVisible();
   await expect(page.locator("th").filter({ hasText: "First returned action" })).toHaveCount(1);
@@ -109,8 +109,11 @@ test("shows chain account and history when the state projection is unavailable",
   await request.post("/__fixture/state", { data: { accountProjectionUnsupported: true, rpcRamQuota: "6744062231", noOracle: true } });
   await page.goto("/explorer/account/eosio");
   await expect(page.locator("#account-content")).toBeVisible();
-  await expect(page.getByText("Core account data comes from the chain. Indexed token balances and permission links are unavailable.")).toBeVisible();
-  await expect(page.getByText("Unavailable", { exact: true }).first()).toBeVisible();
+  const gaps = page.getByRole("status", { name: "Partial account data" });
+  await expect(gaps).toContainText("Core account data comes from the chain.");
+  await expect(gaps.getByRole("listitem").filter({ hasText: "Token balances" })).toHaveCount(1);
+  await expect(gaps.getByRole("listitem").filter({ hasText: "Permission links" })).toHaveCount(1);
+  await expect(page.locator(".tokens-card")).toHaveCount(0);
   await expect(page.getByText("No tokens", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Indexed action history may be incomplete.")).toBeVisible();
   await expect(page.getByText("USD price unavailable")).toHaveCount(1);
@@ -126,13 +129,15 @@ test("renders observed Wire resource types without inventing missing balances", 
   await request.post("/__fixture/state", { data: { accountProjectionUnsupported: true, wireOrdinaryShape: true, noOracle: true } });
   await page.goto("/explorer/account/eosio");
   await expect(page.getByText(/11\.17 GiB/)).toBeVisible();
-  await expect(page.getByText("Chain liquid balance unavailable")).toBeVisible();
-  await expect(page.getByText("Complete balance, stake and refund details are unavailable.")).toBeVisible();
-  await expect(page.getByText("Stake details unavailable")).toHaveCount(2);
+  const gaps = page.getByRole("status", { name: "Partial account data" });
+  for (const label of ["Liquid balance", "Stake breakdown", "Refunds"]) await expect(gaps.getByRole("listitem").filter({ hasText: label })).toHaveCount(1);
+  await expect(page.locator("#balance-card")).toHaveCount(0);
+  await expect(page.getByText("Total in CPU", { exact: true })).toBeVisible();
+  await expect(page.getByText("Self-staked", { exact: true })).toHaveCount(0);
   await request.post("/__fixture/state", { data: { accountProjectionUnsupported: true, wireOrdinaryShape: true, omitTotalResources: true, noOracle: true } });
   await page.reload();
-  await expect(page.getByText("Stake details unavailable")).toHaveCount(2);
-  await expect(page.getByText("Chain liquid balance unavailable")).toBeVisible();
+  await expect(page.getByText("Total in CPU", { exact: true })).toHaveCount(0);
+  await expect(page.getByRole("status", { name: "Partial account data" }).getByRole("listitem").filter({ hasText: "Liquid balance" })).toHaveCount(1);
   await request.post("/__fixture/state", { data: {} });
 });
 
@@ -174,7 +179,7 @@ test("labels unavailable block delta projection without hiding the trace", async
   const unavailable = page.waitForResponse(response => new URL(response.url()).pathname === "/v2/history/get_deltas" && response.status() === 503);
   await page.goto("/explorer/block/100");
   await unavailable;
-  await expect(page.getByText("Block ID:", { exact: true })).toBeVisible();
+  await expect(page.getByText("Block ID", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Toggle actions for transaction " + "f".repeat(64) })).toBeVisible();
   await expect(page.getByRole("alert")).toContainText("Block state deltas are temporarily unavailable");
   await request.post("/__fixture/state", { data: {} });
@@ -209,7 +214,7 @@ test("keeps an unavailable projection isolated and allows explicit recovery", as
   await page.getByRole("button", { name: "Try again", exact: true }).click();
   await expect(page.locator("#account-content")).toBeVisible();
   await page.goto("/explorer/block/100");
-  await expect(page.getByText("Block ID:", { exact: true })).toBeVisible();
+  await expect(page.getByText("Block ID", { exact: true })).toBeVisible();
 });
 
 test("reports a transaction outage without turning it into not found", async ({ page, request }) => {
@@ -234,7 +239,7 @@ test("keeps block history usable while delta history is unavailable", async ({ p
   );
   await page.goto("/explorer/block/100");
   await unavailable;
-  await expect(page.getByText("Block ID:", { exact: true })).toBeVisible();
+  await expect(page.getByText("Block ID", { exact: true })).toBeVisible();
   await expect(page.getByRole("alert")).toContainText("temporarily unavailable");
   await request.post("/__fixture/state", { data: {} });
   await page.getByRole("button", { name: "Try again", exact: true }).click();

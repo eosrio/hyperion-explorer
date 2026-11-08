@@ -18,256 +18,163 @@
       @let systemSymbol = acServ.systemSymbol();
       @let systemPrecision = acServ.systemPrecision();
 
-      <div id="account-content" class="appear grid auto-cols-max grid-cols-1 gap-5 text-[var(--main-text)] md:grid-cols-3">
-        @if (acServ.projectionUnavailable()) {
-          <section class="api-error md:col-span-3" role="status">Core account data comes from the chain. Indexed token balances and permission links are unavailable.</section>
-        }
+      @let partialBalance = acServ.fallbackBalanceIncomplete();
+      @let account = acServ.accountComputed();
+      @let liquidOnly = partialBalance ? account.core_liquid_balance : null;
+      @let showBalanceCard = !partialBalance || !!liquidOnly;
+      @let showTokens = !acServ.tokensUnavailable();
+      @let res = acServ.userResPct();
+      @let stakeIncomplete = acServ.fallbackStakeIncomplete();
+
+      <div id="account-content" class="appear account-grid text-[var(--main-text)]">
         <!-- ACCOUNT NAME-->
-        <div id="account-name-sticky" class="custom-card card-top-sticky bg-no-transparency sticky z-40 w-full md:col-span-3">
-          <mat-card-header>
-            <div class="flex w-full flex-row flex-wrap items-center justify-between">
-              <div class="flex flex-row flex-wrap items-center gap-1 sm:gap-3">
-                <div class="acc-title flex flex-row items-center gap-3 text-2xl">
-                  @if (acServ.accountComputed().privileged) {
-                    <fa-layers matTooltip="System Account (privileged)" [fixedWidth]="true">
-                      <fa-icon [icon]="icons.solid.faShield" transform="grow-3"></fa-icon>
-                      <fa-icon [icon]="icons.solid.faCheck" [inverse]="true" transform="shrink-5"></fa-icon>
-                    </fa-layers>
-                  } @else {
-                    <fa-icon [icon]="icons.solid.faUserCircle"></fa-icon>
-                  }
-                  <div>{{ acServ.accountComputed().account_name }}</div>
-                </div>
-                @if (acServ.fallbackBalanceIncomplete()) {
-                  <div class="account-summary faded mt-1">Complete balance unavailable</div>
-                } @else {
-                <div id="totalBalance" class="account-summary faded mt-1 text-[0.938rem] font-medium">
-                <span class="primary">
-                  {{ acServ.totalBalance() | number: "1.0-" + systemPrecision }}
-                  {{ systemSymbol }}
-                </span>
-                  @if (chain.priceRateUsd() !== null) {
-                    | ${{ acServ.totalBalanceUSD() | number: "1.0-2" }}
-                    <span class="text-sm">&#64; ${{ chain.priceRateUsd() }} / {{ systemSymbol }}</span>
-                  } @else { <span class="text-sm">USD price unavailable</span> }
-                </div>
-                }
-              </div>
-              @defer (when acServ.hasContract()) {
-                @if (acServ.hasContract()) {
-                  <button (click)="openContractsDialog(null, null)" mat-raised-button class="primary-btn mt-2 md:mt-0">
-                    Explore Smart Contract
-                  </button>
-                }
+        <div id="account-name-sticky" class="custom-card card-top-sticky bg-no-transparency sticky z-40 span-all account-header">
+          <div class="account-identity">
+            <h1 class="acc-title">
+              @if (account.privileged) {
+                <fa-layers matTooltip="System Account (privileged)" [fixedWidth]="true">
+                  <fa-icon [icon]="icons.solid.faShield" transform="grow-3"></fa-icon>
+                  <fa-icon [icon]="icons.solid.faCheck" [inverse]="true" transform="shrink-5"></fa-icon>
+                </fa-layers>
+              } @else {
+                <fa-icon [icon]="icons.solid.faUserCircle" aria-hidden="true"></fa-icon>
               }
-            </div>
-          </mat-card-header>
+              <span>{{ account.account_name }}</span>
+            </h1>
+            @if (!partialBalance) {
+              <div id="totalBalance" class="account-summary">
+                <span class="primary">{{ acServ.totalBalance() | number: "1.0-" + systemPrecision }} {{ systemSymbol }}</span>
+                @if (chain.priceRateUsd() !== null) {
+                  <span class="faded">· ${{ acServ.totalBalanceUSD() | number: "1.0-2" }}</span>
+                  <span class="faded text-sm">&#64; ${{ chain.priceRateUsd() }} / {{ systemSymbol }}</span>
+                } @else { <span class="faded text-sm">USD price unavailable</span> }
+              </div>
+            } @else if (liquidOnly) {
+              <div class="account-summary"><span class="primary">{{ liquidOnly }}</span> <span class="faded text-sm">liquid</span></div>
+            }
+          </div>
+          @defer (when acServ.hasContract()) {
+            @if (acServ.hasContract()) {
+              <button (click)="openContractsDialog(null, null)" mat-raised-button class="primary-btn">Explore Smart Contract</button>
+            }
+          }
         </div>
+
+        @if (acServ.dataGaps(); as gaps) {
+          @if (gaps.length > 0) {
+            <section class="data-gaps span-all" role="status" aria-label="Partial account data">
+              <fa-icon [icon]="icons.solid.faCircleInfo" class="data-gaps-icon" aria-hidden="true"></fa-icon>
+              <div class="data-gaps-body">
+                <p>
+                  <strong>Partial account data.</strong>
+                  @if (acServ.projectionUnavailable()) { Core account data comes from the chain. }
+                  Not available here:
+                </p>
+                <ul class="data-gap-list">
+                  @for (gap of gaps; track gap.key) { <li>{{ gap.label }}</li> }
+                </ul>
+              </div>
+            </section>
+          }
+        }
 
         <!-- ACCOUNT BALANCE -->
-        @if (acServ.fallbackBalanceIncomplete()) {
-          <div class="custom-card" id="balance-card">
-            @if (acServ.accountComputed().core_liquid_balance; as balance) { <p>Chain liquid balance: {{ balance }}</p> }
-            @else { <p>Chain liquid balance unavailable</p> }
-            <p>Complete balance, stake and refund details are unavailable.</p>
-          </div>
-        } @else {
-        <div #balanceCard class="custom-card" id="balance-card">
-          <div class="mt-2 flex min-h-full flex-auto flex-col items-start justify-start">
-            <!-- total balance-->
-            <div class="total-balance w-full">
-              <strong class="text-[0.938rem] font-bold uppercase">Total Balance:</strong>
-              <span class="float-right text-[0.938rem] font-semibold">
-              {{ acServ.totalBalance() | number: "1.0-" + systemPrecision }}
-                {{ systemSymbol }}
-            </span>
+        @if (showBalanceCard) {
+        <div class="custom-card balance-card" id="balance-card">
+          @if (partialBalance) {
+            <div class="balance-row total-balance"><span>Liquid balance</span><strong>{{ liquidOnly }}</strong></div>
+          } @else {
+            <div class="balance-row total-balance">
+              <strong class="uppercase">Total balance</strong>
+              <strong>{{ acServ.totalBalance() | number: "1.0-" + systemPrecision }} {{ systemSymbol }}</strong>
+            </div>
+            <div class="balance-row"><span class="faded">USD value</span>
+              <span>@if (chain.priceRateUsd() !== null) { ${{ acServ.totalBalanceUSD() | number: "1.0-2" }} } @else { Unavailable }</span></div>
+            <div class="balance-row bottom-divider"><span class="faded">{{ systemSymbol }} price</span>
+              <span>@if (chain.priceRateUsd() !== null) { ${{ chain.priceRateUsd() }} } @else { Unavailable }</span></div>
+            <div class="balance-row"><span class="faded">Liquid</span><span>{{ acServ.liquidBalance() | number: "1.0-" + systemPrecision }} {{ systemSymbol }}</span></div>
+            <div class="balance-row"><span class="faded">Staked</span><span>{{ acServ.myStakedBalance() | number: "1.0-" + systemPrecision }} {{ systemSymbol }}</span></div>
+            <div class="balance-row"><span class="faded">Refunding</span><span>{{ acServ.refundBalance() | number: "1.0-" + systemPrecision }} {{ systemSymbol }}</span></div>
+          }
+          @if (creationData().creator || creationData().timestamp) {
+            <div class="creation-info">
+              @if (creationData().creator) {
+                <div class="balance-row"><span class="faded">Created by</span><a [routerLink]="['/account', creationData().creator]" class="link-gray">{{ creationData().creator }}</a></div>
+              }
+              @if (creationData().timestamp) {
+                <div class="balance-row"><span class="faded">Created on</span><span>{{ creationData().timestamp | date: "medium" }}</span></div>
+              }
+            </div>
+          }
+        </div>
+        }
+
+        <!-- ACCOUNT RESOURCES, CPU, NET AND RAM -->
+        <section class="custom-card resources-card" [class.span-all]="!showBalanceCard" [class.span-two]="showBalanceCard" aria-label="Resources">
+          <div class="resource-grid">
+            <div class="resource">
+              <div class="resource-head">
+                <span class="title" title="Processing time, measured in microseconds">CPU</span>
+                @if (res.cpuUnlimited) { <span class="faded">unlimited</span> }
+                @else if (!res.cpuAvailable) { <span class="faded">usage unavailable</span> }
+                @else { <span class="faded">{{ res.cpu | number: "1.0-2" }}% used</span> }
+                <span class="resource-value">{{ res.cpuStr }}</span>
+              </div>
+              @if (res.cpuAvailable && !res.cpuUnlimited) {
+                <mat-progress-bar mode="determinate" [value]="res.cpu" aria-label="CPU used"></mat-progress-bar>
+              }
+              @if (!stakeIncomplete) {
+                <dl class="small-info">
+                  <div><dt>Self-staked</dt><dd>{{ acServ.myCpuBalance() | number: "1.0-" + systemPrecision }} {{ systemSymbol }}</dd></div>
+                  <div><dt>Staked by others</dt><dd>{{ acServ.cpuByOthers() | number: "1.0-" + systemPrecision }} {{ systemSymbol }}</dd></div>
+                  <div><dt>Total in CPU</dt><dd>{{ acServ.cpuBalance() | number: "1.0-" + systemPrecision }} {{ systemSymbol }}</dd></div>
+                </dl>
+              } @else if (account.total_resources?.cpu_weight; as weight) {
+                <dl class="small-info"><div><dt>Total in CPU</dt><dd>{{ weight }}</dd></div></dl>
+              }
             </div>
 
-            <!-- total usd balance-->
-            <div class="mb-1.5 w-full">
-              <strong class="faded font-semibold">USD Value:</strong>
-              <span class="float-right">@if (chain.priceRateUsd() !== null) { ${{ acServ.totalBalanceUSD() | number: "1.0-2" }} } @else { Unavailable }</span>
+            <div class="resource">
+              <div class="resource-head">
+                <span class="title" title="Network bandwidth, measured in bytes">NET</span>
+                @if (res.netUnlimited) { <span class="faded">unlimited</span> }
+                @else if (!res.netAvailable) { <span class="faded">usage unavailable</span> }
+                @else { <span class="faded">{{ res.net | number: "1.0-2" }}% used</span> }
+                <span class="resource-value">{{ res.netStr }}</span>
+              </div>
+              @if (res.netAvailable && !res.netUnlimited) {
+                <mat-progress-bar mode="determinate" [value]="res.net" aria-label="NET used"></mat-progress-bar>
+              }
+              @if (!stakeIncomplete) {
+                <dl class="small-info">
+                  <div><dt>Self-staked</dt><dd>{{ acServ.myNetBalance() | number: "1.0-" + systemPrecision }} {{ systemSymbol }}</dd></div>
+                  <div><dt>Staked by others</dt><dd>{{ acServ.netByOthers() | number: "1.0-" + systemPrecision }} {{ systemSymbol }}</dd></div>
+                  <div><dt>Total in NET</dt><dd>{{ acServ.netBalance() | number: "1.0-" + systemPrecision }} {{ systemSymbol }}</dd></div>
+                </dl>
+              } @else if (account.total_resources?.net_weight; as weight) {
+                <dl class="small-info"><div><dt>Total in NET</dt><dd>{{ weight }}</dd></div></dl>
+              }
             </div>
 
-            <!-- current usd price -->
-            <div class="bottom-divider mb-1.5 w-full">
-              <span class="faded font-semibold">{{ systemSymbol }} Price:</span>
-              <span class="float-right">@if (chain.priceRateUsd() !== null) { ${{ chain.priceRateUsd() }} } @else { Unavailable }</span>
-            </div>
-
-            <!-- liquid balance-->
-            <div class="mb-1.5 w-full">
-              <strong class="faded font-semibold">Liquid Balance:</strong>
-              <span class="float-right">
-              {{ acServ.liquidBalance() | number: "1.0-" + systemPrecision }}
-                {{ systemSymbol }}
-            </span>
-            </div>
-
-            <!-- staked balance-->
-            <div class="mb-1.5 w-full">
-              <strong class="faded font-semibold">Staked Balance:</strong>
-              <span class="float-right">
-              {{ acServ.myStakedBalance() | number: "1.0-" + systemPrecision }}
-                {{ systemSymbol }}
-            </span>
-            </div>
-
-            <!-- refunding balance-->
-            <div class="w-full">
-              <strong class="faded font-semibold">Refunding:</strong>
-              <span class="float-right">
-              {{ acServ.refundBalance() | number: "1.0-" + systemPrecision }}
-                {{ systemSymbol }}
-            </span>
-            </div>
-
-            <!-- creation data -->
-            <div class="w-full" style="margin-top: 12px">
-              @if (creationData()) {
-                @if (creationData().creator) {
-                  <div class="mt-2 w-full">
-                    <strong class="font-medium">Created by:</strong>
-                    <a [routerLink]="['/account', creationData().creator]" class="link-gray float-right">
-                      {{ creationData().creator }}
-                    </a>
-                  </div>
-                }
-                @if (creationData().timestamp) {
-                  <div class="mt-2 w-full">
-                    <span class="font-medium">Created on:</span>
-                    <span class="float-right">
-                    {{ creationData().timestamp | date: "medium" }}
-                  </span>
-                  </div>
-                }
+            <div class="resource">
+              <div class="resource-head">
+                <span class="title" title="Persistent storage, measured in bytes">RAM</span>
+                @if (res.ramUnlimited) { <span class="faded">unlimited</span> }
+                @else if (!res.ramAvailable) { <span class="faded">usage unavailable</span> }
+                @else { <span class="faded">{{ res.ram | number: "1.0-2" }}% used</span> }
+                <span class="resource-value">{{ res.ramStr }}</span>
+              </div>
+              @if (res.ramAvailable && !res.ramUnlimited) {
+                <mat-progress-bar mode="determinate" [value]="res.ram" aria-label="RAM used"></mat-progress-bar>
               }
             </div>
           </div>
-        </div>
-
-        }
-        <!-- ACCOUNT RESOURCES, CPU, NET AND RAM -->
-        <div class="custom-card md:col-span-2">
-          <mat-card-content>
-            <div class="flex grow flex-row flex-wrap items-start justify-start gap-10">
-              <!--CPU-->
-              <div class="w-full lg:w-[50%]">
-                <div>
-                  <span class="title" title="Processing time, measured in microseconds">CPU</span>
-                  @if (acServ.userResPct().cpuUnlimited) {
-                    <span class="faded ml-2">unlimited</span>
-                  } @else if (!acServ.userResPct().cpuAvailable) {
-                    <span class="faded ml-2">usage unavailable</span>
-                  } @else {
-                    <span class="faded ml-2">{{ acServ.userResPct().cpu | number: "1.0-2" }}% used</span>
-                  }
-                  <span class="float-right mt-2">{{ acServ.userResPct().cpuStr }}</span>
-                </div>
-
-                @if (acServ.userResPct().cpuAvailable && !acServ.userResPct().cpuUnlimited) {
-                  <mat-progress-bar class="mt-2.5" mode="determinate" [value]="acServ.userResPct().cpu"></mat-progress-bar>
-                }
-
-                @if (acServ.fallbackStakeIncomplete()) { <p>Stake details unavailable</p> } @else {
-                <div class="small-info">
-                  <div class="faded mb-1">
-                    <span>Self-staked:</span>
-                    <span class="float-right">
-                    {{ acServ.myCpuBalance() | number: "1.0-" + systemPrecision }}
-                      {{ systemSymbol }}
-                  </span>
-                  </div>
-
-                  <div class="faded mb-1">
-                    <span>Staked by others:</span>
-                    <span class="float-right">
-                    {{ acServ.cpuByOthers() | number: "1.0-" + systemPrecision }}
-                      {{ systemSymbol }}
-                  </span>
-                  </div>
-
-                  <div class="faded">
-                    <span>Total in CPU:</span>
-                    <span class="float-right">
-                    {{ acServ.cpuBalance() | number: "1.0-" + systemPrecision }}
-                      {{ systemSymbol }}
-                  </span>
-                  </div>
-                </div>
-                }
-              </div>
-
-              <!--NET-->
-              <div class="grow">
-                <div>
-                  <span class="title" title="Network bandwidth, measured in bytes">NET</span>
-                  @if (acServ.userResPct().netUnlimited) {
-                    <span class="faded ml-2">unlimited</span>
-                  } @else if (!acServ.userResPct().netAvailable) {
-                    <span class="faded ml-2">usage unavailable</span>
-                  } @else {
-                    <span class="faded ml-2">{{ acServ.userResPct().net | number: "1.0-2" }}% used</span>
-                  }
-                  <span class="float-right mt-2">{{ acServ.userResPct().netStr }}</span>
-                </div>
-
-                @if (acServ.userResPct().netAvailable && !acServ.userResPct().netUnlimited) {
-                  <mat-progress-bar class="mt-2.5" mode="determinate" [value]="acServ.userResPct().net"></mat-progress-bar>
-                }
-
-                @if (acServ.fallbackStakeIncomplete()) { <p>Stake details unavailable</p> } @else {
-                <div class="small-info">
-                  <div class="faded mb-1">
-                    <span>Self-staked:</span>
-                    <span class="float-right">
-                    {{ acServ.myNetBalance() | number: "1.0-" + systemPrecision }}
-                      {{ systemSymbol }}
-                  </span>
-                  </div>
-
-                  <div class="faded mb-1">
-                    <span>Staked by others:</span>
-                    <span class="float-right">
-                    {{ acServ.netByOthers() | number: "1.0-" + systemPrecision }}
-                      {{ systemSymbol }}
-                  </span>
-                  </div>
-
-                  <div class="faded">
-                    <span>Total in NET:</span>
-                    <span class="float-right">
-                    {{ acServ.netBalance() | number: "1.0-" + systemPrecision }}
-                      {{ systemSymbol }}
-                  </span>
-                  </div>
-                </div>
-                }
-              </div>
-
-              <!--RAM-->
-              <div class="grow">
-                <div>
-                  <span class="title mt-6">RAM</span>
-                  @if (acServ.userResPct().ramUnlimited) {
-                    <span class="faded ml-2">unlimited</span>
-                  } @else if (!acServ.userResPct().ramAvailable) {
-                    <span class="faded ml-2">usage unavailable</span>
-                  } @else {
-                    <span class="faded ml-2">{{ acServ.userResPct().ram | number: "1.0-2" }}% used</span>
-                  }
-                  <span class="float-right mt-2">{{ acServ.userResPct().ramStr }}</span>
-                </div>
-
-                @if (acServ.userResPct().ramAvailable && !acServ.userResPct().ramUnlimited) {
-                  <mat-progress-bar class="mt-2.5" mode="determinate" [value]="acServ.userResPct().ram"></mat-progress-bar>
-                }
-              </div>
-            </div>
           <details class="resource-help"><summary>About resources</summary><p>CPU measures processing time in microseconds. NET measures network bandwidth in bytes. RAM measures persistent storage in bytes. KiB and MiB use 1,024-byte units.</p></details>
-          </mat-card-content>
-        </div>      <!--TOKENS-->
-        <mat-accordion class="custom-card vote-card w-full text-[var(--main-text)]">
+        </section>
+
+        <!--TOKENS-->
+        @if (showTokens) {
+        <mat-accordion class="custom-card vote-card tokens-card w-full text-[var(--main-text)]">
           <mat-expansion-panel
             #tokensExpansionPanel
             [(expanded)]="tokensExpanded"
@@ -302,9 +209,7 @@
                 </div>
               </mat-panel-title>
               <mat-panel-description class="!text-right !justify-end !ml-auto !flex-grow-0 !flex-shrink-0">
-                @if (acServ.projectionUnavailable()) {
-                  <span class="whitespace-nowrap faded text-sm">Unavailable</span>
-                } @else if (acServ.tokensComputed().length > 0) {
+                @if (acServ.tokensComputed().length > 0) {
                   <span class="whitespace-nowrap faded text-sm"><strong>{{ acServ.tokensComputed().length }}</strong> found</span>
                 } @else {
                   <span class="whitespace-nowrap faded text-sm">No tokens</span>
@@ -313,33 +218,32 @@
             </mat-expansion-panel-header>
 
             @if (acServ.tokensComputed().length > 0) {
-              <div class="mt-3 flex flex-col gap-[10px] sm:flex-row sm:flex-wrap sm:gap-[43px] md:flex-col md:gap-[10px]">
+              <ul class="token-list">
                 @for (token of acServ.tokensComputed(); track token.contract + token.symbol) {
-                  <div class="sm:flex-[0_0_calc((100%]">
-                    <div class="token-cell flex flex-col items-start gap-1">
-                      <a class="faded monospace div-link min-w-min" [routerLink]="['/account', token.contract]">
-                        {{ token.contract }}
-                      </a>
-                      <div class="token-amount">
-                        {{ token.amount | number: "1.0-" + (token.precision || 4) }}
-                        <span class="token">{{ token.symbol }}</span>
-                      </div>
-                    </div>
-                  </div>
+                  <li class="token-cell">
+                    <span class="token-amount">
+                      {{ token.amount | number: "1.0-" + (token.precision || 4) }}
+                      <span class="token">{{ token.symbol }}</span>
+                    </span>
+                    <a class="faded div-link token-contract" [routerLink]="['/account', token.contract]">{{ token.contract }}</a>
+                  </li>
                 }
-              </div>
+              </ul>
             }
           </mat-expansion-panel>
-        </mat-accordion>      <!--KEYS-->
-        <mat-accordion class="custom-card vote-card w-full text-[var(--main-text)] md:col-span-2">
+        </mat-accordion>
+        }
+
+        <!--KEYS-->
+        <mat-accordion class="custom-card vote-card permissions-card w-full text-[var(--main-text)]" [class.span-all]="!showTokens" [class.span-two]="showTokens">
           <mat-expansion-panel #permissionsExpansionPanel
                                [(expanded)]="permissionsExpanded"
-                               [disabled]="acServ.accountComputed().permissions.length <= 0"
+                               [disabled]="account.permissions.length <= 0"
                                [hideToggle]="true">
             <mat-expansion-panel-header>
               <mat-panel-title class="!flex-grow-0 !flex-shrink-0">
                 <div class="flex flex-row items-center gap-2 text-xl">
-                  @if (acServ.accountComputed().permissions.length > 0) {
+                  @if (account.permissions.length > 0) {
                     <span class="small-arrow-btn" aria-hidden="true">
                       <div class="flex flex-col items-center justify-center">
                         <fa-icon
@@ -358,8 +262,8 @@
                 </div>
               </mat-panel-title>
               <mat-panel-description class="!text-right !justify-end !ml-auto !flex-grow-0 !flex-shrink-0">
-                @if (acServ.accountComputed().permissions.length > 0) {
-                  <span class="whitespace-nowrap faded text-sm"><strong>{{ acServ.accountComputed().permissions.length }}</strong> configured</span>
+                @if (account.permissions.length > 0) {
+                  <span class="whitespace-nowrap faded text-sm"><strong>{{ account.permissions.length }}</strong> configured</span>
                 } @else {
                   <span class="whitespace-nowrap faded text-sm">No permissions</span>
                 }
@@ -368,7 +272,7 @@
 
             <div class="mt-3">
               @defer (on immediate) {
-                <app-permission-tree [permissions]="acServ.accountComputed().permissions"></app-permission-tree>
+                <app-permission-tree [permissions]="account.permissions"></app-permission-tree>
               }
             </div>
           </mat-expansion-panel>
@@ -377,15 +281,13 @@
         <!--VOTE CARD-->
         @let voterInfo = acServ.accountComputed().voter_info;
         @if (voterInfo && (voterInfo.proxy || voterInfo.producers.length > 0)) {
-          <mat-accordion class="custom-card vote-card w-full text-[var(--main-text)] md:col-span-3">
+          <mat-accordion class="custom-card vote-card w-full text-[var(--main-text)] span-all">
             <mat-expansion-panel
               #voteExpansionPanel
               [disabled]="voterInfo.producers.length <= 0"
-              [hideToggle]="voterInfo.producers.length <= 0"
+              [hideToggle]="true"
             >
-              <!--            -->
-              <!--            -->
-              <mat-expansion-panel-header class="!px-4">
+              <mat-expansion-panel-header>
                 <mat-panel-title class="!flex-grow-0 !flex-shrink-0">
                   <div class="flex flex-row items-center gap-2 text-xl">
                     @if (voterInfo.producers.length > 0) {
@@ -435,10 +337,10 @@
         }
 
         <!-- ACTION HISTORY -->
-        <section class="custom-card history-card w-full md:col-span-3" aria-labelledby="actions-heading">
+        <section class="custom-card history-card w-full span-all" aria-labelledby="actions-heading">
           <div class="history-header">
             <h2 id="actions-heading"><fa-icon [icon]="icons.solid.faHistory" aria-hidden="true" /> Actions</h2>
-            @if (acServ.projectionUnavailable()) { <p>Indexed action history may be incomplete.</p> }
+            @if (acServ.projectionUnavailable()) { <p class="history-note">Indexed action history may be incomplete.</p> }
             @if (!acServ.indexedHistoryUnavailable()) {
             <div class="live-controls">
               <span id="live-label">Live actions</span>

@@ -10,7 +10,6 @@ import { DataService } from "../../../services/data.service";
 import { SearchService } from "../../../services/search.service";
 import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { FaIconComponent, FaLayersComponent } from "@fortawesome/angular-fontawesome";
-import { MatChipListbox, MatChipOption } from "@angular/material/chips";
 import { MatTableModule } from "@angular/material/table";
 import { isPlatformBrowser, KeyValuePipe } from "@angular/common";
 import { ActDataViewComponent } from "../../act-data-view/act-data-view.component";
@@ -24,8 +23,6 @@ import { ChainService } from "../../../services/chain.service";
     MatProgressSpinner,
     FaIconComponent,
     FaLayersComponent,
-    MatChipListbox,
-    MatChipOption,
     RouterLink,
     MatTableModule,
     KeyValuePipe,

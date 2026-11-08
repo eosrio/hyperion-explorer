@@ -4,6 +4,7 @@
   border-radius: 0 0 0 0.313rem;
   padding: 0.625rem 0 0.5rem 0.5rem;
   width: 100%;
+  min-width: 0;
 }
 
 .permission-enter {
@@ -20,9 +21,66 @@
   }
 }
 
-.monospace {
+.perm-name {
+  display: inline;
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.auth-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  font-size: 0.875rem;
+}
+.weight {
+  flex: none;
+  min-width: 2.25rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+/* Long keys keep their prefix and last characters; the full value is on hover, the key page and copy. */
+.key-link {
+  display: inline-flex;
+  min-width: 0;
+  max-width: min(100%, 48ch);
+  font-size: 0.9375rem;
+  text-decoration: none;
+}
+.key-link:hover {
+  text-decoration: underline;
+}
+.key-link span {
   font-family: "Courier Prime", monospace;
-  font-size: 1rem; /*16px*/
+}
+.key-head {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.key-tail {
+  flex: none;
+  white-space: nowrap;
+}
+.key-copy {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  margin-block: -0.25rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--faded);
+  cursor: pointer;
+}
+.key-copy:hover {
+  color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
 }
 
 :host .tooltip-bigger {

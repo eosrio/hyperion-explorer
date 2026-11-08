@@ -48,57 +48,28 @@
                 </fa-layers>
                 Transaction
               </div>
-              <mat-chip-listbox class="mat-mdc-chip-set-stacked">
-                @if ((accountService.chain.lastIrreversibleBlockNum() || tx().lib) >= tx().actions[0]["block_num"]) {
-                  <mat-chip-option selected>
-                    <fa-icon [icon]="icons.solid.faLock" style="margin-right: 5px"></fa-icon>
-                    Irreversible
-                  </mat-chip-option>
-                }
-                @if ((accountService.chain.lastIrreversibleBlockNum() || tx().lib) < tx().actions[0]["block_num"]) {
-                  <mat-chip-option color="accent" selected>
-                    <fa-icon
-                      [icon]="icons.solid.faHourglass"
-                      style="margin-right: 5px"
-                    ></fa-icon>
-                    Pending
-                  </mat-chip-option>
-                }
-              </mat-chip-listbox>
+              @if ((accountService.chain.lastIrreversibleBlockNum() || tx().lib) >= tx().actions[0]["block_num"]) {
+                <span class="tx-status confirmed-status"><fa-icon [icon]="icons.solid.faLock" aria-hidden="true"></fa-icon> Irreversible</span>
+              } @else {
+                <span class="tx-status pending-status"><fa-icon [icon]="icons.solid.faHourglass" aria-hidden="true"></fa-icon> Pending</span>
+              }
             </div>
             <app-copy-identifier class="mt-4" [value]="txID()" label="transaction ID" />
             <app-finality-help />
           </div>
         </div>
         <div class="custom-card w-full">
-          <div class="flex flex-col justify-start items-stretch gap-[15px]">
-            <div>Block number:
-              <a [routerLink]="['/block', tx().actions[0].block_num]"
-                 class="link-accent font-semibold">{{ tx().actions[0].block_num }}</a>
-            </div>
-            <div>Block time: {{ formatDate(tx().actions[0]["@timestamp"]) }}</div>
-            <div class="flex flex-row justify-start content-center gap-[50px]">
-              <div>
-                <div>
-                  <span class="title">CPU</span>
-                  <span class="faded used">usage</span>
-                </div>
-                <div>{{ tx().actions[0]["cpu_usage_us"] }} µs</div>
-              </div>
-              <div>
-                <div>
-                  <span class="title">NET</span>
-                  <span class="faded used">usage</span>
-                </div>
-                <div data-testid="net-usage">@if (netUsageBytes(tx().actions[0]["net_usage_words"]); as bytes) { {{ bytes }} bytes } @else if (netUsageBytes(tx().actions[0]["net_usage_words"]) === 0) { 0 bytes } @else { Unavailable }</div>
-              </div>
-            </div>
-          </div>
+          <dl class="tx-facts">
+            <div><dt>Block</dt><dd><a [routerLink]="['/block', tx().actions[0].block_num]" class="link-accent font-semibold">{{ tx().actions[0].block_num }}</a></dd></div>
+            <div><dt>Block time</dt><dd>{{ formatDate(tx().actions[0]["@timestamp"]) }}</dd></div>
+            <div><dt>CPU usage</dt><dd>{{ tx().actions[0]["cpu_usage_us"] }} µs</dd></div>
+            <div><dt>NET usage</dt><dd data-testid="net-usage">@if (netUsageBytes(tx().actions[0]["net_usage_words"]); as bytes) { {{ bytes }} bytes } @else if (netUsageBytes(tx().actions[0]["net_usage_words"]) === 0) { 0 bytes } @else { Unavailable }</dd></div>
+          </dl>
         </div>
 
 
         <div class="custom-card w-full min-w-full h-full min-h-full md:col-span-2">
-          <div #actionsTable class="text-lg font-bold">
+          <div #actionsTable class="section-title">
             <fa-layers [fixedWidth]="true" style="margin-right: 5px">
               <fa-icon [icon]="icons.solid.faCircle" transform="grow-3"></fa-icon>
               <fa-icon [icon]="icons.solid.faHistory" [inverse]="true" transform="shrink-5"></fa-icon>

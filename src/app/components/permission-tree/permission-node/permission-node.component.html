@@ -14,35 +14,36 @@
   <div animate.enter="permission-enter" class="permission-cell flex flex-col gap-1.5">
 
     <div>
-      <h3 class="primary" style="display: inline; letter-spacing: 0.7px">
-        {{ node().perm_name }}
-      </h3>
+      <h3 class="perm-name primary">{{ node().perm_name }}</h3>
     </div>
 
     @let reqAuth = node().required_auth;
 
     @if (reqAuth.keys.length > 0) {
       @for (key of reqAuth.keys; track key.key) {
-        <div>
-          <div>
-            <strong class="main-color" matTooltip="weight / threshold" matTooltipClass="tooltip-bigger">
-              {{ key.weight }} / {{ reqAuth.threshold }}
-            </strong>
-            <fa-icon [icon]="icons.solid.faKey" class="main-color"></fa-icon>
-            <a [routerLink]="['/key', key.key]" class="monospace break-word link-gray">
-              {{ key.key }}
-            </a>
-          </div>
+        <div class="auth-row">
+          <strong class="main-color weight" matTooltip="weight / threshold" matTooltipClass="tooltip-bigger">
+            {{ key.weight }} / {{ reqAuth.threshold }}
+          </strong>
+          <fa-icon [icon]="icons.solid.faKey" class="faded" aria-hidden="true"></fa-icon>
+          <a [routerLink]="['/key', key.key]" class="key-link link-gray" [title]="key.key" [attr.aria-label]="'Public key ' + key.key">
+            <span class="key-head">{{ key.key.slice(0, -6) }}</span><span class="key-tail">{{ key.key.slice(-6) }}</span>
+          </a>
+          <button type="button" class="key-copy" [cdkCopyToClipboard]="key.key" (cdkCopyToClipboardCopied)="copied($event ? key.key : null)"
+                  [attr.aria-label]="copiedKey() === key.key ? 'Public key copied' : 'Copy public key'"
+                  [matTooltip]="copiedKey() === key.key ? 'Copied' : 'Copy key'">
+            <fa-icon [icon]="copiedKey() === key.key ? icons.solid.faCheck : icons.regular.faCopy" aria-hidden="true"></fa-icon>
+          </button>
         </div>
       }
     }
     @if (reqAuth.accounts && reqAuth.accounts.length > 0) {
       @for (acc of reqAuth.accounts; track acc.permission.permission + acc.permission.actor) {
-        <div>
-          <strong class="main-color" matTooltip="weight / threshold" matTooltipClass="tooltip-bigger">
+        <div class="auth-row">
+          <strong class="main-color weight" matTooltip="weight / threshold" matTooltipClass="tooltip-bigger">
             {{ acc.weight }} / {{ reqAuth.threshold }}
           </strong>
-          <fa-icon [icon]="icons.solid.faUser" class="main-color"></fa-icon>
+          <fa-icon [icon]="icons.solid.faUser" class="faded" aria-hidden="true"></fa-icon>
           <a [routerLink]="['/account', acc.permission.actor]" class="link-primary">
             {{ acc.permission.actor }}
           </a>
@@ -52,11 +53,11 @@
     }
     @if (reqAuth.waits && reqAuth.waits.length > 0) {
       @for (waits of reqAuth.waits; track waits.wait_sec) {
-        <div>
-          <strong class="main-color" matTooltip="weight / threshold" matTooltipClass="tooltip-bigger">
+        <div class="auth-row">
+          <strong class="main-color weight" matTooltip="weight / threshold" matTooltipClass="tooltip-bigger">
             {{ waits.weight }} / {{ reqAuth.threshold }}
           </strong>
-          <fa-icon [icon]="icons.solid.faClock" class="main-color"></fa-icon>
+          <fa-icon [icon]="icons.solid.faClock" class="faded" aria-hidden="true"></fa-icon>
           <span>{{ waits.wait_sec }}s</span>
         </div>
       }

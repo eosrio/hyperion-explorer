@@ -72,6 +72,23 @@ describe("AccountService compatibility", () => {
     await settle();
   }
 
+  it("reports a missing chain account as not found when the state projection is unavailable", async () => {
+    service.accountName.set("ghost");
+    TestBed.tick();
+    http
+      .expectOne("https://chain.example/v2/state/get_account?account=ghost")
+      .flush({ code: "protocol_projection_unavailable" }, { status: 503, statusText: "Service Unavailable" });
+    await settle();
+    http
+      .expectOne("https://chain.example/v1/chain/get_account")
+      .flush({ code: 400, error: { name: "account_query_exception" } }, { status: 400, statusText: "Bad Request" });
+    http.match(request => request.url.includes("get_actions")).forEach(request => request.flush({ actions: [], total: { value: 0 } }));
+    http.match(request => request.url.includes("/v1/chain/")).forEach(request => request.flush({ rows: [] }));
+    await settle();
+    await settle();
+    expect((service.accountDataRes.error() as { status?: number })?.status).toBe(404);
+  });
+
   it("keeps checking finality while pending history remains unchanged and stops when irreversible", async () => {
     await loadAccount(["9007199254740993"]);
     const chain = TestBed.inject(ChainService);

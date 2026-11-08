@@ -1,0 +1,230 @@
+/* Account overview: header, partial-data notice, balance, resources and tokens. */
+.account-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.25rem;
+}
+@media (min-width: 768px) {
+  .account-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .span-all {
+    grid-column: 1 / -1;
+  }
+  .span-two {
+    grid-column: span 2;
+  }
+  .tokens-card {
+    align-self: start;
+  }
+}
+
+.account-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  padding-block: 1rem;
+}
+.account-identity {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 1rem;
+  min-width: 0;
+}
+.acc-title {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+.acc-title fa-icon,
+.acc-title fa-layers {
+  color: var(--primary);
+  font-size: 1.25rem;
+}
+.account-summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.375rem;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.data-gaps {
+  display: flex;
+  align-items: baseline;
+  gap: 0.625rem;
+  margin-top: -0.25rem;
+  padding: 0.625rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--primary) 16%, transparent);
+  border-radius: 0.875rem;
+  background: color-mix(in srgb, var(--primary) 5%, transparent);
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.data-gaps-body {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0.75rem;
+  min-width: 0;
+}
+.data-gaps p {
+  margin: 0;
+  color: var(--faded);
+}
+.data-gaps strong {
+  color: var(--main-text);
+  font-weight: 600;
+}
+.data-gaps-icon {
+  color: var(--primary);
+}
+.data-gap-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.data-gap-list li {
+  padding: 0.0625rem 0.625rem;
+  border: 1px solid var(--line-divider);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--card-bg) 75%, transparent);
+  color: var(--main-text);
+  font-size: 0.8125rem;
+  white-space: nowrap;
+}
+
+.balance-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 0.25rem;
+  font-size: 0.9375rem;
+}
+.balance-row > :last-child {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.balance-row.total-balance {
+  font-size: 1rem;
+}
+.creation-info {
+  margin-top: 0.625rem;
+  padding-top: 0.625rem;
+  border-top: 1px solid var(--line-divider);
+}
+
+.resource-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 1.5rem 2.5rem;
+}
+.resource {
+  container-type: inline-size;
+  min-width: 0;
+}
+.resource-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.5rem;
+  margin-bottom: 0.625rem;
+}
+.resource-head .title {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+.resource-head .faded {
+  font-size: 0.8125rem;
+}
+.resource-value {
+  margin-left: auto;
+  font-size: 0.875rem;
+  font-variant-numeric: tabular-nums;
+}
+/* In narrow columns the usage figure takes its own line instead of wrapping ragged. */
+@container (max-width: 18rem) {
+  .resource-value {
+    flex-basis: 100%;
+    margin-left: 0;
+  }
+}
+dl.small-info {
+  margin: 0.75rem 0 0;
+}
+dl.small-info div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-block: 0.125rem;
+  color: var(--faded);
+}
+dl.small-info dd {
+  margin: 0;
+  color: var(--main-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.token-list {
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+.token-list .token-cell {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.25rem 1rem;
+}
+.token-list .token-cell:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.token-amount {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.token-list .token {
+  font-size: 0.875rem;
+}
+.token-contract {
+  font-size: 0.8125rem;
+}
+
+.history-note {
+  flex: 1 1 auto;
+  margin: 0;
+  color: var(--faded);
+  font-size: 0.8125rem;
+}
+
+@media (max-width: 700px) {
+  .account-summary {
+    display: none;
+  }
+}
+@media (max-width: 640px) {
+  .account-header {
+    padding-block: 0.875rem;
+  }
+  .acc-title {
+    font-size: 1.3125rem;
+  }
+}
