@@ -326,6 +326,28 @@ describe("AccountService compatibility", () => {
     expect(service.firstGlobalSequence()).toBe("9007199254740993");
   });
 
+  it("puts the chain's own token beside an empty core balance and uses the chain's system accounts in filters", async () => {
+    data.explorerMetadata.set({ chain_id: "c".repeat(64), chain_name: "Wire Testnet", system_contract: "sysio" } as any);
+    service.accountDataRes.set({
+      account: { account_name: "alice", total_resources: { cpu_weight: "0.0500 SYS", net_weight: "0.0500 SYS" } },
+      tokens: [
+        { symbol: "WIRE", precision: 9, amount: 75323.350694444, contract: "sysio.token" },
+        { symbol: "SYS", precision: 4, amount: 1, contract: "sysio.token" },
+        { symbol: "OTHER", precision: 4, amount: 5, contract: "other.token" }
+      ],
+      actions: []
+    } as any);
+    expect(service.systemSymbol()).toBe("SYS");
+    expect(service.systemTokenBalances().map(token => token.symbol)).toEqual(["WIRE"]);
+    const params = { set: vi.fn() };
+    service.commonFilters.find(filter => filter.name === "Native Transfers")!.exec(params as any);
+    expect(params.set).toHaveBeenCalledWith({ "act.account": "sysio.token", "act.name": "transfer" });
+    service.commonFilters.find(filter => filter.name === "System Actions")!.exec(params as any);
+    expect(params.set).toHaveBeenLastCalledWith({ "act.account": "sysio" });
+    await settle();
+    http.match(() => true).forEach(request => request.flush({}));
+  });
+
   it("keeps NET and RAM byte units separate from CPU time", () => {
     service.accountDataRes.set({
       account: { cpu_limit: { used: 1450, max: 100000 }, net_limit: { used: 8560, max: 262144 }, ram_quota: 1048576, ram_usage: 287340 },

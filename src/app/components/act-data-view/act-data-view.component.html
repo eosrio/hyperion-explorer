@@ -58,7 +58,11 @@
               }
             }
             @case ("number") {
-              <span class="break-word accent">{{ item.value }}</span>
+              @if (symbolCode(item.value, item.key); as code) {
+                <span class="break-word">{{ code }}</span><span class="faded text-xs"> (raw {{ item.value }})</span>
+              } @else {
+                <span class="break-word accent">{{ item.value }}</span>
+              }
             }
             @case ("boolean") {
               <span class="break-word">{{ item.value }}</span>

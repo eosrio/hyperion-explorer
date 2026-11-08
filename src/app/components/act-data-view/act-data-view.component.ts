@@ -13,6 +13,24 @@ function charToSymbol(c: number) {
   return 0;
 }
 
+/** Fields that carry an Antelope symbol code, which ABIs without a symbol_code type serialize as a raw integer. */
+const symbolCodeFields = new Set(["sym_code", "symbol_code", "symcode"]);
+
+/** Decode a raw symbol code (for example 1163020631) into its ticker ("WIRE"), or null when it is not one. */
+export function decodeSymbolCode(value: unknown): string | null {
+  if (typeof value !== "number" && typeof value !== "string") return null;
+  if (!/^[1-9]\d{0,19}$/.test(String(value))) return null;
+  let raw = BigInt(value);
+  let code = "";
+  while (raw > 0n) {
+    const char = Number(raw & 0xffn);
+    if (char < 65 || char > 90) return null;
+    code += String.fromCharCode(char);
+    raw >>= 8n;
+  }
+  return code.length <= 7 ? code : null;
+}
+
 /** Regex pattern matching an Antelope/EOSIO name, case-sensitive. */
 const namePattern = /^[a-z1-5.]{0,13}$/;
 
@@ -91,6 +109,10 @@ export class ActDataViewComponent {
       "creator"
     ]);
     return typeof value === "string" && value.length > 0 && accountFields.has(String(field)) && namePattern.test(value);
+  }
+
+  symbolCode(value: unknown, field: unknown): string | null {
+    return symbolCodeFields.has(String(field)) ? decodeSymbolCode(value) : null;
   }
 
   protected readonly String = String;

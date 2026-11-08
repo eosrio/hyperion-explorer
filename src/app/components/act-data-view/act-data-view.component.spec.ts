@@ -1,6 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { ActDataViewComponent } from './act-data-view.component';
+import { ActDataViewComponent, decodeSymbolCode } from './act-data-view.component';
 
 describe('ActDataViewComponent', () => {
   let component: ActDataViewComponent;
@@ -19,5 +19,18 @@ describe('ActDataViewComponent', () => {
 
   it('should create', () => {
     expect(component).toBeTruthy();
+  });
+
+  it('decodes raw symbol codes and leaves other numbers alone', () => {
+    expect(decodeSymbolCode(1163020631)).toBe('WIRE');
+    expect(decodeSymbolCode('5459781')).toBe('EOS');
+    expect(decodeSymbolCode(42)).toBeNull();
+    expect(decodeSymbolCode(0)).toBeNull();
+    expect(decodeSymbolCode(-5)).toBeNull();
+    fixture.componentRef.setInput('data', { sym_code: 1163020631, amount: 1163020631 });
+    fixture.detectChanges();
+    const text = fixture.nativeElement.textContent.replace(/\s+/g, ' ');
+    expect(text).toContain('sym_code: WIRE (raw 1163020631)');
+    expect(text).toContain('amount: 1163020631');
   });
 });

@@ -43,11 +43,19 @@
               <span>{{ account.account_name }}</span>
             </h1>
             @if (!partialBalance) {
+              @let chainTokens = acServ.systemTokenBalances();
+              @let showCore = acServ.totalBalance() > 0 || chainTokens.length === 0;
               <div id="totalBalance" class="account-summary">
-                <span class="primary">{{ acServ.totalBalance() | number: "1.0-" + systemPrecision }} {{ systemSymbol }}</span>
-                @if (chain.priceRateUsd() !== null) {
-                  <span class="faded">· ${{ acServ.totalBalanceUSD() | number: "1.0-2" }}</span>
-                  <span class="faded text-sm">&#64; ${{ chain.priceRateUsd() }} / {{ systemSymbol }}</span>
+                @if (showCore) {
+                  <span class="primary">{{ acServ.totalBalance() | number: "1.0-" + systemPrecision }} {{ systemSymbol }}</span>
+                  @if (chain.priceRateUsd() !== null) {
+                    <span class="faded">· ${{ acServ.totalBalanceUSD() | number: "1.0-2" }}</span>
+                    <span class="faded text-sm">&#64; ${{ chain.priceRateUsd() }} / {{ systemSymbol }}</span>
+                  }
+                }
+                @for (token of chainTokens; track token.symbol) {
+                  @if (showCore || !$first) { <span class="faded" aria-hidden="true">·</span> }
+                  <span class="primary">{{ token.amount | number: "1.0-" + (token.precision || 4) }} {{ token.symbol }}</span>
                 }
               </div>
             } @else if (liquidOnly) {
@@ -86,7 +94,7 @@
             <div class="balance-row total-balance"><span>Liquid balance</span><strong>{{ liquidOnly }}</strong></div>
           } @else {
             <div class="balance-row total-balance">
-              <strong class="uppercase">Total balance</strong>
+              <strong class="uppercase">{{ systemSymbol }} balance</strong>
               <strong>{{ acServ.totalBalance() | number: "1.0-" + systemPrecision }} {{ systemSymbol }}</strong>
             </div>
             <!-- Chains without a price feed simply omit the USD rows. -->
@@ -235,7 +243,12 @@
                   <li class="token-cell">
                     <span class="token-amount">
                       {{ token.amount | number: "1.0-" + (token.precision || 4) }}
-                      <span class="token">{{ token.symbol }}</span>
+                      @if (chain.topHoldersAvailable.value()) {
+                        <a class="token token-holders-link" [routerLink]="['/top-holders', token.contract, token.symbol]"
+                           [attr.aria-label]="'Top ' + token.symbol + ' holders'" title="Top holders">{{ token.symbol }}</a>
+                      } @else {
+                        <span class="token">{{ token.symbol }}</span>
+                      }
                     </span>
                     <a class="faded div-link token-contract" [routerLink]="['/account', token.contract]">{{ token.contract }}</a>
                   </li>
@@ -406,7 +419,7 @@
             <details class="history-options">
               <summary>Custom filter</summary>
               <form class="custom-filter-fields" (ngSubmit)="useCustomFilter()">
-                <label>Contract<input type="text" name="contract" [(ngModel)]="contractFilterInput" placeholder="eosio.token" /></label>
+                <label>Contract<input type="text" name="contract" [(ngModel)]="contractFilterInput" [placeholder]="chain.systemTokenContract()" /></label>
                 <label>Action name<input type="text" name="action" [(ngModel)]="actionFilterInput" placeholder="transfer" /></label>
                 <label class="checkbox-label"><input type="checkbox" name="saveFilter" [(ngModel)]="saveCustomFilter" />Save this filter</label>
                 <button type="submit" mat-raised-button [disabled]="!contractFilterInput() && !actionFilterInput()">Apply filter</button>

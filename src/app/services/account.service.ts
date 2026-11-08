@@ -135,7 +135,7 @@ export class AccountService {
       icon: faMoneyBill,
       exec: params => {
         params.set({
-          "act.account": "eosio.token",
+          "act.account": this.chain.systemTokenContract(),
           "act.name": "transfer"
         });
       }
@@ -145,7 +145,7 @@ export class AccountService {
       icon: faMoneyBill,
       exec: params => {
         params.set({
-          "act.account": "!eosio.token",
+          "act.account": `!${this.chain.systemTokenContract()}`,
           "act.name": "transfer"
         });
       }
@@ -155,7 +155,7 @@ export class AccountService {
       icon: faComputer,
       exec: params => {
         params.set({
-          "act.account": "eosio"
+          "act.account": this.chain.systemContract()
         });
       }
     },
@@ -165,7 +165,7 @@ export class AccountService {
       icon: faVoteYea,
       exec: params => {
         params.set({
-          "act.account": "eosio",
+          "act.account": this.chain.systemContract(),
           "act.name": "voteproducer"
         });
       }
@@ -341,6 +341,16 @@ export class AccountService {
 
   public tokensComputed = computed<TokenData[]>(() => {
     return this.accountResponse()?.tokens ?? [];
+  });
+
+  /**
+   * Balances on the chain's own token contract other than the core symbol, such as WIRE beside SYS on Wire.
+   * They belong in the account headline: an empty core balance alone would read as an empty account.
+   */
+  public systemTokenBalances = computed<TokenData[]>(() => {
+    const contract = this.chain.systemTokenContract();
+    const core = this.systemSymbol();
+    return this.tokensComputed().filter(token => token.contract === contract && token.symbol !== core && token.amount > 0);
   });
 
   public accountComputed = computed<AccountData>(() => {

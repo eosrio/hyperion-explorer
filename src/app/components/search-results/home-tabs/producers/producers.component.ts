@@ -1,6 +1,6 @@
 import { describeApiError, isRetryableApiError } from "../../../../api-errors";
 import { MatButton } from "@angular/material/button";
-import { Component, inject, viewChild, effect, ChangeDetectionStrategy } from "@angular/core";
+import { Component, computed, inject, viewChild, effect, ChangeDetectionStrategy } from "@angular/core";
 import { MatSort, MatSortModule } from "@angular/material/sort"; // Import MatSortModule
 import {
   MatTableDataSource,
@@ -57,8 +57,18 @@ export class ProducersComponent {
   // MatTable data source
   dataSource = new MatTableDataSource<any>([]);
 
-  // Define columns to be displayed in the table
-  displayedColumns: string[] = ["rank", "account", "location", "total_votes"];
+  /**
+   * Only show what the chain publishes: chains without voting (such as Wire) return producers with no votes or
+   * location, and empty columns would suggest missing data.
+   */
+  readonly hasVotes = computed(() => this.chainService.producers().some((p: any) => p.total_votes !== undefined && p.total_votes !== null));
+  readonly hasLocation = computed(() => this.chainService.producers().some((p: any) => p.location !== undefined && p.location !== null && String(p.location).trim() !== ""));
+  readonly displayedColumns = computed(() => [
+    "rank",
+    "account",
+    ...(this.hasLocation() ? ["location"] : []),
+    ...(this.hasVotes() ? ["total_votes"] : [])
+  ]);
 
   // Lookup maps for country names by code
   private readonly countryNameByNumeric = new Map<string, string>(countries.map(c => [c["country-code"], c.name]));

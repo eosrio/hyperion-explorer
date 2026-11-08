@@ -21,8 +21,10 @@
         <div id="search-error" class="search-message" aria-live="polite" aria-atomic="true">@if (err()) { <fa-icon [icon]="icons.error" aria-hidden="true" /><span>{{ err() }}</span> }</div>
       </form>
       <div class="provider">
-        <span class="provider-label">Data provider</span>
-        <a [href]="chainData()?.provider_url" target="_blank" rel="noopener noreferrer">{{ chainData()?.provider }}</a>
+        @if (chainData()?.chain_name; as chainName) { <span class="chain-name">{{ chainName }}</span> }
+        @if (chainData()?.provider; as provider) {
+          <span class="provider-line"><span class="provider-label">Data by </span><a [href]="chainData()?.provider_url" target="_blank" rel="noopener noreferrer">{{ provider }}</a></span>
+        }
       </div>
       <p class="header-description">Lightweight Explorer</p>
     </div>

@@ -309,3 +309,16 @@ test("reports unsafe legacy sequence numbers and recovers with exact strings", a
   await expect(page.getByRole("alert")).toHaveCount(0);
   await expect(page.getByText("Sequence 9007199254740993", { exact: true })).toBeVisible();
 });
+
+test("names the chain in the header and links tokens to holders only when the API ranks them", async ({ page, request }) => {
+  await page.goto("/explorer/account/eosio");
+  await expect(page.locator(".provider .chain-name")).toHaveText("Fixture Chain");
+  await expect(page.locator(".provider")).toContainText("Data by Local fixture");
+  const holders = page.getByRole("link", { name: "Top SEED holders" });
+  await expect(holders).toHaveAttribute("href", "/explorer/top-holders/seed.token/SEED");
+
+  await request.post("/__fixture/state", { data: { holdersUnavailable: true } });
+  await page.reload();
+  await expect(page.locator(".token-list").getByText("SEED", { exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Top SEED holders" })).toHaveCount(0);
+});

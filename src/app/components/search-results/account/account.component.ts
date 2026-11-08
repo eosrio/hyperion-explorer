@@ -291,6 +291,14 @@ export class AccountComponent implements OnInit, OnDestroy {
         this.title.setTitle(`${accountName} • ${chainData.chain_name} Hyperion Explorer`);
       }
     });
+
+    // Token rows link to their top holders only when this API can rank holders; probe once, in the browser.
+    effect(() => {
+      const tokens = this.acServ.tokensComputed();
+      if (!isPlatformBrowser(this.platformId) || tokens.length === 0) return;
+      const probe = tokens.find(token => token.contract === this.chain.systemTokenContract()) ?? tokens[0];
+      this.chain.probeTopHolders(probe.contract, probe.symbol);
+    });
   }
 
   transformer(node: Permission, level: number): any {

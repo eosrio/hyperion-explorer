@@ -49,7 +49,7 @@ export class SearchService {
     try {
       const sValue = value.toLowerCase();
       const requestBody = {
-        code: this.data.env.systemContract,
+        code: this.data.explorerMetadata()?.system_contract || this.data.env.systemContract,
         table: this.data.env.userResourcesTable,
         lower_bound: sValue,
         limit: 100

@@ -207,6 +207,14 @@ dl.small-info dd {
 .token-contract {
   font-size: 0.8125rem;
 }
+.token-holders-link {
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--primary) 40%, transparent);
+  text-underline-offset: 0.2em;
+}
+.token-holders-link:hover {
+  text-decoration-color: currentColor;
+}
 
 .history-note {
   flex: 1 1 auto;

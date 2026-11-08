@@ -112,11 +112,30 @@ export class ChainService {
     }
   });
 
+  /** The chain's own system accounts (for example sysio and sysio.token on Wire), never assumed to be eosio. */
+  systemContract = computed(() => this.data.explorerMetadata()?.system_contract || "eosio");
+  systemTokenContract = computed(() => `${this.systemContract()}.token`);
+
+  /**
+   * Whether this API serves token holder rankings. Probed once with a token the visitor is looking at, so token
+   * rows only link to a top-holders page that can load.
+   */
+  private topHoldersProbe = signal<{ contract: string; symbol: string } | null>(null);
+  topHoldersAvailable = resource<boolean, { contract: string; symbol: string } | undefined>({
+    params: () => this.topHoldersProbe() ?? undefined,
+    loader: async ({ params, abortSignal }) => {
+      const query = new URLSearchParams({ contract: params.contract, symbol: params.symbol, limit: "1" });
+      const response = await fetch(`${this.data.env.hyperionApiUrl}/v2/state/get_top_holders?${query}`, { signal: abortSignal });
+      return response.ok;
+    }
+  });
+
+  probeTopHolders(contract: string, symbol: string): void {
+    if (!this.topHoldersProbe()) this.topHoldersProbe.set({ contract, symbol });
+  }
+
   systemSymbol = resource<string, string | undefined>({
-    params: () => {
-      const metadata = this.data.explorerMetadata();
-      return metadata ? metadata.system_contract || "eosio" : undefined;
-    },
+    params: () => (this.data.explorerMetadata() ? this.systemContract() : undefined),
     loader: async ({ params: systemContract }) => {
       try {
         const abi = await lastValueFrom(this.httpClient.post<{ abi?: { tables?: { name?: string }[] } }>(
