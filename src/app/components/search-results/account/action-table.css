@@ -1,15 +1,3 @@
-@media (max-width: 960px) {
-  .actions-table .mat-mdc-header-row {
-    top: 16.25rem;
-  }
-}
-
-@media (min-width: 961px) {
-  .actions-table .mat-mdc-header-row {
-    top: 14.063rem;
-  }
-}
-
 .action-cell {
   font-size: 0.813rem; /*13px*/
   letter-spacing: 0.5px;
@@ -23,8 +11,6 @@
 @media (min-width: 829px) {
   .actions-table .mat-mdc-header-row {
     background: transparent;
-    position: sticky;
-    z-index: 100;
     color: var(--main-text);
   }
 

@@ -377,3 +377,16 @@
     transition: none;
   }
 }
+/* Large action payloads show a fading preview until expanded. */
+.act-data-clipped {
+  max-height: 7.5rem;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent);
+  mask-image: linear-gradient(to bottom, #000 55%, transparent);
+}
+.act-data-toggle {
+  margin-top: 0.25rem;
+  color: var(--primary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}

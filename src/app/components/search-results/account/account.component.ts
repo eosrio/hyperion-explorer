@@ -107,6 +107,9 @@ interface FlatNode {
   level: number;
 }
 
+/** Values (objects, arrays and leaves) above which action data starts collapsed to a preview. */
+const LARGE_ACTION_DATA_FIELDS = 12;
+
 @Component({
   selector: "app-account",
   imports: [
@@ -183,6 +186,24 @@ export class AccountComponent implements OnInit, OnDestroy {
   }
   isNewInBatch(action: HistoryAction): boolean {
     return this.appliedBatch()?.actionIds.has(this.actionIdentity(action)) ?? false;
+  }
+
+  private dataSize = new WeakMap<object, number>();
+  /** Large payloads (for example onblock headers) start as a clipped preview so one row cannot fill the screen. */
+  hasLargeData(data: unknown): boolean {
+    if (!data || typeof data !== "object") return false;
+    let size = this.dataSize.get(data);
+    if (size === undefined) {
+      size = 0;
+      const stack: unknown[] = [data];
+      while (stack.length > 0 && size <= LARGE_ACTION_DATA_FIELDS) {
+        const value = stack.pop();
+        size++;
+        if (value && typeof value === "object") stack.push(...Object.values(value));
+      }
+      this.dataSize.set(data, size);
+    }
+    return size > LARGE_ACTION_DATA_FIELDS;
   }
   applyNewActions(): void {
     const previous = new Set(this.acServ.actionsComputed().map(action => this.actionIdentity(action)));

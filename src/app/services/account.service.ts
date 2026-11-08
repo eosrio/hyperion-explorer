@@ -420,6 +420,8 @@ export class AccountService {
       ramUnlimited: ramQuota === -1,
       cpuAvailable: cpuMax !== null && (cpuMax === -1 || cpuUsed !== null), cpuUnlimited: cpuMax === -1,
       netAvailable: netMax !== null && (netMax === -1 || netUsed !== null), netUnlimited: netMax === -1,
+      // A zero limit means the account has no allocation of its own; "0% of 0" says nothing.
+      cpuNone: cpuMax === 0, netNone: netMax === 0,
       cpu: cpuMax !== null && cpuUsed !== null && cpuMax > 0 ? Math.min(100, Math.max(0, (cpuUsed / cpuMax) * 100)) : 0,
       net: netMax !== null && netUsed !== null && netMax > 0 ? Math.min(100, Math.max(0, (netUsed / netMax) * 100)) : 0,
       ram: ramQuota !== null && ramUsage !== null && ramQuota > 0 ? Math.min(100, Math.max(0, (ramUsage / ramQuota) * 100)) : 0,

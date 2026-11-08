@@ -47,7 +47,7 @@
                 @if (chain.priceRateUsd() !== null) {
                   <span class="faded">· ${{ acServ.totalBalanceUSD() | number: "1.0-2" }}</span>
                   <span class="faded text-sm">&#64; ${{ chain.priceRateUsd() }} / {{ systemSymbol }}</span>
-                } @else { <span class="faded text-sm">USD price unavailable</span> }
+                }
               </div>
             } @else if (liquidOnly) {
               <div class="account-summary"><span class="primary">{{ liquidOnly }}</span> <span class="faded text-sm">liquid</span></div>
@@ -88,10 +88,11 @@
               <strong class="uppercase">Total balance</strong>
               <strong>{{ acServ.totalBalance() | number: "1.0-" + systemPrecision }} {{ systemSymbol }}</strong>
             </div>
-            <div class="balance-row"><span class="faded">USD value</span>
-              <span>@if (chain.priceRateUsd() !== null) { ${{ acServ.totalBalanceUSD() | number: "1.0-2" }} } @else { Unavailable }</span></div>
-            <div class="balance-row bottom-divider"><span class="faded">{{ systemSymbol }} price</span>
-              <span>@if (chain.priceRateUsd() !== null) { ${{ chain.priceRateUsd() }} } @else { Unavailable }</span></div>
+            <!-- Chains without a price feed simply omit the USD rows. -->
+            @if (chain.priceRateUsd() !== null) {
+              <div class="balance-row"><span class="faded">USD value</span><span>${{ acServ.totalBalanceUSD() | number: "1.0-2" }}</span></div>
+              <div class="balance-row bottom-divider"><span class="faded">{{ systemSymbol }} price</span><span>${{ chain.priceRateUsd() }}</span></div>
+            }
             <div class="balance-row"><span class="faded">Liquid</span><span>{{ acServ.liquidBalance() | number: "1.0-" + systemPrecision }} {{ systemSymbol }}</span></div>
             <div class="balance-row"><span class="faded">Staked</span><span>{{ acServ.myStakedBalance() | number: "1.0-" + systemPrecision }} {{ systemSymbol }}</span></div>
             <div class="balance-row"><span class="faded">Refunding</span><span>{{ acServ.refundBalance() | number: "1.0-" + systemPrecision }} {{ systemSymbol }}</span></div>
@@ -115,20 +116,27 @@
             <div class="resource">
               <div class="resource-head">
                 <span class="title" title="Processing time, measured in microseconds">CPU</span>
-                @if (res.cpuUnlimited) { <span class="faded">unlimited</span> }
+                @if (res.cpuUnlimited) { <span class="resource-tag">Unlimited</span> }
+                @else if (res.cpuNone) { <span class="resource-tag muted">None allocated</span> }
                 @else if (!res.cpuAvailable) { <span class="faded">usage unavailable</span> }
-                @else { <span class="faded">{{ res.cpu | number: "1.0-2" }}% used</span> }
-                <span class="resource-value">{{ res.cpuStr }}</span>
+                @else {
+                  <span class="faded">{{ res.cpu | number: "1.0-2" }}% used</span>
+                  <span class="resource-value">{{ res.cpuStr }}</span>
+                }
               </div>
-              @if (res.cpuAvailable && !res.cpuUnlimited) {
+              @if (res.cpuAvailable && !res.cpuUnlimited && !res.cpuNone) {
                 <mat-progress-bar mode="determinate" [value]="res.cpu" aria-label="CPU used"></mat-progress-bar>
               }
               @if (!stakeIncomplete) {
-                <dl class="small-info">
-                  <div><dt>Self-staked</dt><dd>{{ acServ.myCpuBalance() | number: "1.0-" + systemPrecision }} {{ systemSymbol }}</dd></div>
-                  <div><dt>Staked by others</dt><dd>{{ acServ.cpuByOthers() | number: "1.0-" + systemPrecision }} {{ systemSymbol }}</dd></div>
-                  <div><dt>Total in CPU</dt><dd>{{ acServ.cpuBalance() | number: "1.0-" + systemPrecision }} {{ systemSymbol }}</dd></div>
-                </dl>
+                @if (acServ.cpuBalance() > 0) {
+                  <dl class="small-info">
+                    <div><dt>Self-staked</dt><dd>{{ acServ.myCpuBalance() | number: "1.0-" + systemPrecision }} {{ systemSymbol }}</dd></div>
+                    <div><dt>Staked by others</dt><dd>{{ acServ.cpuByOthers() | number: "1.0-" + systemPrecision }} {{ systemSymbol }}</dd></div>
+                    <div><dt>Total in CPU</dt><dd>{{ acServ.cpuBalance() | number: "1.0-" + systemPrecision }} {{ systemSymbol }}</dd></div>
+                  </dl>
+                } @else if (!res.cpuUnlimited && !res.cpuNone) {
+                  <p class="small-info faded">No {{ systemSymbol }} staked to CPU</p>
+                }
               } @else if (account.total_resources?.cpu_weight; as weight) {
                 <dl class="small-info"><div><dt>Total in CPU</dt><dd>{{ weight }}</dd></div></dl>
               }
@@ -137,20 +145,27 @@
             <div class="resource">
               <div class="resource-head">
                 <span class="title" title="Network bandwidth, measured in bytes">NET</span>
-                @if (res.netUnlimited) { <span class="faded">unlimited</span> }
+                @if (res.netUnlimited) { <span class="resource-tag">Unlimited</span> }
+                @else if (res.netNone) { <span class="resource-tag muted">None allocated</span> }
                 @else if (!res.netAvailable) { <span class="faded">usage unavailable</span> }
-                @else { <span class="faded">{{ res.net | number: "1.0-2" }}% used</span> }
-                <span class="resource-value">{{ res.netStr }}</span>
+                @else {
+                  <span class="faded">{{ res.net | number: "1.0-2" }}% used</span>
+                  <span class="resource-value">{{ res.netStr }}</span>
+                }
               </div>
-              @if (res.netAvailable && !res.netUnlimited) {
+              @if (res.netAvailable && !res.netUnlimited && !res.netNone) {
                 <mat-progress-bar mode="determinate" [value]="res.net" aria-label="NET used"></mat-progress-bar>
               }
               @if (!stakeIncomplete) {
-                <dl class="small-info">
-                  <div><dt>Self-staked</dt><dd>{{ acServ.myNetBalance() | number: "1.0-" + systemPrecision }} {{ systemSymbol }}</dd></div>
-                  <div><dt>Staked by others</dt><dd>{{ acServ.netByOthers() | number: "1.0-" + systemPrecision }} {{ systemSymbol }}</dd></div>
-                  <div><dt>Total in NET</dt><dd>{{ acServ.netBalance() | number: "1.0-" + systemPrecision }} {{ systemSymbol }}</dd></div>
-                </dl>
+                @if (acServ.netBalance() > 0) {
+                  <dl class="small-info">
+                    <div><dt>Self-staked</dt><dd>{{ acServ.myNetBalance() | number: "1.0-" + systemPrecision }} {{ systemSymbol }}</dd></div>
+                    <div><dt>Staked by others</dt><dd>{{ acServ.netByOthers() | number: "1.0-" + systemPrecision }} {{ systemSymbol }}</dd></div>
+                    <div><dt>Total in NET</dt><dd>{{ acServ.netBalance() | number: "1.0-" + systemPrecision }} {{ systemSymbol }}</dd></div>
+                  </dl>
+                } @else if (!res.netUnlimited && !res.netNone) {
+                  <p class="small-info faded">No {{ systemSymbol }} staked to NET</p>
+                }
               } @else if (account.total_resources?.net_weight; as weight) {
                 <dl class="small-info"><div><dt>Total in NET</dt><dd>{{ weight }}</dd></div></dl>
               }
@@ -159,10 +174,12 @@
             <div class="resource">
               <div class="resource-head">
                 <span class="title" title="Persistent storage, measured in bytes">RAM</span>
-                @if (res.ramUnlimited) { <span class="faded">unlimited</span> }
+                @if (res.ramUnlimited) { <span class="resource-tag">Unlimited</span> }
                 @else if (!res.ramAvailable) { <span class="faded">usage unavailable</span> }
-                @else { <span class="faded">{{ res.ram | number: "1.0-2" }}% used</span> }
-                <span class="resource-value">{{ res.ramStr }}</span>
+                @else {
+                  <span class="faded">{{ res.ram | number: "1.0-2" }}% used</span>
+                  <span class="resource-value">{{ res.ramStr }}</span>
+                }
               </div>
               @if (res.ramAvailable && !res.ramUnlimited) {
                 <mat-progress-bar mode="determinate" [value]="res.ram" aria-label="RAM used"></mat-progress-bar>
@@ -200,21 +217,15 @@
                     <fa-icon [icon]="icons.solid.faStar" [inverse]="true" transform="shrink-5"></fa-icon>
                   </fa-layers>
                   <div class="vote-card-title mb-0 whitespace-nowrap">Tokens</div>
+                  <span class="count-pill" [attr.aria-label]="acServ.tokensComputed().length + ' tokens'">{{ acServ.tokensComputed().length }}</span>
                   <fa-icon
                     [icon]="icons.regular.faQuestionCircle"
-                    class="faded pointer ml-2"
+                    class="faded pointer text-base"
                     matTooltip="Only liquid balances are displayed"
                     matTooltipClass="tooltip-bigger"
                   ></fa-icon>
                 </div>
               </mat-panel-title>
-              <mat-panel-description class="!text-right !justify-end !ml-auto !flex-grow-0 !flex-shrink-0">
-                @if (acServ.tokensComputed().length > 0) {
-                  <span class="whitespace-nowrap faded text-sm"><strong>{{ acServ.tokensComputed().length }}</strong> found</span>
-                } @else {
-                  <span class="whitespace-nowrap faded text-sm">No tokens</span>
-                }
-              </mat-panel-description>
             </mat-expansion-panel-header>
 
             @if (acServ.tokensComputed().length > 0) {
@@ -259,15 +270,9 @@
                     <fa-icon [icon]="icons.solid.faLink" [inverse]="true" transform="shrink-5"></fa-icon>
                   </fa-layers>
                   <div class="vote-card-title mb-0 whitespace-nowrap">Permissions & Keys</div>
+                  <span class="count-pill" [attr.aria-label]="account.permissions.length + ' permissions'">{{ account.permissions.length }}</span>
                 </div>
               </mat-panel-title>
-              <mat-panel-description class="!text-right !justify-end !ml-auto !flex-grow-0 !flex-shrink-0">
-                @if (account.permissions.length > 0) {
-                  <span class="whitespace-nowrap faded text-sm"><strong>{{ account.permissions.length }}</strong> configured</span>
-                } @else {
-                  <span class="whitespace-nowrap faded text-sm">No permissions</span>
-                }
-              </mat-panel-description>
             </mat-expansion-panel-header>
 
             <div class="mt-3">
@@ -512,8 +517,16 @@
                       <button type="button" class="link-btn" [attr.aria-expanded]="!!action._expanded" [attr.aria-label]="'Toggle action data ' + action.global_sequence" (click)="action._expanded = !action._expanded">{{ action._expanded ? 'Collapse data' : 'Expand data' }}</button>
                     }
                     @if (!compactMode() || action._expanded) {
-                      <div class="py-4">
-                        <app-act-data-view [data]="action.act.data"></app-act-data-view>
+                      @let clipped = !compactMode() && !action._expanded && hasLargeData(action.act.data);
+                      <div class="py-3">
+                        <div class="act-data" [class.act-data-clipped]="clipped">
+                          <app-act-data-view [data]="action.act.data"></app-act-data-view>
+                        </div>
+                        @if (!compactMode() && hasLargeData(action.act.data)) {
+                          <button type="button" class="link-btn act-data-toggle" [attr.aria-expanded]="!!action._expanded" (click)="action._expanded = !action._expanded">
+                            {{ action._expanded ? 'Show less' : 'Show all data' }}
+                          </button>
+                        }
                       </div>
                     }
                   </td>
@@ -542,7 +555,7 @@
                   </td>
                 </ng-container>
 
-                <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+                <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                 <tr mat-row *matRowDef="let row; columns: displayedColumns" [class.is-new-action]="isNewInBatch(row)"></tr>
               </table>
               <mat-paginator

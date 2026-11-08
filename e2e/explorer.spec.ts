@@ -116,7 +116,7 @@ test("shows chain account and history when the state projection is unavailable",
   await expect(page.locator(".tokens-card")).toHaveCount(0);
   await expect(page.getByText("No tokens", { exact: true })).toHaveCount(0);
   await expect(page.getByText("Indexed action history may be incomplete.")).toBeVisible();
-  await expect(page.getByText("USD price unavailable")).toHaveCount(1);
+  await expect(page.getByText(/USD (price unavailable|value)/)).toHaveCount(0);
   await expect(page.getByText(/6\.28 GiB/)).toBeVisible();
   await expect(page.locator(".actions-table tbody tr").first()).toBeVisible();
   const calls = await (await request.get("/__fixture/requests")).json();
@@ -144,7 +144,7 @@ test("renders observed Wire resource types without inventing missing balances", 
 test("renders observed Wire unlimited CPU and NET values", async ({ page, request }) => {
   await request.post("/__fixture/state", { data: { accountProjectionUnsupported: true, wireUnlimitedShape: true } });
   await page.goto("/explorer/account/eosio");
-  await expect(page.getByText("unlimited", { exact: true })).toHaveCount(2);
+  await expect(page.getByText("Unlimited", { exact: true })).toHaveCount(2);
   await expect(page.getByText(/6\.28 GiB/)).toBeVisible();
   await request.post("/__fixture/state", { data: {} });
 });
@@ -192,7 +192,7 @@ test("labels unavailable block delta projection without hiding the trace", async
 test("keeps unlimited and unsafe RPC RAM quotas distinct", async ({ page, request }) => {
   await request.post("/__fixture/state", { data: { accountProjectionUnsupported: true, rpcRamQuota: "-1" } });
   await page.goto("/explorer/account/eosio");
-  await expect(page.getByText("unlimited", { exact: true }).first()).toBeVisible();
+  await expect(page.getByText("Unlimited", { exact: true }).first()).toBeVisible();
   await request.post("/__fixture/state", { data: { accountProjectionUnsupported: true, rpcRamQuota: "9007199254740992" } });
   await page.reload();
   await expect(page.getByText("usage unavailable", { exact: true })).toBeVisible();
