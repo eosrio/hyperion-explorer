@@ -84,9 +84,9 @@
   white-space: nowrap;
 }
 .actions-table td.mat-mdc-cell {
-  padding: 0.75rem;
+  padding: 1rem 0.75rem;
   border-bottom: 1px solid var(--line-divider);
-  vertical-align: middle;
+  vertical-align: top;
 }
 .actions-table tr.mat-mdc-row:hover {
   background: color-mix(in srgb, var(--primary) 4%, transparent);
@@ -94,8 +94,7 @@
 .actions-table tr.mat-mdc-row:nth-child(even) {
   background: color-mix(in srgb, var(--primary) 2%, transparent);
 }
-.tx-status,
-.time-indicator {
+.tx-status {
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
@@ -104,8 +103,7 @@
   font-size: 0.75rem;
   font-weight: 600;
 }
-.confirmed-status,
-.time-recent {
+.confirmed-status {
   background: color-mix(in srgb, var(--success) 10%, transparent);
   color: var(--success);
 }
@@ -113,12 +111,100 @@
   background: color-mix(in srgb, var(--pending) 10%, transparent);
   color: var(--pending);
 }
-.action-cell .accent {
-  display: inline-block;
-  margin-right: 0.25rem;
+/* Action rows: what happened (name over contract), what it said, and where it lives on chain. */
+.action-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.125rem;
+  min-width: 0;
 }
-.action-cell a {
+@media (max-width: 828px) {
+  .action-cell {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.25rem 0.625rem;
+  }
+}
+.action-name {
+  color: var(--accent);
+  font-size: 0.9375rem;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+.action-contract,
+.where-trx {
   text-decoration: none;
+}
+.action-contract {
+  color: var(--faded);
+  font-size: 0.8125rem;
+  overflow-wrap: anywhere;
+}
+.action-contract:hover,
+.where-num:hover,
+.where-trx:hover {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.where {
+  display: grid;
+  justify-items: start;
+  gap: 0.3125rem;
+  font-size: 0.8125rem;
+}
+.where-block {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem 0.5rem;
+}
+.where-num {
+  color: var(--primary);
+  font-size: 0.9375rem;
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  text-decoration: none;
+}
+.where-time {
+  color: var(--faded);
+  font-variant-numeric: tabular-nums;
+}
+.where-tx {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.125rem 0.75rem;
+}
+.where-trx {
+  color: var(--primary);
+  font-family: ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
+  font-size: 0.8125rem;
+}
+.where-details {
+  padding: 0.25rem 0;
+  border: 0;
+  background: transparent;
+  color: var(--faded);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.where-details:hover {
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.action-contract:focus-visible,
+.where-num:focus-visible,
+.where-trx:focus-visible,
+.where-details:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
 }
 .actions-table-paginator {
   background: transparent;
@@ -377,16 +463,4 @@
     transition: none;
   }
 }
-/* Large action payloads show a fading preview until expanded. */
-.act-data-clipped {
-  max-height: 7.5rem;
-  overflow: hidden;
-  -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent);
-  mask-image: linear-gradient(to bottom, #000 55%, transparent);
-}
-.act-data-toggle {
-  margin-top: 0.25rem;
-  color: var(--primary);
-  font-size: 0.8125rem;
-  font-weight: 600;
-}
+

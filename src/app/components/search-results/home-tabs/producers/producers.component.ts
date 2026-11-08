@@ -1,3 +1,4 @@
+import { MorphLinkDirective } from "../../../../morph";
 import { describeApiError, isRetryableApiError } from "../../../../api-errors";
 import { MatButton } from "@angular/material/button";
 import { Component, computed, inject, viewChild, effect, ChangeDetectionStrategy } from "@angular/core";
@@ -26,7 +27,7 @@ import { countries } from "./countries";
 
 @Component({
   selector: "app-producers",
-  imports: [
+  imports: [MorphLinkDirective, 
     MatButton,
     DecimalPipe,
     RouterModule,

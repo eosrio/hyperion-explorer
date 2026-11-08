@@ -57,8 +57,8 @@ import { MatChipsModule } from "@angular/material/chips";
 import { MatDialog, MatDialogRef } from "@angular/material/dialog";
 import { ActionDetailsComponent } from "../../action-details/action-details.component";
 import { ContractDialogComponent } from "../../contract-dialog/contract-dialog.component";
-import { ActDataViewComponent } from "../../act-data-view/act-data-view.component";
-import { MatRipple } from "@angular/material/core";
+import { ActionDataComponent } from "../../action-data/action-data.component";
+import { MorphLinkDirective } from "../../../morph";
 import { PermissionTreeComponent } from "../../permission-tree/permission-tree.component";
 import { FormsModule } from "@angular/forms";
 import { ChainService } from "../../../services/chain.service";
@@ -107,9 +107,6 @@ interface FlatNode {
   level: number;
 }
 
-/** Values (objects, arrays and leaves) above which action data starts collapsed to a preview. */
-const LARGE_ACTION_DATA_FIELDS = 12;
-
 @Component({
   selector: "app-account",
   imports: [
@@ -134,8 +131,8 @@ const LARGE_ACTION_DATA_FIELDS = 12;
     MatRow,
     MatHeaderRow,
     DatePipe,
-    ActDataViewComponent,
-    MatRipple,
+    ActionDataComponent,
+    MorphLinkDirective,
     PermissionTreeComponent,
     FormsModule,
     MatChipsModule
@@ -189,23 +186,6 @@ export class AccountComponent implements OnInit, OnDestroy {
     return this.appliedBatch()?.actionIds.has(this.actionIdentity(action)) ?? false;
   }
 
-  private dataSize = new WeakMap<object, number>();
-  /** Large payloads (for example onblock headers) start as a clipped preview so one row cannot fill the screen. */
-  hasLargeData(data: unknown): boolean {
-    if (!data || typeof data !== "object") return false;
-    let size = this.dataSize.get(data);
-    if (size === undefined) {
-      size = 0;
-      const stack: unknown[] = [data];
-      while (stack.length > 0 && size <= LARGE_ACTION_DATA_FIELDS) {
-        const value = stack.pop();
-        size++;
-        if (value && typeof value === "object") stack.push(...Object.values(value));
-      }
-      this.dataSize.set(data, size);
-    }
-    return size > LARGE_ACTION_DATA_FIELDS;
-  }
   applyNewActions(): void {
     const previous = new Set(this.acServ.actionsComputed().map(action => this.actionIdentity(action)));
     this.acServ.showNewActions();
@@ -251,7 +231,7 @@ export class AccountComponent implements OnInit, OnDestroy {
     }
   };
 
-  displayedColumns: string[] = ["action", "data", "block_num", "trx_id"];
+  displayedColumns: string[] = ["action", "data", "block_num"];
 
   systemSymbol = "";
 

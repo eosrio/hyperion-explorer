@@ -7,7 +7,8 @@ import {
   provideZonelessChangeDetection,
   REQUEST
 } from "@angular/core";
-import { provideRouter, Router } from "@angular/router";
+import { provideRouter, Router, withViewTransitions } from "@angular/router";
+import { onExplorerViewTransition } from "./morph";
 
 import { routes } from "./app.routes";
 import { provideClientHydration, withIncrementalHydration } from "@angular/platform-browser";
@@ -43,7 +44,7 @@ async function initApp(): Promise<void> {
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideRouter(routes),
+    provideRouter(routes, withViewTransitions({ skipInitialTransition: true, onViewTransitionCreated: onExplorerViewTransition })),
     provideZonelessChangeDetection(),
     provideClientHydration(withIncrementalHydration()),
     { provide: DataService, useClass: DataServiceBrowser },

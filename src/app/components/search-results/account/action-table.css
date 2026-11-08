@@ -1,21 +1,8 @@
-.action-cell {
-  font-size: 0.813rem; /*13px*/
-  letter-spacing: 0.5px;
-  text-align: center;
-  width: max-content;
-  border: 1px solid var(--line-divider);
-  border-radius: var(--radius-lg);
-}
-
 /*table responsive*/
 @media (min-width: 829px) {
   .actions-table .mat-mdc-header-row {
     background: transparent;
     color: var(--main-text);
-  }
-
-  ::ng-deep .mat-column-trx_id {
-    max-width: 200px;
   }
 
   [mat-header-cell].mat-mdc-table-sticky {
@@ -31,28 +18,13 @@
     background: transparent !important;
   }
 
-  [mat-header-cell].mat-column-trx_id {
-    /*border-radius:  var(--card-border-radius) 0 0  var(--card-border-radius);*/
-    border-radius: 0;
-    max-width: 213px;
-    width: 213px;
-    padding-left: calc(0.75rem + (var(--spacing) * 2)) !important;
-  }
-
   [mat-header-cell].mat-column-block_num {
-    /*border-radius: 0  var(--card-border-radius)  var(--card-border-radius) 0;*/
     border-radius: 0;
-    max-width: 200px;
-    width: 200px;
+    width: 15rem;
   }
 
   [mat-header-cell].mat-column-action {
-    width: 200px;
-    text-align: center;
-  }
-
-  .mat-column-action {
-    justify-items: center;
+    width: 11rem;
   }
 }
 
@@ -128,10 +100,33 @@
   /*[mat-table] [mat-row] td.mat-column-action>button {*/
   /*  margin: 0.5rem 0;*/
   /*}*/
-  .action-cell {
-    padding: 0;
-    text-align: left;
-    border: none;
+  /* Each action reads as one full-width card: name over contract, the sentence, then where it lives. */
+  [mat-table] [mat-row] td[mat-cell].mat-column-action,
+  [mat-table] [mat-row] td[mat-cell].mat-column-data,
+  [mat-table] [mat-row] td[mat-cell].mat-column-block_num {
+    grid-template-columns: minmax(0, 1fr);
+    padding-inline: 0.25rem;
+  }
+
+  [mat-table] [mat-row] td[mat-cell].mat-column-action > *,
+  [mat-table] [mat-row] td[mat-cell].mat-column-data > *,
+  [mat-table] [mat-row] td[mat-cell].mat-column-block_num > * {
+    grid-column: 1;
+  }
+
+  [mat-table] [mat-row] td[mat-cell].mat-column-action:before,
+  [mat-table] [mat-row] td[mat-cell].mat-column-data:before,
+  [mat-table] [mat-row] td[mat-cell].mat-column-block_num:before {
+    display: none;
+  }
+
+  [mat-table] [mat-row] td[mat-cell].mat-column-action {
+    padding-bottom: 0.25rem;
+    border-bottom: 0;
+  }
+
+  [mat-table] [mat-row] td[mat-cell].mat-column-data {
+    padding-block: 0.25rem 0.75rem;
   }
 
   [mat-table] [mat-row]:last-of-type td:last-of-type {

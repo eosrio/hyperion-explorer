@@ -1,0 +1,73 @@
+@if (lines(); as lines) {
+  <div class="grammar">
+    @for (line of lines; track $index) {
+      <p class="grammar-line">
+        @for (part of line; track $index) {
+          @switch (part.kind) {
+            @case ("account") {
+              <a class="g-account" [routerLink]="['/account', part.name]" appMorph>{{ part.name }}</a>
+            }
+            @case ("permission") {
+              <span class="g-permission"><a [routerLink]="['/account', part.actor]" appMorph>{{ part.actor }}</a><span class="g-at">&#64;{{ part.permission }}</span></span>
+            }
+            @case ("word") {
+              <span class="g-word">{{ part.text }}</span>
+            }
+            @case ("arrow") {
+              <fa-icon class="g-arrow" [icon]="icons.arrow" aria-hidden="true" /><span class="sr-only">to</span>
+            }
+            @case ("amount") {
+              <span class="g-amount"><span class="g-whole">{{ part.asset.whole }}</span><span class="g-fraction">{{ part.asset.fraction }}</span><span class="g-symbol">{{ part.asset.symbol }}</span></span>
+            }
+            @case ("memo") {
+              <q class="g-memo">{{ part.text }}</q>
+            }
+            @case ("code") {
+              <code class="g-code">{{ part.text }}</code>
+            }
+            @case ("text") {
+              <span class="g-text">{{ part.text }}</span>
+            }
+            @case ("key") {
+              <a class="g-key" [routerLink]="['/key', part.key]" [attr.aria-label]="'Public key ' + part.key">{{ shortKey(part.key) }}</a>
+            }
+            @case ("hash") {
+              <span class="g-hash">
+                <code [attr.aria-label]="part.label + ' ' + part.value">{{ shortHash(part.value) }}</code>
+                <button type="button" class="g-copy" [cdkCopyToClipboard]="part.value" (cdkCopyToClipboardCopied)="markCopied(part.value, $event)"
+                        [attr.aria-label]="'Copy ' + part.label">
+                  <fa-icon [icon]="copied() === part.value ? icons.copied : icons.copy" aria-hidden="true" />
+                </button>
+              </span>
+            }
+          }
+        }
+      </p>
+    }
+  </div>
+  <button type="button" class="data-toggle" [attr.aria-expanded]="showRaw()" (click)="showRaw.set(!showRaw())">
+    {{ showRaw() ? "Hide raw data" : "Raw data" }}
+  </button>
+  @if (showRaw()) {
+    <div class="raw-data"><app-act-data-view [data]="data()" /></div>
+  }
+} @else if (hex(); as hex) {
+  <div class="hex-data">
+    <p class="hex-label">Undecoded data · {{ (hex.length / 2).toLocaleString("en-US") }} bytes</p>
+    <code class="hex-value" [class.is-clipped]="!expanded() && hex.length > 192">{{ hex }}</code>
+    @if (hex.length > 192) {
+      <button type="button" class="data-toggle" [attr.aria-expanded]="expanded()" (click)="expanded.set(!expanded())">
+        {{ expanded() ? "Show less" : "Show all data" }}
+      </button>
+    }
+  </div>
+} @else {
+  <div class="raw-data" [class.is-clipped]="large() && !expanded()">
+    <app-act-data-view [data]="data()" />
+  </div>
+  @if (large()) {
+    <button type="button" class="data-toggle" [attr.aria-expanded]="expanded()" (click)="expanded.set(!expanded())">
+      {{ expanded() ? "Show less" : "Show all data" }}
+    </button>
+  }
+}

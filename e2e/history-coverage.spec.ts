@@ -16,6 +16,8 @@ test("reports missing indexed history globally and updates on refresh", async ({
   await request.post("/__fixture/state", { data: { healthUnavailable: true } });
   await page.reload();
   await expect(notice).toContainText("History coverage is unavailable; results may be incomplete.");
+  // Let the hydrated page finish its own health check before the outage ends, or it can clear the notice first.
+  await page.waitForLoadState("networkidle");
   await request.post("/__fixture/state", { data: {} });
   const recovered = page.waitForResponse(response => new URL(response.url()).pathname === "/v2/health" && response.status() === 200);
   await notice.getByRole("button", { name: "Retry" }).click();

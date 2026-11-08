@@ -10,7 +10,7 @@
 } @else if (acServ.accountDataRes.isLoading()) {
   <div class="hr-container loading-state" role="status">
     <mat-progress-spinner [diameter]="32" mode="indeterminate" color="primary" aria-hidden="true"></mat-progress-spinner>
-    <span>Loading account <strong>{{ acServ.accountName() }}</strong>…</span>
+    <span>Loading account <strong class="morph-target inline-block">{{ acServ.accountName() }}</strong>…</span>
   </div>
 } @else {
   <!--MAIN CONTENT-->
@@ -40,7 +40,7 @@
               } @else {
                 <fa-icon [icon]="icons.solid.faUserCircle" aria-hidden="true"></fa-icon>
               }
-              <span>{{ account.account_name }}</span>
+              <span class="morph-target inline-block">{{ account.account_name }}</span>
             </h1>
             @if (!partialBalance) {
               @let chainTokens = acServ.systemTokenBalances();
@@ -483,42 +483,14 @@
                 class="actions-table"
                 [dataSource]="acServ.tableDataSource"
               >
-                <!-- TX Column -->
-                <ng-container matColumnDef="trx_id">
-                  <th mat-header-cell *matHeaderCellDef>TX</th>
-                  <td mat-cell *matCellDef="let action" data-label="TX" class="h-full">
-                    <!--                justify-between items-start h-full-->
-                    <div class="flex flex-col items-start gap-1">
-                      <div class="flex flex-row items-center">
-                        @if (!chain.lastIrreversibleBlockNum()) { <span class="tx-status pending-status">Finality unavailable</span> }
-                        @else if (chain.lastIrreversibleBlockNum() < action.block_num) { <span class="tx-status pending-status">Awaiting finality</span> }
-                        @else { <span class="tx-status confirmed-status" matTooltip="This action is in an irreversible block"><fa-icon [icon]="icons.solid.faCheck" aria-hidden="true" /> Irreversible</span> }
-
-                      </div>
-                      <a matRipple [routerLink]="['/transaction', action['trx_id']]" class="link-primary m-2">
-                        {{ action["trx_id"].slice(0, 8) }}...
-                      </a>
-                      <button type="button" matRipple (click)="onRowClick(action)" class="link-btn faded">
-                        <div class="flex flex-row items-center gap-2">
-                          <fa-icon [icon]="icons.solid.dots"></fa-icon>
-                          <div class="text-xs uppercase">Expand Details</div>
-                        </div>
-                      </button>
-                    </div>
-                  </td>
-                </ng-container>
-
                 <!-- Action Column -->
                 <ng-container matColumnDef="action">
                   <th mat-header-cell *matHeaderCellDef>Action</th>
                   <td mat-cell *matCellDef="let action" data-label="Action">
-                    <div class="action-cell p-2 flex flex-col gap-1">
+                    <div class="action-cell">
+                      <span class="action-name">{{ action["act"]["name"] }}</span>
+                      <a [routerLink]="['/account', action['act']['account']]" class="action-contract" appMorph>{{ action["act"]["account"] }}</a>
                       @if (isNewInBatch(action)) { <span class="batch-mark" aria-label="New in this batch">New</span> }
-                      <span class="accent font-medium">{{ action["act"]["name"] }}</span>
-                      <span class="main-color"> on</span>
-                      <a [routerLink]="['/account', action['act']['account']]" class="div-link main-color font-medium">
-                      {{ action["act"]["account"] }}
-                    </a>
                     </div>
                   </td>
                 </ng-container>
@@ -531,40 +503,30 @@
                       <button type="button" class="link-btn" [attr.aria-expanded]="!!action._expanded" [attr.aria-label]="'Toggle action data ' + action.global_sequence" (click)="action._expanded = !action._expanded">{{ action._expanded ? 'Collapse data' : 'Expand data' }}</button>
                     }
                     @if (!compactMode() || action._expanded) {
-                      @let clipped = !compactMode() && !action._expanded && hasLargeData(action.act.data);
-                      <div class="py-3">
-                        <div class="act-data" [class.act-data-clipped]="clipped">
-                          <app-act-data-view [data]="action.act.data"></app-act-data-view>
-                        </div>
-                        @if (!compactMode() && hasLargeData(action.act.data)) {
-                          <button type="button" class="link-btn act-data-toggle" [attr.aria-expanded]="!!action._expanded" (click)="action._expanded = !action._expanded">
-                            {{ action._expanded ? 'Show less' : 'Show all data' }}
-                          </button>
-                        }
-                      </div>
+                      <app-action-data class="row-data" [contract]="action.act.account" [name]="action.act.name" [data]="action.act.data" />
                     }
                   </td>
                 </ng-container>
 
-                <!-- Block & Date Column -->
+                <!-- Block and transaction Column -->
                 <ng-container matColumnDef="block_num">
-                  <th mat-header-cell mat-sort-header *matHeaderCellDef>Block & Date</th>
-                  <td mat-cell *matCellDef="let action" data-label="Block & Date">
-                    <div class="flex flex-col items-start gap-2">
-                      <a [routerLink]="['/block', action['block_num']]" class="link-primary mr-3">
-                        {{ action["block_num"] }}
-                      </a>
-                      <!--                    <br />-->
-                      <span>
-                    {{ action["@timestamp"] + (useUTC() ? "" : "Z") | date: "medium" }}
-                  </span>
-                      @if (isRecentTransaction(action['@timestamp'])) {
-                        <span class="time-indicator time-recent" matTooltip="Transaction made in the last 24hrs"
-                              matTooltipClass="tooltip-bigger">
-                        <fa-icon [icon]="icons.solid.faHistory" class="text-xs mr-1"></fa-icon>
-                        Recent transaction
+                  <th mat-header-cell mat-sort-header *matHeaderCellDef>Block &amp; transaction</th>
+                  <td mat-cell *matCellDef="let action" data-label="Block & transaction">
+                    <div class="where">
+                      <div class="where-block">
+                        <a [routerLink]="['/block', action['block_num']]" class="where-num" appMorph>{{ action["block_num"] }}</a>
+                        @if (!chain.lastIrreversibleBlockNum()) { <span class="tx-status pending-status">Finality unavailable</span> }
+                        @else if (chain.lastIrreversibleBlockNum() < action.block_num) { <span class="tx-status pending-status">Awaiting finality</span> }
+                        @else { <span class="tx-status confirmed-status"><fa-icon [icon]="icons.solid.faCheck" aria-hidden="true" /> Irreversible</span> }
+                      </div>
+                      <span class="where-time">
+                        {{ action["@timestamp"] + (useUTC() ? "" : "Z") | date: "medium" }}
+                        @if (isRecentTransaction(action['@timestamp'])) { <span class="where-recent">· last 24 h</span> }
                       </span>
-                      }
+                      <div class="where-tx">
+                        <a [routerLink]="['/transaction', action['trx_id']]" class="where-trx" appMorph [attr.aria-label]="'Transaction ' + action['trx_id']">{{ action["trx_id"].slice(0, 10) }}…</a>
+                        <button type="button" class="where-details" (click)="onRowClick(action)">Expand details</button>
+                      </div>
                     </div>
                   </td>
                 </ng-container>

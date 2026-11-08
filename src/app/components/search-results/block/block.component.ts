@@ -1,3 +1,5 @@
+import { ActionDataComponent } from "../../action-data/action-data.component";
+import { MorphLinkDirective } from "../../../morph";
 import { asUtcTimestamp } from "../../../utils";
 import { FinalityHelpComponent } from "../../finality-help/finality-help.component";
 import { CopyIdentifierComponent } from "../../copy-identifier/copy-identifier.component";
@@ -34,7 +36,7 @@ import { MatTooltip } from "@angular/material/tooltip";
 
 @Component({
   selector: "app-block",
-  imports: [
+  imports: [ActionDataComponent, MorphLinkDirective,
     FinalityHelpComponent,
     CopyIdentifierComponent,
     RouterModule,

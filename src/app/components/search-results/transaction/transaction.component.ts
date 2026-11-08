@@ -1,3 +1,5 @@
+import { ActionDataComponent } from "../../action-data/action-data.component";
+import { MorphLinkDirective } from "../../../morph";
 import { asUtcTimestamp } from "../../../utils";
 import { FinalityHelpComponent } from "../../finality-help/finality-help.component";
 import { CopyIdentifierComponent } from "../../copy-identifier/copy-identifier.component";
@@ -12,12 +14,11 @@ import { MatProgressSpinner } from "@angular/material/progress-spinner";
 import { FaIconComponent, FaLayersComponent } from "@fortawesome/angular-fontawesome";
 import { MatTableModule } from "@angular/material/table";
 import { isPlatformBrowser, KeyValuePipe } from "@angular/common";
-import { ActDataViewComponent } from "../../act-data-view/act-data-view.component";
 import { ChainService } from "../../../services/chain.service";
 
 @Component({
   selector: "app-transaction",
-  imports: [
+  imports: [ActionDataComponent, MorphLinkDirective,
     FinalityHelpComponent,
     CopyIdentifierComponent,
     MatProgressSpinner,
@@ -25,8 +26,7 @@ import { ChainService } from "../../../services/chain.service";
     FaLayersComponent,
     RouterLink,
     MatTableModule,
-    KeyValuePipe,
-    ActDataViewComponent
+    KeyValuePipe
   ],
   templateUrl: "./transaction.component.html",
   changeDetection: ChangeDetectionStrategy.Eager,

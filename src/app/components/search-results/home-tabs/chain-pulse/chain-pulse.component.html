@@ -19,19 +19,19 @@
     <dl class="pulse-stats">
       <div>
         <dt>Head block</dt>
-        <dd><a class="pulse-number" [routerLink]="['/block', head()]">{{ head() | number }}</a></dd>
+        <dd><a class="pulse-number" appMorph [routerLink]="['/block', head()]">{{ head() | number }}</a></dd>
       </div>
       <div>
         <dt>Last irreversible block</dt>
         <dd>
-          <a class="pulse-number" [routerLink]="['/block', lib()]">{{ lib() | number }}</a>
+          <a class="pulse-number" appMorph [routerLink]="['/block', lib()]">{{ lib() | number }}</a>
           <span class="pulse-lag">{{ lag() | number }} {{ lag() === 1 ? "block" : "blocks" }} behind head</span>
         </dd>
       </div>
       @if (producer(); as producer) {
         <div class="pulse-producer">
           <dt>Produced by</dt>
-          <dd><a class="pulse-account" [routerLink]="['/account', producer]">{{ producer }}</a></dd>
+          <dd><a class="pulse-account" appMorph [routerLink]="['/account', producer]">{{ producer }}</a></dd>
         </div>
       }
     </dl>

@@ -25,7 +25,7 @@
       <td mat-cell *matCellDef="let producer" data-label="Account">
         <div class="producer-cell">
           <!-- Add link to account page -->
-          <a [routerLink]="['/account', producer.owner]" class="link-primary font-medium">
+          <a [routerLink]="['/account', producer.owner]" class="link-primary font-medium" appMorph>
             {{ producer.owner }}
           </a>
         </div>

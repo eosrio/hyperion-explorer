@@ -632,3 +632,57 @@ table,
 .actions-table .mat-mdc-header-row {
   background: var(--table-top-bg-gradient);
 }
+
+/*
+ * Shared-element navigation (src/app/morph.ts). The link a visitor clicks and the destination page's
+ * .morph-target share one view-transition name, so the clicked block, transaction or account grows into the
+ * heading of the page it opens. The header stays put; the rest of the page cross-fades quickly.
+ */
+.morph-target {
+  view-transition-name: explorer-morph;
+}
+:root[data-morph="out"] .morph-target {
+  view-transition-name: none;
+}
+#header-container {
+  view-transition-name: explorer-header;
+}
+::view-transition-group(explorer-morph) {
+  animation-duration: 360ms;
+  animation-timing-function: cubic-bezier(0.2, 0, 0, 1);
+}
+::view-transition-old(explorer-morph),
+::view-transition-new(explorer-morph) {
+  height: 100%;
+  object-fit: none;
+  object-position: left center;
+}
+::view-transition-old(explorer-morph) {
+  animation: 160ms ease-out both morph-fade-out;
+}
+::view-transition-new(explorer-morph) {
+  animation: 300ms 60ms cubic-bezier(0.2, 0, 0, 1) both morph-fade-in;
+}
+::view-transition-old(root) {
+  animation: 140ms ease-out both morph-fade-out;
+}
+::view-transition-new(root) {
+  animation: 220ms 40ms cubic-bezier(0.2, 0, 0, 1) both morph-rise-in;
+}
+@keyframes morph-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+@keyframes morph-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes morph-rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+

@@ -1,0 +1,92 @@
+:host {
+  display: block;
+  min-width: 0;
+  --mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
+}
+.kv {
+  display: grid;
+  grid-template-columns: minmax(0, max-content) minmax(0, 1fr);
+  gap: 0.3125rem 1rem;
+  margin: 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+.kv-nested {
+  margin-top: 0.25rem;
+  padding-left: 0.75rem;
+  border-left: 1px solid var(--line-divider);
+}
+.kv-key {
+  max-width: 14rem;
+  color: var(--faded);
+  overflow-wrap: anywhere;
+}
+.kv-value {
+  margin: 0;
+  min-width: 0;
+  color: var(--main-text);
+}
+.kv-text {
+  overflow-wrap: anywhere;
+}
+.kv-dense {
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  word-break: break-all;
+}
+.kv-number,
+.kv-amount {
+  font-variant-numeric: tabular-nums;
+}
+.kv-whole {
+  font-weight: 600;
+}
+.kv-fraction {
+  color: var(--faded);
+}
+.kv-symbol {
+  margin-left: 0.3125rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+.kv-link {
+  color: var(--primary);
+  font-weight: 500;
+  text-decoration: none;
+}
+.kv-link:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.kv-link:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+.kv-literal,
+.kv-meta {
+  color: var(--faded);
+  font-style: italic;
+}
+.kv-list {
+  margin: 0.25rem 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: kv-item;
+}
+.kv-list > li {
+  display: grid;
+  grid-template-columns: 1.5rem minmax(0, 1fr);
+  counter-increment: kv-item;
+}
+.kv-list > li + li {
+  margin-top: 0.375rem;
+}
+.kv-list > li::before {
+  content: counter(kv-item);
+  padding-top: 0.0625rem;
+  color: var(--faded);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}

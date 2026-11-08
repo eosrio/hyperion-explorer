@@ -1,7 +1,7 @@
 import { Component, computed, input, ChangeDetectionStrategy } from "@angular/core";
-import { KeyValuePipe, NgClass, SlicePipe } from "@angular/common";
+import { KeyValuePipe } from "@angular/common";
 import { RouterLink } from "@angular/router";
-import { MatTooltip } from "@angular/material/tooltip";
+import { parseAsset } from "../../action-grammar";
 
 function charToSymbol(c: number) {
   if (c >= "a".charCodeAt(0) && c <= "z".charCodeAt(0)) {
@@ -54,7 +54,7 @@ function stringToName(s: string) {
 
 @Component({
   selector: "app-act-data-view",
-  imports: [KeyValuePipe, NgClass, RouterLink, SlicePipe, MatTooltip],
+  imports: [KeyValuePipe, RouterLink],
   templateUrl: "./act-data-view.component.html",
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./act-data-view.component.css"
@@ -95,6 +95,8 @@ export class ActDataViewComponent {
   isAccountName(value: unknown, field = this.fieldName()): boolean {
     const accountFields = new Set([
       "account",
+      "account_name",
+      "finalizer_name",
       "actor",
       "owner",
       "issuer",
@@ -109,6 +111,16 @@ export class ActDataViewComponent {
       "creator"
     ]);
     return typeof value === "string" && value.length > 0 && accountFields.has(String(field)) && namePattern.test(value);
+  }
+
+  /** Keep the action's own field order (from, to, quantity, memo) instead of sorting keys alphabetically. */
+  readonly keepOrder = () => 0;
+  readonly asset = parseAsset;
+
+  /** Long unbroken values (keys, signatures, hashes) read better in a fixed-width face that wraps anywhere. */
+  isDense(value: unknown): boolean {
+    const text = String(value);
+    return text.length > 24 && !text.includes(" ");
   }
 
   symbolCode(value: unknown, field: unknown): string | null {

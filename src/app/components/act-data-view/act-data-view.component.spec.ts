@@ -29,8 +29,7 @@ describe('ActDataViewComponent', () => {
     expect(decodeSymbolCode(-5)).toBeNull();
     fixture.componentRef.setInput('data', { sym_code: 1163020631, amount: 1163020631 });
     fixture.detectChanges();
-    const text = fixture.nativeElement.textContent.replace(/\s+/g, ' ');
-    expect(text).toContain('sym_code: WIRE (raw 1163020631)');
-    expect(text).toContain('amount: 1163020631');
+    const values = Array.from(fixture.nativeElement.querySelectorAll('dd') as NodeListOf<HTMLElement>).map(dd => dd.textContent!.replace(/\s+/g, ' ').trim());
+    expect(values).toEqual(['WIRE (raw 1163020631)', '1163020631']);
   });
 });

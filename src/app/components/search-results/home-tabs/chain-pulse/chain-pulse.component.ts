@@ -1,3 +1,4 @@
+import { MorphLinkDirective } from "../../../../morph";
 import { afterNextRender, ChangeDetectionStrategy, Component, computed, DestroyRef, inject } from "@angular/core";
 import { DatePipe, DecimalPipe } from "@angular/common";
 import { RouterLink } from "@angular/router";
@@ -9,7 +10,7 @@ import { ChainService } from "../../../../services/chain.service";
  */
 @Component({
   selector: "app-chain-pulse",
-  imports: [DatePipe, DecimalPipe, RouterLink],
+  imports: [MorphLinkDirective, DatePipe, DecimalPipe, RouterLink],
   templateUrl: "./chain-pulse.component.html",
   styleUrl: "./chain-pulse.component.css",
   changeDetection: ChangeDetectionStrategy.OnPush
