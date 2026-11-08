@@ -1,6 +1,6 @@
 <section class="chain-stats" aria-label="Chain statistics">
   @if (chainService.chainInfoResource.error(); as error) {
-    <section class="api-error" role="alert"><p>{{ describeApiError(error) }}</p><button type="button" (click)="chainService.refreshChainInfo()">Try again</button></section>
+    <section class="api-error" role="alert"><p>{{ describeApiError(error) }}</p>@if (isRetryableApiError(error)) { <button type="button" (click)="chainService.refreshChainInfo()">Try again</button> }</section>
   } @else {
     <dl class="stats-summary">
       <div><dt>Head block</dt><dd><a [routerLink]="['/block', chainService.headBlockNum()]">{{ chainService.headBlockNum() | number }}</a></dd></div>

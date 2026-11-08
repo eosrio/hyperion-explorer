@@ -3,7 +3,7 @@
     <h1 class="page-heading">{{ tokenSymbol() }} Top Holders</h1>
     <p class="page-description">Token contract <a [routerLink]="['/contract', tokenContract()]" class="link-primary">{{ tokenContract() }}</a>. Shares are relative to the displayed holders, not the total token supply.</p>
     @if (holders.error(); as error) {
-      <section class="api-error" role="alert"><p>{{ describeApiError(error) }}</p><button type="button" (click)="holders.reload()">Try again</button></section>
+      <section class="api-error" role="alert"><p>{{ describeApiError(error) }}</p>@if (isRetryableApiError(error)) { <button type="button" (click)="holders.reload()">Try again</button> }</section>
     } @else if (holders.isLoading()) {
       <div class="holder-loading" role="status">Loading token holders…</div>
     } @else if (!rows().length) {

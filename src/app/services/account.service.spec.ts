@@ -89,6 +89,22 @@ describe("AccountService compatibility", () => {
     expect((service.accountDataRes.error() as { status?: number })?.status).toBe(404);
   });
 
+  it("serves a stalled account projection from the chain instead of failing the page", async () => {
+    service.accountName.set("sysio");
+    TestBed.tick();
+    http
+      .expectOne("https://chain.example/v2/state/get_account?account=sysio")
+      .flush({ code: "proof_timeout", message: "API proof transaction timed out" }, { status: 503, statusText: "Service Unavailable" });
+    await settle();
+    http.expectOne("https://chain.example/v1/chain/get_account").flush({ account_name: "sysio", ram_quota: -1, ram_usage: 10, permissions: [] });
+    http.match(request => request.url.includes("get_actions")).forEach(request => request.flush({ actions: [], total: { value: 0 } }));
+    http.match(request => request.url.includes("/v1/chain/")).forEach(request => request.flush({ rows: [] }));
+    await settle();
+    await settle();
+    expect(service.accountDataRes.error()).toBeUndefined();
+    expect(service.accountDataRes.value()?.projectionUnavailable).toBe(true);
+  });
+
   it("keeps checking finality while pending history remains unchanged and stops when irreversible", async () => {
     await loadAccount(["9007199254740993"]);
     const chain = TestBed.inject(ChainService);
@@ -125,7 +141,7 @@ describe("AccountService compatibility", () => {
       .expectOne("https://chain.example/v2/history/get_transaction?id=" + "f".repeat(64))
       .flush({ message: "Projection recovering" }, { status: 503, statusText: "Service Unavailable" });
     expect(await first).toBeNull();
-    expect(service.requestError()).toContain("temporarily unavailable");
+    expect(service.requestError()?.message).toContain("temporarily unavailable");
     expect(service.loaded()).toBe(true);
     const retry = service.loadTxData("f".repeat(64));
     http.expectOne("https://chain.example/v2/history/get_transaction?id=" + "f".repeat(64)).flush({ actions: [] });
@@ -160,7 +176,7 @@ describe("AccountService compatibility", () => {
     const invalid = service.loadTxData(id);
     http.expectOne(request => request.url.includes("get_transaction")).flush({ actions: [rawAction(2 ** 53)] });
     expect(await invalid).toBeNull();
-    expect(service.requestError()).toContain("unsafe numeric values cannot be recovered");
+    expect(service.requestError()?.message).toContain("unsafe numeric values cannot be recovered");
   });
 
   it("uses an exact descending cursor and appends to the displayed history", async () => {
@@ -228,7 +244,7 @@ describe("AccountService compatibility", () => {
     http.expectOne(request => request.url.includes("get_actions")).flush({ actions: [rawAction(2 ** 63)] });
     await pending;
     expect(service.actionsComputed().map(action => action.global_sequence)).toEqual(["9223372036854775808"]);
-    expect(service.historyError()).toContain("unsafe numeric values cannot be recovered");
+    expect(service.historyError()?.message).toContain("unsafe numeric values cannot be recovered");
     service.accountName.set("bob");
     expect(service.historyError()).toBeNull();
   });
@@ -326,7 +342,7 @@ describe("AccountService compatibility", () => {
     message()({ content: { ...rawAction("9007199254740993"), receipts: [{ recv_sequence: 2 ** 53 }] } });
     expect(stream.stop).toHaveBeenCalled();
     expect(service.streamClientStatus()).toBe(false);
-    expect(service.historyError()).toContain("receipts[0].recv_sequence");
+    expect(service.historyError()?.message).toContain("receipts[0].recv_sequence");
     message()({ content: rawAction("18446744073709551615") }); // Queued messages after failure cannot mutate the stopped stream.
     expect(service.actionsComputed()[0].global_sequence).toBe("9007199254740992");
   });

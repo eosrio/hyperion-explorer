@@ -10,10 +10,10 @@ import {
   HostListener,
   inject,
   OnDestroy,
-  OnInit,
   PLATFORM_ID,
   resource,
   signal,
+  untracked,
   viewChild
 } from "@angular/core";
 import { isPlatformBrowser } from "@angular/common";
@@ -27,7 +27,7 @@ import { FaIconComponent } from "@fortawesome/angular-fontawesome";
 import { faHeart, faSearch, faCircleQuestion, faCircleExclamation, faRotateRight } from "@fortawesome/free-solid-svg-icons";
 import { faGithub, faTelegram } from "@fortawesome/free-brands-svg-icons";
 import { DataService } from "../../services/data.service";
-import { SearchService } from "../../services/search.service";
+import { SearchService, invalidAccountMessage } from "../../services/search.service";
 import { ThemeSelectorComponent } from "../../components/theme-selector/theme-selector.component";
 import { version } from "../../../../package.json";
 
@@ -48,7 +48,7 @@ import { version } from "../../../../package.json";
   styleUrl: "./main-search.component.css",
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class MainSearchComponent implements OnInit, OnDestroy {
+export class MainSearchComponent implements OnDestroy {
   readonly dataService = inject(DataService);
   readonly searchService = inject(SearchService);
   private readonly router = inject(Router);
@@ -114,6 +114,15 @@ export class MainSearchComponent implements OnInit, OnDestroy {
   private searchRevision = 0;
 
   constructor() {
+    // The account route guard sends rejected names here; keep the text and explain the problem.
+    effect(() => {
+      const rejected = this.router.parseUrl(this.routeUrl()).queryParams["invalid_account"];
+      if (typeof rejected !== "string" || !rejected) return;
+      untracked(() => {
+        this.searchForm.controls.search_field.setValue(rejected, { emitEvent: false });
+        this.err.set(invalidAccountMessage(rejected));
+      });
+    });
     effect(() => {
       this.chainData()?.logo;
       this.logoFailed.set(false);
@@ -141,12 +150,6 @@ export class MainSearchComponent implements OnInit, OnDestroy {
       this.updateScroll();
     });
   }
-  ngOnInit(): void {
-    if (this.dataService.routeError) {
-      this.err.set(this.dataService.routeError);
-      this.dataService.routeError = "";
-    }
-  }
   @HostListener("window:scroll") onScroll(): void {
     if (this.scrollFrame !== undefined || !isPlatformBrowser(this.platform)) return;
     this.scrollFrame = requestAnimationFrame(() => {
@@ -172,7 +175,8 @@ export class MainSearchComponent implements OnInit, OnDestroy {
     }
     const suggestions = this.filteredAccounts();
     if (!this.searchService.submitSearch(value, suggestions)) {
-      this.err.set("Search format not recognized. Check the search help.");
+      // Short single words were almost certainly meant as account names; say what is wrong with them.
+      this.err.set(value.length <= 13 && !/\s/.test(value) ? invalidAccountMessage(value) : "Search format not recognized. Check the search help.");
       this.searchFieldRef()?.nativeElement.focus();
       return;
     }

@@ -23,7 +23,7 @@ import { faComputer, faFilter, faMoneyBill, faRightFromBracket, faRightToBracket
 import { IconDefinition } from "@fortawesome/angular-fontawesome";
 import { isPlatformBrowser } from "@angular/common";
 import { SortDirection } from "@angular/material/sort";
-import { describeApiError } from "../api-errors";
+import { ApiErrorView, apiErrorView, isAccountStateFallbackEligible } from "../api-errors";
 import { ChainService } from "./chain.service";
 import {
   Sequence,
@@ -94,10 +94,10 @@ export class AccountService {
 
   // signals
   public loaded = signal(false);
-  public requestError = signal<string | null>(null);
+  public requestError = signal<ApiErrorView | null>(null);
   public loadingMoreActions = signal(false);
   public accountName = signal("");
-  public historyError = linkedSignal<string, string | null>({ source: this.accountName, computation: () => null });
+  public historyError = linkedSignal<string, ApiErrorView | null>({ source: this.accountName, computation: () => null });
   public customParams = signal<Record<string, string> | undefined>(undefined);
 
   // pagination signals
@@ -269,8 +269,7 @@ export class AccountService {
           try {
             return historyResponse(await lastValueFrom(this.httpClient.get<GetAccountResponse>(url)));
           } catch (error) {
-            if (!(error instanceof HttpErrorResponse) || error.status !== 503 ||
-                error.error?.code !== "protocol_projection_unavailable") throw error;
+            if (!(error instanceof HttpErrorResponse) || !isAccountStateFallbackEligible(error)) throw error;
             const accountUrl = this.data.env.hyperionApiUrl + "/v1/chain/get_account";
             const historyUrl = this.data.env.hyperionApiUrl + "/v2/history/get_actions?" +
               new URLSearchParams({ account, limit: "20", skip: "0", noBinary: "true", track: "true" });
@@ -686,7 +685,7 @@ export class AccountService {
         });
       }
     } catch (e) {
-      if (context === this.historyContext()) this.historyError.set(describeApiError(e));
+      if (context === this.historyContext()) this.historyError.set(apiErrorView(e));
     } finally {
       this.loadingMoreActions.set(false);
     }
@@ -718,7 +717,7 @@ export class AccountService {
       this.loaded.set(true);
       return data;
     } catch (error) {
-      this.requestError.set(describeApiError(error));
+      this.requestError.set(apiErrorView(error));
       this.loaded.set(true);
       return null;
     }
@@ -748,7 +747,7 @@ export class AccountService {
       this.loaded.set(true);
       return data;
     } catch (error) {
-      this.requestError.set(describeApiError(error));
+      this.requestError.set(apiErrorView(error));
       this.loaded.set(true);
       return null;
     }
@@ -779,7 +778,7 @@ export class AccountService {
       if (revision === this.streamStartRevision) this.streamClientStatus.set(active);
     } catch (error) {
       if (revision !== this.streamStartRevision) return;
-      this.historyError.set(describeApiError(error));
+      this.historyError.set(apiErrorView(error));
       this.streamClientStatus.set(false);
     }
   }
@@ -858,7 +857,7 @@ export class AccountService {
       const fail = (error: unknown) => {
         if (this.actionStream !== requestedStream || requestedAccount !== this.accountName()) return;
         this.stopActionStream();
-        this.historyError.set(describeApiError(error));
+        this.historyError.set(apiErrorView(error));
       };
       requestedStream.on("error", fail);
       requestedStream.on("message", data => {

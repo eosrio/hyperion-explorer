@@ -8,15 +8,13 @@
   <div class="hr-container">
     <section class="api-error" role="alert">
       <p>{{ describeApiError(error) }}</p>
-      <button type="button" (click)="retryHistory()">Try again</button>
+      @if (isRetryableApiError(error)) { <button type="button" (click)="retryHistory()">Try again</button> }
     </section>
   </div>
 } @else if (isLoading) {
-  <div class="hr-container flex flex-row justify-center items-center">
-    <mat-progress-spinner
-      [diameter]="45"
-      mode="indeterminate"
-    ></mat-progress-spinner>
+  <div class="hr-container loading-state" role="status">
+    <mat-progress-spinner [diameter]="32" mode="indeterminate" color="primary" aria-hidden="true"></mat-progress-spinner>
+    <span>Loading block…</span>
   </div>
 } @else {
   @if (block) {
@@ -235,7 +233,7 @@
           <section class="api-error md:col-span-2" role="alert">
             @if (isProtocolProjectionUnavailable(error)) { <p>Block state deltas are temporarily unavailable. Block and transaction details remain available.</p> }
             @else { <p>{{ describeApiError(error) }}</p> }
-            <button type="button" (click)="deltaService.reloadCurrentBlock()">Try again</button>
+            @if (isRetryableApiError(error)) { <button type="button" (click)="deltaService.reloadCurrentBlock()">Try again</button> }
           </section>
         } @else if (!block.historyUnavailable && deltaService.deltasResource.isLoading()) {
           <section class="custom-card md:col-span-2" role="status">Loading block state details…</section>

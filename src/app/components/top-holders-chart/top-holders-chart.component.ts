@@ -9,7 +9,7 @@ import { PieChart } from "echarts/charts";
 import { CanvasRenderer } from "echarts/renderers";
 import { TooltipComponent } from "echarts/components";
 import { DataService } from "../../services/data.service";
-import { describeApiError } from "../../api-errors";
+import { describeApiError, isRetryableApiError } from "../../api-errors";
 
 echarts.use([PieChart, CanvasRenderer, TooltipComponent]);
 interface Holder {
@@ -32,6 +32,7 @@ export class TopHoldersChartComponent {
   readonly tokenSymbol = computed(() => this.params()?.get("symbol") || "");
   readonly chartTarget = viewChild<ElementRef<HTMLElement>>("holderChart");
   readonly describeApiError = describeApiError;
+  readonly isRetryableApiError = isRetryableApiError;
   readonly holders = resource({
     params: () => (this.tokenContract() && this.tokenSymbol() ? { contract: this.tokenContract(), symbol: this.tokenSymbol() } : undefined),
     loader: async ({ params }) => {

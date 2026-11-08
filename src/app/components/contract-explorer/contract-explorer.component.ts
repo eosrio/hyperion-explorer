@@ -25,7 +25,7 @@ import { isPlatformBrowser, NgClass } from "@angular/common";
 import { MatIcon } from "@angular/material/icon";
 import { ActDataViewComponent } from "../act-data-view/act-data-view.component";
 import { DataService } from "../../services/data.service";
-import { describeApiError } from "../../api-errors";
+import { describeApiError, isRetryableApiError } from "../../api-errors";
 
 function buildFieldArray(structs: any[], array: AbiStructField[], type: string): void {
   if (array && type) {
@@ -64,6 +64,7 @@ function buildFieldArray(structs: any[], array: AbiStructField[], type: string):
 })
 export class ContractExplorerComponent {
   readonly describeApiError = describeApiError;
+  readonly isRetryableApiError = isRetryableApiError;
   http = inject(HttpClient);
   router = inject(Router);
   data = inject(DataService);

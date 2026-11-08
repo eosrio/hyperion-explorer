@@ -4,12 +4,13 @@
     <section class="api-error" role="alert">
       @if (isApiNotFound(error)) { <h1>Account not found</h1><p>We could not find <strong>{{ acServ.accountName() }}</strong> on {{ dataService.explorerMetadata()?.chain_name }}. Check the account name in search.</p> }
       @else { <p>{{ describeApiError(error) }}</p> }
-      <button type="button" (click)="acServ.accountDataRes.reload()">Try again</button>
+      @if (isRetryableApiError(error)) { <button type="button" (click)="acServ.accountDataRes.reload()">Try again</button> }
     </section>
   </div>
 } @else if (acServ.accountDataRes.isLoading()) {
-  <div class="hr-container flex flex-row items-center justify-center">
-    <mat-progress-spinner [diameter]="45" mode="indeterminate" color="primary"></mat-progress-spinner>
+  <div class="hr-container loading-state" role="status">
+    <mat-progress-spinner [diameter]="32" mode="indeterminate" color="primary" aria-hidden="true"></mat-progress-spinner>
+    <span>Loading account <strong>{{ acServ.accountName() }}</strong>…</span>
   </div>
 } @else {
   <!--MAIN CONTENT-->
@@ -421,8 +422,8 @@
             </details>
             <app-finality-help />
           </div>
-          @if (acServ.historyError(); as error) { <section class="api-error" role="alert"><p>{{ error }}</p><button type="button" (click)="acServ.retryHistory()">Try again</button></section> }
-          @if (acServ.actionRes.error(); as error) { <section class="api-error" role="alert"><p>{{ describeApiError(error) }}</p><button type="button" (click)="acServ.actionRes.reload()">Try again</button></section> }
+          @if (acServ.historyError(); as error) { <section class="api-error" role="alert"><p>{{ error.message }}</p>@if (error.retryable) { <button type="button" (click)="acServ.retryHistory()">Try again</button> }</section> }
+          @if (acServ.actionRes.error(); as error) { <section class="api-error" role="alert"><p>{{ describeApiError(error) }}</p>@if (isRetryableApiError(error)) { <button type="button" (click)="acServ.actionRes.reload()">Try again</button> }</section> }
           @if (acServ.totalActionCounter() || acServ.filter()) {
             @let filteredActions = acServ.actionRes.hasValue() ? acServ.actionRes.value()?.actions : undefined;
             @let totalFilteredActions = acServ.actionRes.hasValue() ? acServ.actionRes.value()?.total?.value : undefined;
@@ -580,18 +581,10 @@
       </div>
     } @else {
       <!--      NO ACCOUNT-->
-      <div style="height: 100%" class="appear flex flex-col items-center justify-start gap-[15px]">
-        <div class="custom-card w-full">
-          <h1 class="faded">
-            <fa-icon [icon]="icons.solid.faSadTear" style="margin-right: 5px"></fa-icon>
-            Account not found
-          </h1>
-          <div>
-            We couldn't find the account
-            <strong>{{ acServ.accountName() }}</strong>
-          </div>
-        </div>
-      </div>
+      <section class="api-error appear" role="alert">
+        <h1>Account not found</h1>
+        <p>We could not find <strong>{{ acServ.accountName() }}</strong> on {{ dataService.explorerMetadata()?.chain_name }}. Check the account name in search.</p>
+      </section>
     }
   </div>
 }

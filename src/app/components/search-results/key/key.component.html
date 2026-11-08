@@ -1,13 +1,15 @@
 @if (accountService.requestError(); as error) {
   <div class="hr-container">
     <section class="api-error" role="alert">
-      <p>{{ error }}</p>
-      <button type="button" (click)="retry()">Try again</button>
+      @if (!error.retryable) { <h1>Key lookup failed</h1> }
+      <p>{{ error.message }}</p>
+      @if (error.retryable) { <button type="button" (click)="retry()">Try again</button> }
     </section>
   </div>
 } @else if (!accountService.loaded()) {
-  <div class="hr-container flex flex-row justify-center items-center">
-    <mat-progress-spinner [diameter]="45" mode="indeterminate" color="primary"></mat-progress-spinner>
+  <div class="hr-container loading-state" role="status">
+    <mat-progress-spinner [diameter]="32" mode="indeterminate" color="primary" aria-hidden="true"></mat-progress-spinner>
+    <span>Looking up accounts for this key…</span>
   </div>
 } @else {
   @if (key()) {

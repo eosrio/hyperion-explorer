@@ -1,4 +1,4 @@
-import { describeApiError } from "../../../../api-errors";
+import { describeApiError, isRetryableApiError } from "../../../../api-errors";
 import { MatButton } from "@angular/material/button";
 import { Component, inject, viewChild, effect, ChangeDetectionStrategy } from "@angular/core";
 import { MatSort, MatSortModule } from "@angular/material/sort"; // Import MatSortModule
@@ -51,6 +51,7 @@ import { countries } from "./countries";
 })
 export class ProducersComponent {
   readonly describeApiError = describeApiError;
+  readonly isRetryableApiError = isRetryableApiError;
   chainService = inject(ChainService); // Inject ChainService
 
   // MatTable data source

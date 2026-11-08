@@ -1,17 +1,13 @@
-import {ActivatedRouteSnapshot, CanActivateFn, Router} from '@angular/router';
-import {inject} from "@angular/core";
-import {DataService} from "../services/data.service";
+import { ActivatedRouteSnapshot, CanActivateFn, Router } from "@angular/router";
+import { inject } from "@angular/core";
+import { isValidAccountName } from "../services/search.service";
 
-export const accountNameGuard: CanActivateFn = async (route: ActivatedRouteSnapshot): Promise<boolean> => {
-  const ds = inject(DataService);
-  const router = inject(Router);
-  const valid = !!route.params['account_name'].match(/^[a-z1-5.]{0,13}$/);
-  if (valid) {
-    return true;
-  } else {
-    console.error('Invalid account name:', route.params['account_name']);
-    ds.routeError = `${route.params['account_name']} is not a valid account name`;
-    await router.navigate(['/']);
-    return false;
-  }
+/**
+ * Invalid names go back to search with the rejected text in the URL, so the message survives
+ * a server-side redirect and the search field can show what was typed.
+ */
+export const accountNameGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
+  const name = String(route.params["account_name"] ?? "");
+  if (isValidAccountName(name)) return true;
+  return inject(Router).createUrlTree(["/"], { queryParams: { invalid_account: name.slice(0, 64) } });
 };

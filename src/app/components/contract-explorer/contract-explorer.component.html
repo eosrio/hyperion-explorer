@@ -1,6 +1,6 @@
 <mat-dialog-content id="dialog-content">
   @if (abiRes.error() || tableScopesRes.error() || tableRowRes.error(); as error) {
-    <section class="api-error" role="alert"><p>{{ describeApiError(error) }}</p><button type="button" (click)="abiRes.reload(); tableScopesRes.reload(); tableRowRes.reload()">Try again</button></section>
+    <section class="api-error" role="alert"><p>{{ describeApiError(error) }}</p>@if (isRetryableApiError(error)) { <button type="button" (click)="abiRes.reload(); tableScopesRes.reload(); tableRowRes.reload()">Try again</button> }</section>
   }
   @if (code()) {
     <div class="contract-table-heading"><h2>Contract tables</h2><button type="button" aria-label="Reload tables" mat-icon-button (click)="reloadTables()" [disabled]="abiRes.isLoading()"><mat-icon>sync</mat-icon></button></div>

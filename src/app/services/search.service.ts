@@ -4,6 +4,16 @@ import {lastValueFrom} from "rxjs";
 import {GetTableByScopeResponse, TableData} from "../interfaces";
 import {DataService} from "./data.service";
 
+/** Antelope account names: a-z, 1-5 and dots, at most 13 characters. */
+export function isValidAccountName(name: string): boolean {
+  return /^[a-z1-5.]{1,13}$/.test(name);
+}
+
+/** Feedback for input that looks like an account name but cannot be one. */
+export function invalidAccountMessage(name: string): string {
+  return `"${name}" is not a valid account name. Account names use a-z, 1-5 and dots, up to 13 characters.`;
+}
+
 @Injectable({providedIn: 'root'})
 export class SearchService {
   private http = inject(HttpClient);
@@ -109,8 +119,8 @@ export class SearchService {
       return true;
     }
 
-    // account search
-    if (sValue.length > 0 && sValue.length <= 12 && isNaN(sValue)) {
+    // account search: Antelope names use a-z, 1-5 and dots, up to 13 characters
+    if (isValidAccountName(sValue) && isNaN(Number(sValue))) {
       this.searchType.set("account");
       return true;
     }

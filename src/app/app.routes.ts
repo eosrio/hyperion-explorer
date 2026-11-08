@@ -105,7 +105,8 @@ export const routes: Routes = [
   },
   {
     path: "**",
-    loadComponent: loadMainSearchComponent
+    loadComponent: loadMainSearchComponent,
+    children: [{ path: "", loadComponent: () => import("./pages/not-found/not-found.component").then(m => m.NotFoundComponent) }]
   }
 ];
 

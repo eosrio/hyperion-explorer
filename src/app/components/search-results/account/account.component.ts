@@ -63,7 +63,7 @@ import { PermissionTreeComponent } from "../../permission-tree/permission-tree.c
 import { FormsModule } from "@angular/forms";
 import { ChainService } from "../../../services/chain.service";
 import { faTowerBroadcast } from "@fortawesome/free-solid-svg-icons";
-import { describeApiError, isApiNotFound } from "../../../api-errors";
+import { describeApiError, isApiNotFound, isRetryableApiError } from "../../../api-errors";
 import { HistoryAction } from "../../../sequences";
 
 interface Permission {
@@ -150,6 +150,7 @@ export class AccountComponent implements OnInit, OnDestroy {
   }
   describeApiError = describeApiError;
   readonly isApiNotFound = isApiNotFound;
+  readonly isRetryableApiError = isRetryableApiError;
   dataService = inject(DataService);
   acServ = inject(AccountService);
   chain = inject(ChainService);

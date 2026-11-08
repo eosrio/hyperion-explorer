@@ -78,3 +78,22 @@ test("search feedback fits expanded and compact headers at narrow, tablet and de
     }
   }
 });
+
+test("explains invalid account names and keeps the typed text", async ({ page }) => {
+  const search = page.getByRole("combobox", { name: searchLabel });
+  const feedback = page.locator("#search-error");
+  await page.goto("/explorer/account/BAD!!");
+  await expect(feedback).toHaveText(/"BAD!!" is not a valid account name/);
+  await expect(search).toHaveValue("BAD!!");
+  await search.fill("!!garbage??");
+  await search.press("Enter");
+  await expect(feedback).toHaveText(/"!!garbage\?\?" is not a valid account name/);
+  await expect(search).toHaveValue("!!garbage??");
+});
+
+test("answers unknown routes with a not-found page and status", async ({ page }) => {
+  const response = await page.goto("/explorer/does-not-exist");
+  expect(response?.status()).toBe(404);
+  await expect(page.getByRole("heading", { name: "Page not found", exact: true })).toBeVisible();
+  await expect(page.getByRole("link", { name: "go to the home page" })).toBeVisible();
+});

@@ -30,7 +30,6 @@ export abstract class DataService {
   explorerMetadata = signal<ExplorerMetadata | null>(null);
   initError: string | null = null;
   customTheme?: Record<string, string>;
-  routeError?: string = "";
   availableThemes: string[] = [];
   ready = signal(false);
   url = () => this.env.hyperionApiUrl + "/v2/explorer_metadata";
