@@ -156,7 +156,7 @@ test("all shipped appearance presets load, persist and reset to the chain palett
   await page.goto("/explorer/");
   await page.getByRole("button", { name: "Choose explorer theme" }).click();
   const select = page.getByRole("combobox", { name: "Theme", exact: true });
-  for (const name of ["default", "jungle", "libre", "qry", "telos", "ultra", "vaulta", "wax", "xpr"]) {
+  for (const name of ["default", "jungle", "libre", "qry", "telos", "ultra", "vaulta", "wax", "wire", "xpr"]) {
     const loaded = page.waitForResponse(response => response.url().endsWith("/.internal/read_theme/" + name) && response.ok());
     await select.click();
     await page.getByRole("option", { name, exact: true }).click();
