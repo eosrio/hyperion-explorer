@@ -38,6 +38,8 @@ export interface ActivityShare {
   share: number;
 }
 
+export type AnalyticsPanel = "ribbon" | "day" | "rotation" | "activity" | "health";
+
 export interface IndexHealth {
   version: string;
   indexedBlocks: number | null;
@@ -76,6 +78,11 @@ export class ChainAnalyticsService {
   readonly rotation = signal<Rotation | null>(null);
   readonly activity = signal<ActivityShare[] | null>(null);
   readonly health = signal<IndexHealth | null>(null);
+  /**
+   * Which panels have had their first answer. Until then a view keeps the panel's space with a placeholder; after it,
+   * an empty panel means this API cannot serve it, and the space is given back.
+   */
+  readonly settled = signal<Record<AnalyticsPanel, boolean>>({ ribbon: false, day: false, rotation: false, activity: false, health: false });
 
   private users = 0;
   private timers: ReturnType<typeof setTimeout>[] = [];
@@ -88,9 +95,12 @@ export class ChainAnalyticsService {
     this.users++;
     if (this.users === 1) {
       this.generation++;
-      this.loop(() => this.loadRibbon(), RIBBON_MS);
-      this.loop(() => Promise.all([this.loadDay(), this.loadRotation(), this.loadActivity()]), DAY_MS);
-      this.loop(() => this.loadHealth(), HEALTH_MS);
+      this.loop(() => this.settle("ribbon", () => this.loadRibbon()), RIBBON_MS);
+      this.loop(
+        () => Promise.all([this.settle("day", () => this.loadDay()), this.settle("rotation", () => this.loadRotation()), this.settle("activity", () => this.loadActivity())]),
+        DAY_MS
+      );
+      this.loop(() => this.settle("health", () => this.loadHealth()), HEALTH_MS);
     }
     let stopped = false;
     return () => {
@@ -102,6 +112,14 @@ export class ChainAnalyticsService {
         this.timers = [];
       }
     };
+  }
+
+  private async settle(panel: AnalyticsPanel, load: () => Promise<void>): Promise<void> {
+    try {
+      await load();
+    } finally {
+      if (!this.settled()[panel]) this.settled.update(state => ({ ...state, [panel]: true }));
+    }
   }
 
   private loop(task: () => Promise<unknown>, every: number): void {

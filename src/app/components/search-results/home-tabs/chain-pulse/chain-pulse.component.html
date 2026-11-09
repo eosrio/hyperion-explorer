@@ -46,6 +46,12 @@
         </div>
         <figcaption>Last {{ blocks.length }} blocks · {{ ribbonTotal() | number }} {{ ribbonTotal() === 1 ? "transaction" : "transactions" }}</figcaption>
       </figure>
+    } @else if (!ribbonSettled()) {
+      <!-- The strip's space is held from the first paint, so its arrival does not push the page down. -->
+      <figure class="pulse-ribbon" aria-hidden="true">
+        <div class="ribbon-bars">@for (stub of ribbonStubs; track $index) {<span class="ribbon-bar"></span>}</div>
+        <figcaption>Last 60 blocks</figcaption>
+      </figure>
     }
   } @else if (chain.chainInfoResource.error()) {
     <p class="pulse-message">Chain status is unavailable right now. The explorer keeps retrying on its own.</p>

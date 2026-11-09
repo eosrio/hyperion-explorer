@@ -31,6 +31,8 @@ export class ChainPulseComponent {
 
   private readonly analytics = inject(ChainAnalyticsService);
   readonly ribbon = this.analytics.ribbon;
+  readonly ribbonSettled = computed(() => this.analytics.settled().ribbon);
+  readonly ribbonStubs = Array.from({ length: 60 });
   readonly ribbonTotal = computed(() => (this.ribbon() ?? []).reduce((sum, block) => sum + block.trx, 0));
   private readonly ribbonMax = computed(() => Math.max(1, ...(this.ribbon() ?? []).map(block => block.trx)));
   readonly ribbonLabel = computed(() => {

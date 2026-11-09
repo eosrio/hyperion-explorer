@@ -97,6 +97,14 @@ describe("ChainAnalyticsService", () => {
     ]);
   });
 
+  it("settles a panel after its first answer, even a failed one, so its placeholder gives the space back", async () => {
+    const settle = (service as unknown as { settle: (panel: string, load: () => Promise<void>) => Promise<void> }).settle.bind(service);
+    expect(service.settled().activity).toBe(false);
+    await settle("activity", () => Promise.reject(new Error("unsupported"))).catch(() => undefined);
+    expect(service.settled().activity).toBe(true);
+    expect(service.settled().day).toBe(false);
+  });
+
   it("orders the ribbon oldest first and reads index health", async () => {
     const ribbon = call("loadRibbon");
     await settle();

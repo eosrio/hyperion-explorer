@@ -158,6 +158,34 @@
   background: var(--primary);
 }
 
+/* Placeholders hold each panel's space until its first answer: quiet blocks, no shimmer. */
+.an-ph {
+  display: inline-block;
+  width: 5.5rem;
+  height: 0.8em;
+  border-radius: 0.25rem;
+  background: color-mix(in srgb, var(--faded) 16%, transparent);
+  vertical-align: middle;
+}
+.an-ph-wide {
+  width: 9rem;
+}
+.an-ph-tiny {
+  width: 2rem;
+}
+.an-ph-line {
+  display: block;
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+.an-ph-short {
+  width: 60%;
+}
+.an-hour-ph {
+  height: 100%;
+  background: color-mix(in srgb, var(--faded) 12%, transparent);
+}
+
 /* Index health: one quiet line, not a card. */
 .an-health {
   display: flex;

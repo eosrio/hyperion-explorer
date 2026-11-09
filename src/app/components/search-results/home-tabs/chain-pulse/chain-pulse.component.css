@@ -116,6 +116,7 @@
 .ribbon-bar {
   flex: 1 1 0;
   min-width: 2px;
+  height: 12%;
   border-radius: 2px 2px 0 0;
   background: color-mix(in srgb, var(--faded) 22%, transparent);
   transition: height 300ms cubic-bezier(0.2, 0, 0, 1);

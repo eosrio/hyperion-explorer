@@ -25,6 +25,12 @@ export class ChainAnalyticsComponent {
   readonly activity = this.analytics.activity;
   readonly health = this.analytics.health;
   readonly sampleSize = ACTIVITY_SAMPLE;
+  readonly settled = this.analytics.settled;
+  /** Placeholder shapes: the real panels' tile labels, hour count, a typical producer set and activity rows. */
+  readonly dayLabels = ["Transactions", "Actions", "Active accounts", "New accounts"];
+  readonly placeholderHours = Array.from({ length: 24 });
+  readonly placeholderProducers = Array.from({ length: 20 });
+  readonly placeholderActivity = Array.from({ length: 5 });
   readonly producingNow = computed(() => this.chain.chainInfo()?.head_block_producer ?? "");
 
   /** Complete hours only: the hour in progress is drawn but would drag the range and scale down. */

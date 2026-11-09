@@ -38,9 +38,23 @@
       </figure>
     }
   </section>
+} @else if (!settled().day) {
+  <!-- Same shape as the panel, so its arrival does not move the page. -->
+  <section class="custom-card an-day is-loading" aria-busy="true" aria-label="Last 24 hours, loading">
+    <h2 class="an-title">Last 24 hours</h2>
+    <dl class="an-tiles">
+      @for (label of dayLabels; track label) {
+        <div class="an-tile"><dt>{{ label }}</dt><dd class="an-value"><span class="an-ph"></span></dd><dd class="an-note"><span class="an-ph an-ph-wide"></span></dd></div>
+      }
+    </dl>
+    <figure class="an-hours">
+      <div class="an-hour-bars" aria-hidden="true">@for (hour of placeholderHours; track $index) {<span class="an-hour an-hour-ph"></span>}</div>
+      <figcaption class="an-axis"><span>24 h ago</span><span>This hour, so far</span></figcaption>
+    </figure>
+  </section>
 }
 
-@if (rotation() || activity()) {
+@if (rotation() || activity() || !settled().rotation || !settled().activity) {
   <div class="an-pair">
     @if (rotation(); as r) {
       <section class="custom-card" aria-labelledby="an-rotation-title">
@@ -60,6 +74,13 @@
           </p>
         }
       </section>
+    } @else if (!settled().rotation) {
+      <section class="custom-card is-loading" aria-busy="true" aria-label="Producer rotation, loading">
+        <h2 class="an-title">Producer rotation</h2>
+        <div class="an-producers" aria-hidden="true">@for (dot of placeholderProducers; track $index) {<span class="an-producer"></span>}</div>
+        <p class="an-facts"><span class="an-ph an-ph-line"></span><span class="an-ph an-ph-line an-ph-short"></span></p>
+        <p class="an-status"><span class="an-ph an-ph-wide"></span></p>
+      </section>
     }
     @if (activity(); as shares) {
       <section class="custom-card" aria-labelledby="an-activity-title">
@@ -77,6 +98,16 @@
         </ul>
         <p class="an-note">Share of the latest {{ sampleSize }} actions, onblock left out</p>
       </section>
+    } @else if (!settled().activity) {
+      <section class="custom-card is-loading" aria-busy="true" aria-label="What's running, loading">
+        <h2 class="an-title">What's running</h2>
+        <ul class="an-activity" aria-hidden="true">
+          @for (row of placeholderActivity; track $index) {
+            <li><div class="an-activity-row"><span class="an-ph an-ph-wide"></span><span class="an-ph an-ph-tiny"></span></div><span class="an-meter"></span></li>
+          }
+        </ul>
+        <p class="an-note">Share of the latest {{ sampleSize }} actions, onblock left out</p>
+      </section>
     }
   </div>
 }
@@ -89,4 +120,6 @@
       @if (h.version) { <span>Hyperion {{ h.version }}</span> }
     </p>
   }
+} @else if (!settled().health) {
+  <p class="an-health" aria-hidden="true"><span class="an-ph an-ph-wide"></span><span class="an-ph"></span></p>
 }
