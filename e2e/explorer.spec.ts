@@ -284,6 +284,22 @@ test("preserves uint64 metadata and exact continuation cursors after SSR hydrati
   await expect(dialog.getByRole("treeitem", { name: "sequence 9007199254740993", exact: true })).toBeVisible();
 });
 
+test("keeps action details readable under ad-blocker cosmetic filters", async ({ page, request }) => {
+  const sequences = ["18446744073709551615", "9223372036854775808"];
+  await request.post("/__fixture/state", { data: { sequences, initialActions: 2 } });
+  await page.goto("/explorer/account/eosio");
+  await expect(page.getByText(`Sequence ${sequences[0]}`, { exact: true })).toBeVisible();
+  // Generic element-hiding rules of the kind EasyList ships: they hide any element with these class names, site-wide.
+  await page.addStyleTag({
+    content: '[class^="ad-"], [class*=" ad-"], [class^="ads-"], [class*=" ads-"], .ad, .ads, .advert, .sponsored { display: none !important; }',
+  });
+  await page.locator("tr", { hasText: `Sequence ${sequences[0]}` }).getByText("Expand details", { exact: false }).click();
+  const dialog = page.getByRole("dialog");
+  await expect(dialog.getByRole("heading", { level: 2 }).first()).toBeVisible();
+  await expect(dialog.getByText("Global sequence", { exact: true })).toBeVisible();
+  await expect(dialog.getByText("All fields", { exact: true })).toBeVisible();
+});
+
 test("uses the unrounded snapshot bound for filtered history", async ({ page, request }) => {
   await request.post("/__fixture/state", { data: { sequences: ["18446744073709551615", "9007199254740993"] } });
   await page.goto("/explorer/account/eosio");
