@@ -12,7 +12,7 @@ import { MatChipsModule } from "@angular/material/chips";
 import { MatTableModule } from "@angular/material/table";
 import { MatButton, MatIconButton } from "@angular/material/button";
 import { ActivatedRoute, RouterModule } from "@angular/router";
-import { isPlatformBrowser, NgClass } from "@angular/common";
+import { DecimalPipe, NgClass, isPlatformBrowser } from "@angular/common";
 import {
   faArrowLeft,
   faArrowRight,
@@ -49,7 +49,8 @@ import { MatTooltip } from "@angular/material/tooltip";
     NgClass,
     ActDataViewComponent,
     MatTooltip,
-    MatButton
+    MatButton,
+    DecimalPipe
   ],
   templateUrl: "./block.component.html",
   styleUrl: "./block.component.css",

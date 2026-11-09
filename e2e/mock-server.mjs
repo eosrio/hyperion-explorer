@@ -301,8 +301,12 @@ export function createFixture({ port = 17000, ssrPort = 17001 } = {}) {
       }
       if (url.pathname === "/v1/chain/get_table_by_scope") {
         if (unavailable("contractUnavailable", "Contract scopes unavailable")) return;
-        const scopes =
-          body.table === "stat" ? ["SYS", "SEED"] : accountNames.filter(name => !body.lower_bound || name >= body.lower_bound).sort();
+        // Wire's nodes list no scopes for some tables even though rows exist at the contract's own scope.
+        const scopes = state.unlistedScopes
+          ? []
+          : body.table === "stat"
+            ? ["SYS", "SEED"]
+            : accountNames.filter(name => !body.lower_bound || name >= body.lower_bound).sort();
         const limit = Math.min(1000, Number(body.limit) || 30);
         return send({
           rows: scopes.slice(0, limit).map(scope => ({ code: body.code, table: body.table || "userres", scope, payer: scope, count: 3 })),
@@ -311,7 +315,9 @@ export function createFixture({ port = 17000, ssrPort = 17001 } = {}) {
       }
       if (url.pathname === "/v1/chain/get_table_rows") {
         if (unavailable("contractUnavailable", "Contract rows unavailable")) return;
-        return send({ rows: state.emptyTables ? [] : tableRows(body), more: false, next_key: "" });
+        const rows = state.emptyTables ? [] : tableRows(body);
+        // Wire's nodes return each row as { key, value }: the primary key beside the stored struct.
+        return send({ rows: state.wrappedRows ? rows.map((value, index) => ({ key: { id: index }, value })) : rows, more: false, next_key: "" });
       }
       if (url.pathname === "/v2/state/get_voter_scopes")
         return send({ scopes: accountNames.filter(name => name.startsWith((url.searchParams.get("term") || "").replaceAll("*", ""))) });

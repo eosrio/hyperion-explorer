@@ -123,7 +123,7 @@
   font-variant-numeric: tabular-nums;
 }
 .producer-key {
-  color: var(--faded);
+  color: color-mix(in srgb, var(--primary) 80%, var(--main-text));
   font-family: ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
   font-size: 0.8125rem;
   text-decoration: none;
@@ -132,4 +132,30 @@
   color: var(--primary);
   text-decoration: underline;
   text-underline-offset: 0.2em;
+}
+
+/* With only rank, account and key there is room for a real table even on a phone; cards would triple its length. */
+@media (max-width: 599px) {
+  .compact-cols [mat-header-row] {
+    display: table-row;
+    position: static;
+  }
+  .compact-cols [mat-header-row] th[mat-header-cell],
+  .compact-cols [mat-header-row] th[mat-header-cell]:not([mat-sort-header]) {
+    display: table-cell;
+    padding: 0.75rem 0.5rem;
+  }
+  .compact-cols [mat-row] td[mat-cell] {
+    display: table-cell;
+    padding: 0.625rem 0.5rem;
+    vertical-align: middle;
+  }
+  .compact-cols [mat-row] td[mat-cell]::before {
+    content: none;
+  }
+  .compact-cols [mat-row]:not(:last-of-type) td:last-of-type {
+    border-bottom: 1px solid var(--line-divider);
+    padding-bottom: 0.625rem !important;
+    margin-bottom: 0;
+  }
 }

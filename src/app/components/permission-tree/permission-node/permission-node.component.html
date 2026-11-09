@@ -1,22 +1,8 @@
-<div class="flex flex-row">
-
-  @if (children().length > 0) {
-    <button mat-icon-button (click)="toggleExpansion()" [attr.aria-expanded]="expanded()"
-            [attr.aria-label]="'Toggle ' + node().perm_name + ' permissions'">
-      <fa-icon [ngClass]="expanded() ? 'arrowDown' : 'arrowRight'"
-               [icon]="icons.solid.faChevronRight"
-               class="arrowSize faded"></fa-icon>
-    </button>
-  } @else {
-    <div class="w-[3rem] min-w-[3rem]" style="width: 3rem"></div>
-  }
-
-  <div animate.enter="permission-enter" class="permission-cell flex flex-col gap-1.5">
-
-    <div>
-      <h3 class="perm-name primary">{{ node().perm_name }}</h3>
-    </div>
-
+<div class="permission-cell">
+  <h3 class="perm-name primary" [class.perm-child]="level() > 0" [style.--depth]="level()">
+    {{ node().perm_name }}@if (node().parent && level() > 0) {<span class="visually-hidden"> (under {{ node().parent }})</span>}
+  </h3>
+  <div class="perm-auths">
     @let reqAuth = node().required_auth;
 
     @if (reqAuth.keys.length > 0) {
@@ -65,10 +51,3 @@
   </div>
 </div>
 
-@if (expanded()) {
-  @for (childNode of children(); track childNode.perm_name) {
-    <div [ngClass]="{'ml-7': level() > 0}">
-      <app-permission-node [expanded]="false" [level]="level() + 1" [node]="childNode"></app-permission-node>
-    </div>
-  }
-}

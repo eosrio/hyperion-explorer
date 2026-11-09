@@ -1,12 +1,20 @@
 .theme-settings {
   display: flex;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-end;
   align-items: center;
-  gap: 1rem;
-  padding-block: 1rem;
+  gap: 0.5rem 0.75rem;
+  padding-block: 0.25rem 1.25rem;
   font-size: 0.8125rem;
 }
-.theme-settings p {
-  max-width: 40ch;
+.theme-label {
+  color: var(--footer-text);
+  font-weight: 600;
+}
+.theme-select {
+  width: 14rem;
+}
+.theme-note {
+  margin: 0;
+  color: var(--footer-text);
 }

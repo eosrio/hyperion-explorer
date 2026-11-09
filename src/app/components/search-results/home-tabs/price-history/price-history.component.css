@@ -14,12 +14,7 @@
   padding-block: 0.5rem;
 }
 .price-select {
-  min-height: 44px;
-  padding: 0.5rem;
-  border: 1px solid var(--line-divider);
-  border-radius: 0.5rem;
-  background: var(--card-bg);
-  color: var(--main-text);
+  width: 10rem;
 }
 .stat-card {
   display: flex;

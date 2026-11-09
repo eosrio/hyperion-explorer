@@ -66,6 +66,21 @@ export function isoChainTime(value: string | number | Date | null | undefined): 
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
+/**
+ * How long ago a chain timestamp was, for activity within the last day ("just now", "12 min ago", "3 h ago");
+ * null for anything older, which the full timestamp beside it already says plainly.
+ */
+export function ageOfChainTime(value: string | null | undefined, now = Date.now()): string | null {
+  if (!value) return null;
+  const time = new Date(asUtcTimestamp(value)).getTime();
+  if (Number.isNaN(time)) return null;
+  const minutes = Math.floor((now - time) / 60_000);
+  if (minutes < 0 || minutes >= 24 * 60) return null;
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes} min ago`;
+  return `${Math.floor(minutes / 60)} h ago`;
+}
+
 @Pipe({ name: "chainTime" })
 export class ChainTimePipe implements PipeTransform {
   transform(value: string | number | Date | null | undefined, utc: boolean, mode: "full" | "time" = "full"): string {

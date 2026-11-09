@@ -7,7 +7,8 @@ import {
   provideZonelessChangeDetection,
   REQUEST
 } from "@angular/core";
-import { provideRouter, Router, withViewTransitions } from "@angular/router";
+import { provideRouter, Router, withInMemoryScrolling, withViewTransitions } from "@angular/router";
+import { provideExplorerScrolling } from "./scrolling";
 import { onExplorerViewTransition } from "./morph";
 
 import { routes } from "./app.routes";
@@ -44,7 +45,13 @@ async function initApp(): Promise<void> {
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideRouter(routes, withViewTransitions({ skipInitialTransition: true, onViewTransitionCreated: onExplorerViewTransition })),
+    // The router only reports positions ("disabled" applies none); provideExplorerScrolling decides what to do with them.
+    provideRouter(
+      routes,
+      withViewTransitions({ skipInitialTransition: true, onViewTransitionCreated: onExplorerViewTransition }),
+      withInMemoryScrolling({ scrollPositionRestoration: "disabled" })
+    ),
+    provideExplorerScrolling(),
     provideZonelessChangeDetection(),
     provideClientHydration(withIncrementalHydration()),
     { provide: DataService, useClass: DataServiceBrowser },

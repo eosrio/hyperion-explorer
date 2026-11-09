@@ -28,7 +28,7 @@ test("price history remains discoverable while its chart code is loading", async
     await expect.poll(() => chartRequested).toBe(true);
     await expect(page.getByRole("status")).toHaveText("Loading price history…");
     release();
-    await expect(page.locator("#pair-select")).toHaveValue("sysusd");
+    await expect(page.locator("#pair-select")).toHaveText("SYSUSD");
     await expect(page.locator("app-price-history canvas")).toBeVisible();
   } finally {
     release();
@@ -41,10 +41,13 @@ test("chain details remain in document flow and price controls use the local ora
   await expect(page.locator("#expanded-content-area")).toHaveAttribute("inert", "");
   await page.getByRole("button", { name: "Show Chain Details" }).click();
   await page.getByRole("tab", { name: "Price History", exact: true }).click();
-  await expect(page.locator("#pair-select")).toHaveValue("sysusd");
+  await expect(page.locator("#pair-select")).toHaveText("SYSUSD");
   await expect(page.locator("app-price-history canvas")).toBeVisible();
-  await page.locator("#pair-select").selectOption("seedusd");
-  await page.locator("#interval-select").selectOption("4h");
+  await page.locator("#pair-select").click();
+  await page.getByRole("option", { name: "SEEDUSD", exact: true }).click();
+  await page.locator("#interval-select").click();
+  await page.getByRole("option", { name: "4 hours", exact: true }).click();
+  await expect(page.locator("#interval-select")).toHaveText("4 hours");
   await expect(page.getByText("SEEDUSD Current Price", { exact: true })).toBeVisible();
   await page.screenshot({ path: info.outputPath("prices.png"), fullPage: true, animations: "disabled" });
   await page.getByRole("tab", { name: "Producers", exact: true }).click();
@@ -65,14 +68,14 @@ test("keys, contract tables and token-specific holders have the shared explorer 
   await page.screenshot({ path: info.outputPath("key.png"), fullPage: true, animations: "disabled" });
   await page.goto("/explorer/contract/vault.defi/vaults/alice");
   await expect(page.locator("#header-container img")).toHaveCount(1);
-  const row = page.getByRole("button", { name: "Row 1", exact: true });
+  const row = page.getByRole("button", { name: /^Row 1: / });
   await expect(row).toBeVisible();
   await expect(row).toHaveAttribute("aria-expanded", "true");
   await row.press("Enter");
   await expect(row).toHaveAttribute("aria-expanded", "false");
   await row.press("Enter");
   await expect(row).toHaveAttribute("aria-expanded", "true");
-  await expect(page.getByText("9007199254740992", { exact: true })).toBeVisible();
+  await expect(page.locator(".expanded-item-content").getByText("9007199254740992", { exact: true })).toBeVisible();
   await expect(page.getByRole("link", { name: "locked", exact: true })).toHaveCount(0);
   await page.screenshot({ path: info.outputPath("contract.png"), fullPage: true, animations: "disabled" });
   await page.getByRole("button", { name: "Table view", exact: true }).click();
@@ -159,7 +162,7 @@ test("all shipped appearance presets load, persist and reset to the chain palett
   for (const name of ["default", "jungle", "libre", "qry", "telos", "ultra", "vaulta", "wax", "wire", "xpr"]) {
     const loaded = page.waitForResponse(response => response.url().endsWith("/.internal/read_theme/" + name) && response.ok());
     await select.click();
-    await page.getByRole("option", { name, exact: true }).click();
+    await page.getByRole("option", { name: new RegExp("^" + name, "i") }).click();
     await expect(page.getByRole("listbox")).toHaveCount(0);
     const palette = await (await loaded).json();
     await expect

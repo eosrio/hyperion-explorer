@@ -52,13 +52,14 @@
             </div>
             <p id="scope-help" class="cx-note">A scope separates a table’s rows, often by account or token symbol.</p>
             <div class="scope-toolbar">
-              <label class="scope-selector">Scope
-                <select aria-label="Contract scope" aria-describedby="scope-help" [ngModel]="scope() || ''" (ngModelChange)="$event && selectScope($event)">
-                  <option value="">Select a scope</option>
-                  @if (scope() && !scopeList().includes(scope()!)) { <option [value]="scope()">{{ scopeLabel(scope()!) }}</option> }
-                  @for (name of scopeList(); track name) { <option [value]="name">{{ scopeLabel(name) }}</option> }
-                </select>
-              </label>
+              <div class="scope-selector">
+                <span id="scope-label">Scope</span>
+                <mat-select class="x-select" panelClass="x-select-panel" aria-label="Contract scope" aria-describedby="scope-help"
+                            placeholder="Select a scope" [value]="scope() || null" (selectionChange)="selectScope($event.value)">
+                  @if (scope() && !scopeList().includes(scope()!)) { <mat-option [value]="scope()">{{ scopeLabel(scope()!) }}</mat-option> }
+                  @for (name of scopeList(); track name) { <mat-option [value]="name">{{ scopeLabel(name) }}</mat-option> }
+                </mat-select>
+              </div>
               <div class="scope-paging" role="group" aria-label="Scope pages">
                 <button type="button" class="cx-icon-btn" aria-label="Previous scopes" title="Previous scopes" (click)="usePreviousScope()" [disabled]="!lastScope()"><mat-icon aria-hidden="true">chevron_left</mat-icon></button>
                 <button type="button" class="cx-icon-btn" aria-label="Next scopes" title="Next scopes" (click)="useNextScope()" [disabled]="!nextScopePresent()"><mat-icon aria-hidden="true">chevron_right</mat-icon></button>
@@ -71,7 +72,8 @@
               </details>
             </div>
             @if (tableScopesRes.isLoading()) { <p class="cx-note" role="status">Loading scopes…</p> }
-            @else if (!tableScopesRes.error() && !scopeList().length) { <p class="cx-note">No scopes were returned. Use Scope options to enter one directly.</p> }
+            @else if (scopesUnlisted()) { <p class="cx-note">This node does not list scopes for {{ table() }}, so the contract’s own scope, {{ code() }}, is shown. Enter another under Scope options.</p> }
+            @else if (!tableScopesRes.error() && !scopeList().length) { <p class="cx-note">No more scopes. Go back a page, or enter one under Scope options.</p> }
           </section>
 
           @if (scope()) {
@@ -107,7 +109,7 @@
                         @for (field of fields(); track field.name) {
                           <ng-container [matColumnDef]="field.name">
                             <th mat-header-cell *matHeaderCellDef mat-sort-header [sortActionDescription]="'Sort by ' + field.name">
-                              <span class="cx-col-name">{{ field.name }}</span><span class="cx-col-type">{{ field.type }}</span>
+                              <span class="cx-col-head"><span class="cx-col-name">@for (part of nameBreaks(field.name); track $index) {{{ part }}<wbr />}</span><span class="cx-col-type">{{ field.type }}</span></span>
                             </th>
                             <td mat-cell *matCellDef="let element" [attr.data-label]="field.name">
                               <app-act-data-view [fieldName]="field.name" [data]="element[field.name]"></app-act-data-view>
@@ -124,10 +126,10 @@
                     <div class="appear card-grid-view">
                       @for (row of tableData(); track $index) {
                         <article class="data-card">
-                          <h4 class="data-card-header">Row {{ $index + 1 }}</h4>
+                          <h4 class="data-card-header"><span class="expanded-item-index">{{ $index + 1 }}</span> {{ rowTitle(row, $index) }}</h4>
                           <dl class="data-card-content">
                             @for (field of fields(); track field.name) {
-                              <dt>{{ field.name }}<span class="cx-col-type">{{ field.type }}</span></dt>
+                              <dt>@for (part of nameBreaks(field.name); track $index) {{{ part }}<wbr />}<span class="cx-col-type">{{ field.type }}</span></dt>
                               <dd><app-act-data-view [fieldName]="field.name" [data]="row[field.name]"></app-act-data-view></dd>
                             }
                           </dl>
@@ -140,15 +142,16 @@
                     <div class="appear expanded-view">
                       @for (row of tableData(); track $index) {
                         <div class="expanded-item" [class.is-open]="isItemExpanded($index)">
-                          <button type="button" class="expanded-item-header" [attr.aria-label]="'Row ' + ($index + 1)" [attr.aria-expanded]="isItemExpanded($index)" (click)="toggleItemExpanded($index)">
-                            <span class="expanded-item-title">Row {{ $index + 1 }}</span>
+                          <button type="button" class="expanded-item-header" [attr.aria-label]="'Row ' + ($index + 1) + ': ' + rowTitle(row, $index)" [attr.aria-expanded]="isItemExpanded($index)" (click)="toggleItemExpanded($index)">
+                            <span class="expanded-item-index">{{ $index + 1 }}</span>
+                            <span class="expanded-item-title">{{ rowTitle(row, $index) }}</span>
                             @if (!isItemExpanded($index) && rowPreview(row); as preview) { <span class="expanded-item-preview">{{ preview }}</span> }
                             <mat-icon class="expand-icon" aria-hidden="true">expand_more</mat-icon>
                           </button>
                           @if (isItemExpanded($index)) {
                             <dl class="expanded-item-content">
                               @for (field of fields(); track field.name) {
-                                <dt>{{ field.name }}<span class="cx-col-type">{{ field.type }}</span></dt>
+                                <dt>@for (part of nameBreaks(field.name); track $index) {{{ part }}<wbr />}<span class="cx-col-type">{{ field.type }}</span></dt>
                                 <dd><app-act-data-view [fieldName]="field.name" [data]="row[field.name]"></app-act-data-view></dd>
                               }
                             </dl>

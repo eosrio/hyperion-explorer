@@ -1,5 +1,5 @@
 import { Directive, ElementRef, HostListener, inject } from "@angular/core";
-import { ViewTransitionInfo } from "@angular/router";
+import { ActivatedRouteSnapshot, ViewTransitionInfo } from "@angular/router";
 
 /**
  * Shared-element navigation: the block number, transaction ID or account a visitor clicks becomes the heading of
@@ -30,9 +30,20 @@ export class MorphLinkDirective {
   }
 }
 
-/** Router hook: skip transitions for reduced motion, and hand the shared name to the new page's heading. */
-export function onExplorerViewTransition({ transition }: ViewTransitionInfo): void {
-  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+/** The URL path a router state renders, without query parameters or fragment. */
+function pathOf(snapshot: ActivatedRouteSnapshot | null): string {
+  const parts: string[] = [];
+  for (let node = snapshot; node; node = node.firstChild) parts.push(...node.url.map(segment => segment.path));
+  return parts.join("/");
+}
+
+/**
+ * Router hook. A transition runs only when the page itself changes: a query-only navigation (choosing a contract
+ * table, paging a scope, closing a dialog) would otherwise crossfade the whole page and paint the header and
+ * headings above any open dialog. Reduced motion skips every transition.
+ */
+export function onExplorerViewTransition({ transition, from, to }: ViewTransitionInfo): void {
+  if (pathOf(from) === pathOf(to) || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     transition.skipTransition();
     disarm();
     return;

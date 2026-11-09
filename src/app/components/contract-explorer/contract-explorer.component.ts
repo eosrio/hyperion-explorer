@@ -8,7 +8,9 @@ import {
   model,
   PLATFORM_ID,
   signal,
-  ChangeDetectionStrategy
+  ChangeDetectionStrategy,
+  ElementRef,
+  afterRenderEffect
 } from "@angular/core";
 import { Router } from "@angular/router";
 import { rxResource } from "@angular/core/rxjs-interop";
@@ -20,9 +22,11 @@ import { AbiStructField, AbiTable, GetAbiResponse } from "../../interfaces";
 import { FormsModule } from "@angular/forms";
 import { isPlatformBrowser } from "@angular/common";
 import { MatIcon } from "@angular/material/icon";
+import { MatOption, MatSelect } from "@angular/material/select";
 import { ActDataViewComponent, symbolFromScope } from "../act-data-view/act-data-view.component";
 import { DataService } from "../../services/data.service";
 import { describeApiError, isRetryableApiError } from "../../api-errors";
+import { nameBreaks } from "../../name-breaks";
 
 function buildFieldArray(structs: any[], array: AbiStructField[], type: string): void {
   if (array && type) {
@@ -48,6 +52,8 @@ function buildFieldArray(structs: any[], array: AbiStructField[], type: string):
     MatSortHeader,
     MatSort,
     MatIcon,
+    MatSelect,
+    MatOption,
     ActDataViewComponent
   ],
   templateUrl: "./contract-explorer.component.html",
@@ -57,6 +63,8 @@ function buildFieldArray(structs: any[], array: AbiStructField[], type: string):
 export class ContractExplorerComponent {
   readonly describeApiError = describeApiError;
   readonly isRetryableApiError = isRetryableApiError;
+  readonly nameBreaks = nameBreaks;
+  private host = inject<ElementRef<HTMLElement>>(ElementRef);
   http = inject(HttpClient);
   router = inject(Router);
   data = inject(DataService);
@@ -136,9 +144,24 @@ export class ContractExplorerComponent {
     params: () => ({ code: this.code(), table: this.table(), scope: this.scope(), limit: this.getTableByScopeLimit() }),
     stream: ({ params }) =>
       params.code && params.table && params.scope
-        ? this.http.post<{ rows: any[] }>(this.endpoints.getTableRows, { ...params, json: true }).pipe(map(data => data.rows))
+        ? this.http
+            .post<{ rows: any[] }>(this.endpoints.getTableRows, { ...params, json: true })
+            .pipe(map(data => (Array.isArray(data?.rows) ? data.rows.map(row => this.unwrapRow(row)) : [])))
         : of([])
   });
+
+  /**
+   * Some nodes (Wire among them) return each row as `{ key, value }`: the primary key beside the stored struct.
+   * The struct is what the ABI describes, so read that, unless the struct itself has fields named key and value.
+   */
+  private unwrapRow(row: any): any {
+    if (!row || typeof row !== "object" || Array.isArray(row)) return row;
+    const keys = Object.keys(row);
+    const wrapped = keys.length === 2 && keys.includes("key") && keys.includes("value");
+    if (!wrapped || !row.value || typeof row.value !== "object") return row;
+    const fieldNames = new Set(this.fields().map(field => field.name));
+    return fieldNames.has("key") && fieldNames.has("value") ? row : row.value;
+  }
   abiTableNames = computed<string[]>(() =>
     this.abiRes.hasValue() ? (this.abiRes.value()?.abi?.tables.map(table => table.name) ?? []) : []
   );
@@ -162,10 +185,19 @@ export class ContractExplorerComponent {
     return symbol ? `${symbol} · ${scope}` : scope;
   }
 
-  /** A collapsed row still says something: its first two scalar fields ("owner alice · balance 12.0000 EOS"). */
+  /** A row is named by its first scalar field (usually its key, like the owner), falling back to its position. */
+  rowTitle(row: Record<string, unknown>, index: number): string {
+    const first = this.fields()[0];
+    const value = first ? row?.[first.name] : undefined;
+    if (value === null || value === undefined || typeof value === "object" || value === "") return `Row ${index + 1}`;
+    const text = String(value);
+    return text.length > 32 ? text.slice(0, 31) + "…" : text;
+  }
+
+  /** A collapsed row still says something: the next two scalar fields after the one that titles it. */
   rowPreview(row: Record<string, unknown>): string {
     const parts: string[] = [];
-    for (const field of this.fields()) {
+    for (const field of this.fields().slice(1)) {
       const value = row?.[field.name];
       if (value === null || value === undefined || typeof value === "object") continue;
       const text = String(value);
@@ -175,9 +207,20 @@ export class ContractExplorerComponent {
     return parts.join(" · ");
   }
 
-  scopeList = computed<string[]>(() =>
-    this.tableScopesRes.hasValue() ? (this.tableScopesRes.value()?.rows.map(row => row.scope) ?? []) : []
+  private listedScopes = computed<string[]>(() =>
+    this.tableScopesRes.hasValue() ? (this.tableScopesRes.value()?.rows?.map(row => row.scope) ?? []) : []
   );
+  /**
+   * When a node lists no scopes for a table (Wire does this for its system contract's tables), the contract's own
+   * account is still where most single-scope tables keep their rows, so offer it instead of a dead end.
+   */
+  scopesUnlisted = computed(
+    () => this.tableScopesRes.hasValue() && !this.tableScopesRes.error() && !this.scopeLb() && !this.listedScopes().length
+  );
+  scopeList = computed<string[]>(() => {
+    const code = this.code();
+    return this.scopesUnlisted() && code ? [code] : this.listedScopes();
+  });
   nextScope = computed(() => (this.tableScopesRes.hasValue() ? this.tableScopesRes.value()?.more || "" : ""));
   nextScopePresent = computed(() => !!this.nextScope());
   private scopeHistory = signal<string[]>([]);
@@ -272,8 +315,8 @@ export class ContractExplorerComponent {
     this.autoExpanded.set(false);
     this.table.set(name);
     if (this.navMode() === "dialog") {
-      // append scope as a query parameter
-      await this.router.navigate([], { queryParams: { table: name } });
+      // The dialog keeps its state in the query string; replacing it means Back closes the dialog's page, not each table.
+      await this.router.navigate([], { queryParams: { table: name }, replaceUrl: true });
       this.scrollElementIntoView("scope-section");
       // this.scrollToBottom();
     } else {
@@ -281,16 +324,17 @@ export class ContractExplorerComponent {
     }
   }
 
-  async selectScope(name: string) {
+  async selectScope(name: string, automatic = false) {
+    if (!name) return;
     this.scope.set(name);
     this.expandedItems.set(new Set<number>());
     this.autoExpanded.set(false);
+    // A scope picked for the visitor replaces the URL, so Back still returns to where they were.
     if (this.navMode() === "dialog") {
-      // append scope as a query parameter
-      await this.router.navigate([], { queryParams: { table: this.table(), scope: name } });
-      this.scrollElementIntoView("data-section");
+      await this.router.navigate([], { queryParams: { table: this.table(), scope: name }, replaceUrl: true });
+      if (!automatic) this.scrollElementIntoView("data-section");
     } else {
-      await this.router.navigate(["contract", this.code(), this.table(), name]);
+      await this.router.navigate(["contract", this.code(), this.table(), name], { replaceUrl: automatic });
     }
   }
 
@@ -318,7 +362,9 @@ export class ContractExplorerComponent {
         if (!element) {
           return;
         }
-        element.scrollIntoView({ behavior: "smooth", block: "start", inline: "nearest" });
+        // Only scroll when the section is out of view (the stacked phone layout); otherwise keep the header put.
+        const motion = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+        element.scrollIntoView({ behavior: motion, block: "nearest", inline: "nearest" });
       }, 100);
     }
   }
@@ -330,6 +376,24 @@ export class ContractExplorerComponent {
   }
 
   constructor() {
+    // Keep the open table visible in the list, which scrolls on its own inside the dialog and the page.
+    afterRenderEffect(() => {
+      const table = this.table();
+      if (!table || !this.abiTableNames().length) return;
+      const list = this.host.nativeElement.querySelector<HTMLElement>(".cx-table-list");
+      const button = list?.querySelector<HTMLElement>(".grid-item-btn.selected");
+      if (!list || !button) return;
+      const top = button.offsetTop - list.offsetTop;
+      if (top < list.scrollTop || top + button.offsetHeight > list.scrollTop + list.clientHeight) {
+        list.scrollTop = Math.max(0, top - (list.clientHeight - button.offsetHeight) / 2);
+      }
+    });
+    // A table with a single scope (or none listed) has nothing to choose: open it.
+    effect(() => {
+      if (!isPlatformBrowser(this.platformId) || this.scope() || !this.table() || this.tableScopesRes.isLoading()) return;
+      const scopes = this.scopeList();
+      if (scopes.length === 1 && !this.nextScopePresent() && !this.scopeLb()) void this.selectScope(scopes[0], true);
+    });
     // Auto-expand the first item when entering expanded (list) view with data loaded
     effect(() => {
       const mode = this.viewMode();

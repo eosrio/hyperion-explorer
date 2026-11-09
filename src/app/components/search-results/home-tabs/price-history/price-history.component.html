@@ -5,29 +5,24 @@
     <div class="price-selectors">
       <!-- Pair Selector -->
       <div class="flex items-center gap-2">
-        <label for="pair-select" class="text-sm faded">Pair:</label>
-        <select id="pair-select" [ngModel]="selectedPair()" (ngModelChange)="selectedPair.set($event); onPairChange()"
-          class="price-select">
+        <span id="pair-select-label" class="text-sm faded">Pair</span>
+        <mat-select id="pair-select" class="x-select price-select" panelClass="x-select-panel" aria-labelledby="pair-select-label"
+                    [value]="selectedPair()" (selectionChange)="selectedPair.set($event.value); onPairChange()">
           @for (pair of availablePairs(); track pair.name) {
-          <option [value]="pair.name">{{ pair.name.toUpperCase() }}</option>
+          <mat-option [value]="pair.name">{{ pair.name.toUpperCase() }}</mat-option>
           }
-        </select>
+        </mat-select>
       </div>
 
       <!-- Interval Selector -->
       <div class="flex items-center gap-2">
-        <label for="interval-select" class="text-sm faded">Interval:</label>
-        <select id="interval-select" [ngModel]="selectedInterval()" (ngModelChange)="selectedInterval.set($event); onIntervalChange()"
-          class="price-select">
-          <option value="1m">1 Minute</option>
-          <option value="5m">5 Minutes</option>
-          <option value="15m">15 Minutes</option>
-          <option value="1h">1 Hour</option>
-          <option value="4h">4 Hours</option>
-          <option value="1d">1 Day</option>
-          <option value="1w">1 Week</option>
-          <option value="1M">1 Month</option>
-        </select>
+        <span id="interval-select-label" class="text-sm faded">Interval</span>
+        <mat-select id="interval-select" class="x-select price-select" panelClass="x-select-panel" aria-labelledby="interval-select-label"
+                    [value]="selectedInterval()" (selectionChange)="selectedInterval.set($event.value); onIntervalChange()">
+          @for (interval of intervals; track interval.value) {
+          <mat-option [value]="interval.value">{{ interval.label }}</mat-option>
+          }
+        </mat-select>
       </div>
     </div>
   </div>

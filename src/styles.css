@@ -460,7 +460,9 @@ input {
 }
 .api-error p {
   flex: 1 1 18rem;
+  min-width: 0;
   margin: 0;
+  overflow-wrap: anywhere;
 }
 .api-error button {
   flex: none;
@@ -565,7 +567,16 @@ table,
 .mat-mdc-table {
   --mat-table-background-color: transparent;
   --mat-table-row-item-label-text-color: var(--main-text);
-  --mat-table-header-headline-color: var(--primary);
+  /* Headers are labels, not links: only a sortable header reacts, and it shows its arrow. */
+  --mat-table-header-headline-color: var(--faded);
+  --mat-table-header-headline-weight: 600;
+}
+.mat-sort-header-container {
+  cursor: pointer;
+}
+.mat-sort-header:hover .mat-sort-header-content,
+.mat-sort-header.cdk-keyboard-focused .mat-sort-header-content {
+  color: var(--main-text);
 }
 .mat-mdc-progress-bar {
   --mat-progress-bar-active-indicator-color: var(--primary);
@@ -610,6 +621,15 @@ table,
 }
 .card-top-sticky {
   top: var(--sticky-offset, 7rem) !important;
+}
+/* The sticky bar sits a little below the fixed header; fill that strip so rows never show through it. */
+.card-top-sticky::before {
+  content: "";
+  position: absolute;
+  inset: auto -1rem 100% -1rem;
+  height: 2rem;
+  background: var(--main-background);
+  pointer-events: none;
 }
 @media (max-width: 640px) {
   .custom-card {
@@ -702,3 +722,131 @@ table,
   }
 }
 
+/*
+ * Disclosures. One chevron after the label, turning when open, instead of the browser's triangle before it;
+ * the icon-only search help keeps its own icon.
+ */
+details > summary {
+  list-style: none;
+}
+details > summary::-webkit-details-marker {
+  display: none;
+}
+details:not(.search-help) > summary {
+  display: flex;
+  align-items: center;
+  width: fit-content;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+details:not(.search-help) > summary::after {
+  content: "";
+  flex-shrink: 0;
+  width: 0.4375rem;
+  height: 0.4375rem;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  opacity: 0.7;
+  transform: translateY(-0.125rem) rotate(45deg);
+  transition: transform 160ms ease-out;
+}
+details[open]:not(.search-help) > summary::after {
+  transform: translateY(0.125rem) rotate(-135deg);
+}
+@media (prefers-reduced-motion: reduce) {
+  details:not(.search-help) > summary::after {
+    transition: none;
+  }
+}
+
+/* Checkboxes and radios take the chain's primary colour instead of the browser's default blue. */
+input[type="checkbox"],
+input[type="radio"] {
+  width: 1.0625rem;
+  height: 1.0625rem;
+  margin: 0;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+/*
+ * Dropdowns. Every choice list is a mat-select in the explorer's own colours: the trigger reads like the
+ * text inputs beside it, and the open list is a card, not the operating system's menu.
+ */
+.x-select.mat-mdc-select {
+  --mat-select-enabled-trigger-text-color: var(--main-text);
+  --mat-select-placeholder-text-color: var(--faded);
+  --mat-select-enabled-arrow-color: var(--faded);
+  --mat-select-focused-arrow-color: var(--primary);
+  --mat-select-trigger-text-font: var(--main-font-family);
+  --mat-select-trigger-text-size: 0.9375rem;
+  --mat-select-trigger-text-weight: 500;
+  --mat-select-trigger-text-tracking: 0;
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  min-height: 2.5rem;
+  padding: 0 0.625rem 0 0.75rem;
+  border: 1px solid var(--line-divider);
+  border-radius: 0.5rem;
+  background: var(--card-bg);
+  cursor: pointer;
+  transition: border-color 120ms ease-out, box-shadow 120ms ease-out;
+}
+.x-select.mat-mdc-select:hover {
+  border-color: color-mix(in srgb, var(--primary) 45%, var(--line-divider));
+}
+.x-select.mat-mdc-select-focused,
+.x-select.mat-mdc-select:focus-visible {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 22%, transparent);
+}
+.x-select.mat-mdc-select-disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+.x-select .mat-mdc-select-trigger {
+  width: 100%;
+  min-width: 0;
+}
+.x-select .mat-mdc-select-arrow-wrapper {
+  margin-left: 0.5rem;
+}
+.x-select-panel.mat-mdc-select-panel {
+  --mat-select-panel-background-color: var(--card-bg);
+  --mat-select-container-elevation-shadow: 0 12px 32px -8px rgb(15 23 42 / 28%), 0 2px 6px rgb(15 23 42 / 12%);
+  --mat-option-label-text-color: var(--main-text);
+  --mat-option-label-text-font: var(--main-font-family);
+  --mat-option-label-text-size: 0.9375rem;
+  --mat-option-label-text-weight: 500;
+  --mat-option-label-text-tracking: 0;
+  --mat-option-selected-state-label-text-color: var(--primary);
+  --mat-option-selected-state-layer-color: color-mix(in srgb, var(--primary) 12%, transparent);
+  --mat-option-hover-state-layer-color: color-mix(in srgb, var(--primary) 8%, transparent);
+  --mat-option-focus-state-layer-color: color-mix(in srgb, var(--primary) 10%, transparent);
+  --mat-optgroup-label-text-color: var(--faded);
+  --mat-optgroup-label-text-font: var(--main-font-family);
+  --mat-optgroup-label-text-size: 0.75rem;
+  --mat-optgroup-label-text-weight: 600;
+  padding: 0.3125rem;
+  border: 1px solid var(--line-divider);
+  border-radius: 0.625rem;
+}
+.x-select-panel .mat-mdc-option {
+  min-height: 2.5rem;
+  border-radius: 0.375rem;
+}
+.x-select-panel .mat-mdc-optgroup-label {
+  min-height: 2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.x-select-panel .mat-pseudo-checkbox {
+  display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .x-select.mat-mdc-select {
+    transition: none;
+  }
+}

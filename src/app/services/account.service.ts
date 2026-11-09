@@ -62,6 +62,14 @@ function safeResourceInteger(value: unknown, allowUnlimited = false): number | n
 
 export const MAX_ES_SKIP = 10000;
 
+/**
+ * Newer Hyperion APIs refuse an oldest-first search without a lower bound ("after" or "before", as a date within
+ * 90 days or a block number). Block 1 bounds nothing in practice, and older APIs read it as the earliest date.
+ */
+function boundAscending(query: URLSearchParams): void {
+  if (query.get("sort") === "asc" && !query.has("after") && !query.has("before")) query.set("after", "1");
+}
+
 @Injectable({ providedIn: "root" })
 export class AccountService {
   private data = inject(DataService);
@@ -79,8 +87,12 @@ export class AccountService {
   readonly streamConnecting = signal(false);
   readonly streamOnline = signal(false);
   readonly lastStreamActionAt = linkedSignal<string, number | null>({ source: () => this.accountName(), computation: () => null });
+  /** Set once this API's stream refused a connection; the switch then says so instead of failing on every click. */
+  readonly streamUnavailable = signal(false);
   readonly streamState = computed(() =>
-    this.streamConnecting()
+    this.streamUnavailable()
+      ? "Not offered by this API"
+      : this.streamConnecting()
       ? "Connecting"
       : this.streamClientStatus()
         ? this.streamOnline()
@@ -233,6 +245,7 @@ export class AccountService {
             query.set(key, cp[key]);
           }
         }
+        boundAscending(query);
         const key = query.toString();
         if (this.queryCache.has(key)) {
           return this.queryCache.get(key);
@@ -665,6 +678,13 @@ export class AccountService {
     }
   });
 
+  /** More history exists beyond the rows on screen; the counter stops at the search limit, so keep offering it there. */
+  readonly canLoadMore = computed(() => {
+    const shown = this.actionsComputed().length;
+    const total = this.totalActionCounter();
+    return shown > 0 && (shown < total || total >= MAX_ES_SKIP);
+  });
+
   async loadMoreActions(): Promise<void> {
     if (this.loadingMoreActions()) return;
     const lastAction = this.actionsComputed().at(-1);
@@ -684,6 +704,7 @@ export class AccountService {
         limit: "50",
         global_sequence: sort === "asc" ? `${boundary}-${anchor}` : `0-${boundary}`
       });
+      boundAscending(query);
       const response = await lastValueFrom(
         this.httpClient.get<GetActionsResponse>(`${this.data.env.hyperionApiUrl}/v2/history/get_actions?${query}`)
       );
@@ -714,6 +735,8 @@ export class AccountService {
 
   retryHistory(): void {
     this.historyError.set(null);
+    // A stream failure may have been transient: "Try again" offers the switch once more.
+    this.streamUnavailable.set(false);
     this.accountDataRes.reload();
     this.actionRes.reload();
   }
@@ -723,7 +746,17 @@ export class AccountService {
     this.requestError.set(null);
     try {
       const url = this.data.env.hyperionApiUrl + "/v2/history/get_transaction?id=" + txId;
-      const data = historyResponse(await lastValueFrom(this.httpClient.get<{ actions: unknown[] }>(url)));
+      const response = await lastValueFrom(this.httpClient.get<{ actions: unknown[]; executed?: boolean }>(url));
+      // An unknown ID comes back as { executed: false } with no actions: that is "not found", not a broken response.
+      if (response && response.executed === false && !Array.isArray(response.actions)) {
+        this.requestError.set({
+          message: "This Hyperion API has no transaction with this ID. Check the ID, or try again if it was sent moments ago.",
+          retryable: true
+        });
+        this.loaded.set(true);
+        return null;
+      }
+      const data = historyResponse(response);
       this.loaded.set(true);
       return data;
     } catch (error) {
@@ -757,7 +790,16 @@ export class AccountService {
       this.loaded.set(true);
       return data;
     } catch (error) {
-      this.requestError.set(apiErrorView(error));
+      // Accounts link every key they hold, but an API may only index some key types (Wire's PUB_EM keys, for one).
+      const type = /^PUB_([A-Z0-9]+)_/.exec(key)?.[1];
+      if (error instanceof HttpErrorResponse && error.status === 400 && type && type !== "K1") {
+        this.requestError.set({
+          message: `This Hyperion API cannot look up ${type} keys, so the accounts that hold ${key} cannot be listed here.`,
+          retryable: false
+        });
+      } else {
+        this.requestError.set(apiErrorView(error));
+      }
       this.loaded.set(true);
       return null;
     }
@@ -790,6 +832,7 @@ export class AccountService {
       if (revision !== this.streamStartRevision) return;
       this.historyError.set(streamErrorView(error));
       this.streamClientStatus.set(false);
+      this.streamUnavailable.set(true);
     }
   }
 
@@ -832,6 +875,8 @@ export class AccountService {
         return value.name !== filter.name;
       });
     }
+    // Deleting the filter in use must not leave the history filtered by something no longer listed.
+    if (this.filter()?.name === filter.name) this.clearFilter();
   }
 
   async startActionStream(): Promise<boolean> {

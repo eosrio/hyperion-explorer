@@ -8,7 +8,7 @@
       <form [formGroup]="searchForm" (ngSubmit)="submit()" class="header-search" role="search" aria-label="Blockchain search">
         <div class="custom-input-group search-control">
           <input #searchFieldRef formControlName="search_field" type="search" class="custom-input"
-                 placeholder="Account, block, transaction or public key"
+                 [placeholder]="searchPlaceholder()"
                  aria-label="Account name, block number, transaction ID, or public key" [attr.aria-invalid]="err() ? 'true' : null" [attr.aria-describedby]="err() ? 'search-error search-help' : 'search-help'" aria-keyshortcuts="Control+Shift+F Meta+Shift+F"
                  autocomplete="off" autocapitalize="off" spellcheck="false" [matAutocomplete]="auto" />
           <details id="search-help" class="search-help"><summary aria-label="Search help" title="Search help"><fa-icon [icon]="icons.help" aria-hidden="true" /></summary><p>Search by account, block number, transaction ID or public key. Press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>F</kbd> (or <kbd>⌘</kbd> + <kbd>Shift</kbd> + <kbd>F</kbd> on Mac) to focus search.</p></details>
@@ -62,11 +62,11 @@
         by RioBlocks
       </span>
       <div class="footer-links">
-        <button type="button" aria-label="Choose explorer theme" [attr.aria-expanded]="showThemeSelector()" (click)="showThemeSelector.set(!showThemeSelector())" class="theme-toggle">Theme</button>
+        <button #themeToggle type="button" aria-label="Choose explorer theme" aria-controls="theme-settings" [attr.aria-expanded]="showThemeSelector()" (click)="showThemeSelector.set(!showThemeSelector())" class="theme-toggle">Theme</button>
         <a class="icon-link" aria-label="Hyperion Explorer on GitHub" href="https://github.com/eosrio/hyperion-explorer" target="_blank" rel="noopener noreferrer"><fa-icon [icon]="icons.github"></fa-icon></a>
         <a class="icon-link" aria-label="Hyperion community on Telegram" href="https://t.me/EOSHyperion" target="_blank" rel="noopener noreferrer"><fa-icon [icon]="icons.telegram"></fa-icon></a>
       </div>
     </footer>
-    @if (showThemeSelector()) { <app-theme-selector></app-theme-selector> }
+    @if (showThemeSelector()) { <app-theme-selector id="theme-settings" (keydown.escape)="showThemeSelector.set(false); themeToggle.focus()"></app-theme-selector> }
   </div>
 </div>

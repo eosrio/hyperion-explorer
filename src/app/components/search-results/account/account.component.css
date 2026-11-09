@@ -47,6 +47,46 @@
   color: var(--faded);
   font-size: 0.875rem;
 }
+/* A closed card keeps a short overview in its body, so it never collapses to a bare title. */
+.card-overview {
+  display: grid;
+  gap: 0.375rem;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+}
+.card-overview li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 8.5rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: 1rem;
+}
+.card-overview strong {
+  overflow: hidden;
+  color: var(--primary);
+  font-weight: 600;
+  text-overflow: ellipsis;
+}
+.card-overview span,
+.overview-more {
+  color: var(--faded);
+}
+.perm-overview li.perm-child strong {
+  padding-left: calc((var(--depth, 1) - 1) * 1rem + 1.125rem);
+}
+.perm-overview li.perm-child::before {
+  content: "";
+  position: absolute;
+  top: 0.05em;
+  left: calc((var(--depth, 1) - 1) * 1rem + 0.25rem);
+  width: 0.5rem;
+  height: 0.55em;
+  border-left: 1.5px solid color-mix(in srgb, var(--primary) 45%, transparent);
+  border-bottom: 1.5px solid color-mix(in srgb, var(--primary) 45%, transparent);
+  border-bottom-left-radius: 0.1875rem;
+}
 :host ::ng-deep .mat-expansion-indicator::after {
   color: var(--main-text);
 }
@@ -81,7 +121,7 @@
 .actions-table th.mat-mdc-header-cell {
   padding: 1rem 0.75rem;
   font-weight: 600;
-  color: var(--primary);
+  color: var(--faded);
   white-space: nowrap;
 }
 .actions-table td.mat-mdc-cell {
@@ -174,6 +214,7 @@
   font-variant-numeric: tabular-nums;
 }
 .where-recent {
+  display: block;
   white-space: nowrap;
 }
 .where-tx {
@@ -209,12 +250,6 @@
   outline: 2px solid var(--primary);
   outline-offset: 2px;
   border-radius: 0.25rem;
-}
-.actions-table-paginator {
-  background: transparent;
-}
-:host ::ng-deep .actions-table-paginator .mdc-notched-outline > * {
-  border: 0;
 }
 .history-header {
   display: flex;
@@ -329,17 +364,114 @@
   align-items: center;
   gap: 0.5rem;
   font-size: 0.875rem;
+  white-space: nowrap;
 }
-.history-options {
+.filter-select {
+  width: 14rem;
+}
+.page-size-select {
+  width: 6rem;
+}
+.history-toolbar .link-btn {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.display-options {
+  align-items: center;
+}
+.display-options .checkbox-label {
+  flex-direction: row;
+  align-items: center;
+}
+.page-size-choice {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.history-count {
+  min-height: 1.5rem;
+  padding-block: 0.75rem 0.5rem;
+  color: var(--faded);
   font-size: 0.875rem;
 }
-.history-options summary {
-  cursor: pointer;
-  padding-block: 0.5rem;
-  min-height: 44px;
+.history-count p {
+  margin: 0;
 }
-.history-toolbar input:not([type="checkbox"]),
-.history-toolbar select {
+.history-count strong {
+  color: var(--main-text);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.history-empty {
+  color: var(--main-text);
+}
+.history-more {
+  display: flex;
+  justify-content: center;
+  padding-block: 1rem 0.25rem;
+}
+.history-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+.history-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 2.5rem;
+  padding: 0 0.5rem 0 0.75rem;
+  border: 0;
+  border-radius: 0.5rem;
+  background: transparent;
+  color: var(--main-text);
+  font: inherit;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+}
+.history-toggle mat-icon {
+  width: 1.25rem;
+  height: 1.25rem;
+  font-size: 1.25rem;
+  color: var(--faded);
+  transition: transform 160ms ease-out;
+}
+.history-toggle:hover {
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+}
+.history-toggle[aria-expanded="true"] {
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+  color: var(--primary);
+}
+.history-toggle[aria-expanded="true"] mat-icon {
+  color: var(--primary);
+  transform: rotate(180deg);
+}
+.history-toggle:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+.history-panel {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--line-divider);
+  border-radius: 0.75rem;
+  background: color-mix(in srgb, var(--primary) 3%, var(--card-bg));
+  font-size: 0.875rem;
+}
+.finality-text {
+  max-width: 65ch;
+  margin: 0;
+  color: var(--main-text);
+  line-height: 1.6;
+}
+@media (prefers-reduced-motion: reduce) {
+  .history-toggle mat-icon {
+    transition: none;
+  }
+}
+.history-toolbar input:not([type="checkbox"]) {
   min-height: 44px;
   padding: 0.5rem 0.625rem;
   max-width: 100%;
@@ -378,7 +510,7 @@
   display: inline-flex;
   align-items: center;
   padding: 0.5rem;
-  min-height: 44px;
+  min-height: 2.5rem;
   border: 0;
   background: transparent;
   border-radius: 0.5rem;

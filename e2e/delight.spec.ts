@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { choose } from "./choose";
 
 test.beforeEach(async ({ request }) => {
   await request.post("/__fixture/state", { data: { manualStreaming: true } });
@@ -32,7 +33,7 @@ for (const reducedMotion of ["no-preference", "reduce"] as const) {
     await page.getByRole("button", { name: "1 New actions", exact: true }).press("Enter");
     await expect(page.getByText("1 new action in view", { exact: true })).toBeVisible();
     await expect(page.locator("tr.is-new-action")).toHaveCount(1);
-    await page.getByRole("combobox", { name: "Action filter", exact: true }).selectOption({ label: "Native Transfers" });
+    await choose(page, "Action filter", "Native Transfers");
     await expect(page.locator(".batch-receipt")).toHaveCount(0);
     await expect(page.locator("tr.is-new-action")).toHaveCount(0);
   });

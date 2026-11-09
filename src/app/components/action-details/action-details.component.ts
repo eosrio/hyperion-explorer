@@ -90,6 +90,14 @@ export class ActionDetailsComponent {
 
   hasChild = (_: number, node: KeyValueNode) => !!node.children && node.children.length > 0;
 
+  /** "All fields" opens at the bottom of the dialog; bring its first rows into view. */
+  revealAllFields(event: Event): void {
+    const details = event.target as HTMLDetailsElement;
+    if (!details.open) return;
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth";
+    details.scrollIntoView({ behavior: motion, block: "start" });
+  }
+
   private buildTreeData() {
     const treeData: KeyValueNode[] | undefined = this.objectToTree(this.action());
     if (treeData) {

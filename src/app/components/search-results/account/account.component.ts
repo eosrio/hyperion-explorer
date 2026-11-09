@@ -1,5 +1,4 @@
-import { ChainTimePipe, TimePreference } from "../../../chain-time";
-import { FinalityHelpComponent } from "../../finality-help/finality-help.component";
+import { ageOfChainTime, ChainTimePipe, TimePreference } from "../../../chain-time";
 import {
   Component,
   computed,
@@ -22,7 +21,7 @@ import { FaIconComponent, FaLayersComponent } from "@fortawesome/angular-fontawe
 import { MatProgressBar } from "@angular/material/progress-bar";
 import { MatTooltip } from "@angular/material/tooltip";
 import { DecimalPipe, isPlatformBrowser, NgClass } from "@angular/common";
-import { MatPaginator, PageEvent } from "@angular/material/paginator";
+import { PageEvent } from "@angular/material/paginator";
 import { MatCell, MatColumnDef, MatHeaderCell, MatHeaderRow, MatRow, MatTableModule } from "@angular/material/table";
 import { AccountService, ActionFilterSpec, MAX_ES_SKIP } from "../../../services/account.service";
 import { faQuestionCircle } from "@fortawesome/free-regular-svg-icons";
@@ -62,9 +61,13 @@ import { ActionDataComponent } from "../../action-data/action-data.component";
 import { MorphLinkDirective } from "../../../morph";
 import { PermissionTreeComponent } from "../../permission-tree/permission-tree.component";
 import { FormsModule } from "@angular/forms";
+import { MatOptgroup, MatOption, MatSelect } from "@angular/material/select";
+import { MatIcon } from "@angular/material/icon";
+import { permissionRows } from "../../permission-tree/permission-rows";
 import { ChainService } from "../../../services/chain.service";
 import { faTowerBroadcast } from "@fortawesome/free-solid-svg-icons";
-import { describeApiError, isApiNotFound, isRetryableApiError } from "../../../api-errors";
+import { describeApiError, isApiNotFound, isProtocolProjectionUnavailable, isRetryableApiError } from "../../../api-errors";
+import { FINALITY_HELP } from "../../finality-help/finality-help.component";
 import { HistoryAction } from "../../../sequences";
 
 interface Permission {
@@ -110,8 +113,7 @@ interface FlatNode {
 
 @Component({
   selector: "app-account",
-  imports: [ChainTimePipe, 
-    FinalityHelpComponent,
+  imports: [ChainTimePipe, MatIcon, MatSelect, MatOption, MatOptgroup, 
     MatButton,
     MatProgressSpinner,
     FaIconComponent,
@@ -119,7 +121,6 @@ interface FlatNode {
     FaLayersComponent,
     MatTooltip,
     RouterLink,
-    MatPaginator,
     DecimalPipe,
     MatAccordion,
     MatExpansionModule,
@@ -142,7 +143,9 @@ interface FlatNode {
   styleUrls: ["./account.component.css", "./account-overview.css", "./action-table.css", "./permissions-card.css"]
 })
 export class AccountComponent implements OnInit, OnDestroy {
+  private destroyed = false;
   ngOnDestroy(): void {
+    this.destroyed = true;
     this.acServ.stopActionStream();
   }
   describeApiError = describeApiError;
@@ -164,6 +167,13 @@ export class AccountComponent implements OnInit, OnDestroy {
 
   readonly time = inject(TimePreference);
   compactMode = signal(false);
+  readonly isProtocolProjectionUnavailable = isProtocolProjectionUnavailable;
+  readonly finalityHelp = FINALITY_HELP;
+  /** Which history option panel is open under the toolbar; one at a time, toggled by its button. */
+  historyPanel = signal<"custom" | "display" | "finality" | null>(null);
+  toggleHistoryPanel(panel: "custom" | "display" | "finality"): void {
+    this.historyPanel.update(open => (open === panel ? null : panel));
+  }
 
   readonly appliedBatch = linkedSignal<string, { id: number; actionIds: ReadonlySet<string> } | null>({
     source: () =>
@@ -424,13 +434,11 @@ export class AccountComponent implements OnInit, OnDestroy {
   }
 
   openContractsDialog(table: string | null, scope: string | null): void {
-    console.log("Opening contract dialog");
     if (this.searchService.searchQuery()) {
       this.contractDialogRef = this.dialog.open<ContractDialogComponent>(ContractDialogComponent, {
         width: "1235px",
-        height: "auto",
-        minHeight: "90dvh",
-        maxHeight: "90dvh",
+        // A fixed height: switching between a two-table contract and a long table must not resize the dialog.
+        height: "min(90dvh, 60rem)",
         restoreFocus: true,
         data: {
           account: this.searchService.searchQuery(),
@@ -443,13 +451,11 @@ export class AccountComponent implements OnInit, OnDestroy {
 
       this.contractDialogRef.afterClosed().subscribe(() => {
         this.contractDialogRef = undefined;
-        console.log("Contract Dialog closed");
-        // clear query params
-        this.router
-          .navigate([], {
-            queryParams: {}
-          })
-          .catch(console.log);
+        // Drop the dialog's table and scope from the URL in place, so Back leaves the page instead of reopening the
+        // dialog. Skip it when the dialog closed because "Open as a page" is already navigating elsewhere.
+        const params = this.route.snapshot.queryParamMap;
+        if (this.destroyed || this.router.currentNavigation() || !(params.has("table") || params.has("scope"))) return;
+        this.router.navigate([], { relativeTo: this.route, queryParams: {}, replaceUrl: true }).catch(() => undefined);
       });
     }
   }
@@ -545,27 +551,11 @@ export class AccountComponent implements OnInit, OnDestroy {
     this.acServ.sortDirection.set($event.direction);
   }
 
-  /**
-   * Determines if a transaction is recent based on its timestamp
-   * @param timestamp The timestamp of the transaction
-   * @returns true if the transaction is recent (within the last 24 hours), false otherwise
-   */
-  isRecentTransaction(timestamp: string): boolean {
-    if (!timestamp) return false;
+  /** The permission hierarchy in reading order, for the closed card's overview. */
+  readonly permissionRows = permissionRows;
 
-    // Parse the timestamp to a Date object
-    const txDate = new Date(timestamp);
-
-    // Get the current time
-    const now = new Date();
-
-    // Calculate the difference in milliseconds
-    const diffMs = now.getTime() - txDate.getTime();
-
-    // Convert to hours
-    const diffHours = diffMs / (1000 * 60 * 60);
-
-    // Consider transactions within the last 24 hours as recent
-    return diffHours <= 24;
+  /** Recent rows also say how long ago they happened; chain timestamps are UTC without a zone suffix. */
+  ageOf(timestamp: string): string | null {
+    return ageOfChainTime(timestamp);
   }
 }

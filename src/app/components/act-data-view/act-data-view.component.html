@@ -22,7 +22,7 @@
       <dl class="kv" [class.kv-nested]="level() > 0">
         @for (item of data() | keyvalue: keepOrder; track item.key) {
           @let itemType = getType(item.value);
-          <dt class="kv-key">{{ item.key }}</dt>
+          <dt class="kv-key">@for (part of nameBreaks(item.key); track $index) {{{ part }}<wbr />}</dt>
           <dd class="kv-value">
             @switch (itemType) {
               @case ("string") {

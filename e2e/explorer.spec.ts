@@ -1,4 +1,5 @@
 import { expect, test, Page } from "@playwright/test";
+import { choose } from "./choose";
 
 const pageErrors = new WeakMap<Page, string[]>();
 
@@ -152,7 +153,7 @@ test("renders observed Wire unlimited CPU and NET values", async ({ page, reques
 test("qualifies an empty indexed account history", async ({ page, request }) => {
   await request.post("/__fixture/state", { data: { accountProjectionUnsupported: true } });
   await page.goto("/explorer/account/empty");
-  await expect(page.getByRole("region", { name: "Actions" })).toContainText("No actions to display");
+  await expect(page.getByRole("region", { name: "Actions" })).toContainText("has no indexed actions yet");
   await expect(page.getByText("Indexed action history may be incomplete.")).toBeVisible();
   await request.post("/__fixture/state", { data: {} });
 });
@@ -165,7 +166,7 @@ test("preserves core account when action history is unavailable and retries it",
   await expect(page.locator("#account-content")).toBeVisible();
   const history = page.getByRole("region", { name: "Actions" });
   await expect(history.getByRole("alert")).toContainText("Indexed action history is temporarily unavailable");
-  await expect(history).not.toContainText("No actions to display");
+  await expect(history).not.toContainText("has no indexed actions yet");
   await expect(history.locator(".actions-table")).toHaveCount(0);
   await request.post("/__fixture/state", { data: { accountProjectionUnsupported: true } });
   const restored = page.waitForResponse(response => new URL(response.url()).pathname === "/v2/history/get_actions" && response.status() === 200);
@@ -181,7 +182,7 @@ test("labels unavailable block delta projection without hiding the trace", async
   await unavailable;
   await expect(page.getByText("Block ID", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Toggle actions for transaction " + "f".repeat(64) })).toBeVisible();
-  await expect(page.getByRole("alert")).toContainText("Block state deltas are temporarily unavailable");
+  await expect(page.getByRole("alert")).toContainText("does not serve state deltas for this block yet");
   await request.post("/__fixture/state", { data: {} });
   const restored = page.waitForResponse(response => new URL(response.url()).pathname === "/v2/history/get_deltas" && response.status() === 200);
   await page.getByRole("button", { name: "Try again", exact: true }).click();
@@ -307,7 +308,7 @@ test("uses the unrounded snapshot bound for filtered history", async ({ page, re
     const url = new URL(request.url());
     return url.pathname === "/v2/history/get_actions" && url.searchParams.get("act.name") === "transfer";
   });
-  await page.getByRole("combobox", { name: "Action filter", exact: true }).selectOption({ label: "Native Transfers" });
+  await choose(page, "Action filter", "Native Transfers");
   expect(new URL((await filtered).url()).searchParams.get("global_sequence")).toBe("0-18446744073709551615");
   await expect(page.getByText("Sequence 9007199254740993", { exact: true })).toBeVisible();
 });

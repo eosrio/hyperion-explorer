@@ -1,12 +1,11 @@
-<div class="theme-settings hr-container">
-  <mat-form-field>
-    <mat-label>Theme</mat-label>
-    <mat-select [value]="selectedTheme()" (selectionChange)="selectTheme($event.value)" [disabled]="loading()">
-      <mat-option value="CURRENT_THEME" disabled>Current appearance</mat-option>
-      <mat-option value="UNSET_THEME">Chain default</mat-option>
-      @for (theme of ds.availableThemes; track theme) { <mat-option [value]="theme">{{ theme }}</mat-option> }
-    </mat-select>
-  </mat-form-field>
-  <p class="faded">Appearance changes apply to {{ ds.explorerMetadata()?.chain_name }} on this browser.</p>
+<div class="theme-settings hr-container" role="group" aria-labelledby="theme-label">
+  <span id="theme-label" class="theme-label">Appearance</span>
+  <mat-select #themeSelect class="x-select theme-select" panelClass="x-select-panel" panelWidth="" aria-label="Theme"
+              [value]="selectedTheme()" (selectionChange)="selectTheme($event.value)" [disabled]="loading()">
+    <mat-option value="CURRENT_THEME" disabled>Current appearance</mat-option>
+    <mat-option value="UNSET_THEME">Chain default</mat-option>
+    @for (theme of ds.availableThemes; track theme) { <mat-option [value]="theme">{{ themeLabel(theme) }}</mat-option> }
+  </mat-select>
+  <p class="theme-note">Applies to {{ ds.explorerMetadata()?.chain_name }} on this browser.</p>
   @if (error()) { <p class="api-error" role="alert">{{ error() }}</p> }
 </div>

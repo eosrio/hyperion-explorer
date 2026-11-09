@@ -116,6 +116,11 @@ export class MainSearchComponent implements OnDestroy {
     main?.scrollIntoView({ block: "start" });
   }
   readonly scrollProgress = signal(0);
+  /** Phones show the short form; the long one would be cut off mid-word in the narrow field. */
+  private readonly narrowSearch = signal(false);
+  readonly searchPlaceholder = computed(() =>
+    this.narrowSearch() ? "Account, block, tx or key" : "Account, block, transaction or public key"
+  );
   readonly reducedMotion = signal(isPlatformBrowser(this.platform) && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
   readonly headerProgress = computed(() => (this.isHome() && !this.reducedMotion() ? this.scrollProgress() : 1));
   private scrollFrame: number | undefined;
@@ -153,6 +158,11 @@ export class MainSearchComponent implements OnDestroy {
         if (!this.destroyRef.destroyed && revision === this.searchRevision) this.filteredAccounts.set(accounts);
       });
     afterNextRender(() => {
+      const narrow = window.matchMedia("(max-width: 480px)");
+      const syncNarrow = () => this.narrowSearch.set(narrow.matches);
+      syncNarrow();
+      narrow.addEventListener("change", syncNarrow);
+      this.destroyRef.onDestroy(() => narrow.removeEventListener("change", syncNarrow));
       this.searchForm.controls.search_field.enable({ emitEvent: false });
       this.searchReady.set(true);
       this.updateScroll();

@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { choose, dropdown, optionLabels } from "./choose";
 const tx = "f".repeat(64);
 const key = "EOS6MRyAjQq8ud7hVNYcfnVPJqcVpscN5SoA82QKS2jD1xrF1vARe";
 test.beforeEach(async ({ request }) => {
@@ -11,11 +12,11 @@ test("history controls preserve filtering, preferences and readable resource uni
   await page.getByText("About resources", { exact: true }).click();
   await expect(page.getByText(/NET measures network bandwidth in bytes/)).toBeVisible();
   expect(await page.locator(".mat-expansion-panel-header button").count()).toBe(0);
-  await page.getByRole("combobox", { name: "Action filter", exact: true }).selectOption({ label: "Native Transfers" });
+  await choose(page, "Action filter", "Native Transfers");
   await expect(page.locator(".actions-table tbody tr")).not.toHaveCount(0);
   await expect(page.locator(".actions-table tbody tr").first()).toContainText("eosio.token");
   await page.getByRole("button", { name: "Clear filter", exact: true }).first().click();
-  await page.getByText("Display options", { exact: true }).click();
+  await page.getByRole("button", { name: "Display options", exact: true }).click();
   await page.getByLabel("Compact mode", { exact: true }).check();
   await expect(page.getByRole("button", { name: /Toggle action data/ }).first()).toBeVisible();
   await page
@@ -23,7 +24,7 @@ test("history controls preserve filtering, preferences and readable resource uni
     .first()
     .press("Enter");
   await expect(page.getByText("Fixture transfer", { exact: true })).toBeVisible();
-  await page.getByRole("combobox", { name: "Rows per page", exact: true }).selectOption({ label: "10" });
+  await choose(page, "Rows per page", "10");
   await expect(page.locator(".actions-table tbody tr")).toHaveCount(10);
   await page.locator("#actions-heading").scrollIntoViewIfNeeded();
   await page.screenshot({ path: info.outputPath("history-toolbar.png"), animations: "disabled" });
@@ -31,18 +32,18 @@ test("history controls preserve filtering, preferences and readable resource uni
 
 test("scope selection supports paging, direct scopes and empty rows without losing context", async ({ page, request }, info) => {
   await page.goto("/explorer/contract/vault.defi/vaults/alice");
-  const scope = page.getByRole("combobox", { name: "Contract scope", exact: true });
-  await expect(scope).toHaveValue("alice");
+  const scope = dropdown(page, "Contract scope");
+  await expect(scope).toHaveText("alice");
   await page.getByText("Scope options", { exact: true }).click();
   const limit = page.getByRole("spinbutton", { name: "Scope search limit" });
   await limit.fill("3");
   await limit.press("Tab");
   await expect(page.getByRole("button", { name: "Next scopes", exact: true })).toBeEnabled();
-  const firstScopes = await scope.locator("option").allTextContents();
+  const firstScopes = await optionLabels(page, "Contract scope");
   await page.getByRole("button", { name: "Next scopes", exact: true }).click();
-  await expect.poll(() => scope.locator("option").allTextContents()).not.toEqual(firstScopes);
+  await expect.poll(() => optionLabels(page, "Contract scope")).not.toEqual(firstScopes);
   await page.getByRole("button", { name: "Previous scopes", exact: true }).click();
-  await expect.poll(() => scope.locator("option").allTextContents()).toEqual(firstScopes);
+  await expect.poll(() => optionLabels(page, "Contract scope")).toEqual(firstScopes);
   await page.getByRole("textbox", { name: "Custom scope", exact: true }).fill("bob");
   await page.getByRole("button", { name: "Load scope", exact: true }).click();
   await expect(page).toHaveURL(/\/vaults\/bob$/);
@@ -53,6 +54,22 @@ test("scope selection supports paging, direct scopes and empty rows without losi
   await expect(page.getByText("No rows were returned for this scope.")).toBeVisible();
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   await page.screenshot({ path: info.outputPath("contract-controls.png"), animations: "disabled" });
+});
+
+test("contract tables read rows wrapped as key and value and fall back to the contract scope", async ({ page, request }) => {
+  await request.post("/__fixture/state", { data: { manualStreaming: true, unlistedScopes: true, wrappedRows: true } });
+  await page.goto("/explorer/account/alice");
+  await page.goto("/explorer/contract/vault.defi/vaults");
+  await expect(page).toHaveURL(/\/contract\/vault\.defi\/vaults\/vault\.defi$/);
+  await expect(page.getByText(/does not list scopes for vaults/)).toBeVisible();
+  await expect(dropdown(page, "Contract scope")).toHaveText("vault.defi");
+  const first = page.locator(".expanded-item").first();
+  await expect(first.locator(".expanded-item-content")).toContainText("owner");
+  await expect(first.locator(".expanded-item-content")).toContainText("balance");
+  await expect(first.locator(".expanded-item-content dt", { hasText: /^key/ })).toHaveCount(0);
+  // The scope was picked for the visitor, so Back returns to where they came from, not to the bare table.
+  await page.goBack();
+  await expect(page).toHaveURL(/\/account\/alice$/);
 });
 
 test("identifiers can be copied without truncation and the search shortcut is discoverable", async ({ page, context }) => {
@@ -126,24 +143,24 @@ test("unavailable configured logos fall back to one Hyperion mark", async ({ pag
 test("saved custom filters survive reload and can be deleted", async ({ page }) => {
   await page.goto("/explorer/account/eosio");
   await expect(page.getByText("Fixture transfer", { exact: true })).toBeVisible();
-  await page.getByText("Custom filter", { exact: true }).click();
+  await page.getByRole("button", { name: "Custom filter", exact: true }).click();
   await page.getByRole("textbox", { name: "Contract", exact: true }).fill("eosio.token");
   await page.getByRole("textbox", { name: "Action name", exact: true }).fill("transfer");
   await page.getByRole("checkbox", { name: "Save this filter" }).check();
   await page.getByRole("button", { name: "Apply filter", exact: true }).click();
-  const select = page.getByRole("combobox", { name: "Action filter", exact: true });
-  await expect(select).toHaveValue("eosio.token::transfer");
+  const select = dropdown(page, "Action filter");
+  await expect(select).toHaveText("eosio.token::transfer");
   await page.reload();
   await expect(page.getByText("Fixture transfer", { exact: true })).toBeVisible();
-  await select.selectOption("eosio.token::transfer");
+  await choose(page, "Action filter", "eosio.token::transfer");
   await page.getByRole("button", { name: "Delete saved filter", exact: true }).click();
-  await expect(select.locator("option", { hasText: "eosio.token::transfer" })).toHaveCount(0);
-  await expect(select).toHaveValue("");
+  expect(await optionLabels(page, "Action filter")).not.toContain("eosio.token::transfer");
+  await expect(select).toHaveText("All actions");
 });
 
 test("contract controls and search feedback retain readable contrast in every shipped palette", async ({ page }, info) => {
   await page.goto("/explorer/contract/vault.defi/vaults/alice");
-  await expect(page.getByRole("button", { name: "Row 1", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Row 1: / })).toBeVisible();
   await expect(page.getByRole("button", { name: "Search blockchain", exact: true })).toBeEnabled();
   await page.getByRole("button", { name: "Search blockchain", exact: true }).click();
   await expect(page.locator("#search-error")).toBeVisible();
@@ -154,14 +171,14 @@ test("contract controls and search feedback retain readable contrast in every sh
   for (const name of ["default", "jungle", "libre", "qry", "telos", "ultra", "vaulta", "wax", "wire", "xpr"]) {
     const loaded = page.waitForResponse(response => response.url().endsWith("/.internal/read_theme/" + name) && response.ok());
     await select.click();
-    await page.getByRole("option", { name, exact: true }).click();
+    await page.getByRole("option", { name: new RegExp("^" + name, "i") }).click();
     await expect(page.getByRole("listbox")).toHaveCount(0);
     const palette = await (await loaded).json();
     await expect
       .poll(() => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue("--primary").trim()))
       .toBe(palette["--primary"].trim());
     await expect(select).toBeEnabled();
-    measurements[name] = await page.locator(".grid-item-btn, select[aria-label='Contract scope'], #search-error").evaluateAll(elements => {
+    measurements[name] = await page.locator(".grid-item-btn, .scope-selector .x-select, #search-error").evaluateAll(elements => {
       const luminance = (color: string) => {
         const context = new OffscreenCanvas(1, 1).getContext("2d")!;
         context.fillStyle = color;
@@ -188,7 +205,7 @@ test("contract controls and search feedback retain readable contrast in every sh
 test("dark chain controls inherit readable panel and icon colors", async ({ page, request }) => {
   await request.post("/__fixture/state", { data: { theme: "dark", manualStreaming: true } });
   await page.goto("/explorer/contract/vault.defi/vaults/alice");
-  await expect(page.getByRole("button", { name: "Row 1", exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: /^Row 1: / })).toBeVisible();
   await expect(page.getByRole("button", { name: "Search blockchain", exact: true })).toBeEnabled();
   await page.getByRole("button", { name: "Search blockchain", exact: true }).click();
   await expect(page.locator("#search-error")).toBeVisible();

@@ -1,6 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from "@angular/core";
+import { afterNextRender, ChangeDetectionStrategy, Component, inject, signal, viewChild } from "@angular/core";
 import { DataService } from "../../services/data.service";
-import { MatFormField, MatLabel } from "@angular/material/form-field";
 import { MatOption, MatSelect } from "@angular/material/select";
 import { HttpClient } from "@angular/common/http";
 import { lastValueFrom } from "rxjs";
@@ -8,7 +7,7 @@ import { describeApiError } from "../../api-errors";
 
 @Component({
   selector: "app-theme-selector",
-  imports: [MatFormField, MatSelect, MatOption, MatLabel],
+  imports: [MatSelect, MatOption],
   templateUrl: "./theme-selector.component.html",
   styleUrl: "./theme-selector.component.css",
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -19,6 +18,18 @@ export class ThemeSelectorComponent {
   readonly selectedTheme = signal("CURRENT_THEME");
   readonly loading = signal(false);
   readonly error = signal("");
+  private readonly themeSelect = viewChild<MatSelect>("themeSelect");
+
+  constructor() {
+    // Opening the panel from the footer moves focus to the choice it offers.
+    afterNextRender(() => this.themeSelect()?.focus());
+  }
+
+  /** Theme files are named by id ("xpr"); show the name a visitor recognises, which starts with that id. */
+  themeLabel(id: string): string {
+    const known: Record<string, string> = { qry: "QRY", wax: "WAX", xpr: "XPR Network", eos: "EOS", ux: "UX Network" };
+    return known[id] ?? id.charAt(0).toUpperCase() + id.slice(1);
+  }
   async selectTheme(name: string): Promise<void> {
     this.selectedTheme.set(name);
     this.loading.set(true);

@@ -1,3 +1,4 @@
+import { nameBreaks } from "../../name-breaks";
 import { Component, computed, input, ChangeDetectionStrategy } from "@angular/core";
 import { KeyValuePipe } from "@angular/common";
 import { RouterLink } from "@angular/router";
@@ -129,6 +130,7 @@ export class ActDataViewComponent {
 
   /** Keep the action's own field order (from, to, quantity, memo) instead of sorting keys alphabetically. */
   readonly keepOrder = () => 0;
+  readonly nameBreaks = nameBreaks;
   readonly asset = parseAsset;
 
   /** Long unbroken values (keys, signatures, hashes) read better in a fixed-width face that wraps anywhere. */

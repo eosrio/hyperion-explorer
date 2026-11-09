@@ -1,30 +1,40 @@
+/*
+ * One row per permission: its name in a fixed column, every signer in the next one, so keys line up at every depth.
+ * Depth only indents the name, with an elbow pointing back to the permission above it.
+ */
+:host {
+  display: block;
+}
+:host + :host .permission-cell {
+  border-top: 1px solid var(--line-divider);
+}
 .permission-cell {
-  border-bottom: 1px solid var(--line-divider);
-  border-left: 1px solid var(--line-divider);
-  border-radius: 0 0 0 0.313rem;
-  padding: 0.625rem 0 0.5rem 0.5rem;
-  width: 100%;
+  display: grid;
+  grid-template-columns: 8.5rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0.125rem 1rem;
+  padding: 0.5rem 0;
   min-width: 0;
 }
+.perm-auths {
+  display: grid;
+  gap: 0.25rem;
+  min-width: 0;
+}
+@media (max-width: 480px) {
+  .permission-cell {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
 
-.permission-enter {
-  animation: permission-reveal 100ms ease-out;
-}
-@keyframes permission-reveal {
-  from {
-    opacity: 0;
-    transform: translateY(-0.5rem);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
 
 .perm-name {
-  display: inline;
+  position: relative;
   margin: 0;
-  font-size: 0.9375rem;
+  padding-left: calc((var(--depth, 0) - 1) * 1rem + 1.125rem);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 0.875rem;
   font-weight: 600;
   letter-spacing: 0.02em;
 }
@@ -33,20 +43,21 @@
   align-items: center;
   gap: 0.5rem;
   min-width: 0;
-  font-size: 0.875rem;
+  font-size: 0.8125rem;
 }
 .weight {
   flex: none;
-  min-width: 2.25rem;
-  font-weight: 600;
+  min-width: 2rem;
+  color: var(--faded);
+  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 /* Long keys keep their prefix and last characters; the full value is on hover, the key page and copy. */
 .key-link {
   display: inline-flex;
   min-width: 0;
-  max-width: min(100%, 48ch);
-  font-size: 0.9375rem;
+  max-width: min(100%, 30ch);
+  font-size: 0.8125rem;
   text-decoration: none;
 }
 .key-link:hover {
@@ -85,4 +96,27 @@
 
 :host .tooltip-bigger {
   font-size: 13px;
+}
+
+.perm-name:not(.perm-child) {
+  padding-left: 0;
+}
+.perm-child::before {
+  content: "";
+  position: absolute;
+  top: 0.05em;
+  left: calc((var(--depth, 1) - 1) * 1rem + 0.25rem);
+  width: 0.5rem;
+  height: 0.55em;
+  border-left: 1.5px solid color-mix(in srgb, var(--primary) 45%, transparent);
+  border-bottom: 1.5px solid color-mix(in srgb, var(--primary) 45%, transparent);
+  border-bottom-left-radius: 0.1875rem;
+}
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }

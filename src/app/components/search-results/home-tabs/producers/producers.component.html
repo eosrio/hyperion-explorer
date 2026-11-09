@@ -5,7 +5,7 @@
         matSort
         [matSortActive]="hasVotes() ? 'total_votes' : 'rank'"
         [matSortDirection]="hasVotes() ? 'desc' : 'asc'"
-        class="producers-table w-full"> <!-- Moved comment out & ensured closing '>' -->
+        class="producers-table w-full" [class.compact-cols]="displayedColumns().length <= 3">
     <!-- Sort by votes by default -->
 
     <!-- Rank Column -->

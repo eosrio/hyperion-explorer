@@ -1,6 +1,7 @@
 import { isPlatformBrowser } from "@angular/common";
 import { Component, effect, ElementRef, inject, PLATFORM_ID, signal, ChangeDetectionStrategy, OnDestroy } from "@angular/core";
 import { FormsModule } from "@angular/forms";
+import { MatOption, MatSelect } from "@angular/material/select";
 import { FaIconComponent } from "@fortawesome/angular-fontawesome";
 import { faTag, faTags } from "@fortawesome/free-solid-svg-icons";
 import { color, EChartsOption } from "echarts";
@@ -12,7 +13,7 @@ import { describeApiError } from "../../../../api-errors";
 
 @Component({
   selector: "app-price-history",
-  imports: [NgxEchartsModule, FaIconComponent, FormsModule],
+  imports: [NgxEchartsModule, FaIconComponent, FormsModule, MatSelect, MatOption],
   templateUrl: "./price-history.component.html",
   changeDetection: ChangeDetectionStrategy.OnPush,
   styleUrl: "./price-history.component.css"
@@ -26,6 +27,16 @@ export class PriceHistoryComponent implements OnDestroy {
   chartOptions = signal<EChartsOption>({});
   loading = signal(false);
   error = signal("");
+  readonly intervals = [
+    { value: "1m", label: "1 minute" },
+    { value: "5m", label: "5 minutes" },
+    { value: "15m", label: "15 minutes" },
+    { value: "1h", label: "1 hour" },
+    { value: "4h", label: "4 hours" },
+    { value: "1d", label: "1 day" },
+    { value: "1w", label: "1 week" },
+    { value: "1M", label: "1 month" }
+  ];
   selectedInterval = signal("1h");
   selectedPair = signal("-");
   availablePairs = signal<OraclePair[]>([]);

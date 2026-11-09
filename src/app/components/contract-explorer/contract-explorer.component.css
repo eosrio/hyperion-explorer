@@ -70,10 +70,16 @@
 }
 .cx-table-list {
   display: grid;
+  grid-auto-rows: max-content;
+  align-content: start;
   gap: 0.125rem;
   max-height: min(60vh, 34rem);
   overflow-y: auto;
   padding-right: 0.25rem;
+}
+/* In the dialog the list runs to the dialog's bottom edge instead of stopping short of it. */
+.cx-dialog .cx-table-list {
+  max-height: calc(min(90dvh, 60rem) - 14.5rem);
 }
 .grid-item-btn {
   display: grid;
@@ -172,16 +178,8 @@
   color: var(--faded);
   font-size: 0.8125rem;
 }
-.scope-selector select {
-  min-width: 14rem;
-  min-height: 2.5rem;
-  padding: 0 0.75rem;
-  border: 1px solid var(--line-divider);
-  border-radius: 0.5rem;
-  background: var(--card-bg);
-  color: var(--main-text);
-  font: inherit;
-  font-size: 0.9375rem;
+.scope-selector .x-select {
+  width: 16rem;
 }
 .scope-paging {
   display: flex;
@@ -326,6 +324,11 @@
   white-space: nowrap;
   vertical-align: bottom;
 }
+.cx-col-head {
+  display: grid;
+  gap: 0.125rem;
+  text-align: left;
+}
 .cx-col-name {
   display: block;
 }
@@ -336,7 +339,7 @@
 }
 .card-grid-view {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(17rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(17rem, 100%), 1fr));
   gap: 1rem;
   margin-top: 1rem;
 }
@@ -362,6 +365,7 @@
 .data-card-content dt,
 .expanded-item-content dt {
   display: grid;
+  align-content: start;
   color: var(--faded);
   overflow-wrap: anywhere;
 }
@@ -370,11 +374,14 @@
   margin: 0;
   min-width: 0;
 }
+/* minmax(0, 1fr): a collapsed row's one-line preview truncates instead of widening the page on a phone. */
 .expanded-view {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   margin-top: 0.25rem;
 }
 .expanded-item {
+  min-width: 0;
   border-bottom: 1px solid var(--line-divider);
 }
 .expanded-item-header {
@@ -391,9 +398,20 @@
   text-align: left;
   cursor: pointer;
 }
+.expanded-item-index {
+  flex-shrink: 0;
+  min-width: 1.5rem;
+  color: var(--faded);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
 .expanded-item-title {
   flex-shrink: 0;
+  max-width: 50%;
+  overflow: hidden;
   font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .expanded-item-preview {
   min-width: 0;
@@ -420,7 +438,6 @@
 .cx-segmented button:focus-visible,
 .cx-text-btn:focus-visible,
 .cx-filter:focus-visible,
-.scope-selector select:focus-visible,
 .scope-options > summary:focus-visible,
 .scope-options input:focus-visible,
 .expanded-item-header:focus-visible {
@@ -448,7 +465,7 @@
 }
 @media (max-width: 640px) {
   .scope-selector,
-  .scope-selector select {
+  .scope-selector .x-select {
     width: 100%;
     min-width: 0;
   }

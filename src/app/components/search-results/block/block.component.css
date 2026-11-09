@@ -136,7 +136,7 @@ tr.element-row:not(.expanded-row):active {
 .transactions-table th.mat-mdc-header-cell,
 .deltas-table th.mat-mdc-header-cell {
   font-weight: 600;
-  color: var(--primary);
+  color: var(--faded);
   padding: 1rem 0.75rem;
   white-space: nowrap;
 }

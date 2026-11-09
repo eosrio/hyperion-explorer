@@ -256,6 +256,15 @@
               </ul>
             }
           </mat-expansion-panel>
+          <!-- Closed, the card still names its tokens. -->
+          @if (!tokensExpansionPanel.expanded && acServ.tokensComputed().length) {
+            <ul class="card-overview token-overview">
+              @for (token of acServ.tokensComputed().slice(0, 4); track token.contract + token.symbol) {
+                <li><strong>{{ token.symbol }}</strong><span>{{ token.contract }}</span></li>
+              }
+              @if (acServ.tokensComputed().length > 4) { <li class="overview-more">+{{ acServ.tokensComputed().length - 4 }} more</li> }
+            </ul>
+          }
         </mat-accordion>
         }
 
@@ -289,12 +298,20 @@
               </mat-panel-title>
             </mat-expansion-panel-header>
 
-            <div class="mt-3">
+            <div class="mt-2">
               @defer (on immediate) {
                 <app-permission-tree [permissions]="account.permissions"></app-permission-tree>
               }
             </div>
           </mat-expansion-panel>
+          <!-- Closed, the card still shows the hierarchy and who signs for each permission, in the space it has. -->
+          @if (!permissionsExpansionPanel.expanded && account.permissions.length) {
+            <ul class="card-overview perm-overview">
+              @for (row of permissionRows(account.permissions); track row.permission.perm_name) {
+                <li [style.--depth]="row.depth" [class.perm-child]="row.depth > 0"><strong>{{ row.permission.perm_name }}</strong><span>{{ row.signers }}</span></li>
+              }
+            </ul>
+          }
         </mat-accordion>
 
         <!--VOTE CARD-->
@@ -364,7 +381,7 @@
             <div class="live-controls">
               <span id="live-label">Live actions</span>
               <button type="button" role="switch" aria-label="Action live streaming" [attr.aria-checked]="acServ.streamClientStatus()"
-                      [disabled]="acServ.streamConnecting()" [attr.aria-busy]="acServ.streamConnecting()"
+                      [disabled]="acServ.streamConnecting() || acServ.streamUnavailable()" [attr.aria-busy]="acServ.streamConnecting()"
                       class="livestream-toggle" (click)="acServ.toggleStreaming()">
                 <span class="toggle-track" [class.toggle-track-on]="acServ.streamClientStatus()"><span class="toggle-indicator" [class.toggle-indicator-on]="acServ.streamClientStatus()"></span></span>
                 <span>{{ acServ.streamConnecting() ? 'Connecting' : acServ.streamClientStatus() ? 'ON' : 'OFF' }}</span>
@@ -406,69 +423,60 @@
             </div>
           }
           <div class="history-toolbar">
-            <label class="filter-choice">Action filter
-              <select aria-label="Action filter" [ngModel]="acServ.filter()?.name || ''" (ngModelChange)="selectActionFilter($event)">
-                <option value="">All actions</option>
-                <optgroup label="Transfers">@for (filter of transferFilters; track filter.name) { <option [value]="filter.name">{{ filter.name }}</option> }</optgroup>
-                <optgroup label="System activity">@for (filter of systemFilters; track filter.name) { <option [value]="filter.name">{{ filter.name }}</option> }</optgroup>
-                @if (savedFilters.length) { <optgroup label="Saved filters">@for (filter of savedFilters; track filter.name) { <option [value]="filter.name">{{ filter.name }}</option> }</optgroup> }
-              </select>
-            </label>
+            <div class="filter-choice">
+              <span id="action-filter-label">Action filter</span>
+              <mat-select class="x-select filter-select" panelClass="x-select-panel" aria-labelledby="action-filter-label" panelWidth=""
+                          [value]="acServ.filter()?.name || ''" (selectionChange)="selectActionFilter($event.value)">
+                <mat-option value="">All actions</mat-option>
+                <mat-optgroup label="Transfers">@for (filter of transferFilters; track filter.name) { <mat-option [value]="filter.name">{{ filter.name }}</mat-option> }</mat-optgroup>
+                <mat-optgroup label="System activity">@for (filter of systemFilters; track filter.name) { <mat-option [value]="filter.name">{{ filter.name }}</mat-option> }</mat-optgroup>
+                @if (savedFilters.length) { <mat-optgroup label="Saved filters">@for (filter of savedFilters; track filter.name) { <mat-option [value]="filter.name">{{ filter.name }}</mat-option> }</mat-optgroup> }
+              </mat-select>
+            </div>
             @if (acServ.filter()) { <button type="button" class="link-btn" (click)="acServ.clearFilter()">Clear filter</button> }
             @if (acServ.filter()?.userFilter) { <button type="button" class="link-btn" (click)="removeUserFilter(acServ.filter()!)">Delete saved filter</button> }
-            <details class="history-options">
-              <summary>Custom filter</summary>
+            <div class="history-toggles" role="group" aria-label="History options">
+              <button type="button" class="history-toggle" [attr.aria-expanded]="historyPanel() === 'custom'" aria-controls="history-panel" (click)="toggleHistoryPanel('custom')">Custom filter<mat-icon aria-hidden="true">expand_more</mat-icon></button>
+              <button type="button" class="history-toggle" [attr.aria-expanded]="historyPanel() === 'display'" aria-controls="history-panel" (click)="toggleHistoryPanel('display')">Display options<mat-icon aria-hidden="true">expand_more</mat-icon></button>
+              <button type="button" class="history-toggle" [attr.aria-expanded]="historyPanel() === 'finality'" aria-controls="history-panel" (click)="toggleHistoryPanel('finality')">About finality<mat-icon aria-hidden="true">expand_more</mat-icon></button>
+            </div>
+          </div>
+          @if (historyPanel(); as panel) {
+            <div id="history-panel" class="history-panel">
+              @if (panel === 'custom') {
               <form class="custom-filter-fields" (ngSubmit)="useCustomFilter()">
                 <label>Contract<input type="text" name="contract" [(ngModel)]="contractFilterInput" [placeholder]="chain.systemTokenContract()" /></label>
                 <label>Action name<input type="text" name="action" [(ngModel)]="actionFilterInput" placeholder="transfer" /></label>
                 <label class="checkbox-label"><input type="checkbox" name="saveFilter" [(ngModel)]="saveCustomFilter" />Save this filter</label>
                 <button type="submit" mat-raised-button [disabled]="!contractFilterInput() && !actionFilterInput()">Apply filter</button>
               </form>
-            </details>
-            <details class="history-options">
-              <summary>Display options</summary>
+              } @else if (panel === 'display') {
               <div class="display-options">
                 <label class="checkbox-label"><input type="checkbox" [checked]="time.utc()" (change)="time.setUtc($any($event.target).checked)" />Dates in UTC</label>
                 <label class="checkbox-label"><input type="checkbox" [(ngModel)]="compactMode" />Compact mode</label>
-                <label>Rows per page<select aria-label="Rows per page" [ngModel]="acServ.pageSize()" (ngModelChange)="changePageSize($event)">@for (size of [5,10,20,50,100]; track size) { <option [ngValue]="size">{{ size }}</option> }</select></label>
+                <div class="page-size-choice"><span id="page-size-label">Rows per page</span><mat-select class="x-select page-size-select" panelClass="x-select-panel" aria-labelledby="page-size-label" [value]="acServ.pageSize()" (selectionChange)="changePageSize($event.value)">@for (size of [5,10,20,50,100]; track size) { <mat-option [value]="size">{{ size }}</mat-option> }</mat-select></div>
               </div>
-            </details>
-            <app-finality-help />
-          </div>
-          @if (acServ.historyError(); as error) { <section class="api-error" role="alert"><p>{{ error.message }}</p>@if (error.retryable) { <button type="button" (click)="acServ.retryHistory()">Try again</button> }</section> }
-          @if (acServ.actionRes.error(); as error) { <section class="api-error" role="alert"><p>{{ describeApiError(error) }}</p>@if (isRetryableApiError(error)) { <button type="button" (click)="acServ.actionRes.reload()">Try again</button> }</section> }
-          @if (acServ.totalActionCounter() || acServ.filter()) {
-            @let filteredActions = acServ.actionRes.hasValue() ? acServ.actionRes.value()?.actions : undefined;
-            @let totalFilteredActions = acServ.actionRes.hasValue() ? acServ.actionRes.value()?.total?.value : undefined;
-            <div #actionsTable class="flex flex-row flex-wrap items-center justify-between gap-2 pt-5 pb-3">
-              @if (filteredActions && filteredActions.length > 0 && acServ.filter()) {
-                <div class="animate fast fadeInDown flex flex-row items-center justify-start gap-5">
-                  <div class="flex flex-row gap-2">
-                    <span class="faded">Showing</span>
-                    <span class="font-medium">{{ filteredActions.length }}</span>
-                    <span class="faded">of</span>
-                    <span class="font-medium">{{ totalFilteredActions }}</span>
-                    <span class="faded">actions</span>
-                  </div>
-                  <div class="flex flex-row gap-2">
-                    <span class="faded">Filtered by:</span>
-                    <span class="font-medium">{{ acServ.filter()?.name }}</span>
-                  </div>
-                </div>
               } @else {
-                @if (acServ.actionRes.hasValue() && acServ.filter()) {
-                  <div class="flex flex-row items-center justify-center gap-5">
-                    <div class="warn animate fast fadeInDown">
-                      No actions to display using filter
-                      <b>{{ acServ.filter()?.name }}</b>
-                    </div>
-                    <button mat-raised-button class="filter-btn" (click)="acServ.clearFilter()">Clear Filter</button>
-                  </div>
-                } @else {
-                  <div></div>
-                }
+              <p class="finality-text">{{ finalityHelp }}</p>
               }
-
+            </div>
+          }
+          @if (acServ.historyError(); as error) { <section class="api-error" role="alert"><p>{{ error.message }}</p>@if (error.retryable) { <button type="button" (click)="acServ.retryHistory()">Try again</button> }</section> }
+          @if (acServ.actionRes.error(); as error) {
+            @if (acServ.filter() && isProtocolProjectionUnavailable(error)) {
+              <section class="api-error" role="status"><p>This Hyperion API cannot apply the “{{ acServ.filter()!.name }}” filter yet. The full history and the other filters still work.</p><button type="button" (click)="acServ.clearFilter()">Show all actions</button></section>
+            } @else {
+              <section class="api-error" role="alert"><p>{{ describeApiError(error) }}</p>@if (isRetryableApiError(error)) { <button type="button" (click)="acServ.actionRes.reload()">Try again</button> }</section>
+            }
+          }
+          @if (acServ.totalActionCounter() || acServ.filter()) {
+            @let shownActions = acServ.actionsComputed().length;
+            <div #actionsTable class="history-count" role="status">
+              @if (acServ.filter() && acServ.actionRes.hasValue() && !shownActions) {
+                <p class="history-empty">This account has no “{{ acServ.filter()?.name }}” actions. Clear the filter to see its full history.</p>
+              } @else if (shownActions) {
+                <p>Showing <strong>{{ shownActions | number }}</strong> of <strong>{{ acServ.totalActionCounter() | number }}</strong> {{ acServ.totalActionCounter() === 1 ? "action" : "actions" }}@if (acServ.filter()) {<span> · {{ acServ.filter()?.name }}</span>}</p>
+              }
             </div>
 
             <!-- aqui fim -->
@@ -521,7 +529,7 @@
                       </div>
                       <span class="where-time">
                         {{ action["@timestamp"] | chainTime: time.utc() }}
-                        @if (isRecentTransaction(action['@timestamp'])) { <span class="where-recent">· last 24 h</span> }
+                        @if (ageOf(action['@timestamp']); as age) { <span class="where-recent">{{ age }}</span> }
                       </span>
                       <div class="where-tx">
                         <a [routerLink]="['/transaction', action['trx_id']]" class="where-trx" appMorph [attr.aria-label]="'Transaction ' + action['trx_id']">{{ action["trx_id"].slice(0, 10) }}…</a>
@@ -534,22 +542,15 @@
                 <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
                 <tr mat-row *matRowDef="let row; columns: displayedColumns" [class.is-new-action]="isNewInBatch(row)"></tr>
               </table>
-              <mat-paginator
-                class="actions-table-paginator"
-                [selectConfig]="{ panelClass: 'actions-table-paginator' }"
-                [pageSize]="acServ.pageSize()"
-                [pageIndex]="acServ.pageIndex()"
-                [pageSizeOptions]="[5, 10, 20, 50, 100]"
-                [length]="acServ.totalActionCounter()"
-                (page)="changePage($event)"
-                showFirstLastButtons
-              ></mat-paginator>
-
-              <button mat-raised-button class="filter-btn float-right mr-4" [disabled]="acServ.loadingMoreActions()"
-                      (click)="acServ.loadMoreActions()">Load more actions</button>
+              @if (acServ.canLoadMore()) {
+                <div class="history-more">
+                  <button mat-raised-button class="filter-btn" [disabled]="acServ.loadingMoreActions()"
+                          (click)="acServ.loadMoreActions()">{{ acServ.loadingMoreActions() ? "Loading actions…" : "Load more actions" }}</button>
+                </div>
+              }
             }
           } @else {
-            No actions to display
+            <p class="history-count history-empty" role="status">This account has no indexed actions yet.</p>
           }
           }
         </section>
