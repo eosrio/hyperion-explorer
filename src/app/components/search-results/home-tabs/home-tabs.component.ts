@@ -2,6 +2,7 @@ import { Component, inject, signal, ChangeDetectionStrategy } from "@angular/cor
 import { MatTab, MatTabContent, MatTabGroup, MatTabLabel } from "@angular/material/tabs";
 import { StatsComponent } from "./stats/stats.component";
 import { ChainPulseComponent } from "./chain-pulse/chain-pulse.component";
+import { ChainAnalyticsComponent } from "./chain-analytics/chain-analytics.component";
 import { ProducersComponent } from "./producers/producers.component";
 import { PriceHistoryComponent } from "./price-history/price-history.component";
 import { MatButtonModule } from "@angular/material/button";
@@ -20,6 +21,7 @@ import { NgClass } from "@angular/common";
     MatTabContent,
     StatsComponent,
     ChainPulseComponent,
+    ChainAnalyticsComponent,
     ProducersComponent,
     PriceHistoryComponent,
     MatButtonModule,

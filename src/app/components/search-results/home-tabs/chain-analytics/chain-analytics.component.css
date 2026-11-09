@@ -1,0 +1,200 @@
+:host {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  color: var(--main-text);
+}
+.custom-card {
+  padding: 1.25rem 1.5rem;
+}
+.an-title {
+  margin: 0 0 0.875rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+.an-note,
+.an-muted {
+  color: var(--faded);
+}
+.an-note {
+  margin: 0;
+  font-size: 0.75rem;
+}
+
+/* Last 24 hours: four figures, then the hours as one strip of bars. */
+.an-tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.75rem;
+  margin: 0;
+}
+.an-tile {
+  padding: 0.75rem 1rem;
+  border-radius: 0.625rem;
+  background: color-mix(in srgb, var(--primary) 5%, transparent);
+}
+.an-tile dt {
+  color: var(--faded);
+  font-size: 0.8125rem;
+}
+.an-tile dd {
+  margin: 0;
+}
+.an-value {
+  margin-top: 0.125rem;
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.25;
+  font-variant-numeric: tabular-nums;
+}
+.an-hours {
+  margin: 1.25rem 0 0;
+}
+/* Bars stay thin (at most 1.125rem) and spread across the width: a steady day reads as calm, not as a wall. */
+.an-hour-bars {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 3px;
+  height: 3.5rem;
+}
+.an-hour {
+  flex: 0 1 1.125rem;
+  border-radius: 3px 3px 0 0;
+  background: var(--primary);
+}
+.an-hour.is-current {
+  background: color-mix(in srgb, var(--primary) 30%, transparent);
+}
+.an-axis {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.375rem;
+  color: var(--faded);
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Rotation and activity side by side. */
+.an-pair {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 20rem), 1fr));
+  gap: 1rem;
+}
+.an-producers {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(1.375rem, 1fr));
+  gap: 0.5rem;
+  max-width: 20rem;
+}
+.an-producer {
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: 1.5px solid color-mix(in srgb, var(--primary) 35%, transparent);
+  transition: background-color 200ms ease-out, transform 200ms ease-out;
+}
+.an-producer.is-producing {
+  background: var(--primary);
+  border-color: var(--primary);
+  transform: scale(1.15);
+}
+.an-facts {
+  margin: 0.875rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+.an-facts a,
+.an-activity a {
+  color: var(--primary);
+  font-weight: 600;
+  text-decoration: none;
+}
+.an-facts a:hover,
+.an-activity a:hover {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+.an-status {
+  margin: 0.5rem 0 0;
+  color: var(--faded);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+.an-status.is-good {
+  color: color-mix(in srgb, var(--success) 82%, var(--main-text));
+}
+.an-activity {
+  display: grid;
+  gap: 0.625rem;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  list-style: none;
+}
+.an-activity-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+}
+.an-activity-row strong {
+  font-weight: 600;
+}
+.an-share {
+  color: var(--faded);
+  font-variant-numeric: tabular-nums;
+}
+.an-meter {
+  display: block;
+  height: 0.375rem;
+  margin-top: 0.25rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--primary) 10%, transparent);
+}
+.an-meter span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--primary);
+}
+
+/* Index health: one quiet line, not a card. */
+.an-health {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.25rem;
+  margin: 0;
+  padding: 0 0.25rem;
+  color: var(--faded);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+.an-health strong {
+  color: var(--main-text);
+  font-weight: 600;
+}
+.an-facts a:focus-visible,
+.an-activity a:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 0.25rem;
+}
+@media (max-width: 640px) {
+  .custom-card {
+    padding: 1rem 1.125rem;
+  }
+  .an-tiles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .an-value {
+    font-size: 1.25rem;
+  }
+  .an-axis span:nth-child(2) {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .an-producer {
+    transition: none;
+  }
+}

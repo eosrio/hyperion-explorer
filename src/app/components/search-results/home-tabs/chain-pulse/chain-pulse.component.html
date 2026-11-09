@@ -35,6 +35,18 @@
         </div>
       }
     </dl>
+    @if (ribbon(); as blocks) {
+      <!-- The last blocks as one strip: each bar is a block, its height the transactions it carried. -->
+      <figure class="pulse-ribbon">
+        <div class="ribbon-bars" role="img" [attr.aria-label]="ribbonLabel()">
+          @for (block of blocks; track block.num) {
+            <span class="ribbon-bar" animate.enter="ribbon-enter" [class.has-trx]="block.trx > 0"
+                  [style.height.%]="barHeight(block.trx)" [title]="'Block ' + (block.num | number) + ' · ' + block.trx + (block.trx === 1 ? ' transaction' : ' transactions') + ' · ' + block.producer"></span>
+          }
+        </div>
+        <figcaption>Last {{ blocks.length }} blocks · {{ ribbonTotal() | number }} {{ ribbonTotal() === 1 ? "transaction" : "transactions" }}</figcaption>
+      </figure>
+    }
   } @else if (chain.chainInfoResource.error()) {
     <p class="pulse-message">Chain status is unavailable right now. The explorer keeps retrying on its own.</p>
   } @else {

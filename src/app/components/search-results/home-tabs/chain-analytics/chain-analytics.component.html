@@ -1,0 +1,92 @@
+@if (day(); as d) {
+  <section class="custom-card an-day" aria-labelledby="an-day-title">
+    <h2 id="an-day-title" class="an-title">Last 24 hours</h2>
+    <dl class="an-tiles">
+      @if (d.transactions !== null) {
+        <div class="an-tile"><dt>Transactions</dt><dd class="an-value">{{ d.transactions | number }}</dd><dd class="an-note">without the automatic onblock</dd></div>
+      } @else if (d.transactionsWithOnblock !== null) {
+        <div class="an-tile"><dt>Transactions</dt><dd class="an-value">{{ d.transactionsWithOnblock | number }}</dd><dd class="an-note">including the automatic onblock</dd></div>
+      }
+      @if (d.actions !== null) {
+        <div class="an-tile"><dt>Actions</dt><dd class="an-value">{{ d.actions | number }}</dd><dd class="an-note">every action, onblock included</dd></div>
+      }
+      @if (d.activeAccounts !== null) {
+        <div class="an-tile"><dt>Active accounts</dt><dd class="an-value">{{ d.activeAccounts | number }}</dd><dd class="an-note">signed at least one action</dd></div>
+      }
+      @if (d.newAccounts !== null) {
+        <div class="an-tile">
+          <dt>New accounts</dt><dd class="an-value">{{ d.newAccounts | number }}</dd>
+          @if (d.accountsTotal; as total) { <dd class="an-note">{{ total.value | number }}@if (total.capped) {+} created since genesis</dd> }
+        </div>
+      }
+    </dl>
+    @if (d.hourly.length > 1) {
+      <figure class="an-hours">
+        <div class="an-hour-bars" role="img" [attr.aria-label]="hourlyLabel(d)">
+          @for (value of d.hourly; track $index) {
+            <span class="an-hour" [class.is-current]="$last" [style.height.%]="hourHeight(value)"
+                  [title]="(value | number) + ($last ? ' transactions so far this hour' : ' transactions')"></span>
+          }
+        </div>
+        <figcaption class="an-axis">
+          <span>24 h ago</span>
+          @if (hourRange(d); as range) {
+            <span>{{ range.low === range.high ? (range.low | number) : (range.low | number) + "–" + (range.high | number) }} per hour</span>
+          }
+          <span>This hour, so far</span>
+        </figcaption>
+      </figure>
+    }
+  </section>
+}
+
+@if (rotation() || activity()) {
+  <div class="an-pair">
+    @if (rotation(); as r) {
+      <section class="custom-card" aria-labelledby="an-rotation-title">
+        <h2 id="an-rotation-title" class="an-title">Producer rotation</h2>
+        <div class="an-producers" role="img" [attr.aria-label]="r.producers.length + ' producers made blocks in the last hour'">
+          @for (producer of r.producers; track producer.name) {
+            <span class="an-producer" [class.is-producing]="producer.name === producingNow()" [title]="producer.name + ' · ' + producer.blocks + ' blocks in the last hour'"></span>
+          }
+        </div>
+        <p class="an-facts">
+          @if (producingNow(); as now) { Producing now: <a [routerLink]="['/account', now]">{{ now }}</a>. }
+          @if (blockRange(); as range) { Each of {{ r.producers.length }} producers made {{ range.low === range.high ? range.low : range.low + "–" + range.high }} blocks in the last hour. }
+        </p>
+        @if (r.missedBlocks24h !== null) {
+          <p class="an-status" [class.is-good]="r.missedBlocks24h === 0">
+            {{ r.missedBlocks24h === 0 ? "No missed blocks in 24 hours" : (r.missedBlocks24h | number) + " missed-block events in 24 hours" }}
+          </p>
+        }
+      </section>
+    }
+    @if (activity(); as shares) {
+      <section class="custom-card" aria-labelledby="an-activity-title">
+        <h2 id="an-activity-title" class="an-title">What's running</h2>
+        <ul class="an-activity">
+          @for (item of shares; track item.contract + item.action) {
+            <li>
+              <div class="an-activity-row">
+                <span><strong>{{ item.action }}</strong><span class="an-muted"> on <a [routerLink]="['/account', item.contract]">{{ item.contract }}</a></span></span>
+                <span class="an-share">{{ item.share | percent: "1.0-0" }}</span>
+              </div>
+              <span class="an-meter" aria-hidden="true"><span [style.width.%]="item.share * 100"></span></span>
+            </li>
+          }
+        </ul>
+        <p class="an-note">Share of the latest {{ sampleSize }} actions, onblock left out</p>
+      </section>
+    }
+  </div>
+}
+
+@if (health(); as h) {
+  @if (h.indexedBlocks !== null) {
+    <p class="an-health">
+      <span><strong>{{ h.indexedBlocks | number }}</strong> blocks indexed</span>
+      @if (h.missingBlocks !== null) { <span><strong>{{ h.missingBlocks | number }}</strong> missing@if (h.missingPct) { ({{ h.missingPct }})}</span> }
+      @if (h.version) { <span>Hyperion {{ h.version }}</span> }
+    </p>
+  }
+}
