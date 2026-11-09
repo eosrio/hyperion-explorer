@@ -2,6 +2,8 @@
 export interface ApiErrorView {
   message: string;
   retryable: boolean;
+  /** The API answered that the thing looked up does not exist (as opposed to failing to answer). */
+  notFound?: boolean;
 }
 
 function httpStatus(error: unknown): number | undefined {
@@ -70,6 +72,34 @@ export function streamErrorView(error: unknown): ApiErrorView {
     message: "Live actions could not connect to this Hyperion API's stream. The history below is unaffected.",
     retryable: true
   };
+}
+
+export interface LookupErrorView {
+  heading: string;
+  message: string;
+  retryable: boolean;
+}
+
+/** A failed account lookup in the visitor's terms: what was not found, why, and whether waiting can help. */
+export function accountLookupError(error: unknown, name: string, chain: string | undefined): LookupErrorView {
+  const status = httpStatus(error);
+  const where = chain || "this chain";
+  if (status === 404 || error === null)
+    return {
+      heading: `No account named ${name}`,
+      message: `${where} has no account with this name. Check the spelling, or search for a block, transaction or key instead.`,
+      retryable: false
+    };
+  if (status === 400)
+    return {
+      heading: `Can't look up ${name}`,
+      message:
+        name.length > 12
+          ? `This Hyperion API looks up account names of up to 12 characters, and "${name}" has ${name.length}.`
+          : `This Hyperion API does not accept "${name}" as an account name. Check the spelling.`,
+      retryable: false
+    };
+  return { heading: `Couldn't load ${name}`, message: describeApiError(error), retryable: isRetryableApiError(error) };
 }
 
 export function isApiNotFound(error: unknown): boolean {

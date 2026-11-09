@@ -66,7 +66,8 @@ import { MatIcon } from "@angular/material/icon";
 import { permissionRows } from "../../permission-tree/permission-rows";
 import { ChainService } from "../../../services/chain.service";
 import { faTowerBroadcast } from "@fortawesome/free-solid-svg-icons";
-import { describeApiError, isApiNotFound, isProtocolProjectionUnavailable, isRetryableApiError } from "../../../api-errors";
+import { accountLookupError, describeApiError, isApiNotFound, isProtocolProjectionUnavailable, isRetryableApiError } from "../../../api-errors";
+import { LookupErrorComponent } from "../../lookup-error/lookup-error.component";
 import { FINALITY_HELP } from "../../finality-help/finality-help.component";
 import { HistoryAction } from "../../../sequences";
 
@@ -113,7 +114,7 @@ interface FlatNode {
 
 @Component({
   selector: "app-account",
-  imports: [ChainTimePipe, MatIcon, MatSelect, MatOption, MatOptgroup, 
+  imports: [ChainTimePipe, LookupErrorComponent, MatIcon, MatSelect, MatOption, MatOptgroup, 
     MatButton,
     MatProgressSpinner,
     FaIconComponent,
@@ -140,7 +141,7 @@ interface FlatNode {
   ],
   templateUrl: "./account.component.html",
   changeDetection: ChangeDetectionStrategy.Eager,
-  styleUrls: ["./account.component.css", "./account-overview.css", "./action-table.css", "./permissions-card.css"]
+  styleUrls: ["./account.component.css", "./account-overview.css", "./action-table.css", "./permissions-card.css", "./account-cards.css"]
 })
 export class AccountComponent implements OnInit, OnDestroy {
   private destroyed = false;
@@ -168,6 +169,7 @@ export class AccountComponent implements OnInit, OnDestroy {
   readonly time = inject(TimePreference);
   compactMode = signal(false);
   readonly isProtocolProjectionUnavailable = isProtocolProjectionUnavailable;
+  readonly accountLookupError = accountLookupError;
   readonly finalityHelp = FINALITY_HELP;
   /** Which history option panel is open under the toolbar; one at a time, toggled by its button. */
   historyPanel = signal<"custom" | "display" | "finality" | null>(null);
@@ -252,8 +254,19 @@ export class AccountComponent implements OnInit, OnDestroy {
   systemTokenContract = "eosio.token";
   private contractDialogRef?: MatDialogRef<ContractDialogComponent, any>;
   // Expansion panel states
-  tokensExpanded = signal<boolean>(true);
-  permissionsExpanded = signal<boolean>(true);
+  /** On phones the cards start closed: their overviews carry the essentials and the history comes sooner. */
+  private readonly phoneLayout = isPlatformBrowser(inject(PLATFORM_ID)) && window.matchMedia("(max-width: 640px)").matches;
+  tokensExpanded = signal<boolean>(!this.phoneLayout);
+  permissionsExpanded = signal<boolean>(!this.phoneLayout);
+
+  jumpToActions(event: Event): void {
+    event.preventDefault();
+    const heading = document.getElementById("actions-heading");
+    if (!heading) return;
+    heading.setAttribute("tabindex", "-1");
+    heading.scrollIntoView({ behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+    heading.focus({ preventScroll: true });
+  }
 
   constructor() {
     this.searchService.searchType.set("account");

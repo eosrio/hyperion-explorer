@@ -90,3 +90,54 @@
   font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
 }
+
+/* Compact cells (contract tables and cards): a shortened key or hash with its copy button, nested data folded. */
+.kv-trunc {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  max-width: 100%;
+  white-space: nowrap;
+}
+.kv-trunc .kv-dense {
+  word-break: normal;
+}
+.kv-copy {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: 0.375rem;
+  background: transparent;
+  color: var(--faded);
+  cursor: pointer;
+}
+.kv-copy mat-icon {
+  width: 1rem;
+  height: 1rem;
+  font-size: 1rem;
+}
+.kv-copy:hover {
+  background: color-mix(in srgb, var(--primary) 8%, transparent);
+  color: var(--primary);
+}
+.kv-copy:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 1px;
+}
+.kv-compact > summary {
+  color: var(--primary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.kv-compact[open] > summary {
+  margin-bottom: 0.375rem;
+}
+.kv-compact[open] {
+  white-space: normal;
+}

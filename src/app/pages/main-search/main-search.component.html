@@ -1,6 +1,6 @@
 <a class="skip-link" href="#main-content" (click)="skipToContent($event)">Skip to content</a>
 <div class="explorer-layout" [class.is-home]="isHome()" [class.has-search-error]="!!err()" [style.--header-collapse]="headerProgress()">
-  <header id="header-container" class="header-card" aria-label="Explorer navigation">
+  <header id="header-container" class="header-card" [class.header-tucked]="headerTucked()" (focusin)="headerTucked.set(false)" aria-label="Explorer navigation">
     <div class="header-inner">
       <a routerLink="/" class="chain-brand" aria-label="Hyperion Explorer home">
         <img [src]="logoUrl()" (error)="logoFailed.set(true)" [alt]="(chainData()?.chain_name || 'Hyperion') + ' explorer'" class="chain-logo" width="260" height="70" />

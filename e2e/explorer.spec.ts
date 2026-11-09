@@ -182,12 +182,14 @@ test("labels unavailable block delta projection without hiding the trace", async
   await unavailable;
   await expect(page.getByText("Block ID", { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Toggle actions for transaction " + "f".repeat(64) })).toBeVisible();
-  await expect(page.getByRole("alert")).toContainText("does not serve state deltas for this block yet");
+  // A capability gap is a quiet note, not an alert.
+  await expect(page.locator(".capability-note")).toContainText("not served by this Hyperion API yet");
+  await expect(page.getByRole("alert")).toHaveCount(0);
   await request.post("/__fixture/state", { data: {} });
   const restored = page.waitForResponse(response => new URL(response.url()).pathname === "/v2/history/get_deltas" && response.status() === 200);
-  await page.getByRole("button", { name: "Try again", exact: true }).click();
+  await page.getByRole("button", { name: "Check again", exact: true }).click();
   await restored;
-  await expect(page.getByRole("alert")).toHaveCount(0);
+  await expect(page.locator(".capability-note")).toHaveCount(0);
 });
 
 test("keeps unlimited and unsafe RPC RAM quotas distinct", async ({ page, request }) => {

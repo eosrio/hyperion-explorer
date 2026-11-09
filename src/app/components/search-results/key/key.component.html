@@ -1,10 +1,7 @@
 @if (accountService.requestError(); as error) {
   <div class="hr-container">
-    <section class="api-error" role="alert">
-      @if (!error.retryable) { <h1>Key lookup failed</h1> }
-      <p>{{ error.message }}</p>
-      @if (error.retryable) { <button type="button" (click)="retry()">Try again</button> }
-    </section>
+    <app-lookup-error [heading]="error.retryable ? 'Couldn’t look up this key' : 'Can’t look up this key'" [message]="error.message"
+                      [query]="pubKey()" [retryable]="error.retryable" (retry)="retry()" />
   </div>
 } @else if (!accountService.loaded()) {
   <div class="hr-container loading-state" role="status">

@@ -116,6 +116,9 @@ export class MainSearchComponent implements OnDestroy {
     main?.scrollIntoView({ block: "start" });
   }
   readonly scrollProgress = signal(0);
+  /** Phones only: the header tucks away while the reader scrolls down a page, and returns on any scroll up. */
+  readonly headerTucked = signal(false);
+  private lastScrollY = 0;
   /** Phones show the short form; the long one would be cut off mid-word in the narrow field. */
   private readonly narrowSearch = signal(false);
   readonly searchPlaceholder = computed(() =>
@@ -139,6 +142,19 @@ export class MainSearchComponent implements OnDestroy {
     effect(() => {
       this.chainData()?.logo;
       this.logoFailed.set(false);
+    });
+    // "Edit search" on a failed lookup: the query returns to the field, selected, ready to correct.
+    effect(() => {
+      const request = this.searchService.editRequest();
+      if (!request) return;
+      untracked(() => {
+        this.searchForm.controls.search_field.setValue(request.text, { emitEvent: false });
+        const field = this.searchFieldRef()?.nativeElement;
+        if (!field) return;
+        window.scrollTo({ top: 0, behavior: "instant" });
+        field.focus();
+        field.select();
+      });
     });
     this.searchForm.controls.search_field.valueChanges
       .pipe(
@@ -176,11 +192,20 @@ export class MainSearchComponent implements OnDestroy {
     });
   }
   private updateScroll(): void {
-    if (isPlatformBrowser(this.platform)) this.scrollProgress.set(Math.min(1, Math.max(0, window.scrollY / 160)));
+    if (!isPlatformBrowser(this.platform)) return;
+    const y = window.scrollY;
+    this.scrollProgress.set(Math.min(1, Math.max(0, y / 160)));
+    const phone = window.matchMedia("(max-width: 640px)").matches;
+    const searching = document.activeElement === this.searchFieldRef()?.nativeElement;
+    if (!phone || searching || y < 160 || this.err()) this.headerTucked.set(false);
+    else if (y > this.lastScrollY + 6) this.headerTucked.set(true);
+    else if (y < this.lastScrollY - 6) this.headerTucked.set(false);
+    this.lastScrollY = y;
   }
   @HostListener("window:keydown", ["$event"]) onKeyPressed(event: KeyboardEvent): void {
     if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === "f") {
       event.preventDefault();
+      this.headerTucked.set(false);
       this.searchFieldRef()?.nativeElement.focus();
     }
   }

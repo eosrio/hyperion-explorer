@@ -6,7 +6,8 @@ import { FinalityHelpComponent } from "../../finality-help/finality-help.compone
 import { CopyIdentifierComponent } from "../../copy-identifier/copy-identifier.component";
 import { Component, ElementRef, inject, OnDestroy, OnInit, PLATFORM_ID, signal, viewChild, ChangeDetectionStrategy } from "@angular/core";
 import { ActivatedRoute, RouterLink } from "@angular/router";
-import { faCircle, faExchangeAlt, faHistory, faHourglassStart, faLock, faSadTear, faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { faCircle, faExchangeAlt, faHistory, faHourglassStart, faLock, faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { LookupErrorComponent } from "../../lookup-error/lookup-error.component";
 import { Title } from "@angular/platform-browser";
 import { AccountService } from "../../../services/account.service";
 import { DataService } from "../../../services/data.service";
@@ -18,7 +19,7 @@ import { ChainService } from "../../../services/chain.service";
 
 @Component({
   selector: "app-transaction",
-  imports: [ChainTimePipe, ActionDataComponent, MorphLinkDirective,
+  imports: [ChainTimePipe, ActionDataComponent, MorphLinkDirective, LookupErrorComponent,
     FinalityHelpComponent,
     CopyIdentifierComponent,
     MatProgressSpinner,
@@ -53,7 +54,6 @@ export class TransactionComponent implements OnInit, OnDestroy {
       faLock: faLock,
       faHourglass: faHourglassStart,
       faHistory: faHistory,
-      faSadTear: faSadTear,
       faSpinner: faSpinner
     }
   };

@@ -112,7 +112,7 @@
                               <span class="cx-col-head"><span class="cx-col-name">@for (part of nameBreaks(field.name); track $index) {{{ part }}<wbr />}</span><span class="cx-col-type">{{ field.type }}</span></span>
                             </th>
                             <td mat-cell *matCellDef="let element" [attr.data-label]="field.name">
-                              <app-act-data-view [fieldName]="field.name" [data]="element[field.name]"></app-act-data-view>
+                              <app-act-data-view [fieldName]="field.name" [data]="element[field.name]" [compact]="true"></app-act-data-view>
                             </td>
                           </ng-container>
                         }
@@ -130,7 +130,7 @@
                           <dl class="data-card-content">
                             @for (field of fields(); track field.name) {
                               <dt>@for (part of nameBreaks(field.name); track $index) {{{ part }}<wbr />}<span class="cx-col-type">{{ field.type }}</span></dt>
-                              <dd><app-act-data-view [fieldName]="field.name" [data]="row[field.name]"></app-act-data-view></dd>
+                              <dd><app-act-data-view [fieldName]="field.name" [data]="row[field.name]" [compact]="true"></app-act-data-view></dd>
                             }
                           </dl>
                         </article>

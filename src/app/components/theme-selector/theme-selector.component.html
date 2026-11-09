@@ -1,8 +1,7 @@
 <div class="theme-settings hr-container" role="group" aria-labelledby="theme-label">
   <span id="theme-label" class="theme-label">Appearance</span>
-  <mat-select #themeSelect class="x-select theme-select" panelClass="x-select-panel" panelWidth="" aria-label="Theme"
+  <mat-select #themeSelect class="x-select theme-select" panelClass="x-select-panel" panelWidth="" aria-label="Theme" placeholder="Choose a theme"
               [value]="selectedTheme()" (selectionChange)="selectTheme($event.value)" [disabled]="loading()">
-    <mat-option value="CURRENT_THEME" disabled>Current appearance</mat-option>
     <mat-option value="UNSET_THEME">Chain default</mat-option>
     @for (theme of ds.availableThemes; track theme) { <mat-option [value]="theme">{{ themeLabel(theme) }}</mat-option> }
   </mat-select>

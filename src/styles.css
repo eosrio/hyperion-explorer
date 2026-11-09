@@ -759,6 +759,12 @@ details[open]:not(.search-help) > summary::after {
   }
 }
 
+/* Placeholders carry the field's only hint, so they get the theme's muted text colour, not the browser's light grey. */
+::placeholder {
+  color: var(--faded);
+  opacity: 1;
+}
+
 /* Checkboxes and radios take the chain's primary colour instead of the browser's default blue. */
 input[type="checkbox"],
 input[type="radio"] {

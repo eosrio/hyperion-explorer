@@ -1,0 +1,74 @@
+/* Closed-card overviews and the phone jump to history (kept apart from account.component.css for its size budget). */
+/* A closed card keeps a short overview in its body, so it never collapses to a bare title. */
+.card-overview {
+  display: grid;
+  gap: 0.375rem;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.875rem;
+}
+.card-overview li {
+  position: relative;
+  display: grid;
+  grid-template-columns: 8.5rem minmax(0, 1fr);
+  align-items: baseline;
+  gap: 1rem;
+}
+.card-overview strong {
+  overflow: hidden;
+  color: var(--primary);
+  font-weight: 600;
+  text-overflow: ellipsis;
+}
+.card-overview span,
+.overview-more {
+  color: var(--faded);
+}
+.perm-overview li.perm-child strong {
+  padding-left: calc((var(--depth, 1) - 1) * 1rem + 1.125rem);
+}
+.perm-overview li.perm-child::before {
+  content: "";
+  position: absolute;
+  top: 0.05em;
+  left: calc((var(--depth, 1) - 1) * 1rem + 0.25rem);
+  width: 0.5rem;
+  height: 0.55em;
+  border-left: 1.5px solid color-mix(in srgb, var(--primary) 45%, transparent);
+  border-bottom: 1.5px solid color-mix(in srgb, var(--primary) 45%, transparent);
+  border-bottom-left-radius: 0.1875rem;
+}
+
+/* Phones: a direct way down to the history, which otherwise sits a screen and a half below the cards. */
+.jump-actions {
+  display: none;
+}
+@media (max-width: 640px) {
+  .jump-actions {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+    color: var(--primary);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .jump-actions:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+    border-radius: 0.25rem;
+  }
+  /* Thumb-sized targets for the links in each history row. */
+  .where-block a,
+  .where-trx,
+  .where-details {
+    display: inline-flex;
+    align-items: center;
+    min-height: 2.75rem;
+  }
+  .where-details {
+    padding-inline: 0.5rem;
+    font-size: 0.875rem;
+  }
+}

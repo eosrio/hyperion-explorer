@@ -15,7 +15,7 @@ import { describeApiError } from "../../api-errors";
 export class ThemeSelectorComponent {
   readonly ds = inject(DataService);
   private readonly http = inject(HttpClient);
-  readonly selectedTheme = signal("CURRENT_THEME");
+  readonly selectedTheme = signal<string | null>(null);
   readonly loading = signal(false);
   readonly error = signal("");
   private readonly themeSelect = viewChild<MatSelect>("themeSelect");

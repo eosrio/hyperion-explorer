@@ -193,9 +193,52 @@ export class ChainService {
         this.httpClient.post<GetProducersResponse>(this.data.env.hyperionApiUrl + "/v1/chain/get_producers", { json: true, limit: 1000 })
       );
       producers.rows.sort((a, b) => parseFloat(b.total_votes) - parseFloat(a.total_votes));
+      await this.addUnlistedProducers(producers);
       return producers;
     }
   });
+
+  /**
+   * Some nodes (Wire's among them) stop get_producers at the active schedule and ignore lower_bound, so registered
+   * producers beyond it never appear. The system contract's producers table holds all of them: append the active
+   * ones get_producers left out. Any failure keeps the get_producers answer as it was.
+   */
+  private async addUnlistedProducers(producers: GetProducersResponse): Promise<void> {
+    // Only a complete-looking, non-empty answer can be short: paginated or empty answers are left as they are.
+    if (producers.more || !producers.rows?.length) return;
+    const code = this.systemContract();
+    try {
+      const table = await lastValueFrom(
+        this.httpClient.post<{ rows: unknown[] }>(this.data.env.hyperionApiUrl + "/v1/chain/get_table_rows", {
+          code,
+          table: "producers",
+          scope: code,
+          limit: 1000,
+          json: true
+        })
+      );
+      const listed = new Set(producers.rows.map(row => row.owner));
+      for (const raw of table?.rows ?? []) {
+        // Rows may come wrapped as { key, value } (Wire) or plain.
+        const row = (raw && typeof raw === "object" && "value" in raw && "key" in raw ? (raw as { value: unknown }).value : raw) as Partial<ProducerRow>;
+        if (!row || typeof row.owner !== "string" || listed.has(row.owner) || !Number(row.is_active)) continue;
+        listed.add(row.owner);
+        producers.rows.push({
+          owner: row.owner,
+          total_votes: row.total_votes ?? "",
+          producer_key: row.producer_key ?? "",
+          is_active: 1,
+          url: row.url ?? "",
+          unpaid_blocks: row.unpaid_blocks ?? 0,
+          last_claim_time: row.last_claim_time ?? "",
+          location: row.location ?? 0,
+          producer_authority: row.producer_authority
+        });
+      }
+    } catch {
+      // The table is optional: chains with a different system contract simply keep get_producers' list.
+    }
+  }
 
   // Computed signal for the producer rows, sorted by votes
   producers = computed(() => (this.producersResource.hasValue() ? (this.producersResource.value()?.rows ?? []) : []));

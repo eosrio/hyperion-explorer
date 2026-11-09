@@ -1,9 +1,7 @@
 @if (accountService.requestError(); as error) {
   <div class="hr-container">
-    <section class="api-error" role="alert">
-      <p>{{ error.message }}</p>
-      @if (error.retryable) { <button type="button" (click)="retry()">Try again</button> }
-    </section>
+    <app-lookup-error [heading]="error.notFound ? 'No transaction with this ID' : 'Couldn’t load this transaction'" [message]="error.message"
+                      [query]="txID()" [retryable]="error.retryable" (retry)="retry()" />
   </div>
 } @else if (!accountService.loaded()) {
   <div class="hr-container loading-state" role="status">
@@ -13,22 +11,9 @@
 } @else {
   @if (tx().actions && tx().actions.length === 0) {
     <div class="hr-container w-full">
-      <div class="grid grid-cols-1 auto-cols-max gap-5 text-[var(--main-text)] appear">
-        <div class="custom-card w-full">
-          <h1 class="faded">
-            <fa-icon [icon]="icons.solid.faSadTear" style="margin-right: 5px"></fa-icon>
-            Transaction not found
-          </h1>
-          <div>
-            We couldn't find the transaction
-            <strong class="break-word">{{ txID() }}</strong>
-          </div>
-        </div>
-
-      </div>
+      <app-lookup-error class="appear" heading="No transaction with this ID" [query]="txID()"
+                        message="This Hyperion API returned no actions for this ID. Check the ID, or try again if it was sent moments ago." />
     </div>
-    <!--    <div style="height: calc(100vh - 209px)" class="flex flex-column justify-start items-center">-->
-      <!--    </div>-->
   }
 
   @if (tx().actions && tx().actions.length > 0 && accountService.loaded()) {

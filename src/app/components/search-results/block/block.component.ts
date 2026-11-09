@@ -32,12 +32,14 @@ import { DataService } from "../../../services/data.service";
 import { ActDataViewComponent } from "../../act-data-view/act-data-view.component";
 import { BlockService } from "../../../services/block.service";
 import { ChainService } from "../../../services/chain.service";
+import { HttpErrorResponse } from "@angular/common/http";
+import { LookupErrorComponent } from "../../lookup-error/lookup-error.component";
 import { DeltaService } from "../../../services/delta.service";
 import { MatTooltip } from "@angular/material/tooltip";
 
 @Component({
   selector: "app-block",
-  imports: [ChainTimePipe, ActionDataComponent, MorphLinkDirective,
+  imports: [ChainTimePipe, ActionDataComponent, MorphLinkDirective, LookupErrorComponent,
     FinalityHelpComponent,
     CopyIdentifierComponent,
     RouterModule,
@@ -58,6 +60,7 @@ import { MatTooltip } from "@angular/material/tooltip";
 })
 export class BlockComponent implements OnInit, OnDestroy {
   describeApiError = describeApiError;
+  isBadRequest = (error: unknown) => error instanceof HttpErrorResponse && error.status === 400;
   isProtocolProjectionUnavailable = isProtocolProjectionUnavailable;
   readonly isRetryableApiError = isRetryableApiError;
   private route = inject(ActivatedRoute);

@@ -7,14 +7,15 @@
 }
 .contract-page-head h1 {
   margin: 0;
+  color: var(--main-text);
+  font-size: 1.75rem;
+  font-weight: 650;
+  line-height: 1.2;
+}
+.contract-label {
   color: var(--faded);
   font-size: 1.125rem;
   font-weight: 500;
-}
-.contract-code {
-  color: var(--main-text);
-  font-size: 1.625rem;
-  font-weight: 650;
 }
 .contract-account-link {
   color: var(--primary);

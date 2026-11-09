@@ -1,6 +1,8 @@
 import { nameBreaks } from "../../name-breaks";
-import { Component, computed, input, ChangeDetectionStrategy } from "@angular/core";
-import { KeyValuePipe } from "@angular/common";
+import { CdkCopyToClipboard } from "@angular/cdk/clipboard";
+import { MatIcon } from "@angular/material/icon";
+import { Component, computed, input, ChangeDetectionStrategy, signal } from "@angular/core";
+import { KeyValuePipe, NgTemplateOutlet } from "@angular/common";
 import { RouterLink } from "@angular/router";
 import { parseAsset } from "../../action-grammar";
 
@@ -69,7 +71,7 @@ function stringToName(s: string) {
 
 @Component({
   selector: "app-act-data-view",
-  imports: [KeyValuePipe, RouterLink],
+  imports: [KeyValuePipe, RouterLink, NgTemplateOutlet, CdkCopyToClipboard, MatIcon],
   templateUrl: "./act-data-view.component.html",
   changeDetection: ChangeDetectionStrategy.Eager,
   styleUrl: "./act-data-view.component.css"
@@ -78,6 +80,15 @@ export class ActDataViewComponent {
   data = input<any>(null);
   level = input(0);
   fieldName = input<any>(null);
+  /** Table cells and cards: shorten long keys and hashes, and fold nested objects behind a count. */
+  compact = input(false);
+  readonly copied = signal(false);
+
+  /** Middle truncation keeps both ends of a key or hash recognisable: "PUB_K1_5i2T…p5MGNf". */
+  shorten(value: unknown): string {
+    const text = String(value);
+    return text.length > 20 ? `${text.slice(0, 11)}…${text.slice(-6)}` : text;
+  }
 
   rootType = computed(() => {
     return typeof this.data();

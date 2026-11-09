@@ -31,7 +31,7 @@ async function expectContainedFeedback(page: Page) {
 
 test("search validation connects the field, feedback and recovery from a missing account", async ({ page }) => {
   await page.goto("/explorer/account/ssss");
-  await expect(page.getByRole("heading", { name: "Account not found" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "No account named ssss" })).toBeVisible();
   const search = page.getByRole("combobox", { name: searchLabel });
   const feedback = page.locator("#search-error");
   await expect(search).toBeEnabled();

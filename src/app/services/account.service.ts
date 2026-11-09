@@ -678,6 +678,9 @@ export class AccountService {
     }
   });
 
+  /** The search counter stops at the index's skip limit: the real total is at least this. */
+  readonly historyCapped = computed(() => this.totalActionCounter() >= MAX_ES_SKIP);
+
   /** More history exists beyond the rows on screen; the counter stops at the search limit, so keep offering it there. */
   readonly canLoadMore = computed(() => {
     const shown = this.actionsComputed().length;
@@ -751,7 +754,8 @@ export class AccountService {
       if (response && response.executed === false && !Array.isArray(response.actions)) {
         this.requestError.set({
           message: "This Hyperion API has no transaction with this ID. Check the ID, or try again if it was sent moments ago.",
-          retryable: true
+          retryable: true,
+          notFound: true
         });
         this.loaded.set(true);
         return null;

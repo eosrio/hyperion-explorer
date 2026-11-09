@@ -4,14 +4,14 @@ import {lastValueFrom} from "rxjs";
 import {GetTableByScopeResponse, TableData} from "../interfaces";
 import {DataService} from "./data.service";
 
-/** Antelope account names: a-z, 1-5 and dots, at most 13 characters. */
+/** Antelope names: up to 12 of a-z, 1-5 and dot, an optional 13th of a-j or 1-5, never ending in a dot. */
 export function isValidAccountName(name: string): boolean {
-  return /^[a-z1-5.]{1,13}$/.test(name);
+  return /^(?:[a-z1-5.]{1,12}|[a-z1-5.]{12}[a-j1-5])$/.test(name) && !name.endsWith(".");
 }
 
 /** Feedback for input that looks like an account name but cannot be one. */
 export function invalidAccountMessage(name: string): string {
-  return `"${name}" is not a valid account name. Account names use a-z, 1-5 and dots, up to 13 characters.`;
+  return `"${name}" is not a valid account name. Account names use a-z, 1-5 and dots, up to 12 characters, and cannot end with a dot.`;
 }
 
 @Injectable({providedIn: 'root'})
@@ -22,6 +22,11 @@ export class SearchService {
 
   searchType = signal<string>("");
   searchQuery = signal<string>("");
+  /** A failed lookup asks the header to put its query back in the search field for correction. */
+  readonly editRequest = signal<{ text: string; at: number } | null>(null);
+  editQuery(text: string): void {
+    this.editRequest.set({ text, at: Date.now() });
+  }
 
   searchAccountUrl: string;
   wildcardAccountUrl: string;
@@ -119,7 +124,7 @@ export class SearchService {
       return true;
     }
 
-    // account search: Antelope names use a-z, 1-5 and dots, up to 13 characters
+    // account search: see isValidAccountName
     if (isValidAccountName(sValue) && isNaN(Number(sValue))) {
       this.searchType.set("account");
       return true;

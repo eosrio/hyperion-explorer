@@ -111,6 +111,8 @@ test("live actions queue without moving history and unsubscribe on navigation", 
   await expect.poll(async () => (await (await request.get("/__fixture/state")).json()).connectedStreams, { timeout: 10000 }).toBe(1);
   await request.post("/__fixture/stream", { data: { event: "emit" } });
   await expect(page.getByRole("button", { name: /1 new action/i })).toBeVisible();
+  // On phones the header tucks away while scrolled down; a reader scrolls up to reach it.
+  await page.evaluate(() => window.scrollTo(0, 0));
   await page.getByRole("link", { name: "Hyperion Explorer home" }).click();
   await expect.poll(async () => (await (await request.get("/__fixture/state")).json()).connectedStreams).toBe(0);
 });

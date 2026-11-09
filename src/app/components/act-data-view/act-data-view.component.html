@@ -4,6 +4,8 @@
       <a [routerLink]="['/account', data()]" class="kv-link">{{ data() }}</a>
     } @else if (asset(data()); as amount) {
       <span class="kv-amount"><span class="kv-whole">{{ amount.whole }}</span><span class="kv-fraction">{{ amount.fraction }}</span><span class="kv-symbol">{{ amount.symbol }}</span></span>
+    } @else if (compact() && isDense(data())) {
+      <span class="kv-trunc"><span class="kv-dense" [title]="data()">{{ shorten(data()) }}</span><button type="button" class="kv-copy" [cdkCopyToClipboard]="data()" (cdkCopyToClipboardCopied)="copied.set($event)" [attr.aria-label]="copied() ? 'Value copied' : 'Copy value'" [title]="copied() ? 'Copied' : 'Copy'"><mat-icon aria-hidden="true">{{ copied() ? "check" : "content_copy" }}</mat-icon></button></span>
     } @else {
       <span class="kv-text">{{ data() }}</span>
     }
@@ -19,62 +21,74 @@
     @if (data() === null) {
       <span class="kv-literal">null</span>
     } @else {
-      <dl class="kv" [class.kv-nested]="level() > 0">
-        @for (item of data() | keyvalue: keepOrder; track item.key) {
-          @let itemType = getType(item.value);
-          <dt class="kv-key">@for (part of nameBreaks(item.key); track $index) {{{ part }}<wbr />}</dt>
-          <dd class="kv-value">
-            @switch (itemType) {
-              @case ("string") {
-                @if (item.value === "") {
-                  <span class="kv-literal">empty</span>
-                } @else if (isAccountName(item.value, item.key)) {
-                  <a [routerLink]="['/account', item.value]" class="kv-link">{{ item.value }}</a>
-                } @else if (asset(item.value); as amount) {
-                  <span class="kv-amount"><span class="kv-whole">{{ amount.whole }}</span><span class="kv-fraction">{{ amount.fraction }}</span><span class="kv-symbol">{{ amount.symbol }}</span></span>
-                } @else if (symbolCode(item.value, item.key); as code) {
-                  <span class="kv-text">{{ code }}</span><span class="kv-meta"> (raw {{ item.value }})</span>
-                } @else {
-                  <span class="kv-text" [class.kv-dense]="isDense(item.value)">{{ item.value }}</span>
-                }
-              }
-              @case ("number") {
-                @if (symbolCode(item.value, item.key); as code) {
-                  <span class="kv-text">{{ code }}</span><span class="kv-meta"> (raw {{ item.value }})</span>
-                } @else {
-                  <span class="kv-number">{{ item.value }}</span>
-                }
-              }
-              @case ("boolean") {
-                <span class="kv-literal">{{ item.value }}</span>
-              }
-              @case ("object") {
-                @if (item.value === null) {
-                  <span class="kv-literal">null</span>
-                } @else if (Array.isArray(item.value)) {
-                  @if (item.value.length === 0) {
-                    <span class="kv-literal">empty list</span>
-                  } @else {
-                    <span class="kv-meta">{{ item.value.length }} {{ item.value.length === 1 ? "item" : "items" }}</span>
-                    <ol class="kv-list">
-                      @for (arrayItem of item.value; let idx = $index; track idx) {
-                        <li><app-act-data-view [fieldName]="item.key" [data]="arrayItem" [level]="level() + 1" /></li>
-                      }
-                    </ol>
-                  }
-                } @else {
-                  <app-act-data-view [fieldName]="item.key" [data]="item.value" [level]="level() + 1" />
-                }
-              }
-              @default {
-                <span class="kv-text">{{ item.value }}</span>
-              }
-            }
-          </dd>
-        } @empty {
-          <span class="kv-literal">no data</span>
-        }
-      </dl>
+      @if (compact() && level() === 0) {
+        <details class="kv-compact">
+          <summary>{{ Array.isArray(data()) ? data().length + (data().length === 1 ? " item" : " items") : objectKeyCount() + (objectKeyCount() === 1 ? " field" : " fields") }}</summary>
+          <ng-container [ngTemplateOutlet]="fullObject" />
+        </details>
+      } @else {
+        <ng-container [ngTemplateOutlet]="fullObject" />
+      }
     }
   }
 }
+
+<!-- The full key/value list of an object, shared by the plain and the folded (compact) renderings. -->
+<ng-template #fullObject>
+    <dl class="kv" [class.kv-nested]="level() > 0">
+      @for (item of data() | keyvalue: keepOrder; track item.key) {
+        @let itemType = getType(item.value);
+        <dt class="kv-key">@for (part of nameBreaks(item.key); track $index) {{{ part }}<wbr />}</dt>
+        <dd class="kv-value">
+          @switch (itemType) {
+            @case ("string") {
+              @if (item.value === "") {
+                <span class="kv-literal">empty</span>
+              } @else if (isAccountName(item.value, item.key)) {
+                <a [routerLink]="['/account', item.value]" class="kv-link">{{ item.value }}</a>
+              } @else if (asset(item.value); as amount) {
+                <span class="kv-amount"><span class="kv-whole">{{ amount.whole }}</span><span class="kv-fraction">{{ amount.fraction }}</span><span class="kv-symbol">{{ amount.symbol }}</span></span>
+              } @else if (symbolCode(item.value, item.key); as code) {
+                <span class="kv-text">{{ code }}</span><span class="kv-meta"> (raw {{ item.value }})</span>
+              } @else {
+                <span class="kv-text" [class.kv-dense]="isDense(item.value)">{{ item.value }}</span>
+              }
+            }
+            @case ("number") {
+              @if (symbolCode(item.value, item.key); as code) {
+                <span class="kv-text">{{ code }}</span><span class="kv-meta"> (raw {{ item.value }})</span>
+              } @else {
+                <span class="kv-number">{{ item.value }}</span>
+              }
+            }
+            @case ("boolean") {
+              <span class="kv-literal">{{ item.value }}</span>
+            }
+            @case ("object") {
+              @if (item.value === null) {
+                <span class="kv-literal">null</span>
+              } @else if (Array.isArray(item.value)) {
+                @if (item.value.length === 0) {
+                  <span class="kv-literal">empty list</span>
+                } @else {
+                  <span class="kv-meta">{{ item.value.length }} {{ item.value.length === 1 ? "item" : "items" }}</span>
+                  <ol class="kv-list">
+                    @for (arrayItem of item.value; let idx = $index; track idx) {
+                      <li><app-act-data-view [fieldName]="item.key" [data]="arrayItem" [level]="level() + 1" /></li>
+                    }
+                  </ol>
+                }
+              } @else {
+                <app-act-data-view [fieldName]="item.key" [data]="item.value" [level]="level() + 1" />
+              }
+            }
+            @default {
+              <span class="kv-text">{{ item.value }}</span>
+            }
+          }
+        </dd>
+      } @empty {
+        <span class="kv-literal">no data</span>
+      }
+    </dl>
+</ng-template>

@@ -85,6 +85,8 @@ test("identifiers can be copied without truncation and the search shortcut is di
   await expect(page.getByText("152 bytes", { exact: true })).toBeVisible();
   await page.getByText("About finality", { exact: true }).click();
   await expect(page.getByText(/Pending activity can change until its block/)).toBeVisible();
+  // On phones the header tucks away while scrolled down; a reader scrolls up to reach it.
+  await page.evaluate(() => window.scrollTo(0, 0));
   await page.locator("#search-help summary").click();
   await expect(page.locator("#search-help p")).toContainText("Shift");
   await page.keyboard.press("Control+Shift+f");
@@ -101,8 +103,12 @@ test("identifiers can be copied without truncation and the search shortcut is di
 
 test("missing account and unavailable chain/producers retain distinct recovery states", async ({ page, request }) => {
   await page.goto("/explorer/account/zzzz");
-  await expect(page.getByRole("heading", { name: "Account not found", exact: true })).toBeVisible();
-  await expect(page.getByRole("alert")).toContainText("zzzz");
+  await expect(page.getByRole("heading", { name: "No account named zzzz", exact: true })).toBeVisible();
+  // "Edit search" hands the query back to the search field, selected for correction.
+  await page.getByRole("button", { name: "Edit search", exact: true }).click();
+  const search = page.getByRole("combobox", { name: "Account name, block number, transaction ID, or public key" });
+  await expect(search).toHaveValue("zzzz");
+  await expect(search).toBeFocused();
   await request.post("/__fixture/state", { data: { chainUnavailable: true, producersUnavailable: true } });
   const unavailable = page.waitForResponse(response => response.url().includes("/v1/chain/get_info") && response.status() === 503);
   await page.goto("/explorer/");
@@ -128,8 +134,10 @@ test("stream connection and freshness are visible while queued history stays sti
   await request.post("/__fixture/stream", { data: { event: "disconnect" } });
   await expect(page.getByText("Reconnecting", { exact: true })).toBeVisible();
   await expect(page.getByText("Live connection", { exact: true })).toBeVisible();
-  await page.getByRole("switch", { name: "Action live streaming" }).click();
-  await expect(page.getByText("Paused", { exact: true })).toBeVisible();
+  const live = page.getByRole("switch", { name: "Action live streaming" });
+  await live.click();
+  await expect(live).toHaveAttribute("aria-checked", "false");
+  await expect(live).toContainText("OFF");
 });
 
 test("unavailable configured logos fall back to one Hyperion mark", async ({ page }) => {

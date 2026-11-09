@@ -419,3 +419,27 @@
     margin-top: -0.375rem;
   }
 }
+
+/* Phones: the fixed header takes a fifth of the screen, so it steps aside while reading and returns on scroll up. */
+@media (max-width: 640px) {
+  .header-card {
+    transition: transform 220ms cubic-bezier(0.2, 0, 0, 1);
+  }
+  .header-card.header-tucked {
+    transform: translateY(calc(-100% - 1rem));
+  }
+}
+@media (max-width: 640px) and (prefers-reduced-motion: reduce) {
+  .header-card {
+    transition: none;
+  }
+}
+
+@media (max-width: 640px) {
+  /* The provider link keeps its size in the header but gets a thumb-sized tap area. */
+  .provider a {
+    display: inline-block;
+    padding-block: 0.625rem;
+    margin-block: -0.625rem;
+  }
+}

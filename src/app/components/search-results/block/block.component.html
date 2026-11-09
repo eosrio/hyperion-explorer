@@ -7,17 +7,21 @@
 @if (blockService.blockResource.error(); as error) {
   @let requested = blockService.blockNum();
   @let head = chain.headBlockNum();
+  @let label = requested ? (requested | number) : blockService.blockId().slice(0, 12) + "…";
+  @let query = requested ? requested.toString() : blockService.blockId();
   <div class="hr-container">
     @if (requested && head && requested > head) {
       <!-- A number past the head is not an outage: the block simply has not been produced yet. -->
-      <section class="api-error" role="status">
-        <p>Block {{ requested | number }} has not been produced yet. The chain is at block <a [routerLink]="['/block', head]">{{ head | number }}</a>.</p>
-      </section>
+      <app-lookup-error [heading]="'Block ' + label + ' doesn’t exist yet'" [query]="query"
+                        [message]="'The chain has not produced this block. Its latest block is ' + (head | number) + '.'">
+        <p><a class="lookup-link" [routerLink]="['/block', head]">Go to block {{ head | number }}</a></p>
+      </app-lookup-error>
+    } @else if (isBadRequest(error)) {
+      <app-lookup-error [heading]="'No block ' + label" [query]="query"
+                        message="This Hyperion API has no block with this number or ID. Check it, or search for something else." />
     } @else {
-      <section class="api-error" role="alert">
-        <p>{{ describeApiError(error) }}</p>
-        @if (isRetryableApiError(error)) { <button type="button" (click)="retryHistory()">Try again</button> }
-      </section>
+      <app-lookup-error [heading]="'Couldn’t load block ' + label" [message]="describeApiError(error)" [query]="query"
+                        [retryable]="isRetryableApiError(error)" (retry)="retryHistory()" />
     }
   </div>
 } @else if (isLoading) {
@@ -215,11 +219,18 @@
 
         }
         @if (!block.historyUnavailable && deltaService.deltasResource.error(); as error) {
-          <section class="api-error md:col-span-2" role="alert">
-            @if (isProtocolProjectionUnavailable(error)) { <p>This Hyperion API does not serve state deltas for this block yet. The block and transaction details above are unaffected.</p> }
-            @else { <p>{{ describeApiError(error) }}</p> }
-            @if (isRetryableApiError(error)) { <button type="button" (click)="deltaService.reloadCurrentBlock()">Try again</button> }
-          </section>
+          @if (isProtocolProjectionUnavailable(error)) {
+            <!-- Not an outage: this API does not serve deltas yet. A quiet note, not an alert card. -->
+            <p class="capability-note md:col-span-2" role="status">
+              State changes for this block are not served by this Hyperion API yet.
+              <button type="button" class="capability-recheck" (click)="deltaService.reloadCurrentBlock()">Check again</button>
+            </p>
+          } @else {
+            <section class="api-error md:col-span-2" role="alert">
+              <p>{{ describeApiError(error) }}</p>
+              @if (isRetryableApiError(error)) { <button type="button" (click)="deltaService.reloadCurrentBlock()">Try again</button> }
+            </section>
+          }
         } @else if (!block.historyUnavailable && deltaService.deltasResource.isLoading()) {
           <section class="custom-card md:col-span-2" role="status">Loading block state details…</section>
         } @else if (!block.historyUnavailable && deltas) {

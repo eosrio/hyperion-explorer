@@ -151,7 +151,7 @@
 }
 .confirmed-status {
   background: color-mix(in srgb, var(--success) 12%, transparent);
-  color: var(--success);
+  color: color-mix(in srgb, var(--success) 82%, var(--main-text));
 }
 .pending-status {
   background: color-mix(in srgb, var(--pending) 12%, transparent);

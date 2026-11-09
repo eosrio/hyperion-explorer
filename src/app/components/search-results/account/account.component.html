@@ -1,11 +1,9 @@
 <!--LOADER-->
 @if (acServ.accountDataRes.error(); as error) {
+  @let failure = accountLookupError(error, acServ.accountName(), dataService.explorerMetadata()?.chain_name);
   <div class="hr-container">
-    <section class="api-error" role="alert">
-      @if (isApiNotFound(error)) { <h1>Account not found</h1><p>We could not find <strong>{{ acServ.accountName() }}</strong> on {{ dataService.explorerMetadata()?.chain_name }}. Check the account name in search.</p> }
-      @else { <p>{{ describeApiError(error) }}</p> }
-      @if (isRetryableApiError(error)) { <button type="button" (click)="acServ.accountDataRes.reload()">Try again</button> }
-    </section>
+    <app-lookup-error [heading]="failure.heading" [message]="failure.message" [query]="acServ.accountName()"
+                      [retryable]="failure.retryable" (retry)="acServ.accountDataRes.reload()" />
   </div>
 } @else if (acServ.accountDataRes.isLoading()) {
   <div class="hr-container loading-state" role="status">
@@ -23,7 +21,9 @@
       @let account = acServ.accountComputed();
       @let liquidOnly = partialBalance ? account.core_liquid_balance : null;
       @let showBalanceCard = !partialBalance || !!liquidOnly;
-      @let showTokens = !acServ.tokensUnavailable();
+      <!-- An empty core balance must not lead a funded account: the first card then shows what the account holds. -->
+      @let coreEmpty = !partialBalance && acServ.totalBalance() === 0 && acServ.tokensComputed().length > 0;
+      @let showTokens = !acServ.tokensUnavailable() && !coreEmpty;
       @let res = acServ.userResPct();
       @let stakeIncomplete = acServ.fallbackStakeIncomplete();
 
@@ -67,6 +67,7 @@
               <button (click)="openContractsDialog(null, null)" mat-raised-button class="primary-btn">Explore Smart Contract</button>
             }
           }
+          <a class="jump-actions" href="#actions-heading" (click)="jumpToActions($event)">Jump to actions</a>
         </div>
 
         @if (acServ.dataGaps(); as gaps) {
@@ -74,14 +75,14 @@
             <section class="data-gaps span-all" role="status" aria-label="Partial account data">
               <fa-icon [icon]="icons.solid.faCircleInfo" class="data-gaps-icon" aria-hidden="true"></fa-icon>
               <div class="data-gaps-body">
-                <p>
+                <div class="data-gaps-text">
                   <strong>Partial account data.</strong>
                   @if (acServ.projectionUnavailable()) { Core account data comes from the chain. }
-                  Not available here:
-                </p>
-                <ul class="data-gap-list">
-                  @for (gap of gaps; track gap.key) { <li>{{ gap.label }}</li> }
-                </ul>
+                  Not available from this API:
+                  <ul class="data-gap-list">
+                    @for (gap of gaps; track gap.key) { <li>{{ gap.label }}</li> }
+                  </ul>
+                </div>
               </div>
             </section>
           }
@@ -92,6 +93,28 @@
         <div class="custom-card balance-card" id="balance-card">
           @if (partialBalance) {
             <div class="balance-row total-balance"><span>Liquid balance</span><strong>{{ liquidOnly }}</strong></div>
+          } @else if (coreEmpty) {
+            <div class="balance-row total-balance">
+              <h2 class="holdings-title">Holdings</h2>
+              <span class="faded">{{ acServ.tokensComputed().length }} {{ acServ.tokensComputed().length === 1 ? "token" : "tokens" }}</span>
+            </div>
+            <ul class="token-list holdings-list">
+              @for (token of acServ.tokensComputed(); track token.contract + token.symbol) {
+                <li class="token-cell">
+                  <span class="token-amount">
+                    {{ token.amount | number: "1.0-" + (token.precision || 4) }}
+                    @if (chain.topHoldersAvailable.value()) {
+                      <a class="token token-holders-link" [routerLink]="['/top-holders', token.contract, token.symbol]"
+                         [attr.aria-label]="'Top ' + token.symbol + ' holders'" title="Top holders">{{ token.symbol }}</a>
+                    } @else {
+                      <span class="token">{{ token.symbol }}</span>
+                    }
+                  </span>
+                  <a class="faded div-link token-contract" [routerLink]="['/account', token.contract]">{{ token.contract }}</a>
+                </li>
+              }
+            </ul>
+            <p class="core-empty">No {{ systemSymbol }} liquid, staked or refunding.</p>
           } @else {
             <div class="balance-row total-balance">
               <strong class="uppercase">{{ systemSymbol }} balance</strong>
@@ -260,7 +283,14 @@
           @if (!tokensExpansionPanel.expanded && acServ.tokensComputed().length) {
             <ul class="card-overview token-overview">
               @for (token of acServ.tokensComputed().slice(0, 4); track token.contract + token.symbol) {
-                <li><strong>{{ token.symbol }}</strong><span>{{ token.contract }}</span></li>
+                <li>
+                  @if (chain.topHoldersAvailable.value()) {
+                    <a class="token-holders-link" [routerLink]="['/top-holders', token.contract, token.symbol]" [attr.aria-label]="'Top ' + token.symbol + ' holders'"><strong>{{ token.symbol }}</strong></a>
+                  } @else {
+                    <strong>{{ token.symbol }}</strong>
+                  }
+                  <span>{{ token.contract }}</span>
+                </li>
               }
               @if (acServ.tokensComputed().length > 4) { <li class="overview-more">+{{ acServ.tokensComputed().length - 4 }} more</li> }
             </ul>
@@ -386,7 +416,8 @@
                 <span class="toggle-track" [class.toggle-track-on]="acServ.streamClientStatus()"><span class="toggle-indicator" [class.toggle-indicator-on]="acServ.streamClientStatus()"></span></span>
                 <span>{{ acServ.streamConnecting() ? 'Connecting' : acServ.streamClientStatus() ? 'ON' : 'OFF' }}</span>
               </button>
-              <span class="stream-status" role="status">{{ acServ.streamState() }}</span>
+              <!-- The switch already says OFF; the status speaks only when it adds something. -->
+              <span class="stream-status" role="status">{{ acServ.streamState() === "Paused" ? "" : acServ.streamState() }}</span>
             </div>
             }
             <div class="lib">
@@ -475,7 +506,7 @@
               @if (acServ.filter() && acServ.actionRes.hasValue() && !shownActions) {
                 <p class="history-empty">This account has no “{{ acServ.filter()?.name }}” actions. Clear the filter to see its full history.</p>
               } @else if (shownActions) {
-                <p>Showing <strong>{{ shownActions | number }}</strong> of <strong>{{ acServ.totalActionCounter() | number }}</strong> {{ acServ.totalActionCounter() === 1 ? "action" : "actions" }}@if (acServ.filter()) {<span> · {{ acServ.filter()?.name }}</span>}</p>
+                <p>Showing <strong>{{ shownActions | number }}</strong> of <strong>{{ acServ.totalActionCounter() | number }}@if (acServ.historyCapped()) {+}</strong> {{ acServ.totalActionCounter() === 1 ? "action" : "actions" }}@if (acServ.filter()) {<span> · {{ acServ.filter()?.name }}</span>}</p>
               }
             </div>
 
@@ -557,10 +588,8 @@
       </div>
     } @else {
       <!--      NO ACCOUNT-->
-      <section class="api-error appear" role="alert">
-        <h1>Account not found</h1>
-        <p>We could not find <strong>{{ acServ.accountName() }}</strong> on {{ dataService.explorerMetadata()?.chain_name }}. Check the account name in search.</p>
-      </section>
+      @let missing = accountLookupError(null, acServ.accountName(), dataService.explorerMetadata()?.chain_name);
+      <app-lookup-error class="appear" [heading]="missing.heading" [message]="missing.message" [query]="acServ.accountName()" />
     }
   </div>
 }

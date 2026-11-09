@@ -78,7 +78,8 @@
   gap: 0.375rem 0.75rem;
   min-width: 0;
 }
-.data-gaps p {
+.data-gaps p,
+.data-gaps-text {
   margin: 0;
   color: var(--main-text);
 }
@@ -89,22 +90,25 @@
 .data-gaps-icon {
   color: var(--primary);
 }
+/* The missing parts read as a sentence, not as chips that look like buttons. */
 .data-gap-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.375rem;
+  display: inline;
   margin: 0;
   padding: 0;
   list-style: none;
 }
 .data-gap-list li {
-  padding: 0.0625rem 0.625rem;
-  border: 1px solid var(--line-divider);
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--card-bg) 75%, transparent);
+  display: inline;
   color: var(--main-text);
-  font-size: 0.8125rem;
-  white-space: nowrap;
+  font-weight: 600;
+}
+.data-gap-list li:not(:last-child)::after {
+  content: ", ";
+  font-weight: 400;
+}
+.data-gap-list li:last-child::after {
+  content: ".";
+  font-weight: 400;
 }
 
 .balance-row {
@@ -121,6 +125,20 @@
 }
 .balance-row.total-balance {
   font-size: 1rem;
+}
+.holdings-title {
+  margin: 0;
+  font-size: inherit;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.holdings-list {
+  margin-top: 0.25rem;
+}
+.core-empty {
+  margin: 0.75rem 0 0;
+  color: var(--faded);
+  font-size: 0.8125rem;
 }
 .creation-info {
   margin-top: 0.625rem;
